@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Template — TemplateHub</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0a0a1e; color: #fff; }
+
+    nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 60px; background: #0d0d2b; border-bottom: 1px solid #1e1e4a;
+    }
+    .logo {
+      font-size: 24px; font-weight: 800;
+      background: linear-gradient(90deg, #64c8ff, #b464ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-decoration: none;
+    }
+    .nav-links a { color: #c8d2dc; text-decoration: none; margin-left: 30px; font-size: 14px; }
+    .nav-links a:hover { color: #64c8ff; }
+    .nav-btn {
+      background: linear-gradient(90deg, #64c8ff, #b464ff);
+      color: #0a0a1e !important; padding: 8px 20px;
+      border-radius: 20px; font-weight: 700 !important;
+    }
+
+    .breadcrumb { padding: 16px 60px; font-size: 13px; color: #8899aa; }
+    .breadcrumb a { color: #64c8ff; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    /* DESIGN SWITCHER */
+    .design-switcher {
+      display: flex; gap: 12px; padding: 0 60px 24px;
+      align-items: center;
+    }
+    .switcher-label { font-size: 13px; color: #8899aa; margin-right: 4px; }
+    .switcher-btn {
+      background: #14193a; border: 1px solid #1e2a5a;
+      color: #c8d2dc; padding: 8px 20px; border-radius: 20px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; text-decoration: none;
+    }
+    .switcher-btn:hover { border-color: #64c8ff; color: #64c8ff; }
+    .switcher-btn.active { border-color: #d4af37; color: #d4af37; background: rgba(212,175,55,0.1); }
+
+    .product-layout {
+      display: grid; grid-template-columns: 1fr 380px;
+      gap: 40px; padding: 0 60px 60px; max-width: 1400px; margin: 0 auto;
+    }
+
+    .main-preview {
+      width: 100%; border-radius: 12px; border: 2px solid #1e2a5a;
+      overflow: hidden; background: #14193a; margin-bottom: 16px; position: relative;
+    }
+    .main-preview img { width: 100%; display: block; }
+    .slide-counter {
+      position: absolute; bottom: 12px; right: 12px;
+      background: rgba(0,0,0,0.7); color: #c8d2dc;
+      font-size: 12px; padding: 4px 10px; border-radius: 12px;
+    }
+
+    .thumbnails, .thumb-row2 {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px;
+    }
+    .thumbnails img, .thumb-row2 img {
+      width: 100%; border-radius: 6px; border: 2px solid #1e2a5a;
+      cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+      aspect-ratio: 16/9; object-fit: cover;
+    }
+    .thumbnails img:hover, .thumb-row2 img:hover { border-color: #64c8ff; transform: scale(1.04); }
+    .thumbnails img.active, .thumb-row2 img.active { border-color: #d4af37; }
+
+    .info-panel { position: sticky; top: 20px; height: fit-content; }
+
+    .template-badge {
+      display: inline-block; background: rgba(100,200,255,0.1);
+      border: 1px solid #64c8ff; color: #64c8ff;
+      padding: 4px 14px; border-radius: 12px; font-size: 12px; margin-bottom: 14px;
+    }
+    .template-title { font-size: 28px; font-weight: 900; line-height: 1.2; margin-bottom: 12px; }
+    .template-title span {
+      background: linear-gradient(90deg, #64c8ff, #b464ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .template-desc { color: #c8d2dc; font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+
+    .specs { background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    .spec-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid #1e2a5a; font-size: 14px;
+    }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-label { color: #8899aa; }
+    .spec-value { color: #fff; font-weight: 600; }
+    .spec-value.accent { color: #64c8ff; }
+
+    .price-box {
+      background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px;
+      padding: 24px; margin-bottom: 16px; text-align: center;
+    }
+    .price-tag {
+      font-size: 42px; font-weight: 900;
+      background: linear-gradient(90deg, #64c8ff, #b464ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .price-sub { color: #8899aa; font-size: 13px; margin-top: 4px; }
+
+    .size-section { margin-bottom: 16px; }
+    .size-label { font-size: 13px; color: #8899aa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .size-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .size-btn {
+      background: #14193a; border: 1px solid #1e2a5a; color: #c8d2dc;
+      padding: 8px 4px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; text-align: center; transition: all 0.2s;
+    }
+    .size-btn:hover { border-color: #64c8ff; color: #64c8ff; }
+    .size-btn.active { border-color: #d4af37; color: #d4af37; background: rgba(212,175,55,0.1); }
+
+    .btn-download {
+      width: 100%; background: linear-gradient(90deg, #64c8ff, #b464ff);
+      color: #0a0a1e; border: none; padding: 16px; border-radius: 12px;
+      font-size: 16px; font-weight: 800; cursor: pointer; transition: opacity 0.2s; margin-bottom: 10px;
+    }
+    .btn-download:hover { opacity: 0.85; }
+    .btn-preview {
+      width: 100%; background: transparent; border: 1px solid #64c8ff; color: #64c8ff;
+      padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-preview:hover { background: rgba(100,200,255,0.1); }
+
+    .trust-badges { display: flex; justify-content: center; gap: 16px; margin-top: 16px; }
+    .badge { font-size: 12px; color: #8899aa; display: flex; align-items: center; gap: 5px; }
+    .badge span { color: #50dc96; }
+
+    .includes {
+      background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px;
+      padding: 20px; margin-top: 16px;
+    }
+    .includes h4 { font-size: 14px; color: #8899aa; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .include-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #c8d2dc; margin-bottom: 10px; }
+    .include-item span { color: #50dc96; font-size: 16px; }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #14193a; border: 1px solid #64c8ff; border-radius: 20px; padding: 40px; width: 420px; text-align: center; }
+    .modal h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .modal p { color: #8899aa; font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+    .modal input {
+      width: 100%; background: #0a0a1e; border: 1px solid #1e2a5a; color: #fff;
+      padding: 14px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 12px; outline: none;
+    }
+    .modal input:focus { border-color: #64c8ff; }
+    .modal-btn {
+      width: 100%; background: linear-gradient(90deg, #64c8ff, #b464ff);
+      color: #0a0a1e; border: none; padding: 14px; border-radius: 10px;
+      font-size: 15px; font-weight: 800; cursor: pointer; margin-bottom: 10px;
+    }
+    .modal-close { color: #8899aa; font-size: 13px; cursor: pointer; background: none; border: none; }
+    .modal-close:hover { color: #fff; }
+
+    footer {
+      background: #0d0d2b; border-top: 1px solid #1e1e4a; padding: 30px 60px;
+      display: flex; justify-content: space-between; align-items: center; margin-top: 60px;
+    }
+    .footer-logo {
+      font-size: 18px; font-weight: 800;
+      background: linear-gradient(90deg, #64c8ff, #b464ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    footer p { color: #8899aa; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">TemplateHub</a>
+  <div class="nav-links">
+    <a href="index.html">Browse</a>
+    <a href="#">Pitch Decks</a>
+    <a href="#">Resumes</a>
+    <a href="#">Business</a>
+    <a href="#" class="nav-btn">Sell Your Designs</a>
+  </div>
+</nav>
+
+<div class="breadcrumb">
+  <a href="index.html">Home</a> &nbsp;›&nbsp;
+  <a href="#">Pitch Decks</a> &nbsp;›&nbsp;
+  <span id="breadcrumbName">Template</span>
+</div>
+
+<!-- DESIGN SWITCHER -->
+<div class="design-switcher">
+  <span class="switcher-label">Design:</span>
+  <a href="?design=ai_startup" class="switcher-btn" id="btn_ai_startup">AI Startup Pitch Deck</a>
+  <a href="?design=wardiere" class="switcher-btn" id="btn_wardiere">Wardiere Platform Pitch Deck</a>
+  <a href="?design=deck3" class="switcher-btn" id="btn_deck3">Hiring Platform Pitch Deck</a>
+  <a href="?design=deck4" class="switcher-btn" id="btn_deck4">Modern Bold Pitch Deck</a>
+</div>
+
+<div class="product-layout">
+
+  <div class="preview-section">
+    <div class="main-preview">
+      <img id="mainImg" src="" alt="Slide Preview"/>
+      <div class="slide-counter" id="slideCounter">Slide 1 of 12</div>
+    </div>
+    <!-- Size preview badge -->
+    <div id="sizeBadge" style="display:none; margin-bottom:10px; padding:8px 14px; background:rgba(100,200,255,0.08); border:1px solid #1e2a5a; border-radius:8px; font-size:12px; color:#8899aa; text-align:center;">
+      🖼️ Design preview shown in <strong style="color:#64c8ff;">16:9</strong> — Selected size: <strong id="sizeBadgeLabel" style="color:#d4af37;"></strong> will be downloaded
+    </div>
+    <div class="thumbnails" id="thumbRow1"></div>
+    <div class="thumb-row2" id="thumbRow2"></div>
+  </div>
+
+  <div class="info-panel">
+    <div class="template-badge" id="badgeText">📊 Pitch Deck Template</div>
+    <div class="template-title" id="templateTitle"></div>
+    <div class="template-desc" id="templateDesc"></div>
+
+    <div class="specs">
+      <div class="spec-row"><span class="spec-label">Slides</span><span class="spec-value accent" id="specSlides">12 Slides</span></div>
+      <div class="spec-row"><span class="spec-label">Format</span><span class="spec-value">.PPTX (PowerPoint)</span></div>
+      <div class="spec-row"><span class="spec-label">Aspect Ratio</span><span class="spec-value">16:9 Widescreen</span></div>
+      <div class="spec-row"><span class="spec-label">Style</span><span class="spec-value accent" id="specStyle"></span></div>
+      <div class="spec-row"><span class="spec-label">Category</span><span class="spec-value" id="specCategory"></span></div>
+      <div class="spec-row"><span class="spec-label">License</span><span class="spec-value">Personal &amp; Commercial</span></div>
+    </div>
+
+    <div class="size-section">
+      <div class="size-label">Choose Format / Size</div>
+      <div class="size-grid" id="sizeGrid"></div>
+    </div>
+
+    <div class="price-box">
+      <div class="price-tag">FREE</div>
+      <div class="price-sub">Enter email to download instantly</div>
+    </div>
+
+    <button class="btn-download" id="btnDownload" onclick="openModal()">⬇ Download Free Template</button>
+    <button class="btn-preview" onclick="setSlide(document.querySelector('.thumbnails img'),1)">👁 Browse All Slides</button>
+
+    <div class="trust-badges">
+      <div class="badge"><span>✓</span> Safe Download</div>
+      <div class="badge"><span>✓</span> No Signup</div>
+      <div class="badge"><span>✓</span> Instant Access</div>
+    </div>
+
+    <div class="includes">
+      <h4>What's Included</h4>
+      <div class="include-item"><span>✓</span> 12 fully designed slides</div>
+      <div class="include-item"><span>✓</span> Editable text &amp; colors</div>
+      <div class="include-item"><span>✓</span> Custom fonts &amp; icons</div>
+      <div class="include-item"><span>✓</span> Widescreen 16:9 format</div>
+      <div class="include-item"><span>✓</span> Works in PowerPoint &amp; Google Slides</div>
+      <div class="include-item"><span>✓</span> License file included</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div style="font-size:48px; margin-bottom:16px;">📥</div>
+    <h2>Get Your Free Template</h2>
+    <p id="modalDesc">Enter your email to download instantly. No spam. No subscription.</p>
+    <input type="email" id="emailInput" placeholder="your@email.com"/>
+    <button class="modal-btn" onclick="handleDownload()">Download Now — It's Free</button><br/>
+    <button class="modal-close" onclick="closeModal()">No thanks, go back</button>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">TemplateHub</div>
+  <p>© 2026 TemplateHub. All rights reserved.</p>
+  <p>Built for designers. Made for everyone.</p>
+</footer>
+
+<script>
+// ── DESIGN DATA ──────────────────────────────────────────────────────────────
+var designs = {
+  ai_startup: {
+    name: 'AI Startup Pitch Deck',
+    titleHTML: 'AI Startup<br/><span>Pitch Deck</span>',
+    desc: 'A professional 12-slide investor pitch deck for AI startups. Covers problem, solution, market size, business model, traction, competition, financials, team and funding ask. Fully editable in Microsoft PowerPoint.',
+    style: 'Dark / Gold Accents',
+    category: 'AI / Tech Startup',
+    slideCount: 12,
+    slideBase: '../designs/pitch_decks/slide sets/slides set 1/slides set (16 x 9)/slide_',
+    slideTitles: ['Cover','Problem','Solution','Product','Market','Business Model','Traction','Competition','Go To Market','Financials','Team','The Ask'],
+    sizes: [
+      { label: '16x9', sub: 'Standard',  folder: 'slides set 1',               file: 'template.pptx' },
+      { label: '4x3',  sub: 'Projector', folder: 'slides set 1 (4x3)',          file: 'template_4x3.pptx' },
+      { label: 'A4',   sub: 'Portrait',  folder: 'slides set 1 (A4 Portrait)',  file: 'template_A4_Portrait.pptx' },
+      { label: 'A4',   sub: 'Landscape', folder: 'slides set 1 (A4 Landscape)', file: 'template_A4_Landscape.pptx' },
+      { label: '1x1',  sub: 'Instagram', folder: 'slides set 1 (Square)',       file: 'template_Square.pptx' },
+      { label: 'LI',   sub: 'LinkedIn',  folder: 'slides set 1 (LinkedIn)',     file: 'template_LinkedIn.pptx' },
+      { label: '9x16', sub: 'Stories',   folder: 'slides set 1 (Mobile 9x16)', file: 'template_Mobile_9x16.pptx' }
+    ],
+    basePath: '../designs/pitch_decks/slide sets/slides set 1/'
+  },
+  wardiere: {
+    name: 'Wardiere Platform Pitch Deck',
+    titleHTML: 'Wardiere<br/><span>Platform Pitch Deck</span>',
+    desc: 'A clean, minimal 12-slide pitch deck with bold typography and white/dark alternating slides. Perfect for SaaS platforms, tech startups, and modern businesses. Fully editable in Microsoft PowerPoint.',
+    style: 'Clean Minimal',
+    category: 'SaaS / Platform',
+    slideCount: 12,
+    slideBase: '../designs/pitch_decks/slide sets/slides set 2/slides set 2(16x9)/slide_',
+    slideTitles: ['Cover','About','Problem','Solution','Product','Market','Business Model','Traction','Team','Financials','Roadmap','The Ask'],
+    sizes: [
+      { label: '16x9', sub: 'Standard',  folder: 'slides set 2(16x9)',               file: 'template_wardiere_new.pptx' },
+      { label: '4x3',  sub: 'Projector', folder: 'slides set 2(4x3)',                file: 'template_wardiere_4x3.pptx' },
+      { label: 'A4',   sub: 'Portrait',  folder: 'slides set 2(A4 Portrait)',        file: 'template_wardiere_A4_Portrait.pptx' },
+      { label: 'A4',   sub: 'Landscape', folder: 'slides set 2(A4 Landscape)',       file: 'template_wardiere_A4_Landscape.pptx' },
+      { label: '1x1',  sub: 'Instagram', folder: 'slides set 2(Square)',             file: 'template_wardiere_Square.pptx' },
+      { label: 'LI',   sub: 'LinkedIn',  folder: 'slides set 2(LinkedIn)',           file: 'template_wardiere_LinkedIn.pptx' },
+      { label: '9x16', sub: 'Stories',   folder: 'slides set 2(Mobile 9x16)',        file: 'template_wardiere_Mobile_9x16.pptx' }
+    ],
+    basePath: '../designs/pitch_decks/slide sets/slides set 2/'
+  },
+  deck3: {
+    name: 'Hiring Platform Pitch Deck',
+    titleHTML: 'Hiring Platform<br/><span>Pitch Deck</span>',
+    desc: 'A modern 12-slide pitch deck for HR tech startups and hiring platforms. Warm off-white background with bold orange accents — clean, credible, and investor-ready. Covers all essential sections from problem to call to action.',
+    style: 'Warm Off-White / Orange',
+    category: 'HR Tech / Hiring',
+    slideCount: 12,
+    slideBase: '../designs/pitch_decks/slide sets/slides set 3/slides set 3(16x9)/slide_',
+    slideTitles: ['Cover','Table of Contents','The Problem','Solution','Product Overview','Market Size','How It Works','Target Audience','Competitors','Roadmap','Team','Call to Action'],
+    sizes: [
+      { label: '16x9', sub: 'Standard', folder: 'slides set 3(16x9)', file: 'template_deck3.pptx' }
+    ],
+    basePath: '../designs/pitch_decks/slide sets/slides set 3/'
+  },
+  deck4: {
+    name: 'Modern Bold Pitch Deck',
+    titleHTML: 'Modern Bold<br/><span>Pitch Deck</span>',
+    desc: 'A high-impact 15-slide pitch deck with bold typography and striking lime yellow-green + cobalt blue color scheme. Designed to grab attention. Features grid-line background details and yellow highlight bars on key headings. Perfect for tech startups and bold brands.',
+    style: 'Yellow-Green + Cobalt Blue',
+    category: 'Tech / SaaS / Startup',
+    slideCount: 15,
+    slideBase: '../designs/pitch_decks/slide sets/slides set 4/slides set 4(16x9)/slide_',
+    slideTitles: ['Cover','Executive Summary','Problem','Solution','Product','Market Size','Business Model','Traction','Competitors','Team','Roadmap','Financials','The Ask','Thank You','Appendix'],
+    sizes: [
+      { label: '16x9', sub: 'Standard', folder: 'slides set 4(16x9)', file: 'template_deck4_v5.pptx' }
+    ],
+    basePath: '../designs/pitch_decks/slide sets/slides set 4/'
+  }
+};
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+var currentDesign = 'ai_startup';
+var selectedFolder = '';
+var selectedFile   = '';
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+(function init() {
+  var params = new URLSearchParams(window.location.search);
+  var d = params.get('design');
+  if (d && designs[d]) currentDesign = d;
+  loadDesign(currentDesign);
+})();
+
+function loadDesign(key) {
+  var d = designs[key];
+  currentDesign = key;
+
+  // Switcher highlight
+  document.querySelectorAll('.switcher-btn').forEach(function(b) { b.classList.remove('active'); });
+  var activeBtn = document.getElementById('btn_' + key);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // Breadcrumb + page title
+  document.getElementById('breadcrumbName').textContent = d.name;
+  document.title = d.name + ' — TemplateHub';
+
+  // Info panel
+  document.getElementById('templateTitle').innerHTML = d.titleHTML;
+  document.getElementById('templateDesc').textContent = d.desc;
+  document.getElementById('specStyle').textContent = d.style;
+  document.getElementById('specCategory').textContent = d.category;
+  document.getElementById('specSlides').textContent = d.slideCount + ' Slides';
+  document.getElementById('modalDesc').textContent = 'Enter your email to download the ' + d.name + ' instantly. No spam.';
+
+  // Default size = first
+  selectedFolder = d.sizes[0].folder;
+  selectedFile   = d.sizes[0].file;
+
+  // Size buttons
+  var grid = document.getElementById('sizeGrid');
+  grid.innerHTML = '';
+  d.sizes.forEach(function(s, i) {
+    var btn = document.createElement('button');
+    btn.className = 'size-btn' + (i === 0 ? ' active' : '');
+    btn.innerHTML = s.label + '<br/><span style="font-size:10px;color:#8899aa">' + s.sub + '</span>';
+    btn.onclick = (function(ss) {
+      return function() { selectSize(this, ss.folder, ss.file); };
+    })(s);
+    grid.appendChild(btn);
+  });
+  // ZIP bundle button
+  var zip = document.createElement('button');
+  zip.className = 'size-btn';
+  zip.style.borderStyle = 'dashed';
+  zip.style.color = '#8899aa';
+  zip.innerHTML = 'All<br/><span style="font-size:10px">ZIP Bundle</span>';
+  grid.appendChild(zip);
+
+  // Build thumbnails
+  buildThumbnails(d);
+
+  // Reset download button
+  var btn = document.getElementById('btnDownload');
+  btn.textContent = '⬇ Download Free Template';
+  btn.style.background = '';
+
+  // Reset size badge
+  document.getElementById('sizeBadge').style.display = 'none';
+}
+
+function buildThumbnails(d) {
+  var row1 = document.getElementById('thumbRow1');
+  var row2 = document.getElementById('thumbRow2');
+  row1.innerHTML = '';
+  row2.innerHTML = '';
+
+  for (var i = 1; i <= d.slideCount; i++) {
+    var img = document.createElement('img');
+    img.src = d.slideBase + (i < 10 ? '0' + i : i) + '.png';
+    img.title = 'Slide ' + i + ' — ' + (d.slideTitles[i-1] || '');
+    if (i === 1) img.classList.add('active');
+    img.onclick = (function(el, num) {
+      return function() { setSlide(el, num); };
+    })(img, i);
+    (i <= 6 ? row1 : row2).appendChild(img);
+  }
+
+  // Set main image
+  document.getElementById('mainImg').src = d.slideBase + '01.png';
+  document.getElementById('slideCounter').textContent = 'Slide 1 of ' + d.slideCount;
+}
+
+// ── FUNCTIONS ─────────────────────────────────────────────────────────────────
+function selectSize(el, folder, file) {
+  selectedFolder = folder;
+  selectedFile   = file;
+  document.querySelectorAll('.size-btn').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+
+  // Show size badge if not 16x9 standard
+  var label = el.querySelector('span') ? el.textContent.replace(el.querySelector('span').textContent,'').trim() : el.textContent.trim();
+  var sub   = el.querySelector('span') ? el.querySelector('span').textContent.trim() : '';
+  var fullLabel = label + (sub ? ' (' + sub + ')' : '');
+  var badge = document.getElementById('sizeBadge');
+  var isStandard = folder.indexOf('16x9') !== -1 || folder.indexOf('16 x 9') !== -1;
+  if (isStandard) {
+    badge.style.display = 'none';
+  } else {
+    document.getElementById('sizeBadgeLabel').textContent = fullLabel;
+    badge.style.display = 'block';
+  }
+}
+
+function setSlide(el, num) {
+  document.getElementById('mainImg').src = el.src;
+  document.getElementById('slideCounter').textContent = 'Slide ' + num + ' of ' + designs[currentDesign].slideCount;
+  document.querySelectorAll('.thumbnails img, .thumb-row2 img').forEach(function(i) { i.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('emailInput').focus();
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function handleDownload() {
+  var email = document.getElementById('emailInput').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('emailInput').style.borderColor = '#ff4444';
+    document.getElementById('emailInput').placeholder = 'Please enter a valid email';
+    return;
+  }
+  console.log('Email collected:', email);
+  closeModal();
+  var d = designs[currentDesign];
+  var link = document.createElement('a');
+  link.href = d.basePath + selectedFolder + '/' + selectedFile;
+  link.download = d.name.replace(/ /g,'_') + '_' + selectedFolder + '_TemplateHub.pptx';
+  link.click();
+  var btn = document.getElementById('btnDownload');
+  btn.textContent = '✓ Download Started!';
+  btn.style.background = '#50dc96';
+}
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+
+</body>
+</html>

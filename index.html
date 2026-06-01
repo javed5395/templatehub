@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TemplateHub — One Platform. Every Tool. Every Language.</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0a0a1e; color: #ffffff; }
+
+    /* NAVBAR */
+    nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 60px; background: #0d0d2b; border-bottom: 1px solid #1e1e4a;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-size: 24px; font-weight: 800; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-links a { color: #c8d2dc; text-decoration: none; margin-left: 28px; font-size: 13px; transition: color 0.2s; }
+    .nav-links a:hover { color: #64c8ff; }
+    .nav-btn { background: linear-gradient(90deg, #64c8ff, #b464ff); color: #0a0a1e !important; padding: 7px 18px; border-radius: 20px; font-weight: 700 !important; }
+
+    /* HERO */
+    .hero { text-align: center; padding: 90px 20px 70px; background: radial-gradient(ellipse at top, #1a1a4a 0%, #0a0a1e 70%); }
+    .hero-tag { display: inline-block; background: rgba(100,200,255,0.1); border: 1px solid #64c8ff; color: #64c8ff; padding: 6px 18px; border-radius: 20px; font-size: 13px; margin-bottom: 24px; }
+    .hero h1 { font-size: 56px; font-weight: 900; line-height: 1.1; margin-bottom: 20px; }
+    .hero h1 span { background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 18px; color: #c8d2dc; max-width: 620px; margin: 0 auto 36px; line-height: 1.7; }
+    .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: linear-gradient(90deg, #64c8ff, #b464ff); color: #0a0a1e; padding: 14px 34px; border-radius: 30px; font-size: 15px; font-weight: 700; text-decoration: none; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary { border: 1px solid #64c8ff; color: #64c8ff; padding: 14px 34px; border-radius: 30px; font-size: 15px; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+    .btn-secondary:hover { background: rgba(100,200,255,0.1); }
+
+    /* STATS */
+    .stats { display: flex; justify-content: center; gap: 50px; padding: 40px 20px; background: #0d0d2b; border-top: 1px solid #1e1e4a; border-bottom: 1px solid #1e1e4a; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat-num { font-size: 34px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-lbl { font-size: 12px; color: #8899aa; margin-top: 4px; }
+
+    /* SECTIONS */
+    .section { padding: 70px 60px; }
+    .section-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+    .section-sub { color: #8899aa; font-size: 15px; margin-bottom: 40px; }
+
+    /* PRODUCT GRID (templates/tools) */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+
+    /* CATEGORY CARDS */
+    .cat-card { background: #14193a; border: 1px solid #1e2a5a; border-radius: 16px; padding: 30px 26px; cursor: pointer; transition: border-color 0.2s, transform 0.2s; text-decoration: none; color: inherit; display: block; }
+    .cat-card:hover { border-color: #64c8ff; transform: translateY(-4px); }
+    .cat-icon { font-size: 38px; margin-bottom: 14px; }
+    .cat-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .cat-desc { font-size: 13px; color: #8899aa; line-height: 1.6; margin-bottom: 14px; }
+    .cat-count { font-size: 13px; color: #64c8ff; font-weight: 600; }
+    .cat-badge { display: inline-block; background: rgba(180,100,255,0.15); border: 1px solid #b464ff; color: #b464ff; font-size: 11px; padding: 2px 10px; border-radius: 10px; margin-bottom: 10px; font-weight: 600; }
+    .cat-badge.green { background: rgba(80,220,150,0.1); border-color: #50dc96; color: #50dc96; }
+    .cat-badge.gold { background: rgba(212,175,55,0.1); border-color: #d4af37; color: #d4af37; }
+
+    /* TOOL CARDS */
+    .tool-card { background: #14193a; border: 1px solid #1e2a5a; border-radius: 16px; padding: 30px 26px; transition: border-color 0.2s, transform 0.2s; }
+    .tool-card:hover { border-color: #50dc96; transform: translateY(-4px); }
+    .tool-icon { font-size: 38px; margin-bottom: 14px; }
+    .tool-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .tool-desc { font-size: 13px; color: #8899aa; line-height: 1.6; margin-bottom: 18px; }
+    .tool-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .tag { font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 600; }
+    .tag-free { background: rgba(80,220,150,0.1); color: #50dc96; border: 1px solid #50dc96; }
+    .tag-paid { background: rgba(100,200,255,0.1); color: #64c8ff; border: 1px solid #64c8ff; }
+    .tag-soon { background: rgba(212,175,55,0.1); color: #d4af37; border: 1px solid #d4af37; }
+    .btn-tool { display: inline-block; background: linear-gradient(90deg, #50dc96, #64c8ff); color: #0a0a1e; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; }
+
+    /* TEMPLATE CARDS */
+    .template-card { background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+    .template-card:hover { border-color: #b464ff; transform: translateY(-4px); }
+    .template-preview { height: 150px; display: flex; align-items: center; justify-content: center; font-size: 44px; }
+    .template-info { padding: 14px; }
+    .template-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .template-type { font-size: 11px; color: #8899aa; margin-bottom: 10px; }
+    .template-footer { display: flex; justify-content: space-between; align-items: center; }
+    .template-price { font-size: 14px; font-weight: 800; color: #64c8ff; }
+    .btn-download { background: linear-gradient(90deg, #64c8ff, #b464ff); color: #0a0a1e; border: none; padding: 5px 13px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; line-height: 1.6; }
+
+    /* AI DIRECTORY CARDS */
+    .ai-card { background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px; padding: 20px; transition: border-color 0.2s, transform 0.2s; }
+    .ai-card:hover { border-color: #64c8ff; transform: translateY(-3px); }
+    .ai-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .ai-logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .ai-name { font-size: 15px; font-weight: 700; }
+    .ai-cat { font-size: 11px; color: #8899aa; }
+    .ai-desc { font-size: 12px; color: #c8d2dc; line-height: 1.5; margin-bottom: 12px; }
+    .ai-footer { display: flex; justify-content: space-between; align-items: center; }
+    .ai-price { font-size: 12px; color: #50dc96; font-weight: 600; }
+    .ai-link { font-size: 12px; color: #64c8ff; text-decoration: none; font-weight: 600; }
+    .ai-link:hover { text-decoration: underline; }
+
+    /* LANGUAGE SECTION */
+    .lang-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .lang-card { background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px; padding: 20px; text-align: center; transition: border-color 0.2s, transform 0.2s; cursor: pointer; }
+    .lang-card:hover { border-color: #d4af37; transform: translateY(-3px); }
+    .lang-flag { font-size: 32px; margin-bottom: 10px; }
+    .lang-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .lang-count { font-size: 12px; color: #8899aa; }
+
+    /* JOB BOARD */
+    .job-card { background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.2s; }
+    .job-card:hover { border-color: #64c8ff; }
+    .job-left { flex: 1; }
+    .job-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .job-meta { font-size: 12px; color: #8899aa; display: flex; gap: 16px; flex-wrap: wrap; }
+    .job-tag { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-right: 6px; }
+    .job-tag-remote { background: rgba(80,220,150,0.1); color: #50dc96; border: 1px solid #50dc96; }
+    .job-tag-type { background: rgba(100,200,255,0.1); color: #64c8ff; border: 1px solid #64c8ff; }
+    .job-salary { font-size: 14px; font-weight: 700; color: #64c8ff; white-space: nowrap; margin-left: 20px; }
+    .btn-apply { background: linear-gradient(90deg, #64c8ff, #b464ff); color: #0a0a1e; border: none; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; margin-left: 16px; white-space: nowrap; }
+
+    /* DESIGNER BANNER */
+    .designer-banner { margin: 0 60px 70px; background: linear-gradient(135deg, #14193a, #1a1040); border: 1px solid #b464ff; border-radius: 20px; padding: 50px 60px; display: flex; justify-content: space-between; align-items: center; }
+    .designer-banner h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    .designer-banner p { color: #c8d2dc; font-size: 14px; max-width: 500px; line-height: 1.7; }
+    .perks { margin-top: 18px; display: flex; gap: 18px; flex-wrap: wrap; }
+    .perk { font-size: 13px; color: #b464ff; font-weight: 600; }
+
+    /* DIVIDER */
+    .section-divider { border: none; border-top: 1px solid #1e1e4a; margin: 0 60px; }
+
+    /* FOOTER */
+    footer { background: #0d0d2b; border-top: 1px solid #1e1e4a; padding: 40px 60px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .footer-logo { font-size: 20px; font-weight: 800; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    footer p { color: #8899aa; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo">TemplateHub</div>
+  <div class="nav-links">
+    <a href="#templates">Templates</a>
+    <a href="#tools">Free Tools</a>
+    <a href="#ai-directory">AI Directory</a>
+    <a href="#languages">Languages</a>
+    <a href="#" class="nav-btn">Sell Your Designs</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">✦ One Platform — Templates · Tools · AI Directory · Jobs · 10+ Languages</div>
+  <h1>Everything You Need<br/>in <span>One Place</span></h1>
+  <p>Download templates, use free tools, find AI software, discover remote jobs — all in one platform. No subscription. No complexity.</p>
+  <div class="hero-btns">
+    <a href="#templates" class="btn-primary">Browse Templates</a>
+    <a href="#tools" class="btn-secondary">Use Free Tools →</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-num">2,500+</div><div class="stat-lbl">Templates</div></div>
+  <div class="stat"><div class="stat-num">5</div><div class="stat-lbl">Free Tools</div></div>
+  <div class="stat"><div class="stat-num">100+</div><div class="stat-lbl">AI Tools Listed</div></div>
+  <div class="stat"><div class="stat-num">10+</div><div class="stat-lbl">Languages</div></div>
+</div>
+
+<!-- ── SECTION 1: TEMPLATES ── -->
+<section class="section" id="templates">
+  <div class="section-title">📁 Design Templates</div>
+  <div class="section-sub">Ready-made, fully editable — download in seconds, no subscription needed</div>
+  <div class="grid-3">
+    <a href="#" class="cat-card">
+      <div class="cat-badge gold">⭐ Most Popular</div>
+      <div class="cat-icon">📊</div>
+      <div class="cat-title">Pitch Deck Templates</div>
+      <div class="cat-desc">Investor-ready pitch decks for startups, businesses, and product launches. 12-20 slides each. Multiple sizes included.</div>
+      <div class="cat-count">500 templates →</div>
+    </a>
+    <a href="#" class="cat-card">
+      <div class="cat-badge green">🆕 New Designs</div>
+      <div class="cat-icon">📄</div>
+      <div class="cat-title">Resume Templates</div>
+      <div class="cat-desc">Stand out with professional resume designs for every industry and career level. ATS-friendly formats.</div>
+      <div class="cat-count">1,000 templates →</div>
+    </a>
+    <a href="#" class="cat-card">
+      <div class="cat-badge">💼 Business</div>
+      <div class="cat-icon">🗂️</div>
+      <div class="cat-title">Business Templates</div>
+      <div class="cat-desc">Proposals, reports, company profiles, invoices — everything your business needs in one place.</div>
+      <div class="cat-count">1,000 templates →</div>
+    </a>
+  </div>
+</section>
+
+<!-- FEATURED TEMPLATES -->
+<section class="section" style="padding-top:0">
+  <div class="section-title">⭐ Featured Templates</div>
+  <div class="section-sub">Handpicked — most downloaded this week</div>
+  <div class="grid-4">
+    <div class="template-card" onclick="window.location='product.html?design=ai_startup'" style="cursor:pointer;">
+      <div class="template-preview" style="background:linear-gradient(135deg,#0a0a2e,#1a1060);">📊</div>
+      <div class="template-info">
+        <div class="template-name">AI Startup Pitch Deck</div>
+        <div class="template-type">Pitch Deck • 12 Slides • Dark Theme</div>
+        <div class="template-footer">
+          <span class="template-price">FREE</span>
+          <a href="product.html?design=ai_startup" class="btn-download">View →</a>
+        </div>
+      </div>
+    </div>
+    <div class="template-card" onclick="window.location='product.html?design=wardiere'" style="cursor:pointer;">
+      <div class="template-preview" style="background:linear-gradient(135deg,#ffffff18,#0066ff22);">
+        <span style="font-size:34px;font-weight:900;color:#0066ff;">W</span>
+      </div>
+      <div class="template-info">
+        <div class="template-name">Wardiere Platform Pitch Deck</div>
+        <div class="template-type">Pitch Deck • 12 Slides • Clean Minimal</div>
+        <div class="template-footer">
+          <span class="template-price">FREE</span>
+          <a href="product.html?design=wardiere" class="btn-download">View →</a>
+        </div>
+      </div>
+    </div>
+    <div class="template-card" onclick="window.location='product.html?design=deck3'" style="cursor:pointer;">
+      <div class="template-preview" style="background:linear-gradient(135deg,#FAF6F0,#EDE5D8);border:1px solid #e0d4c0;">
+        <span style="font-size:28px;font-weight:900;color:#FF6B35;">H</span>
+      </div>
+      <div class="template-info">
+        <div class="template-name">Hiring Platform Pitch Deck</div>
+        <div class="template-type">Pitch Deck • 12 Slides • Warm Orange</div>
+        <div class="template-footer">
+          <span class="template-price">FREE</span>
+          <a href="product.html?design=deck3" class="btn-download">View →</a>
+        </div>
+      </div>
+    </div>
+    <div class="template-card" onclick="window.location='product.html?design=deck4'" style="cursor:pointer;">
+      <div class="template-preview" style="background:linear-gradient(135deg,#FAFAF7,#EAEAE0);border:1px solid #ddd;">
+        <span style="font-size:24px;font-weight:900;background:linear-gradient(90deg,#C9E300,#2B45F0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">BOLD</span>
+      </div>
+      <div class="template-info">
+        <div class="template-name">Modern Bold Pitch Deck</div>
+        <div class="template-type">Pitch Deck • 15 Slides • Yellow + Blue</div>
+        <div class="template-footer">
+          <span class="template-price">FREE</span>
+          <a href="product.html?design=deck4" class="btn-download">View →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider"/>
+
+<!-- ── SECTION 2: FREE TOOLS ── -->
+<section class="section" id="tools">
+  <div class="section-title">🛠️ Free Online Tools</div>
+  <div class="section-sub">Powerful tools — free to use, no signup required for basic features</div>
+  <div class="grid-3">
+
+    <div class="tool-card">
+      <div class="tool-icon">🧾</div>
+      <div class="tool-title">Invoice Generator</div>
+      <div class="tool-desc">Create professional invoices instantly. Fill your details, add items, download as PDF. Free with watermark — pay $2 to remove it.</div>
+      <div class="tool-tags">
+        <span class="tag tag-free">Free Basic</span>
+        <span class="tag tag-paid">$2 No Watermark</span>
+      </div>
+      <a href="invoice.html" class="btn-tool">Generate Invoice →</a>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">📋</div>
+      <div class="tool-title">Resume Builder</div>
+      <div class="tool-desc">Fill a simple form and get a beautifully formatted resume PDF in seconds. No design skills needed. Choose from multiple styles.</div>
+      <div class="tool-tags">
+        <span class="tag tag-free">1 Free Resume</span>
+        <span class="tag tag-paid">$3 Premium PDF</span>
+      </div>
+      <a href="resume-builder.html" class="btn-tool">Build Resume →</a>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">✉️</div>
+      <div class="tool-title">Email Subject Line Generator</div>
+      <div class="tool-desc">Get 10 high-converting email subject lines instantly. Powered by AI. Marketers use this to increase open rates by 30-40%.</div>
+      <div class="tool-tags">
+        <span class="tag tag-free">3 Free / Day</span>
+        <span class="tag tag-paid">$5/month Unlimited</span>
+      </div>
+      <a href="email-generator.html" class="btn-tool">Generate Subjects →</a>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">📝</div>
+      <div class="tool-title">Business Name Generator</div>
+      <div class="tool-desc">Type your industry and get 20 creative business name ideas with domain availability check. Perfect for new startups.</div>
+      <div class="tool-tags">
+        <span class="tag tag-free">Free</span>
+        <span class="tag tag-soon">Coming Soon</span>
+      </div>
+      <a href="#" class="btn-tool" style="opacity:0.5;cursor:not-allowed;">Coming Soon</a>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">📊</div>
+      <div class="tool-title">Pitch Deck Outline Generator</div>
+      <div class="tool-desc">Describe your startup and get a full 12-slide pitch deck outline with content suggestions for each slide. Saves hours of planning.</div>
+      <div class="tool-tags">
+        <span class="tag tag-free">Free</span>
+        <span class="tag tag-soon">Coming Soon</span>
+      </div>
+      <a href="#" class="btn-tool" style="opacity:0.5;cursor:not-allowed;">Coming Soon</a>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-icon">🔍</div>
+      <div class="tool-title">ATS Resume Checker</div>
+      <div class="tool-desc">Upload your resume and check if it passes ATS (Applicant Tracking Systems) used by companies. Get a score and fix suggestions.</div>
+      <div class="tool-tags">
+        <span class="tag tag-free">3 Free Checks</span>
+        <span class="tag tag-soon">Coming Soon</span>
+      </div>
+      <a href="#" class="btn-tool" style="opacity:0.5;cursor:not-allowed;">Coming Soon</a>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-divider"/>
+
+<!-- ── SECTION 3: AI TOOL DIRECTORY ── -->
+<section class="section" id="ai-directory">
+  <div class="section-title">🤖 AI Tool Directory</div>
+  <div class="section-sub">100+ AI tools reviewed and rated — find the right one for your task</div>
+
+  <!-- Category filters -->
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:30px;">
+    <button onclick="filterAI('all',this)" style="background:#64c8ff;color:#0a0a1e;border:none;padding:7px 18px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;">All</button>
+    <button onclick="filterAI('writing',this)" style="background:#14193a;color:#c8d2dc;border:1px solid #1e2a5a;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;">✍️ Writing</button>
+    <button onclick="filterAI('image',this)" style="background:#14193a;color:#c8d2dc;border:1px solid #1e2a5a;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;">🖼️ Image</button>
+    <button onclick="filterAI('video',this)" style="background:#14193a;color:#c8d2dc;border:1px solid #1e2a5a;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;">🎬 Video</button>
+    <button onclick="filterAI('code',this)" style="background:#14193a;color:#c8d2dc;border:1px solid #1e2a5a;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;">💻 Coding</button>
+    <button onclick="filterAI('music',this)" style="background:#14193a;color:#c8d2dc;border:1px solid #1e2a5a;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;">🎵 Music</button>
+    <button onclick="filterAI('productivity',this)" style="background:#14193a;color:#c8d2dc;border:1px solid #1e2a5a;padding:7px 18px;border-radius:20px;font-size:13px;cursor:pointer;">⚡ Productivity</button>
+  </div>
+
+  <div class="grid-4" id="aiGrid">
+    <div class="ai-card" data-cat="writing">
+      <div class="ai-card-top">
+        <div class="ai-logo" style="background:#1a1040;">🤖</div>
+        <div><div class="ai-name">ChatGPT</div><div class="ai-cat">Writing / Chat</div></div>
+      </div>
+      <div class="ai-desc">Most popular AI chatbot for writing, coding, brainstorming, and question answering.</div>
+      <div class="ai-footer"><span class="ai-price">Free + $20/mo</span><a href="https://chat.openai.com" target="_blank" class="ai-link">Visit →</a></div>
+    </div>
+    <div class="ai-card" data-cat="writing">
+      <div class="ai-card-top">
+        <div class="ai-logo" style="background:#1a0030;">🔮</div>
+        <div><div class="ai-name">Claude</div><div class="ai-cat">Writing / Analysis</div></div>
+      </div>
+      <div class="ai-desc">Anthropic's AI — excellent for long documents, analysis, and thoughtful writing.</div>
+      <div class="ai-footer"><span class="ai-price">Free + $20/mo</span><a href="https://claude.ai" target="_blank" class="ai-link">Visit →</a></div>
+    </div>
+    <div class="ai-card" data-cat="image">
+      <div class="ai-card-top">
+        <div class="ai-logo" style="background:#001a1a;">🎨</div>
+        <div><div class="ai-name">Midjourney</div><div class="ai-cat">Image Generation</div></div>
+      </div>
+      <div class="ai-desc">Best AI image generator for artistic, photorealistic, and creative visuals.</div>
+      <div class="ai-footer"><span class="ai-price">From $10/mo</span><a href="https://midjourney.com" target="_blank" class="ai-link">Visit →</a></div>
+    </div>
+    <div class="ai-card" data-cat="video">
+      <div class="ai-card-top">
+        <div class="ai-logo" style="background:#001020;">🎬</div>
+        <div><div class="ai-name">Runway ML</div><div class="ai-cat">Video Generation</div></div>
+      </div>
+      <div class="ai-desc">Generate and edit videos with AI. Text-to-video, inpainting, and more.</div>
+      <div class="ai-footer"><span class="ai-price">Free + $15/mo</span><a href="https://runwayml.com" target="_blank" class="ai-link">Visit →</a></div>
+    </div>
+    <div class="ai-card" data-cat="music">
+      <div class="ai-card-top">
+        <div class="ai-logo" style="background:#1a0010;">🎵</div>
+        <div><div class="ai-name">Suno AI</div><div class="ai-cat">Music Generation</div></div>
+      </div>
+      <div class="ai-desc">Create full songs with vocals from a text prompt. Incredible quality.</div>
+      <div class="ai-footer"><span class="ai-price">Free + $10/mo</span><a href="https://suno.ai" target="_blank" class="ai-link">Visit →</a></div>
+    </div>
+    <div class="ai-card" data-cat="code">
+      <div class="ai-card-top">
+        <div class="ai-logo" style="background:#001a00;">💻</div>
+        <div><div class="ai-name">GitHub Copilot</div><div class="ai-cat">Coding Assistant</div></div>
+      </div>
+      <div class="ai-desc">AI pair programmer that suggests code and entire functions in real time.</div>
+      <div class="ai-footer"><span class="ai-price">$10/mo</span><a href="https://github.com/features/copilot" target="_blank" class="ai-link">Visit →</a></div>
+    </div>
+    <div class="ai-card" data-cat="productivity">
+      <div class="ai-card-top">
+        <div class="ai-logo" style="background:#1a1000;">⚡</div>
+        <div><div class="ai-name">Notion AI</div><div class="ai-cat">Productivity</div></div>
+      </div>
+      <div class="ai-desc">AI built into Notion — summarize notes, write docs, and manage projects smarter.</div>
+      <div class="ai-footer"><span class="ai-price">$10/mo add-on</span><a href="https://notion.so" target="_blank" class="ai-link">Visit →</a></div>
+    </div>
+    <div class="ai-card" data-cat="image">
+      <div class="ai-card-top">
+        <div class="ai-logo" style="background:#0a1a10;">🖌️</div>
+        <div><div class="ai-name">DALL·E 3</div><div class="ai-cat">Image Generation</div></div>
+      </div>
+      <div class="ai-desc">OpenAI's image generator — great for illustrations, concept art, and product visuals.</div>
+      <div class="ai-footer"><span class="ai-price">Included in ChatGPT</span><a href="https://openai.com/dall-e-3" target="_blank" class="ai-link">Visit →</a></div>
+    </div>
+  </div>
+  <div style="text-align:center; margin-top:30px;">
+    <a href="ai-directory.html" class="btn-primary">View All 100+ AI Tools →</a>
+  </div>
+</section>
+
+
+<!-- ── SECTION 5: MULTI-LANGUAGE ── -->
+<section class="section" id="languages">
+  <div class="section-title">🌍 Templates in Your Language</div>
+  <div class="section-sub">Professional templates in 10+ languages — including Urdu, Arabic, Hindi and more</div>
+  <div class="lang-grid">
+    <div class="lang-card">
+      <div class="lang-flag">🇵🇰</div>
+      <div class="lang-name">اردو (Urdu)</div>
+      <div class="lang-count">Coming Soon</div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-flag">🇸🇦</div>
+      <div class="lang-name">عربي (Arabic)</div>
+      <div class="lang-count">Coming Soon</div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-flag">🇮🇳</div>
+      <div class="lang-name">हिन्दी (Hindi)</div>
+      <div class="lang-count">Coming Soon</div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-flag">🇬🇧</div>
+      <div class="lang-name">English</div>
+      <div class="lang-count">2,500+ templates</div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-flag">🇫🇷</div>
+      <div class="lang-name">Français</div>
+      <div class="lang-count">Coming Soon</div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-flag">🇪🇸</div>
+      <div class="lang-name">Español</div>
+      <div class="lang-count">Coming Soon</div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-flag">🇩🇪</div>
+      <div class="lang-name">Deutsch</div>
+      <div class="lang-count">Coming Soon</div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-flag">🇧🇩</div>
+      <div class="lang-name">বাংলা (Bengali)</div>
+      <div class="lang-count">Coming Soon</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider"/>
+
+<!-- DESIGNER BANNER -->
+<div class="designer-banner" style="margin-top:70px;">
+  <div>
+    <h2>Are You a Designer?</h2>
+    <p>List your first 5 templates completely FREE and keep 100% of every sale. No commission. No risk. Reach customers in 10+ languages worldwide.</p>
+    <div class="perks">
+      <div class="perk">✦ 5 Free Listings</div>
+      <div class="perk">✦ 100% Earnings</div>
+      <div class="perk">✦ Zero Risk</div>
+      <div class="perk">✦ Global Reach</div>
+      <div class="perk">✦ 10+ Languages</div>
+    </div>
+  </div>
+  <a href="#" class="btn-primary" style="white-space:nowrap; font-size:16px; padding:16px 40px;">Start Selling Free →</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">TemplateHub</div>
+  <p>Templates · Tools · AI Directory · Jobs · 10+ Languages</p>
+  <p>© 2026 TemplateHub. All rights reserved.</p>
+</footer>
+
+<script>
+function filterAI(cat, btn) {
+  document.querySelectorAll('#aiGrid .ai-card').forEach(function(card) {
+    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? 'block' : 'none';
+  });
+  document.querySelectorAll('#ai-directory button').forEach(function(b) {
+    b.style.background = '#14193a';
+    b.style.color = '#c8d2dc';
+    b.style.borderColor = '#1e2a5a';
+  });
+  btn.style.background = '#64c8ff';
+  btn.style.color = '#0a0a1e';
+}
+</script>
+
+</body>
+</html>
