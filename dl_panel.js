@@ -124,7 +124,7 @@
       '<div class="dl-cust-wrap">' +
         '<div class="dl-cust-lbl">Get a custom link</div>' +
         '<div class="dl-cust">' +
-          '<span class="dl-cust-pfx">templatehub.com/</span>' +
+          '<span class="dl-cust-pfx">lazydogtemplates.com/</span>' +
           '<input type="text" id="nbSlugInput" placeholder="your-custom-link" maxlength="40"/>' +
           '<button class="dl-cust-sv" onclick="nbSvSlug()">Save</button>' +
         '</div>' +
@@ -186,7 +186,7 @@
 
   window.nbCpLink = function() {
     var sl = document.getElementById('nbSlugInput'), url = window.location.href;
-    if (sl && sl.value.trim()) url = 'https://templatehub.com/' + sl.value.trim().replace(/\s+/g, '-').toLowerCase();
+    if (sl && sl.value.trim()) url = 'https://lazydogtemplates.com/' + sl.value.trim().replace(/\s+/g, '-').toLowerCase();
     var doFeedback = function() {
       var b = document.getElementById('nbCpBtn');
       if (b) { var o = b.innerHTML; b.innerHTML = '&#x2713; Copied!'; setTimeout(function() { b.innerHTML = o; }, 2000); }
@@ -212,7 +212,7 @@
 
   function _nbUpdShr() {
     var url = encodeURIComponent(window.location.href),
-        ttl = encodeURIComponent(document.title || 'Check out this template on TemplateHub!');
+        ttl = encodeURIComponent(document.title || 'Check out this template on LazyDogTemplates!');
     var wa = document.getElementById('nbSocWa'), tw = document.getElementById('nbSocTw'),
         li = document.getElementById('nbSocLi'), ml = document.getElementById('nbSocMail');
     if (wa) wa.href = 'https://wa.me/?text=' + ttl + '%20' + url;

@@ -1,5 +1,11 @@
 (function() {
 
+  // ── LOAD NUNITO FONT (Firebase-style clean bold) ──
+  var nunLink = document.createElement('link');
+  nunLink.rel = 'stylesheet';
+  nunLink.href = 'https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap';
+  document.head.appendChild(nunLink);
+
   // ── INJECT AUTH MODAL + FIREBASE ──
   var authHTML = `
 <style>
@@ -144,13 +150,13 @@
   }
   #sharedNav .nb-logo {
     font-size: 26px; font-weight: 900;
-    background: linear-gradient(90deg, #64c8ff, #b464ff);
+    background: linear-gradient(90deg, #4fc3f7, #1976d2);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    letter-spacing: -0.5px; font-family: 'Poppins', sans-serif;
+    letter-spacing: -0.5px; font-family: 'Nunito', 'Poppins', sans-serif;
     text-decoration: none;
   }
   body.light #sharedNav .nb-logo {
-    background: linear-gradient(90deg, #1a4ab5, #6a0dad);
+    background: linear-gradient(90deg, #1565c0, #1976d2);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
   #sharedNav .nb-links { display: flex; align-items: center; gap: 16px; }
@@ -166,6 +172,19 @@
   .nb-lang-flag { width:26px; height:18px; border-radius:2px; object-fit:cover; flex-shrink:0; }
   .nb-pro { background:none; border:none; cursor:pointer; font-size:14px; color:#444; font-family:'Poppins',sans-serif; padding:6px 4px; border-radius:6px; transition:color 0.2s; font-weight:500; }
   .nb-pro:hover { color:#111; }
+  .nb-features { background:#fff; color:#16a34a; border:1.5px solid #16a34a; padding:7px 18px; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; transition:all 0.2s; margin-right:6px; }
+  .nb-features:hover { background:#16a34a; color:#fff; }
+  .nb-feat-wrap { position:relative; display:inline-block; }
+  .nb-feat-dropdown { position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%) translateY(-8px); background:#fff; border:1px solid rgba(0,0,0,0.1); border-radius:14px; padding:14px 18px; display:flex; flex-direction:row; align-items:flex-start; gap:18px; opacity:0; pointer-events:none; transition:opacity 0.22s, transform 0.22s; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.13); white-space:nowrap; }
+  .nb-feat-wrap.nb-feat-hover .nb-feat-dropdown,
+  .nb-feat-wrap.nb-feat-open .nb-feat-dropdown { opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0); }
+  .nb-features.nb-feat-locked { background:#16a34a; color:#fff; }
+  .nb-fd-item { display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .nb-fd-label { font-size:10px; font-weight:600; color:#555; font-family:'Poppins',sans-serif; letter-spacing:0.3px; }
+  .nb-feat-dropdown .nb-sb-btn { border-radius:8px !important; width:40px; height:40px; }
+  .nb-theme-nb { width:38px; height:38px; border-radius:50%; background:#0f1030; border:1.5px solid rgba(212,175,55,0.4); color:#d4af37; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s; flex-shrink:0; margin-left:6px; }
+  .nb-theme-nb:hover { transform:scale(1.12); }
+  body.light .nb-theme-nb { background:#1a1a3e; }
   .nb-edit { background:#fff; color:#5b7fff; border:1.5px solid #5b7fff; padding:7px 18px; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif; transition:all 0.2s; }
   .nb-edit:hover { background:#5b7fff; color:#fff; }
   #sharedNav .nb-signin {
@@ -253,14 +272,32 @@
   body:not(.light) .nav-search-close:hover { color:#fff;background:rgba(255,255,255,0.1); }
 </style>
 <nav id="sharedNav">
-  <a href="main.html" class="nb-logo">TemplateHub</a>
+  <a href="main.html" class="nb-logo">LazyDogTemplates</a>
   <div class="nb-links">
     <button class="nav-search-icon" id="navSearchBtn" onclick="nbOpenSearch()" title="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
     <button class="nb-lang" id="nbLangBtn" onmouseenter="nbShowLang()" onmouseleave="nbLangLeaveBtn()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span id="nbLangLabel">English</span></button>
     <button class="nb-pro">Pro Plans</button>
+    <div class="nb-feat-wrap" id="nbFeatWrap" onmouseenter="nbFeatHover(true)" onmouseleave="nbFeatHover(false)">
+      <button class="nb-features" id="nbFeatBtn" onclick="nbFeatLockToggle()">⭐ Features</button>
+      <div class="nb-feat-dropdown">
+        <div class="nb-fd-item">
+          <button class="nb-sb-btn nb-sb-font" id="fontBtn" onclick="nbTriggerFontPanel()" title="Pick font">Aa</button>
+          <span class="nb-fd-label">Font</span>
+        </div>
+        <div class="nb-fd-item">
+          <button class="nb-sb-btn nb-sb-colour" id="colourBtn" onclick="nbTriggerColourPanel()" title="Pick colour"></button>
+          <span class="nb-fd-label">Colour</span>
+        </div>
+        <div class="nb-fd-item">
+          <button class="nb-sb-btn nb-sb-mic" id="vaBtn" onclick="toggleVoiceAssistant()" title="Voice Assistant">🎤</button>
+          <span class="nb-fd-label">Voice</span>
+        </div>
+      </div>
+    </div>
     <button class="nb-edit" onclick="(function(){ if(typeof openEditPopup==='function') openEditPopup(); else window.open('edit_section.html','_blank'); })()">✏️ Edit</button>
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
+    <button class="nb-theme-nb" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode"><svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg></button>
     <div class="nb-user-menu" id="nbUserMenu" style="display:none;">
       <div class="nb-user-avatar" id="nbUserAvatar" onclick="toggleNbUserDropdown()">J</div>
       <span class="nb-user-name" id="nbUserName"></span>
@@ -291,32 +328,6 @@
 
   // ── INJECT RIGHT SIDEBAR ──
   var sidebarHTML = `
-<div id="nbRightSidebar">
-  <div class="nb-sb-wrap">
-    <a class="nb-sb-btn nb-sb-home" id="nbSidebarHome" href="main.html" title="Go to Home">🏠</a>
-    <span class="nb-sb-label">Home</span>
-  </div>
-  <div class="nb-sb-divider"></div>
-  <div class="nb-sb-wrap">
-    <button class="nb-sb-btn nb-sb-font" id="fontBtn" onclick="toggleFontPanel&&toggleFontPanel()" title="Pick font">Aa</button>
-    <span class="nb-sb-label">Font</span>
-  </div>
-  <div class="nb-sb-divider"></div>
-  <div class="nb-sb-wrap">
-    <button class="nb-sb-btn nb-sb-theme" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode">🌙</button>
-    <span class="nb-sb-label">Theme</span>
-  </div>
-  <div class="nb-sb-divider"></div>
-  <div class="nb-sb-wrap">
-    <button class="nb-sb-btn nb-sb-colour" id="colourBtn" onclick="toggleColourPanel&&toggleColourPanel()" title="Pick colour"></button>
-    <span class="nb-sb-label">Colour</span>
-  </div>
-  <div class="nb-sb-divider"></div>
-  <div class="nb-sb-wrap">
-    <button class="nb-sb-btn nb-sb-mic" id="vaBtn" onclick="toggleVoiceAssistant()" title="Voice Assistant">🎤</button>
-    <span class="nb-sb-label">Voice</span>
-  </div>
-</div>
 <div id="vaBubble"><span id="vaBubbleMsg">Ready</span><br/><button id="vaGenderBtn" onclick="vaToggleGender()" style="margin-top:6px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);color:#d4af37;border-radius:8px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;">♀ Female</button></div>`;
   // ── LANGUAGE PANEL ──
   function nbFlag(code){ return '<img class="nb-lang-flag" src="https://flagcdn.com/w40/'+code+'.png">'; }
@@ -413,7 +424,7 @@
   };
   // Load the GT script
   var gtScript = document.createElement('script');
-  gtScript.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+  gtScript.src = 'https://translate.googleapis.com/translate_a/element.js?cb=googleTranslateElementInit';
   gtScript.async = true;
   document.head.appendChild(gtScript);
 
@@ -449,11 +460,11 @@
 <div class="helpbot-panel" id="helpbotPanel">
   <div class="helpbot-header">
     <div class="helpbot-avatar">🤖</div>
-    <div><div class="helpbot-title">TemplateHub Assistant</div><div class="helpbot-sub">Ask me anything ✦</div></div>
+    <div><div class="helpbot-title">LazyDogTemplates Assistant</div><div class="helpbot-sub">Ask me anything ✦</div></div>
     <button class="helpbot-close" onclick="toggleBot()">✕</button>
   </div>
   <div class="helpbot-body" id="helpbotBody">
-    <div class="helpbot-greeting">Hi there! 👋 I'm <span>TemplateHub Assistant</span>. What can I help you with today?</div>
+    <div class="helpbot-greeting">Hi there! 👋 I'm <span>LazyDogTemplates Assistant</span>. What can I help you with today?</div>
     <div class="helpbot-qs" id="helpbotQs">
       <button class="helpbot-q" onclick="showAnswer(0)">📊 What templates are available?</button>
       <button class="helpbot-q" onclick="showAnswer(1)">⬇️ How do I download a template?</button>
@@ -474,7 +485,7 @@
     "Yes — <strong>100% free</strong>! No subscription, no credit card, no hidden fees. Just enter your email and download. Simple.",
     "Absolutely! All templates are fully editable in <strong>Microsoft PowerPoint</strong>. Media Kits also have <strong>Canva</strong> versions available — just click the purple Canva button on any kit page.",
     "Templates are available as <strong>.PPTX</strong> (PowerPoint) and <strong>.PDF</strong>. Media Kits also include <strong>PNG</strong> image files and <strong>Canva</strong> links where available.",
-    "Reach us at <strong>javed5395@gmail.com</strong> — we typically respond within 24 hours. You can also visit <strong>www.templatehub.com</strong> for updates."
+    "Reach us at <strong>javed5395@gmail.com</strong> — we typically respond within 24 hours. You can also visit <strong>www.lazydogtemplates.com</strong> for updates."
   ];
   var botOpen = false;
   window.toggleBot = function(){ botOpen=!botOpen; var p=document.getElementById('helpbotPanel'),b=document.getElementById('helpbotBtn'); if(botOpen){p.classList.add('open');b.textContent='✕';}else{p.classList.remove('open');b.textContent='💬';goBack();} };
@@ -482,22 +493,146 @@
   window.goBack = function(){ document.getElementById('helpbotQs').style.display='flex'; var a=document.getElementById('helpbotAnswer'); a.classList.remove('show'); a.innerHTML=''; document.getElementById('helpbotBack').style.display='none'; };
 
   // ── THEME TOGGLE ──
+  // ── UNIVERSAL FONT PANEL (works on all pages) ──
+  (function(){
+    // Inject font panel if page doesn't already have one
+    if (!document.getElementById('fontPanel')) {
+      var fonts = [
+        ["'Poppins', sans-serif","Poppins"],["'Inter', sans-serif","Inter"],
+        ["'Montserrat', sans-serif","Montserrat"],["'Raleway', sans-serif","Raleway"],
+        ["'Nunito', sans-serif","Nunito"],["'DM Sans', sans-serif","DM Sans"],
+        ["'Playfair Display', serif","Playfair Display"],["'Lora', serif","Lora"],
+        ["'Space Grotesk', sans-serif","Space Grotesk"],["'Outfit', sans-serif","Outfit"],
+        ["'Josefin Sans', sans-serif","Josefin Sans"],["'Quicksand', sans-serif","Quicksand"],
+        ["'Urbanist', sans-serif","Urbanist"],["'Sora', sans-serif","Sora"],
+        ["'Plus Jakarta Sans', sans-serif","Plus Jakarta Sans"]
+      ];
+      var items = fonts.map(function(f){
+        return '<div class="nb-font-item" style="font-family:'+f[0]+'" data-font="'+f[0]+'" '+
+          'onmouseenter="nbPreviewFont(this)" onmouseleave="nbRevertFont()" onclick="nbLockFont(this)">'+f[1]+'</div>';
+      }).join('');
+      var html = '<div id="fontPanel" style="display:none;position:fixed;top:70px;right:80px;'+
+        'background:rgba(10,10,30,0.97);border:1px solid rgba(255,255,255,0.12);border-radius:16px;'+
+        'padding:14px;z-index:10000;box-shadow:0 20px 60px rgba(0,0,0,0.7);min-width:220px;max-height:360px;overflow:hidden;">'+
+        '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:Poppins,sans-serif;">🔤 Pick Font</div>'+
+        '<div style="display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;padding-right:4px;">'+items+'</div>'+
+        '<div style="margin-top:10px;display:flex;justify-content:flex-end;">'+
+          '<button onclick="nbResetFont()" style="font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;font-family:Poppins,sans-serif;">Reset</button>'+
+        '</div></div>';
+      document.body.insertAdjacentHTML('beforeend', html);
+
+      var nbCommittedFont = null;
+      var nbDefaultFont = "'Poppins', sans-serif";
+      window.nbApplyFont = function(font) {
+        document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,button,span,div,input,li').forEach(function(el){ el.style.fontFamily = font; });
+      };
+      window.nbPreviewFont = function(el) { nbApplyFont(el.getAttribute('data-font')); };
+      window.nbRevertFont  = function()   { nbApplyFont(nbCommittedFont || nbDefaultFont); };
+      window.nbLockFont    = function(el) {
+        nbCommittedFont = el.getAttribute('data-font');
+        nbApplyFont(nbCommittedFont);
+        document.querySelectorAll('.nb-font-item').forEach(function(i){ i.style.background=''; i.style.color=''; });
+        el.style.background = 'rgba(102,126,234,0.25)'; el.style.color = '#fff';
+      };
+      window.nbResetFont   = function()   { nbCommittedFont = null; nbApplyFont(nbDefaultFont); document.querySelectorAll('.nb-font-item').forEach(function(i){ i.style.background=''; i.style.color=''; }); };
+
+      // Style the font items
+      var style = document.createElement('style');
+      style.textContent = '.nb-font-item{padding:8px 12px;border-radius:10px;cursor:pointer;font-size:15px;color:rgba(255,255,255,0.85);transition:background 0.15s,color 0.15s;border:1px solid transparent;}.nb-font-item:hover{background:rgba(255,255,255,0.1);color:#fff;}';
+      document.head.appendChild(style);
+
+      // Close on outside click
+      document.addEventListener('click', function(e) {
+        var panel = document.getElementById('fontPanel');
+        var btn   = document.getElementById('fontBtn');
+        if (panel && panel.style.display === 'block' && !panel.contains(e.target) && e.target !== btn) {
+          panel.style.display = 'none';
+        }
+      });
+
+      window.toggleFontPanel = function() {
+        var panel = document.getElementById('fontPanel');
+        var btn   = document.getElementById('fontBtn');
+        var open  = panel.style.display !== 'block';
+        panel.style.display = open ? 'block' : 'none';
+        if (open && btn) {
+          var r = btn.getBoundingClientRect();
+          panel.style.position = 'fixed';
+          panel.style.top   = (r.bottom + 8) + 'px';
+          panel.style.left  = r.left + 'px';
+          panel.style.right = 'auto';
+        }
+      };
+    }
+  })();
+
+  // Trigger font panel and position it directly below the Font button
+  window.nbTriggerFontPanel = function() {
+    if (typeof toggleFontPanel === 'function') toggleFontPanel();
+    setTimeout(function() {
+      var panel = document.getElementById('fontPanel');
+      var btn   = document.getElementById('fontBtn');
+      if (!panel || !btn) return;
+      var open = panel.classList.contains('open') || panel.style.display === 'block';
+      if (open) {
+        var r = btn.getBoundingClientRect();
+        panel.style.cssText += ';position:fixed!important;top:'+(r.bottom+8)+'px!important;left:'+r.left+'px!important;right:auto!important;';
+      }
+    }, 10);
+  };
+
+  // Trigger colour panel and position it directly below the Colour button
+  window.nbTriggerColourPanel = function() {
+    if (typeof toggleColourPanel === 'function') toggleColourPanel();
+    setTimeout(function() {
+      var panel = document.getElementById('colourPanel');
+      var btn   = document.getElementById('colourBtn');
+      if (!panel || !btn) return;
+      var open = panel.classList.contains('open') || panel.style.display === 'block';
+      if (open) {
+        var r = btn.getBoundingClientRect();
+        panel.style.cssText += ';position:fixed!important;top:'+(r.bottom+8)+'px!important;left:'+r.left+'px!important;right:auto!important;';
+      }
+    }, 10);
+  };
+
+  // ── FEATURES DROPDOWN: hover + click-lock ──
+  window.nbFeatHover = function(entering) {
+    var wrap = document.getElementById('nbFeatWrap');
+    if (!wrap) return;
+    if (entering) wrap.classList.add('nb-feat-hover');
+    else wrap.classList.remove('nb-feat-hover');
+  };
+  window.nbFeatLockToggle = function() {
+    var wrap = document.getElementById('nbFeatWrap');
+    var btn  = document.getElementById('nbFeatBtn');
+    if (!wrap) return;
+    var locked = wrap.classList.toggle('nb-feat-open');
+    if (btn) btn.classList.toggle('nb-feat-locked', locked);
+  };
+  // Close locked dropdown when clicking anywhere outside
+  document.addEventListener('click', function(e) {
+    var wrap = document.getElementById('nbFeatWrap');
+    if (wrap && !wrap.contains(e.target)) {
+      wrap.classList.remove('nb-feat-open');
+      var btn = document.getElementById('nbFeatBtn');
+      if (btn) btn.classList.remove('nb-feat-locked');
+    }
+  });
+
   window.nbToggleTheme = function() {
     var body = document.body;
-    var btn  = document.getElementById('themeBtn');
     if (body.classList.contains('light')) {
       body.classList.remove('light');
       body.style.background = '';
-      if (btn) btn.textContent = '🌙';
       localStorage.setItem('theme', 'dark');
     } else {
       body.classList.add('light');
-      body.style.background = '#faf8f4';
-      if (btn) btn.textContent = '☀️';
+      body.style.background = '#fdfaf6';
       localStorage.setItem('theme', 'light');
     }
   };
-  (function(){ if(localStorage.getItem('theme')==='light'){ document.body.classList.add('light'); document.body.style.background='#faf8f4'; var b=document.getElementById('themeBtn'); if(b)b.textContent='☀️'; } })();
+  (function(){ if(localStorage.getItem('theme')==='light'){ document.body.classList.add('light'); document.body.style.background='#faf8f4'; } })();
 
   // ── SEARCH ──
   window.nbOpenSearch = function() {

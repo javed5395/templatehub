@@ -1,5 +1,5 @@
 // ============================================
-// MASTER WATERMARK SWITCH — TemplateHub
+// MASTER WATERMARK SWITCH — LazyDogTemplates
 // ============================================
 // Change WATERMARK_ON to false = removes watermark from ALL invoice designs instantly
 // Change back to true = watermark appears on all designs again

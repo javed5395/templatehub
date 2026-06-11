@@ -1,7 +1,7 @@
 // ============================================================
-// VA_DICTIONARY.JS — TemplateHub Voice Assistant Dictionary
+// VA_DICTIONARY.JS — LazyDogTemplates Voice Assistant Dictionary
 // Built from: Claude (62 pairs) + ChatGPT (400 pairs) = cleaned & merged
-// Answers customized specifically for TemplateHub
+// Answers customized specifically for LazyDogTemplates
 // To add phrases: add to any 'phrases' array
 // To add new topic: copy a block and fill in phrases + reply
 // ============================================================
@@ -103,7 +103,7 @@ var vaDictionary = [
       'anyone there', 'are you there', 'is anyone there'
     ],
     action: 'speak',
-    reply: 'Hello! Welcome to TemplateHub. I can help you find pitch decks, media kits, or invoices. What are you looking for?'
+    reply: 'Hello! Welcome to LazyDogTemplates. I can help you find pitch decks, media kits, or invoices. What are you looking for?'
   },
 
   // ══════════════════════════════════════════
@@ -120,7 +120,7 @@ var vaDictionary = [
       'tell me your name', 'are you an ai', 'are you a bot', 'who is haidee'
     ],
     action: 'speak',
-    reply: 'I am Haidee, your voice assistant on TemplateHub. I can help you navigate, find templates, and answer your questions.'
+    reply: 'I am Haidee, your voice assistant on LazyDogTemplates. I can help you navigate, find templates, and answer your questions.'
   },
 
   {
@@ -136,7 +136,7 @@ var vaDictionary = [
       'what do you offer', 'what is on this site'
     ],
     action: 'speak',
-    reply: 'TemplateHub is a free template marketplace offering professional pitch decks, brand media kits, and invoice generators. Everything is free to download — no subscription, no payment required.'
+    reply: 'LazyDogTemplates is a free template marketplace offering professional pitch decks, brand media kits, and invoice generators. Everything is free to download — no subscription, no payment required.'
   },
 
   {
@@ -147,7 +147,7 @@ var vaDictionary = [
       'why use this site', 'why templatehub', 'what is special about this'
     ],
     action: 'speak',
-    reply: 'TemplateHub offers high-quality, professionally designed templates completely free. No subscription, no hidden fees. Just pick, download, and use.'
+    reply: 'LazyDogTemplates offers high-quality, professionally designed templates completely free. No subscription, no hidden fees. Just pick, download, and use.'
   },
 
   {
@@ -159,7 +159,7 @@ var vaDictionary = [
       'can anyone use this', 'what kind of users'
     ],
     action: 'speak',
-    reply: 'TemplateHub is for everyone — startups, freelancers, businesses, students, designers, and creators who need professional templates quickly.'
+    reply: 'LazyDogTemplates is for everyone — startups, freelancers, businesses, students, designers, and creators who need professional templates quickly.'
   },
 
   {
@@ -170,7 +170,7 @@ var vaDictionary = [
       'is this secure', 'can i trust this site', 'is it legit'
     ],
     action: 'speak',
-    reply: 'Yes, TemplateHub is completely safe. We use secure systems and do not store sensitive personal data. Browsing and downloading are safe.'
+    reply: 'Yes, LazyDogTemplates is completely safe. We use secure systems and do not store sensitive personal data. Browsing and downloading are safe.'
   },
 
   // ══════════════════════════════════════════
@@ -277,7 +277,7 @@ var vaDictionary = [
       'do i need to pay', 'is there a fee'
     ],
     action: 'speak',
-    reply: 'Everything on TemplateHub is completely free. No payment, no subscription, no hidden charges. Just enter your email and download.'
+    reply: 'Everything on LazyDogTemplates is completely free. No payment, no subscription, no hidden charges. Just enter your email and download.'
   },
 
   {
@@ -300,7 +300,7 @@ var vaDictionary = [
       'payment method', 'what payment methods', 'do you accept paypal'
     ],
     action: 'speak',
-    reply: 'No credit card or payment required. TemplateHub is completely free.'
+    reply: 'No credit card or payment required. LazyDogTemplates is completely free.'
   },
 
   // ══════════════════════════════════════════
@@ -711,7 +711,7 @@ var vaDictionary = [
       'works on chrome', 'works on firefox', 'works on safari'
     ],
     action: 'speak',
-    reply: 'TemplateHub works on all modern browsers including Chrome, Firefox, Safari, and Edge.'
+    reply: 'LazyDogTemplates works on all modern browsers including Chrome, Firefox, Safari, and Edge.'
   },
 
   // ══════════════════════════════════════════
