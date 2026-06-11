@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Media Kit — TemplateHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Raleway:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;600;700&family=Outfit:wght@400;500;600;700&family=Josefin+Sans:wght@400;600;700&family=Quicksand:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Libre+Baskerville:wght@400;700&family=Jost:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #0a0a1e; color: #fff; }
+    h1, h2, h3, .logo, .template-title, .template-badge, .btn-download, .price-tag, .modal-btn { font-family: 'Poppins', sans-serif; }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 60px; background: #0d0d2b; border-bottom: 1px solid #1e1e4a; }
+    .logo { font-size: 24px; font-weight: 800; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+    .nav-links { display:flex; align-items:center; gap:6px; }
+    .nav-links a { color: #c8d2dc; text-decoration: none; margin-left: 30px; font-size: 14px; }
+    .theme-toggle { background:#0f1030; border:1.5px solid rgba(212,175,55,0.4); color:#d4af37; width:42px; height:42px; border-radius:50%; font-size:18px; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; margin-left:10px; flex-shrink:0; }
+    .theme-toggle:hover { background:rgba(212,175,55,0.1); transform:rotate(20deg); }
+    .font-btn { width:42px; height:42px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); cursor:pointer; margin-left:6px; flex-shrink:0; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); box-shadow:0 2px 10px rgba(0,0,0,0.4); transition:transform 0.3s; font-size:16px; font-weight:900; color:#fff; display:flex; align-items:center; justify-content:center; }
+    .font-btn:hover { transform:scale(1.12); }
+    .colour-btn { width:42px; height:42px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); cursor:pointer; margin-left:6px; flex-shrink:0; background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red); box-shadow:0 2px 10px rgba(0,0,0,0.4); transition:transform 0.3s; }
+    .colour-btn:hover { transform:scale(1.12); }
+    .nav-links a:hover { color: #64c8ff; }
+    .nav-btn { background: linear-gradient(90deg, #64c8ff, #b464ff); color: #0a0a1e !important; padding: 8px 20px; border-radius: 20px; font-weight: 700 !important; }
+
+    .btn-canva { width: 100%; background: linear-gradient(90deg, #7c3aed, #b464ff); color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; margin-bottom: 10px; font-family: 'Poppins', sans-serif; }
+    .btn-canva:hover { opacity: 0.88; }
+    .breadcrumb { padding: 16px 60px; font-size: 13px; color: #8899aa; }
+    .breadcrumb a { color: #64c8ff; text-decoration: none; }
+    .product-layout { display: grid; grid-template-columns: 1fr 380px; gap: 40px; padding: 0 60px 60px; max-width: 1400px; margin: 0 auto; }
+    .main-preview { width: 100%; border-radius: 12px; border: 2px solid #1e2a5a; overflow: hidden; background: #14193a; margin-bottom: 16px; position: relative; }
+    .main-preview img { width: 100%; display: block; }
+    .slide-counter { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.7); color: #c8d2dc; font-size: 12px; padding: 4px 10px; border-radius: 12px; }
+    .thumbnails { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px; }
+    .thumbnails img { width: 100%; border-radius: 6px; border: 2px solid #1e2a5a; cursor: pointer; transition: border-color 0.2s; aspect-ratio: 16/9; object-fit: cover; }
+    .thumbnails img:hover { border-color: #64c8ff; }
+    .thumbnails img.active { border-color: #d4af37; }
+    .info-panel { position: sticky; top: 20px; height: fit-content; }
+    .template-badge { display: inline-block; background: rgba(212,175,55,0.1); border: 1px solid #d4af37; color: #d4af37; padding: 4px 14px; border-radius: 12px; font-size: 12px; margin-bottom: 14px; }
+    .template-title { font-size: 28px; font-weight: 900; line-height: 1.2; margin-bottom: 12px; }
+    .template-title span { background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .template-desc { color: #c8d2dc; font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+    .specs { background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    .spec-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1e2a5a; font-size: 14px; }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-label { color: #8899aa; }
+    .spec-value { color: #fff; font-weight: 600; }
+    .spec-value.accent { color: #64c8ff; }
+    .price-box { background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px; padding: 24px; margin-bottom: 16px; text-align: center; }
+    .price-tag { font-size: 42px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .price-sub { color: #8899aa; font-size: 13px; margin-top: 4px; }
+    .btn-download { width: 100%; background: linear-gradient(90deg, #64c8ff, #b464ff); color: #0a0a1e; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
+    .btn-download:hover { opacity: 0.85; }
+    .trust-badges { display: flex; justify-content: center; gap: 16px; margin-top: 16px; }
+    .badge { font-size: 12px; color: #8899aa; display: flex; align-items: center; gap: 5px; }
+    .badge span { color: #50dc96; }
+    .includes { background: #14193a; border: 1px solid #1e2a5a; border-radius: 12px; padding: 20px; margin-top: 16px; }
+    .includes h4 { font-size: 14px; color: #8899aa; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .include-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #c8d2dc; margin-bottom: 10px; }
+    .include-item span { color: #50dc96; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #14193a; border: 1px solid #64c8ff; border-radius: 20px; padding: 40px; width: 420px; text-align: center; }
+    .modal h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .modal p { color: #8899aa; font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+    .email-wrap { position: relative; margin-bottom: 12px; }
+    .modal input { width: 100%; background: #0a0a1e; border: 1px solid #1e2a5a; color: #fff; padding: 14px 16px; border-radius: 10px; font-size: 14px; outline: none; margin-bottom: 0; }
+    .modal input:focus { border-color: #64c8ff; }
+    .email-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #1a1a3a; border: 1px solid #64c8ff; border-top: none; border-radius: 0 0 10px 10px; z-index: 200; max-height: 160px; overflow-y: auto; }
+    .email-suggestions.show { display: block; }
+    .email-suggestion-item { padding: 11px 16px; font-size: 14px; color: #c8d2dc; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.15s; }
+    .email-suggestion-item:hover, .email-suggestion-item.active { background: rgba(100,200,255,0.12); color: #fff; }
+    .modal-btn { width: 100%; background: linear-gradient(90deg, #64c8ff, #b464ff); color: #0a0a1e; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
+    .modal-close { color: #8899aa; font-size: 13px; cursor: pointer; background: none; border: none; }
+    footer { background: #0d0d2b; border-top: 1px solid #1e1e4a; padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; }
+    .footer-logo { font-size: 18px; font-weight: 800; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    footer p { color: #8899aa; font-size: 13px; }
+  
+    /* ── FONT PICKER BUTTON ── */
+    .font-btn { width:42px; height:42px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); cursor:pointer; margin-left:6px; flex-shrink:0; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); box-shadow:0 2px 10px rgba(0,0,0,0.4); transition:transform 0.3s,box-shadow 0.3s; font-size:16px; font-weight:900; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Georgia',serif; letter-spacing:-1px; }
+    .font-btn:hover { transform:scale(1.12); box-shadow:0 4px 18px rgba(0,0,0,0.5); }
+    .font-panel { display:none; position:fixed; top:70px; right:70px; background:rgba(10,10,30,0.96); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:14px; z-index:9999; box-shadow:0 20px 60px rgba(0,0,0,0.7); backdrop-filter:blur(20px); min-width:220px; }
+    .font-panel.open { display:block; }
+    .font-panel-label { font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px; font-family:'Poppins',sans-serif; }
+    .font-list { display:flex; flex-direction:column; gap:4px; max-height:320px; overflow-y:auto; padding-right:4px; }
+    .font-list::-webkit-scrollbar { width:4px; }
+    .font-list::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.2); border-radius:4px; }
+    .font-item { padding:8px 12px; border-radius:10px; cursor:pointer; font-size:15px; color:rgba(255,255,255,0.85); transition:background 0.15s,color 0.15s; border:1px solid transparent; }
+    .font-item:hover,.font-item.active { background:rgba(255,255,255,0.1); color:#fff; border-color:rgba(255,255,255,0.2); }
+    .font-item.active { border-color:#667eea; background:rgba(102,126,234,0.18); }
+    .font-reset-row { margin-top:10px; display:flex; justify-content:flex-end; }
+    .font-reset { font-size:11px; color:rgba(255,255,255,0.4); cursor:pointer; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:transparent; transition:all 0.2s; }
+    .font-reset:hover { color:#fff; border-color:rgba(255,255,255,0.4); }
+    body.light .font-panel { background:rgba(255,255,255,0.97); border-color:rgba(0,0,0,0.1); }
+    body.light .font-panel-label { color:rgba(0,0,0,0.4); }
+    body.light .font-item { color:rgba(0,0,0,0.75); }
+    body.light .font-item:hover,.font-item.active { background:rgba(0,0,0,0.06); color:#1a1a2e; }
+    body.light .font-reset { color:rgba(0,0,0,0.35); border-color:rgba(0,0,0,0.15); }
+    @keyframes panelIn { from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);} }
+    .colour-panel { display:none; position:fixed; top:70px; right:20px; background:rgba(10,10,30,0.96); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:14px; z-index:9999; box-shadow:0 20px 60px rgba(0,0,0,0.7); backdrop-filter:blur(20px); animation:panelIn 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+    .colour-panel.open { display:block; }
+    .colour-panel-label { font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px; font-family:'Poppins',sans-serif; }
+    .colour-panel canvas { display:block; border-radius:10px; cursor:crosshair; border:1px solid rgba(255,255,255,0.1); }
+    .colour-panel-preview { display:flex; align-items:center; gap:10px; margin-top:10px; }
+    .colour-swatch { width:32px; height:32px; border-radius:50%; border:2px solid rgba(255,255,255,0.3); flex-shrink:0; }
+    .colour-hex { font-size:13px; font-weight:700; color:#fff; font-family:'Poppins',sans-serif; }
+    .colour-reset { margin-left:auto; font-size:11px; color:rgba(255,255,255,0.4); cursor:pointer; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:transparent; transition:all 0.2s; }
+    .colour-reset:hover { color:#fff; border-color:rgba(255,255,255,0.4); }
+    body.light { background:#faf8f4; color:#1a1a2e; }
+    body.light nav { background:#ffffff; border-bottom:1px solid rgba(212,175,55,0.3); }
+    body.light .theme-toggle { background:#fff; border-color:rgba(212,175,55,0.5); }
+    body.light .colour-panel { background:rgba(255,255,255,0.97); border-color:rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="has-download">
+
+<button id="nbDlBtn" onclick="nbToggleDlPanel()" style="position:fixed;top:12px;right:80px;z-index:9999;background:#fff;color:#4B6BFF;border:1.5px solid #4B6BFF;border-radius:6px;padding:7px 18px;font-weight:600;font-size:13px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='#4B6BFF';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#4B6BFF'">Download</button>
+
+<!-- NAVBAR injected by navbar.js -->
+
+<div class="breadcrumb">
+  <a href="main.html">Home</a> &nbsp;›&nbsp;
+  <a href="media_kits_folder_section.html">Media Kits</a> &nbsp;›&nbsp;
+  <span id="breadcrumbName">Media Kit</span>
+</div>
+
+<div class="product-layout">
+  <div class="preview-section">
+    <div class="main-preview">
+      <img id="mainImg" src="" alt="Page Preview"/ loading="lazy">
+      <div class="slide-counter" id="slideCounter">Page 1 of 6</div>
+    </div>
+    <div class="thumbnails" id="thumbRow"></div>
+  </div>
+
+  <div class="info-panel">
+    <div class="template-badge">🗂️ Media Kit Template</div>
+    <div class="template-title" id="templateTitle"></div>
+    <div class="template-desc" id="templateDesc"></div>
+    <div class="specs">
+      <div class="spec-row"><span class="spec-label">Pages</span><span class="spec-value accent" id="specPages">6 Pages</span></div>
+      <div class="spec-row"><span class="spec-label">Format</span><span class="spec-value">.PDF / .PNG</span></div>
+      <div class="spec-row"><span class="spec-label">Type</span><span class="spec-value accent" id="specType"></span></div>
+      <div class="spec-row"><span class="spec-label">Style</span><span class="spec-value" id="specStyle"></span></div>
+      <div class="spec-row"><span class="spec-label">License</span><span class="spec-value">Personal &amp; Commercial</span></div>
+    </div>
+    <div class="price-box">
+      <div class="price-tag">FREE</div>
+      <div class="price-sub">Enter email to download instantly</div>
+    </div>
+    <div class="includes">
+      <h4>What's Included</h4>
+      <div class="include-item"><span>✓</span> All pages fully designed</div>
+      <div class="include-item"><span>✓</span> Editable in Canva / PowerPoint</div>
+      <div class="include-item"><span>✓</span> High resolution PNG files</div>
+      <div class="include-item"><span>✓</span> Personal & Commercial license</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div style="font-size:48px;margin-bottom:16px;">📥</div>
+    <h2>Get Your Free Media Kit</h2>
+    <p id="modalDesc">Enter your email to download instantly. No spam. No subscription.</p>
+    <div class="email-wrap">
+      <input type="email" id="emailInput" placeholder="your@email.com" autocomplete="off"/>
+      <div class="email-suggestions" id="emailSuggestions"></div>
+    </div>
+    <button class="modal-btn" onclick="handleDownload()">Download Now — It's Free</button><br/>
+    <button class="modal-close" onclick="closeModal()">No thanks, go back</button>
+    <p style="font-size:11px;color:#556;margin-top:10px;">💡 To choose save location: Chrome Settings → Downloads → turn on "Ask where to save"</p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">TemplateHub</div>
+  <p>© 2026 TemplateHub. All rights reserved.</p>
+  <p>Built for designers. Made for everyone.</p>
+</footer>
+
+<script>
+var kits = {
+  brand_kit21: {
+    canvaLink: 'https://canva.link/1bep8colmzf8pmh',
+    name: 'Skincare Elegant Minimalist Brand Kit',
+    titleHTML: 'Skincare Elegant Minimalist<br/><span>Brand Media Kit</span>',
+    desc: 'A premium 13-page elegant minimalist brand kit for skincare and beauty product brands — designed for retail partnerships, press coverage and brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Elegant / Minimalist',
+    pageCount: 13,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 21/media kit 21/Skincare Brand Products Elegant Minimalist Presentation/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12','Page 13'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 21/media kit 21/Skincare Brand Products Elegant Minimalist Presentation/1.png'
+  },
+  tech_kit20: {
+    canvaLink: 'https://canva.link/8h7ieqwudc3xooc',
+    name: 'Dark Blue Cyan Tech Media Kit',
+    titleHTML: 'Dark Blue Cyan<br/><span>Tech Media Kit</span>',
+    desc: 'A modern 10-page technology media kit in dark blue and cyan — designed for tech brands, startups and digital product presentations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Dark Blue / Cyan',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 20/media kit 20/_Dark Blue and Cyan Modern Technology Pitch Deck Presentation/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 20/media kit 20/_Dark Blue and Cyan Modern Technology Pitch Deck Presentation/1.png'
+  },
+  brand_kit19: {
+    canvaLink: 'https://canva.link/9a2pjjtbv8s03oo',
+    name: 'Emerald Mint Brand Kit',
+    titleHTML: 'Emerald Mint<br/><span>Brand Kit Presentation</span>',
+    desc: 'A premium 13-page brand kit in black, white and emerald mint green — covers brand name, color palette, fonts, logo variations, look & feel, icons, photography and mockups.',
+    type: 'Press / Brand Media Kit',
+    style: 'Black / White / Emerald Green',
+    pageCount: 13,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 19/media kit 19/Brand Kit Presentation in Black and White Emerald Mint Green Aspirational Elegance Style/',
+    pages: ['13.png','Table of Contents.png','Brand Name.png','Color Palette & Sample Applications.png','Color Palette & Sample Applications (2).png','Brand Fonts.png','Brand Fonts (2).png','Logo and Variations.png','Logo and Variations (2).png','Look & Feel.png','Icons and Illustrations.png','Photography.png','Mockups.png'],
+    pageTitles: ['Cover','Table of Contents','Brand Name','Color Palette','Color Applications','Brand Fonts','Font Samples','Logo Variations','Logo Samples','Look & Feel','Icons & Illustrations','Photography','Mockups'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 19/media kit 19/Brand Kit Presentation in Black and White Emerald Mint Green Aspirational Elegance Style/13.png'
+  },
+  brand_kit18: {
+    canvaLink: 'https://canva.link/95bjundh9en6dnh',
+    name: 'Black Gold Luxury Media Kit',
+    titleHTML: 'Black Gold Luxury<br/><span>Brand Media Kit</span>',
+    desc: 'A premium 10-page luxury brand media kit — black and gold ornamental design for high-end brands, partnerships and professional presentations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Luxury / Black & Gold',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 18/media kit 18/Black Gold Luxury Ornamental Professional Presentation/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 18/media kit 18/Black Gold Luxury Ornamental Professional Presentation/1.png'
+  },
+  brand_kit17: {
+    canvaLink: 'https://canva.link/nx8j0gjufiz5u2r',
+    name: 'Ember Coffee Co. Brand Media Kit',
+    titleHTML: 'Ember Coffee Co.<br/><span>Brand Media Kit</span>',
+    desc: 'A professional 11-page brand media kit for Ember Coffee Co. — designed for retail partnerships, press coverage and F&B brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Brand / F&B',
+    pageCount: 11,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 17/media kit 17/Ember Coffee Co. Brand Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 17/media kit 17/Ember Coffee Co. Brand Media Kit/1.png'
+  },
+  brand_kit16: {
+    canvaLink: 'https://canva.link/o505kmgzrvntb3s',
+    name: 'Velocity Sports Brand Media Kit',
+    titleHTML: 'Velocity Sports<br/><span>Brand Media Kit</span>',
+    desc: 'A dynamic 13-page brand media kit for Velocity Sports — designed for sponsorships, partnerships and sports brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Sports / Dynamic',
+    pageCount: 13,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 16/media kit 16/Velocity Sports Brand Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12','Page 13'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 16/media kit 16/Velocity Sports Brand Media Kit/1.png'
+  },
+  brand_kit15: {
+    canvaLink: 'https://canva.link/hrwiyc28zibjaiv',
+    name: 'Aurora Skincare Brand Media Kit',
+    titleHTML: 'Aurora Skincare<br/><span>Brand Media Kit</span>',
+    desc: 'A premium 11-page brand media kit for Aurora Skincare — designed for retail partnerships, press coverage and beauty brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Brand / Beauty',
+    pageCount: 11,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 15/media kit 15/Aurora Skincare Brand Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 15/media kit 15/Aurora Skincare Brand Media Kit/1.png'
+  },
+  influencer_kit14: {
+    canvaLink: 'https://canva.link/2sz1pp5iuig8a68',
+    name: 'Lily Chen Influencer Media Kit',
+    titleHTML: 'Lily Chen<br/><span>Influencer Media Kit</span>',
+    desc: 'A professional 10-page influencer media kit for Lily Chen — designed for brand collaborations, sponsorship pitches and creator partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Influencer / Creator',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 14/media kit 14/Lily Chen Influencer Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 14/media kit 14/Lily Chen Influencer Media Kit/1.png'
+  },
+  influencer_kit13: {
+    canvaLink: 'https://canva.link/c81y4l1iv521ofe',
+    name: 'Sophia Martinez Influencer Media Kit',
+    titleHTML: 'Sophia Martinez<br/><span>Influencer Media Kit</span>',
+    desc: 'A professional 10-page influencer media kit for Sophia Martinez — designed for brand collaborations, sponsorship pitches and creator partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Influencer / Creator',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 13/media kit 13/Sophia Martinez Influencer Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 13/media kit 13/Sophia Martinez Influencer Media Kit/1.png'
+  },
+  brand_kit24: {
+    canvaLink: 'https://canva.link/xoikyapabd37a12',
+    name: 'GlowUp Serum Launch Media Kit',
+    titleHTML: 'GlowUp Serum<br/><span>Launch Media Kit</span>',
+    desc: 'A premium 12-page product launch media kit for GlowUp Serum — designed for beauty brand partnerships, press coverage and retail outreach.',
+    type: 'Press / Brand Media Kit',
+    style: 'Beauty / Launch',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 24/media kit 24/GlowUp Serum Launch Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 24/media kit 24/GlowUp Serum Launch Media Kit/1.png'
+  },
+  influencer_kit35: {
+    canvaLink: 'https://canva.link/nwlsdm6f3plpv1u',
+    name: 'Diego Rivera Influencer Media Kit',
+    titleHTML: 'Diego Rivera<br/><span>Influencer Media Kit</span>',
+    desc: 'A professional 10-page influencer media kit for Diego Rivera — designed for brand deals, sponsorships and creator partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Influencer / Creator',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 35/media kit 35/Diego Rivera Influencer Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 35/media kit 35/Diego Rivera Influencer Media Kit/1.png'
+  },
+  influencer_kit28: {
+    canvaLink: 'https://canva.link/soevnq5ps8s5lid',
+    name: 'Marcus Chen Creator Media Kit',
+    titleHTML: 'Marcus Chen<br/><span>Creator Media Kit</span>',
+    desc: 'A professional 10-page creator media kit for Marcus Chen — designed for brand deals, sponsorships and content creator partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Influencer / Creator',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 28/media kit 28/Marcus Chen Creator Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 28/media kit 28/Marcus Chen Creator Media Kit/1.png'
+  },
+  brand_kit27: {
+    canvaLink: 'https://canva.link/i9rfj4ssj9ciees',
+    name: 'FreshCart Startup Media Kit',
+    titleHTML: 'FreshCart<br/><span>Startup Media Kit</span>',
+    desc: 'A professional 11-page startup media kit for FreshCart — designed for investor outreach, press coverage and brand partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Startup / Modern',
+    pageCount: 11,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 27/media kit 27/FreshCart Startup Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 27/media kit 27/FreshCart Startup Media Kit/1.png'
+  },
+  fashion_kit30: {
+    canvaLink: 'https://canva.link/701ojs119c9rk7a',
+    name: 'Luna & Co. Fashion Media Kit',
+    titleHTML: 'Luna & Co.<br/><span>Fashion Media Kit</span>',
+    desc: 'A stylish 12-page fashion media kit for Luna & Co. — designed for fashion press, retail partnerships and brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Fashion / Elegant',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 30/media kit 30/Luna & Co. Fashion Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 30/media kit 30/Luna & Co. Fashion Media Kit/1.png'
+  },
+  fashion_kit31: {
+    canvaLink: 'https://canva.link/csdrghy0tery5bd',
+    name: 'Noir Luxe Fashion Media Kit',
+    titleHTML: 'Noir Luxe<br/><span>Fashion Media Kit</span>',
+    desc: 'A premium 12-page dark luxury fashion media kit for Noir Luxe — designed for high-end fashion press, retail buyers and brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Fashion / Dark Luxury',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 31/media kit 31/Noir Luxe Fashion Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 31/media kit 31/Noir Luxe Fashion Media Kit/1.png'
+  },
+  fashion_kit29: {
+    canvaLink: 'https://canva.link/zhz55q9wwmp2u5z',
+    name: 'Urban Edge Fashion Media Kit',
+    titleHTML: 'Urban Edge<br/><span>Fashion Media Kit</span>',
+    desc: 'A bold 12-page urban fashion media kit for Urban Edge — designed for streetwear brands, fashion press and retail buyers.',
+    type: 'Press / Brand Media Kit',
+    style: 'Fashion / Urban',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 29/media kit 29/Urban Edge Fashion Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 29/media kit 29/Urban Edge Fashion Media Kit/1.png'
+  },
+  fashion_kit25: {
+    canvaLink: 'https://canva.link/z04kp9rgusyer7z',
+    name: 'Bloom & Willow Fashion Media Kit',
+    titleHTML: 'Bloom & Willow<br/><span>Fashion Media Kit</span>',
+    desc: 'A fresh and feminine 12-page fashion media kit for Bloom & Willow — designed for fashion press, retail partnerships and brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Fashion / Floral',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 25/media kit 25/Bloom & Willow Fashion Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 25/media kit 25/Bloom & Willow Fashion Media Kit/1.png'
+  },
+  fashion_kit26: {
+    canvaLink: 'https://canva.link/ovdqlrlypm07sek',
+    name: 'Solstice Swim Fashion Media Kit',
+    titleHTML: 'Solstice Swim<br/><span>Fashion Media Kit</span>',
+    desc: 'A stunning 12-page fashion media kit for Solstice Swim — designed for fashion press, retail buyers and brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Fashion / Swimwear',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 26/media kit 26/Solstice Swim Fashion Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 26/media kit 26/Solstice Swim Fashion Media Kit/1.png'
+  },
+  brand_kit37: {
+    name: 'SkillBridge Startup Media Kit',
+    titleHTML: 'SkillBridge<br/><span>Startup Media Kit</span>',
+    desc: 'A professional 12-page startup media kit for SkillBridge — designed for investor outreach, press coverage and edtech brand partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Startup / EdTech',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 37/media kit 37/SkillBridge Startup Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 37/media kit 37/SkillBridge Startup Media Kit/1.png',
+    canvaLink: 'https://canva.link/b9n89o9lm8j0jeh'
+  },
+  brand_kit36: {
+    canvaLink: 'https://canva.link/dg1s2gfp03yiz4o',
+    name: 'PetPal Startup Media Kit',
+    titleHTML: 'PetPal<br/><span>Startup Media Kit</span>',
+    desc: 'A professional 12-page startup media kit for PetPal — designed for investor outreach, press coverage and brand partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Startup / Modern',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 36/media kit 36/PetPal Startup Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 36/media kit 36/PetPal Startup Media Kit/1.png'
+  },
+  brand_kit34: {
+    canvaLink: 'https://canva.link/fbup1gagui4533h',
+    name: 'CleanWave Startup Media Kit',
+    titleHTML: 'CleanWave<br/><span>Startup Media Kit</span>',
+    desc: 'A professional 12-page startup media kit for CleanWave — designed for investor outreach, press coverage and clean-tech brand partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Startup / Clean Tech',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 34/media kit 34/CleanWave Startup Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 34/media kit 34/CleanWave Startup Media Kit/1.png'
+  },
+  brand_kit33: {
+    canvaLink: 'https://canva.link/l3ng0eg1yb4qdpg',
+    name: 'BrewMaster Elite Media Kit',
+    titleHTML: 'BrewMaster Elite<br/><span>Brand Media Kit</span>',
+    desc: 'A premium 12-page brand media kit for BrewMaster Elite — designed for press coverage, retail partnerships and F&B brand collaborations.',
+    type: 'Press / Brand Media Kit',
+    style: 'Brand / F&B',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 33/media kit 33/BrewMaster Elite Media Kit Overview/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 33/media kit 33/BrewMaster Elite Media Kit Overview/1.png'
+  },
+  brand_kit32: {
+    canvaLink: 'https://canva.link/wnxstt3zwbauv4t',
+    name: 'HomeHero Media Kit',
+    titleHTML: 'HomeHero<br/><span>Brand Media Kit</span>',
+    desc: 'A professional 12-page brand media kit for HomeHero — designed for press coverage, retail partnerships and brand outreach.',
+    type: 'Press / Brand Media Kit',
+    style: 'Brand / Modern',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 32/media kit 32/HomeHero Media Kit Overview/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 32/media kit 32/HomeHero Media Kit Overview/1.png'
+  },
+  brand_kit23: {
+    canvaLink: 'https://canva.link/m4ae9kidhdy0xx5',
+    name: 'Black Minimalist Product Launch Kit',
+    titleHTML: 'Black Minimalist<br/><span>Product Launch Kit</span>',
+    desc: 'A sleek 10-page black minimalist product launch media kit — designed for modern brands seeking a clean, professional launch presentation.',
+    type: 'Press / Brand Media Kit',
+    style: 'Black / Minimalist',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 23/media kit 23/Black Minimalist Product Launch Deck Presentation/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 23/media kit 23/Black Minimalist Product Launch Deck Presentation/1.png'
+  },
+  press_kit22: {
+    canvaLink: 'https://canva.link/0nsfkhpp02kdc05',
+    name: 'EcoCharge Station Launch Kit',
+    titleHTML: 'EcoCharge Station<br/><span>Media Kit Launch</span>',
+    desc: 'A professional 12-page product launch media kit for EcoCharge Station — designed for press coverage, investor outreach and green tech partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Green Tech / Launch',
+    pageCount: 12,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 22/media kit 22/EcoCharge Station Media Kit Launch/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11','Page 12'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 22/media kit 22/EcoCharge Station Media Kit Launch/1.png'
+  },
+  press_kit12: {
+    canvaLink: 'https://canva.link/yhpmjq903bhyitz',
+    name: 'CloudStream Technologies Press Kit',
+    titleHTML: 'CloudStream Technologies<br/><span>Press / PR Media Kit</span>',
+    desc: 'A professional 10-page press kit for CloudStream Technologies — designed for media outreach, investor relations and tech industry partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Press / PR Kit',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 12/media kit 12/CloudStream Technologies Press Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 12/media kit 12/CloudStream Technologies Press Kit/1.png'
+  },
+  press_kit11: {
+    canvaLink: 'https://canva.link/2e1a9i0zmmfqu5e',
+    name: 'FitLife Gym & Wellness Press Kit',
+    titleHTML: 'FitLife Gym & Wellness<br/><span>Press / PR Media Kit</span>',
+    desc: 'A professional 10-page press kit for FitLife Gym & Wellness — designed for media outreach, brand sponsorships and wellness industry partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Press / PR Kit',
+    pageCount: 10,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 11/media kit 11/FitLife Press Media Kit Energetic Wellness Brand/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 11/media kit 11/FitLife Press Media Kit Energetic Wellness Brand/1.png'
+  },
+  press_kit10: {
+    canvaLink: 'https://canva.link/1ekgnoil1y7gwn1',
+    name: 'Luxe Fashion House Press Kit',
+    titleHTML: 'Luxe Fashion House<br/><span>Press / PR Media Kit</span>',
+    desc: 'A premium 11-page press kit for Luxe Fashion House — designed for media outreach, brand collaborations and fashion press coverage.',
+    type: 'Press / Brand Media Kit',
+    style: 'Press / PR Kit',
+    pageCount: 11,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 10/media kit 10/Luxe Fashion House Press Kit Overview/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9','Page 10','Page 11'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 10/media kit 10/Luxe Fashion House Press Kit Overview/1.png'
+  },
+  press_kit9: {
+    canvaLink: 'https://canva.link/gttl6w7m5fs73d1',
+    name: 'GreenEarth Organics Media Kit',
+    titleHTML: 'GreenEarth Organics<br/><span>Press / PR Media Kit</span>',
+    desc: 'A professional 9-page press and PR media kit for GreenEarth Organics — designed for media outreach, brand partnerships and press coverage.',
+    type: 'Press / Brand Media Kit',
+    style: 'Press / PR Kit',
+    pageCount: 9,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 9/media kit 9/GreenEarth Organics Media Kit Overview/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 9/media kit 9/GreenEarth Organics Media Kit Overview/1.png'
+  },
+  podcast_kit8: {
+    canvaLink: 'https://canva.link/28dxu0bt712a16r',
+    name: 'Laugh Out Loud Media Kit',
+    titleHTML: 'Laugh Out Loud<br/><span>Podcast Media Kit</span>',
+    desc: 'A professional 9-page podcast media kit for Laugh Out Loud — designed for sponsorship outreach and brand partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Podcast / Premium',
+    pageCount: 9,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 8/media kit 8/Laugh Out Loud Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 8/media kit 8/Laugh Out Loud Media Kit/1.png'
+  },
+  podcast_kit7: {
+    canvaLink: 'https://canva.link/ussuhangvs1dtxj',
+    name: 'Founders & Fortune Media Kit',
+    titleHTML: 'Founders & Fortune<br/><span>Podcast Media Kit</span>',
+    desc: 'A professional 9-page podcast media kit for Founders & Fortune — designed for sponsorship outreach and brand partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Podcast / Premium',
+    pageCount: 9,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 7/media kit 7/Founders & Fortune Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 7/media kit 7/Founders & Fortune Media Kit/1.png'
+  },
+  podcast_kit6: {
+    canvaLink: 'https://canva.link/p3j0ki68anys1yo',
+    name: 'Crime Chronicles Media Kit',
+    titleHTML: 'Crime Chronicles<br/><span>Podcast Media Kit</span>',
+    desc: 'A professional 9-page podcast media kit for Crime Chronicles — designed for sponsorship outreach and brand partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Podcast / Premium',
+    pageCount: 9,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 6/media kit 6/Crime Chronicles Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 6/media kit 6/Crime Chronicles Media Kit/1.png'
+  },
+  podcast_kit5: {
+    canvaLink: 'https://canva.link/sytn17ng8pjwc8h',
+    name: 'Mindful Mornings Media Kit',
+    titleHTML: 'Mindful Mornings<br/><span>Podcast Media Kit</span>',
+    desc: 'A professional 9-page podcast media kit for the Mindful Mornings show. Fully designed for sponsorship outreach and brand partnerships.',
+    type: 'Press / Brand Media Kit',
+    style: 'Podcast / Premium',
+    pageCount: 9,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 5/media kit 5/Mindful Mornings Media Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Page 2','Page 3','Page 4','Page 5','Page 6','Page 7','Page 8','Page 9'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 5/media kit 5/Mindful Mornings Media Kit/1.png'
+  },
+  podcast_kit4: {
+    canvaLink: 'https://canva.link/p7ngbm6a0q6azhx',
+    name: 'Podcast Media Kit',
+    titleHTML: 'Podcast<br/><span>Media Kit</span>',
+    desc: 'A professional 9-page podcast media kit — dark navy and orange theme. Includes show overview, host bio, audience demographics, show stats, download statistics, sponsorship packages, and contact details.',
+    type: 'Press / Brand Media Kit',
+    style: 'Dark Navy / Orange',
+    pageCount: 9,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 4/media kit 4/podcast media kit/',
+    pageExt: '.jpg',
+    pageTitles: ['Cover','Host Bio','Show Overview','Audience Demographics','Show Stats','Download Stats','Sponsorship Packages','Packages & Growth','Contact'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 4/media kit 4/podcast media kit/1.jpg'
+  },
+  freelancer_kit1: {
+    canvaLink: 'https://canva.link/hljz9wea7o7m9ux',
+    name: 'Premium Graphic Design Freelancer Kit',
+    titleHTML: 'Premium Graphic Design<br/><span>Freelancer Media Kit</span>',
+    desc: 'A stunning 6-page personal brand media kit for graphic designers and freelancers. Dark navy and gold theme — includes cover, services, featured work, why choose me, pricing, and contact page.',
+    type: 'Press / Brand Media Kit',
+    style: 'Dark Navy / Gold',
+    pageCount: 6,
+    pageBase: '../designs/pitch_decks/slide sets/slides set 1/media kit 1/Premium Graphic Design Freelancer Kit/',
+    pageExt: '.png',
+    pageTitles: ['Cover','Services','Featured Work','Why Choose Me','Pricing','Contact'],
+    downloadFile: '../designs/pitch_decks/slide sets/slides set 1/media kit 1/Premium Graphic Design Freelancer Kit/1.png'
+  }
+};
+
+var currentKit = 'freelancer_kit1';
+(function(){
+  var k = new URLSearchParams(window.location.search).get('kit');
+  if (k && kits[k]) currentKit = k;
+  loadKit(currentKit);
+})();
+
+function loadKit(key) {
+  var k = kits[key];
+  document.getElementById('breadcrumbName').textContent = k.name;
+  document.title = k.name + ' — TemplateHub';
+  document.getElementById('templateTitle').innerHTML = k.titleHTML;
+  document.getElementById('templateDesc').textContent = k.desc;
+  document.getElementById('specType').textContent = k.type;
+  document.getElementById('specStyle').textContent = k.style;
+  document.getElementById('specPages').textContent = k.pageCount + ' Pages';
+  document.getElementById('modalDesc').textContent = 'Enter your email to download the ' + k.name + ' instantly. No spam.';
+  document.querySelector('.modal-btn').textContent = 'Download Now — It\'s Free';
+  var btnCanva = document.getElementById('btnCanva');
+  if (btnCanva) btnCanva.style.display = k.canvaLink ? 'block' : 'none';
+  var row = document.getElementById('thumbRow');
+  row.innerHTML = '';
+  for (var i = 1; i <= k.pageCount; i++) {
+    var img = document.createElement('img');
+    img.src = k.pages ? k.pageBase + k.pages[i-1] : k.pageBase + i + k.pageExt;
+    img.title = k.pageTitles[i-1] || 'Page ' + i;
+    img.loading = 'lazy';
+    img.onclick = (function(idx){ return function(){ showSlide(idx); }; })(i);
+    row.appendChild(img);
+  }
+  showSlide(1);
+}
+
+var currentSlideNum = 1;
+function showSlide(n) {
+  currentSlideNum = n;
+  var k = kits[currentKit];
+  var src = k.pages ? k.pageBase + k.pages[n-1] : k.pageBase + n + k.pageExt;
+  document.getElementById('mainImg').src = src;
+  document.getElementById('slideCounter').textContent = n + ' / ' + k.pageCount;
+  var thumbs = document.getElementById('thumbRow').querySelectorAll('img');
+  thumbs.forEach(function(t,i){ t.style.borderColor = (i===n-1) ? '#d4af37' : '#1e2a5a'; });
+}
+
+/* ── EDIT POPUP ── */
+function openEditPopup() { document.getElementById('editPopup').style.display = 'flex'; }
+function closeEditPopup() { document.getElementById('editPopup').style.display = 'none'; }
+function editSingleSlide() {
+  var k = kits[currentKit];
+  var src = k.pages ? k.pageBase + k.pages[currentSlideNum-1] : k.pageBase + currentSlideNum + k.pageExt;
+  localStorage.setItem('editMode', 'single');
+  localStorage.setItem('editSlides', JSON.stringify([src]));
+  closeEditPopup(); window.open('edit_section.html', '_blank');
+}
+function editCompleteDeck() {
+  var k = kits[currentKit]; var slides = [];
+  for (var i = 1; i <= k.pageCount; i++) slides.push(k.pages ? k.pageBase + k.pages[i-1] : k.pageBase + i + k.pageExt);
+  localStorage.setItem('editMode', 'deck');
+  localStorage.setItem('editSlides', JSON.stringify(slides));
+  closeEditPopup(); window.open('edit_section.html', '_blank');
+}
+
+// MODAL / DOWNLOAD STUBS
+var _dlIsPdf = false;
+function openModal(t){_dlIsPdf=(t==='pdf'); document.getElementById('modalOverlay').style.display='flex';}
+function closeModal(){document.getElementById('modalOverlay').style.display='none';}
+function handleDownload(){
+  var k = kits[currentKit];
+  var url;
+  if(_dlIsPdf){
+    var pdfPath = k.pageBase.split('/').slice(0,-2).join('/') + '/' + k.name + '.pdf';
+    url = pdfPath;
+  } else {
+    url = k.downloadFile;
+  }
+  if(url){ var a=document.createElement('a'); a.href=url; a.download=''; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+  closeModal();
+}
+function openCanva(){var k=kits[currentKit];if(k&&k.canvaLink)window.open(k.canvaLink,'_blank');}
+
+// THEME TOGGLE
+function toggleTheme(){
+  var b=document.body,btn=document.getElementById('themeBtn');
+  if(b.classList.contains('light')){
+    b.classList.remove('light');
+    b.style.background='#0a0a1e';
+    btn.textContent='🌙';
+  }else{
+    b.classList.add('light');
+    b.style.background='#faf8f4';
+    btn.textContent='☀️';
+  }
+}
+(function(){if(localStorage.getItem('theme')==='light'){document.body.classList.add('light');document.body.style.background='#faf8f4';var b=document.getElementById('themeBtn');if(b)b.textContent='☀️';}})();
+
+// COLOUR PICKER
+var cpOpen=false,cpR=null,cpG=null,cpB=null;
+function toggleColourPanel(){cpOpen=!cpOpen;var p=document.getElementById('colourPanel');if(cpOpen){p.classList.add('open');drawSpectrum();}else{p.classList.remove('open');}}
+document.addEventListener('click',function(e){var p=document.getElementById('colourPanel'),b=document.getElementById('colourBtn');if(cpOpen&&p&&!p.contains(e.target)&&e.target!==b){p.classList.remove('open');cpOpen=false;}});
+function drawSpectrum(){var c=document.getElementById('colourCanvas');if(!c)return;var ctx=c.getContext('2d'),w=c.width,h=c.height;var hg=ctx.createLinearGradient(0,0,w,0);hg.addColorStop(0,'hsl(0,100%,50%)');hg.addColorStop(0.17,'hsl(60,100%,50%)');hg.addColorStop(0.33,'hsl(120,100%,50%)');hg.addColorStop(0.5,'hsl(180,100%,50%)');hg.addColorStop(0.67,'hsl(240,100%,50%)');hg.addColorStop(0.83,'hsl(300,100%,50%)');hg.addColorStop(1,'hsl(360,100%,50%)');ctx.fillStyle=hg;ctx.fillRect(0,0,w,h);var vg=ctx.createLinearGradient(0,0,0,h);vg.addColorStop(0,'rgba(255,255,255,0.85)');vg.addColorStop(0.45,'rgba(255,255,255,0)');vg.addColorStop(0.55,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.85)');ctx.fillStyle=vg;ctx.fillRect(0,0,w,h);}
+window.addEventListener('load',function(){var cv=document.getElementById('colourCanvas');if(!cv)return;cv.addEventListener('mousemove',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpApply(px[0],px[1],px[2]);});cv.addEventListener('mouseleave',function(){if(cpR!==null)cpApply(cpR,cpG,cpB);else resetColour();});cv.addEventListener('click',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpR=px[0];cpG=px[1];cpB=px[2];cpApply(cpR,cpG,cpB);});});
+function cpApply(r,g,b){var isLight=document.body.classList.contains('light'),hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');document.body.style.background=isLight?'rgb('+Math.min(255,215+Math.round(r*0.16))+','+Math.min(255,210+Math.round(g*0.16))+','+Math.min(255,205+Math.round(b*0.16))+')':'rgb('+Math.round(r*0.22)+','+Math.round(g*0.22)+','+Math.round(b*0.22)+')';var nav=document.querySelector('nav');if(nav)nav.style.background=isLight?'rgb('+Math.min(255,235+Math.round(r*0.08))+','+Math.min(255,235+Math.round(g*0.08))+','+Math.min(255,235+Math.round(b*0.08))+')':'rgb('+Math.round(r*0.32)+','+Math.round(g*0.32)+','+Math.round(b*0.32)+')';var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background=hex;if(hx)hx.textContent=hex.toUpperCase();}
+function resetColour(){cpR=null;cpG=null;cpB=null;document.body.style.background='';var nav=document.querySelector('nav');if(nav)nav.style.background='';var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background='#d4af37';if(hx)hx.textContent='#D4AF37';}
+
+// FONT PICKER
+var fontPanelOpen=false,committedFont=null,defaultFont="'Poppins',sans-serif";
+function toggleFontPanel(){fontPanelOpen=!fontPanelOpen;document.getElementById('fontPanel').classList.toggle('open',fontPanelOpen);}
+document.addEventListener('click',function(e){var p=document.getElementById('fontPanel'),b=document.getElementById('fontBtn');if(fontPanelOpen&&p&&!p.contains(e.target)&&e.target!==b){p.classList.remove('open');fontPanelOpen=false;}});
+function applyFont(f){document.body.style.fontFamily=f;document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,button,span,div,input,li').forEach(function(el){el.style.fontFamily=f;});}
+function previewFont(el){applyFont(el.getAttribute('data-font'));}
+function revertFont(){applyFont(committedFont||defaultFont);}
+function lockFont(el){committedFont=el.getAttribute('data-font');applyFont(committedFont);document.querySelectorAll('.font-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');}
+function resetFont(){committedFont=null;applyFont(defaultFont);document.querySelectorAll('.font-item').forEach(function(i){i.classList.remove('active');});}
+</script>
+
+<style>
+.colour-panel{display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:9999;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);}
+.colour-panel.open{display:block;}
+.colour-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.colour-panel canvas{display:block;border-radius:10px;cursor:crosshair;border:1px solid rgba(255,255,255,0.1);}
+.colour-panel-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.colour-swatch{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);flex-shrink:0;}
+.colour-hex{font-size:13px;font-weight:700;color:#fff;}
+.colour-reset{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;}
+.font-panel{display:none;position:fixed;top:70px;right:70px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:9999;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);min-width:220px;}
+.font-panel.open{display:block;}
+.font-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.font-list{display:flex;flex-direction:column;gap:4px;max-height:320px;overflow-y:auto;padding-right:4px;}
+.font-list::-webkit-scrollbar{width:4px;}
+.font-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:4px;}
+.font-item{padding:8px 12px;border-radius:10px;cursor:pointer;font-size:15px;color:rgba(255,255,255,0.85);transition:background 0.15s;border:1px solid transparent;}
+.font-item:hover,.font-item.active{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);}
+.font-reset-row{margin-top:10px;display:flex;justify-content:flex-end;}
+.font-reset{font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;}
+</style>
+
+<div class="colour-panel" id="colourPanel">
+  <div class="colour-panel-label">Pick Theme Colour</div>
+  <canvas id="colourCanvas" width="220" height="150"></canvas>
+  <div class="colour-panel-preview">
+    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
+    <span class="colour-hex" id="colourHex">#D4AF37</span>
+    <button class="colour-reset" onclick="resetColour()">Reset</button>
+  </div>
+</div>
+
+<div class="font-panel" id="fontPanel">
+  <div class="font-panel-label">Pick Font</div>
+  <div class="font-list">
+    <div class="font-item" style="font-family:'Poppins',sans-serif;" data-font="'Poppins',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Poppins</div>
+    <div class="font-item" style="font-family:'Inter',sans-serif;" data-font="'Inter',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Inter</div>
+    <div class="font-item" style="font-family:'Montserrat',sans-serif;" data-font="'Montserrat',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Montserrat</div>
+    <div class="font-item" style="font-family:'Raleway',sans-serif;" data-font="'Raleway',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Raleway</div>
+    <div class="font-item" style="font-family:'Nunito',sans-serif;" data-font="'Nunito',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Nunito</div>
+    <div class="font-item" style="font-family:'DM Sans',sans-serif;" data-font="'DM Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">DM Sans</div>
+    <div class="font-item" style="font-family:'Playfair Display',serif;" data-font="'Playfair Display',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Playfair Display</div>
+    <div class="font-item" style="font-family:'Lora',serif;" data-font="'Lora',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lora</div>
+    <div class="font-item" style="font-family:'Space Grotesk',sans-serif;" data-font="'Space Grotesk',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Space Grotesk</div>
+    <div class="font-item" style="font-family:'Outfit',sans-serif;" data-font="'Outfit',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Outfit</div>
+    <div class="font-item" style="font-family:'Josefin Sans',sans-serif;" data-font="'Josefin Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Josefin Sans</div>
+    <div class="font-item" style="font-family:'Quicksand',sans-serif;" data-font="'Quicksand',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Quicksand</div>
+    <div class="font-item" style="font-family:'Urbanist',sans-serif;" data-font="'Urbanist',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Urbanist</div>
+    <div class="font-item" style="font-family:'Sora',sans-serif;" data-font="'Sora',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Sora</div>
+    <div class="font-item" style="font-family:'Plus Jakarta Sans',sans-serif;" data-font="'Plus Jakarta Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Plus Jakarta Sans</div>
+    <div class="font-item" style="font-family:'Cormorant Garamond',serif;" data-font="'Cormorant Garamond',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Cormorant Garamond</div>
+    <div class="font-item" style="font-family:'Libre Baskerville',serif;" data-font="'Libre Baskerville',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Libre Baskerville</div>
+    <div class="font-item" style="font-family:'Jost',sans-serif;" data-font="'Jost',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Jost</div>
+    <div class="font-item" style="font-family:'Figtree',sans-serif;" data-font="'Figtree',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Figtree</div>
+    <div class="font-item" style="font-family:'Lexend',sans-serif;" data-font="'Lexend',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lexend</div>
+  </div>
+  <div class="font-reset-row"><button class="font-reset" onclick="resetFont()">Reset</button></div>
+</div>
+
+<script src="va_dictionary.js"></script>
+<script src="navbar.js"></script><script src="dl_panel.js"></script>
+
+<!-- EDIT POPUP -->
+<div id="editPopup" onclick="if(event.target===this)closeEditPopup()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <h3 style="font-family:'Poppins',sans-serif;font-size:18px;color:#1a1a2e;margin-bottom:8px;">Open in Editor</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:24px;font-family:'Poppins',sans-serif;">What would you like to edit?</p>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <button onclick="editSingleSlide()" style="padding:14px;border-radius:10px;border:2px solid #5b7fff;background:#fff;color:#5b7fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;" onmouseover="this.style.background='#5b7fff';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#5b7fff'">✏️ Edit This Page Only</button>
+      <button onclick="editCompleteDeck()" style="padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;">📂 Edit Complete Media Kit</button>
+      <button onclick="closeEditPopup()" style="padding:10px;border-radius:10px;border:none;background:#f0f0f0;color:#888;font-size:13px;cursor:pointer;font-family:'Poppins',sans-serif;">Cancel</button>
+    </div>
+  </div>
+</div>
+</bod

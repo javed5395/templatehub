@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Media Kit Templates — TemplateHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #070714; color: #ffffff; }
+    h1,h2,h3,h4,.logo,.section-title,.template-name,.nav-btn,.btn-download,.template-price,.card-badge,.footer-logo,.folder-title,.folder-count { font-family: 'Poppins', sans-serif; }
+
+    /* NAVBAR */
+    nav { display:flex; justify-content:space-between; align-items:center; padding:18px 70px; background:#0a0a20; border-bottom:1px solid rgba(212,175,55,0.2); position:sticky; top:0; z-index:100; backdrop-filter:blur(10px); }
+    .logo { font-size:26px; font-weight:900; background:linear-gradient(90deg,#64c8ff,#b464ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:-0.5px; text-decoration:none; }
+    .nav-links { display:flex; align-items:center; gap:6px; }
+    .nav-links a { color:#c8d2dc; text-decoration:none; padding:8px 16px; font-size:14px; border-radius:20px; transition:all 0.2s; }
+    .nav-links a:hover { color:#d4af37; background:rgba(212,175,55,0.08); }
+    .nav-active { color:#d4af37 !important; font-weight:700 !important; }
+    .nav-btn { background:linear-gradient(90deg,#d4af37,#f0d060) !important; color:#0a0a1e !important; padding:9px 22px !important; border-radius:22px; font-weight:800 !important; font-size:13px !important; box-shadow:0 4px 15px rgba(212,175,55,0.3); }
+    .theme-toggle { background:#0f1030; border:1.5px solid rgba(212,175,55,0.4); color:#d4af37; width:42px; height:42px; border-radius:50%; font-size:18px; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; margin-left:10px; }
+    .theme-toggle:hover { background:rgba(212,175,55,0.1); transform:rotate(20deg); }
+
+    /* LIGHT MODE */
+    body.light { background:#f5f2eb; color:#1a1a2e; }
+    body.light nav { background:#ffffff; border-bottom:1px solid rgba(212,175,55,0.3); box-shadow:0 2px 12px rgba(0,0,0,0.08); }
+    body.light .logo { background:linear-gradient(90deg,#1a4ab5,#6a0dad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    body.light .nav-links a { color:#333; }
+    body.light .theme-toggle { background:#fff; border-color:rgba(212,175,55,0.5); }
+    body.light .page-header { background:linear-gradient(180deg,#faf7f2,#f0ece3); }
+    body.light .page-header h1 { color:#0d1b4b; }
+    body.light .page-header p { color:#666; }
+    body.light .folder-card { background:#ffffff; border-color:rgba(212,175,55,0.2); box-shadow:0 4px 20px rgba(0,0,0,0.07); }
+    body.light .folder-card:hover { border-color:rgba(212,175,55,0.6); }
+    body.light .folder-title { color:#0d1b4b; }
+    body.light .folder-desc { color:#666; }
+    body.light .folder-meta { border-top-color:rgba(0,0,0,0.08); }
+    body.light .template-card { background:#ffffff; border-color:rgba(212,175,55,0.2); box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+    body.light .template-card:hover { border-color:rgba(212,175,55,0.6); }
+    body.light .template-name { color:#1a1a2e; }
+    body.light .template-type { color:#777; }
+    body.light .kits-panel { background:#f0ece3; border-color:rgba(212,175,55,0.2); }
+    body.light .kits-panel-header { border-bottom-color:rgba(0,0,0,0.08); }
+    body.light .kits-panel-title { color:#0d1b4b; }
+    body.light footer { background:#1a1a2e; }
+    body.light .footer-tagline,.footer-links a,.footer-bottom p { color:#aaa; }
+    body.light .gold-divider { background:linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent); }
+
+    /* PAGE HEADER */
+    .page-header {
+      padding: 60px 70px 50px;
+      background: radial-gradient(ellipse at 50% 0%, #1a1a4a 0%, #070714 65%);
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .page-header::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(212,175,55,0.06) 1px, transparent 1px);
+      background-size: 30px 30px; pointer-events: none;
+    }
+    .page-header h1 { font-size: 46px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 14px; }
+    .page-header h1 span { background: linear-gradient(90deg,#d4af37,#f0d060); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .page-header p { font-size: 17px; color: #8899aa; max-width: 560px; margin: 0 auto 30px; line-height: 1.6; }
+    .header-stats { display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
+    .h-stat { background:rgba(255,255,255,0.05); border:1px solid rgba(212,175,55,0.2); border-radius:12px; padding:12px 24px; text-align:center; }
+    .h-stat-num { font-size:24px; font-weight:900; color:#d4af37; font-family:'Poppins',sans-serif; }
+    .h-stat-lbl { font-size:11px; color:#8899aa; margin-top:2px; }
+
+    /* MAIN SECTION */
+    .section { padding: 60px 70px; }
+    .gold-divider { height:1px; margin:0 70px; background:linear-gradient(90deg,transparent,rgba(212,175,55,0.4),transparent); }
+
+    /* CATEGORY LABEL */
+    .cat-label {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 28px; margin-top: 10px;
+    }
+    .cat-label-line { flex: 1; height: 1px; background: rgba(212,175,55,0.2); }
+    .cat-label-text { font-size: 12px; font-weight: 700; color: #d4af37; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; font-family:'Poppins',sans-serif; }
+
+    /* FOLDER GRID */
+    .folder-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-bottom: 60px; }
+
+    /* FOLDER CARD */
+    .folder-card {
+      background: #0f1030; border: 1px solid rgba(212,175,55,0.18);
+      border-radius: 16px; padding: 28px 24px 22px;
+      cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .folder-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: 16px 16px 0 0; opacity: 0; transition: opacity 0.3s;
+    }
+    .folder-card:hover { border-color: rgba(212,175,55,0.6); transform: translateY(-4px); box-shadow: 0 14px 40px rgba(0,0,0,0.4), 0 0 20px rgba(212,175,55,0.12); }
+    .folder-card:hover::before { opacity: 1; }
+    .folder-card.active { border-color: #d4af37; box-shadow: 0 0 0 2px rgba(212,175,55,0.2), 0 14px 40px rgba(0,0,0,0.4); }
+    .folder-card.active::before { opacity: 1; }
+
+    /* FOLDER ICON */
+    .folder-icon {
+      width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center;
+      justify-content: center; font-size: 28px; margin-bottom: 16px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1);
+    }
+    .folder-title { font-size: 15px; font-weight: 800; margin-bottom: 6px; line-height: 1.3; }
+    .folder-desc { font-size: 12px; color: #8899aa; line-height: 1.5; margin-bottom: 16px; }
+    .folder-meta { display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(212,175,55,0.1); padding-top:14px; }
+    .folder-count { font-size: 12px; font-weight: 700; color: #d4af37; }
+    .folder-arrow { font-size: 14px; color: #8899aa; transition: transform 0.3s; }
+    .folder-card.active .folder-arrow { transform: rotate(90deg); color: #d4af37; }
+
+    /* KITS PANEL (expands when folder clicked) */
+    .kits-panel {
+      display: none; background: #0a0a1e; border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 16px; margin-bottom: 32px; overflow: hidden;
+      animation: slideDown 0.3s ease;
+    }
+    .kits-panel.open { display: block; }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+    .kits-panel-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 20px 28px; border-bottom: 1px solid rgba(212,175,55,0.1);
+    }
+    .kits-panel-icon { font-size: 24px; }
+    .kits-panel-title { font-size: 18px; font-weight: 800; }
+    .kits-panel-sub { font-size: 13px; color: #8899aa; margin-left: auto; }
+    .kits-panel-body { padding: 24px 28px; }
+
+    /* KIT CARDS inside panel */
+    .kit-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+    .template-card {
+      background: #0f1030; border: 1px solid rgba(212,175,55,0.15); border-radius: 12px;
+      overflow: hidden; transition: all 0.3s; cursor: pointer; position: relative;
+    }
+    .template-card:hover { border-color:rgba(212,175,55,0.6); transform:translateY(-4px); box-shadow:0 10px 30px rgba(0,0,0,0.4),0 0 16px rgba(212,175,55,0.15); }
+    .template-preview { height:120px; display:flex; align-items:center; justify-content:center; font-size:36px; position:relative; overflow:hidden; }
+    .template-preview img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.3s; }
+    .template-card:hover .template-preview img { transform:scale(1.05); }
+    .template-preview::after { content:''; position:absolute; inset:0; background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,0.3)); pointer-events:none; }
+    .template-info { padding:12px 13px; }
+    .template-name { font-size:11px; font-weight:700; margin-bottom:3px; line-height:1.4; }
+    .template-type { font-size:10px; color:#8899aa; margin-bottom:8px; }
+    .template-footer { display:flex; justify-content:space-between; align-items:center; }
+    .template-price { font-size:13px; font-weight:900; color:#d4af37; }
+    .btn-download { background:linear-gradient(90deg,#64c8ff,#b464ff); color:#0a0a1e; border:none; padding:5px 12px; border-radius:10px; font-size:10px; font-weight:800; cursor:pointer; text-decoration:none; display:inline-block; line-height:1.6; transition:all 0.2s; }
+    .btn-download:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(100,200,255,0.4); }
+    .card-badge { position:absolute; top:8px; left:8px; z-index:2; font-size:9px; font-weight:700; padding:3px 8px; border-radius:8px; }
+    .badge-new { background:rgba(80,220,150,0.9); color:#0a0a1e; }
+    .badge-popular { background:rgba(212,175,55,0.9); color:#0a0a1e; }
+
+    /* FOOTER */
+    footer { background:#0a0a20; border-top:1px solid rgba(212,175,55,0.15); padding:50px 70px; }
+    .footer-inner { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:30px; margin-bottom:30px; }
+    .footer-logo { font-size:22px; font-weight:900; background:linear-gradient(90deg,#64c8ff,#b464ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:8px; }
+    .footer-tagline { color:#8899aa; font-size:13px; }
+    .footer-links h4 { color:#d4af37; font-size:13px; font-weight:700; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px; }
+    .footer-links a { display:block; color:#8899aa; text-decoration:none; font-size:13px; margin-bottom:8px; transition:color 0.2s; }
+    .footer-links a:hover { color:#d4af37; }
+    .footer-bottom { border-top:1px solid rgba(212,175,55,0.1); padding-top:20px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    .footer-bottom p { color:#556677; font-size:12px; }
+
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+    .folder-card { animation: fadeInUp 0.4s ease both; }
+
+    @media(max-width:1200px){ .folder-grid{grid-template-columns:repeat(3,1fr);} .kit-grid{grid-template-columns:repeat(3,1fr);} }
+    @media(max-width:900px){ .folder-grid{grid-template-columns:repeat(2,1fr);} .kit-grid{grid-template-columns:repeat(2,1fr);} nav{padding:14px 24px;} .section{padding:40px 24px;} .page-header{padding:50px 24px 40px;} }
+    @media(max-width:500px){ .folder-grid{grid-template-columns:1fr;} .kit-grid{grid-template-columns:1fr;} .page-header h1{font-size:32px;} }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<!-- NAVBAR injected by navbar.js -->
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>🗂️ Media Kit <span>Templates</span></h1>
+  <p>Professional media kits for podcasters, brands, influencers, press & PR — organized by category</p>
+  <div class="header-stats">
+    <div class="h-stat"><div class="h-stat-num">35</div><div class="h-stat-lbl">Media Kits</div></div>
+    <div class="h-stat"><div class="h-stat-num">6</div><div class="h-stat-lbl">Categories</div></div>
+    <div class="h-stat"><div class="h-stat-num">100%</div><div class="h-stat-lbl">Free</div></div>
+  </div>
+</div>
+
+<!-- MAIN SECTION -->
+<section class="section">
+
+  <!-- CATEGORY LABEL -->
+  <div class="cat-label">
+    <div class="cat-label-line"></div>
+    <div class="cat-label-text">Browse by Category</div>
+    <div class="cat-label-line"></div>
+  </div>
+
+  <!-- FOLDER GRID -->
+  <div class="folder-grid">
+
+    <div class="folder-card" id="folder_podcast" onclick="toggleFolder('podcast')" style="--accent:#f97316;padding:0;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f97316,#fb923c);border-radius:16px 16px 0 0;z-index:2;"></div>
+      <img src="../designs/pitch_decks/slide sets/Untitled design.png" alt="Podcast Media Kit" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:16px;"/ loading="lazy">
+    </div>
+
+    <div class="folder-card" id="folder_press" onclick="toggleFolder('press')" style="--accent:#10b981;">
+      <div style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.05));" class="folder-icon">📰</div>
+      <div class="folder-title">Press / PR Media Kit</div>
+      <div class="folder-desc">Press kits for brands, companies & organisations — media outreach & PR</div>
+      <div class="folder-meta">
+        <span class="folder-count">5 Kits</span>
+        <span class="folder-arrow">›</span>
+      </div>
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#10b981,#34d399);border-radius:16px 16px 0 0;"></div>
+    </div>
+
+    <div class="folder-card" id="folder_influencer" onclick="toggleFolder('influencer')" style="--accent:#b464ff;">
+      <div style="background:linear-gradient(135deg,rgba(180,100,255,0.2),rgba(180,100,255,0.05));" class="folder-icon">🌟</div>
+      <div class="folder-title">Influencer / Creator Kit</div>
+      <div class="folder-desc">Media kits for content creators & influencers — brand deals & collabs</div>
+      <div class="folder-meta">
+        <span class="folder-count">4 Kits</span>
+        <span class="folder-arrow">›</span>
+      </div>
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#b464ff,#d464ff);border-radius:16px 16px 0 0;"></div>
+    </div>
+
+    <div class="folder-card" id="folder_fashion" onclick="toggleFolder('fashion')" style="--accent:#f43f5e;">
+      <div style="background:linear-gradient(135deg,rgba(244,63,94,0.2),rgba(244,63,94,0.05));" class="folder-icon">👗</div>
+      <div class="folder-title">Fashion Media Kit</div>
+      <div class="folder-desc">Media kits for fashion brands, designers & swimwear — style, lookbooks & campaigns</div>
+      <div class="folder-meta">
+        <span class="folder-count">5 Kits</span>
+        <span class="folder-arrow">›</span>
+      </div>
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f43f5e,#fb7185);border-radius:16px 16px 0 0;"></div>
+    </div>
+
+    <div class="folder-card" id="folder_brand" onclick="toggleFolder('brand')" style="--accent:#d4af37;">
+      <div style="background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(212,175,55,0.05));" class="folder-icon">👑</div>
+      <div class="folder-title">Brand Media Kit</div>
+      <div class="folder-desc">Brand identity kits for businesses — style guides, product & corporate</div>
+      <div class="folder-meta">
+        <span class="folder-count">16 Kits</span>
+        <span class="folder-arrow">›</span>
+      </div>
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#d4af37,#f0d060);border-radius:16px 16px 0 0;"></div>
+    </div>
+
+  </div>
+
+  <!-- ── PODCAST PANEL ── -->
+  <div class="kits-panel" id="panel_podcast">
+    <div class="kits-panel-header">
+      <span class="kits-panel-icon">🎙️</span>
+      <span class="kits-panel-title">Podcast Media Kits</span>
+      <span class="kits-panel-sub">5 templates · Click any to preview</span>
+    </div>
+    <div class="kits-panel-body">
+      <div class="kit-grid">
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=podcast_kit4'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 4/media kit 4/podcast media kit/1.jpg" alt="Tech Talks Daily"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Tech Talks Daily</div>
+            <div class="template-type">9 Pages • Dark Navy / Orange</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=podcast_kit4" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=podcast_kit5'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 5/media kit 5/Mindful Mornings Media Kit/1.png" alt="Mindful Mornings"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Mindful Mornings</div>
+            <div class="template-type">9 Pages • Podcast Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=podcast_kit5" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=podcast_kit6'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 6/media kit 6/Crime Chronicles Media Kit/1.png" alt="Crime Chronicles"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Crime Chronicles</div>
+            <div class="template-type">9 Pages • Podcast Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=podcast_kit6" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=podcast_kit7'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 7/media kit 7/Founders & Fortune Media Kit/1.png" alt="Founders & Fortune"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Founders & Fortune</div>
+            <div class="template-type">9 Pages • Podcast Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=podcast_kit7" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=podcast_kit8'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 8/media kit 8/Laugh Out Loud Media Kit/1.png" alt="Laugh Out Loud"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Laugh Out Loud</div>
+            <div class="template-type">9 Pages • Podcast Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=podcast_kit8" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FASHION PANEL ── -->
+  <div class="kits-panel" id="panel_fashion">
+    <div class="kits-panel-header">
+      <span class="kits-panel-icon">👗</span>
+      <span class="kits-panel-title">Fashion Media Kits</span>
+      <span class="kits-panel-sub">5 templates · Click any to preview</span>
+    </div>
+    <div class="kits-panel-body">
+      <div class="kit-grid">
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=fashion_kit25'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 25/media kit 25/Bloom & Willow Fashion Media Kit/1.png" alt="Bloom & Willow"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Bloom & Willow Fashion Kit</div>
+            <div class="template-type">12 Pages • Fashion Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=fashion_kit25" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=fashion_kit26'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 26/media kit 26/Solstice Swim Fashion Media Kit/1.png" alt="Solstice Swim"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Solstice Swim Fashion Kit</div>
+            <div class="template-type">12 Pages • Fashion Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=fashion_kit26" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=fashion_kit29'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 29/media kit 29/Urban Edge Fashion Media Kit/1.png" alt="Urban Edge"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Urban Edge Fashion Kit</div>
+            <div class="template-type">12 Pages • Fashion Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=fashion_kit29" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=fashion_kit31'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 31/media kit 31/Noir Luxe Fashion Media Kit/1.png" alt="Noir Luxe"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Noir Luxe Fashion Kit</div>
+            <div class="template-type">12 Pages • Fashion Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=fashion_kit31" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=fashion_kit30'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 30/media kit 30/Luna & Co. Fashion Media Kit/1.png" alt="Luna & Co."/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Luna & Co. Fashion Kit</div>
+            <div class="template-type">12 Pages • Fashion Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=fashion_kit30" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PRESS/PR PANEL ── -->
+  <div class="kits-panel" id="panel_press">
+    <div class="kits-panel-header">
+      <span class="kits-panel-icon">📰</span>
+      <span class="kits-panel-title">Press / PR Media Kits</span>
+      <span class="kits-panel-sub">4 templates · Click any to preview</span>
+    </div>
+    <div class="kits-panel-body">
+      <div class="kit-grid">
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=press_kit22'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 22/media kit 22/EcoCharge Station Media Kit Launch/1.png" alt="EcoCharge Station"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">EcoCharge Station Launch Kit</div>
+            <div class="template-type">12 Pages • Press / PR Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=press_kit22" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=press_kit9'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 9/media kit 9/GreenEarth Organics Media Kit Overview/1.png" alt="GreenEarth Organics"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">GreenEarth Organics</div>
+            <div class="template-type">9 Pages • Press / PR Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=press_kit9" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=press_kit10'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 10/media kit 10/Luxe Fashion House Press Kit Overview/1.png" alt="Luxe Fashion House"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Luxe Fashion House</div>
+            <div class="template-type">11 Pages • Press / PR Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=press_kit10" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=press_kit11'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 11/media kit 11/FitLife Press Media Kit Energetic Wellness Brand/1.png" alt="FitLife Gym"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">FitLife Gym & Wellness</div>
+            <div class="template-type">10 Pages • Press / PR Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=press_kit11" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=press_kit12'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 12/media kit 12/CloudStream Technologies Press Kit/1.png" alt="CloudStream Technologies"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">CloudStream Technologies</div>
+            <div class="template-type">10 Pages • Press / PR Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=press_kit12" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INFLUENCER PANEL ── -->
+  <div class="kits-panel" id="panel_influencer">
+    <div class="kits-panel-header">
+      <span class="kits-panel-icon">🌟</span>
+      <span class="kits-panel-title">Influencer / Creator Kits</span>
+      <span class="kits-panel-sub">2 templates · Click any to preview</span>
+    </div>
+    <div class="kits-panel-body">
+      <div class="kit-grid">
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=influencer_kit13'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 13/media kit 13/Sophia Martinez Influencer Media Kit/1.png" alt="Sophia Martinez"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Sophia Martinez</div>
+            <div class="template-type">10 Pages • Influencer Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=influencer_kit13" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=influencer_kit14'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 14/media kit 14/Lily Chen Influencer Media Kit/1.png" alt="Lily Chen"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Lily Chen</div>
+            <div class="template-type">10 Pages • Influencer Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=influencer_kit14" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=influencer_kit35'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 35/media kit 35/Diego Rivera Influencer Media Kit/1.png" alt="Diego Rivera"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Diego Rivera Influencer Kit</div>
+            <div class="template-type">10 Pages • Influencer Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=influencer_kit35" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=influencer_kit28'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 28/media kit 28/Marcus Chen Creator Media Kit/1.png" alt="Marcus Chen"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Marcus Chen Creator Kit</div>
+            <div class="template-type">10 Pages • Influencer Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=influencer_kit28" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BRAND PANEL ── -->
+  <div class="kits-panel" id="panel_brand">
+    <div class="kits-panel-header">
+      <span class="kits-panel-icon">👑</span>
+      <span class="kits-panel-title">Brand Media Kits</span>
+      <span class="kits-panel-sub">7 templates · Click any to preview</span>
+    </div>
+    <div class="kits-panel-body">
+      <div class="kit-grid">
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=freelancer_kit1'">
+          <div class="card-badge badge-popular">⭐ Popular</div>
+          <div class="template-preview" style="background:linear-gradient(135deg,#0a0f1e,#1a1a3a);">
+            <span style="font-size:28px;font-weight:900;background:linear-gradient(90deg,#c9a84c,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">JI</span>
+          </div>
+          <div class="template-info">
+            <div class="template-name">Premium Graphic Design Freelancer Kit</div>
+            <div class="template-type">6 Pages • Dark Navy / Gold</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=freelancer_kit1" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit15'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 15/media kit 15/Aurora Skincare Brand Media Kit/1.png" alt="Aurora Skincare"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Aurora Skincare</div>
+            <div class="template-type">11 Pages • Brand Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit15" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit16'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 16/media kit 16/Velocity Sports Brand Media Kit/1.png" alt="Velocity Sports"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Velocity Sports Brand Kit</div>
+            <div class="template-type">13 Pages • Brand Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit16" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit17'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 17/media kit 17/Ember Coffee Co. Brand Media Kit/1.png" alt="Ember Coffee Co."/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Ember Coffee Co.</div>
+            <div class="template-type">11 Pages • Brand Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit17" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit18'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 18/media kit 18/Black Gold Luxury Ornamental Professional Presentation/1.png" alt="Black Gold Luxury"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Black Gold Luxury</div>
+            <div class="template-type">10 Pages • Luxury Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit18" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit19'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 19/media kit 19/Brand Kit Presentation in Black and White Emerald Mint Green Aspirational Elegance Style/13.png" alt="Emerald Mint"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Emerald Mint Brand Kit</div>
+            <div class="template-type">13 Pages • Elegant Style</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit19" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=tech_kit20'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 20/media kit 20/_Dark Blue and Cyan Modern Technology Pitch Deck Presentation/1.png" alt="Dark Blue Cyan Tech"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Dark Blue Cyan Tech Kit</div>
+            <div class="template-type">10 Pages • Tech Brand</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=tech_kit20" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit21'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 21/media kit 21/Skincare Brand Products Elegant Minimalist Presentation/1.png" alt="Skincare Minimalist"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Skincare Elegant Minimalist</div>
+            <div class="template-type">13 Pages • Beauty Brand</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit21" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit23'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 23/media kit 23/Black Minimalist Product Launch Deck Presentation/1.png" alt="Black Minimalist Launch"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">Black Minimalist Product Launch</div>
+            <div class="template-type">10 Pages • Brand / Launch</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit23" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit37'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 37/media kit 37/SkillBridge Startup Media Kit/1.png" alt="SkillBridge Startup"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">SkillBridge Startup Kit</div>
+            <div class="template-type">12 Pages • Brand Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit37" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit36'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 36/media kit 36/PetPal Startup Media Kit/1.png" alt="PetPal Startup"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">PetPal Startup Media Kit</div>
+            <div class="template-type">12 Pages • Brand Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit36" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit34'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 34/media kit 34/CleanWave Startup Media Kit/1.png" alt="CleanWave Startup"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">CleanWave Startup Kit</div>
+            <div class="template-type">12 Pages • Brand Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit34" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit33'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 33/media kit 33/BrewMaster Elite Media Kit Overview/1.png" alt="BrewMaster Elite"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">BrewMaster Elite Media Kit</div>
+            <div class="template-type">12 Pages • Brand Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit33" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit32'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 32/media kit 32/HomeHero Media Kit Overview/1.png" alt="HomeHero"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">HomeHero Media Kit</div>
+            <div class="template-type">12 Pages • Brand Media Kit</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit32" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit27'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 27/media kit 27/FreshCart Startup Media Kit/1.png" alt="FreshCart Startup"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">FreshCart Startup Kit</div>
+            <div class="template-type">11 Pages • Brand / Startup</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit27" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="window.location='media_kits_slides.html?kit=brand_kit24'">
+          <div class="card-badge badge-new">🆕 New</div>
+          <div class="template-preview"><img src="../designs/pitch_decks/slide sets/slides set 24/media kit 24/GlowUp Serum Launch Media Kit/1.png" alt="GlowUp Serum"/ loading="lazy"></div>
+          <div class="template-info">
+            <div class="template-name">GlowUp Serum Launch Kit</div>
+            <div class="template-type">12 Pages • Beauty Brand</div>
+            <div class="template-footer"><span class="template-price">FREE</span><a href="media_kits_slides.html?kit=brand_kit24" class="btn-download">View →</a></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- FOOTER -->
+<div class="gold-divider"></div>
+<footer>
+  <div class="footer-inner">
+    <div><div class="footer-logo">TemplateHub</div><div class="footer-tagline">Professional templates for every industry.<br/>Free to download. No subscription needed.</div></div>
+    <div class="footer-links"><h4>Templates</h4><a href="pitch_deck_folder_section.html">Pitch Decks</a><a href="media_kits_folder_section.html">Media Kits</a><a href="pitch_deck_folder_section.html">Browse All</a></div>
+    <div class="footer-links"><h4>Categories</h4><a href="#">Podcast Kits</a><a href="#">Press / PR</a><a href="#">Influencer</a><a href="#">Brand Kits</a></div>
+    <div class="footer-links"><h4>Contact</h4><a href="mailto:javed5395@gmail.com">javed5395@gmail.com</a><a href="#">www.templatehub.com</a></div>
+  </div>
+  <div class="footer-bottom"><p>© 2026 TemplateHub. All rights reserved.</p><p>Professional Templates · Free to Download · No Subscription</p></div>
+</footer>
+
+<script>
+function toggleTheme() {
+  var body=document.body; var btn=document.getElementById('themeBtn');
+  if(body.classList.contains('light')){body.classList.remove('light');btn.textContent='🌙';localStorage.setItem('theme','dark');}
+  else{body.classList.add('light');btn.textContent='☀️';localStorage.setItem('theme','light');}
+}
+(function(){if(localStorage.getItem('theme')==='light'){document.body.classList.add('light');var b=document.getElementById('themeBtn');if(b)b.textContent='☀️';}})();
+
+function toggleFolder(id) {
+  var panel = document.getElementById('panel_' + id);
+  var folder = document.getElementById('folder_' + id);
+  var isOpen = panel.classList.contains('open');
+
+  // Close all
+  document.querySelectorAll('.kits-panel').forEach(function(p){ p.classList.remove('open'); });
+  document.querySelectorAll('.folder-card').forEach(function(f){ f.classList.remove('active'); });
+
+  // Open clicked if it was closed
+  if (!isOpen) {
+    panel.classList.add('open');
+    folder.classList.add('active');
+    // Smooth scroll to panel
+    setTimeout(function(){ panel.scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 100);
+  }
+}
+
+// COLOUR PICKER
+var cpOpen=false,cpR=null,cpG=null,cpB=null;
+function toggleColourPanel(){cpOpen=!cpOpen;var p=document.getElementById('colourPanel');if(cpOpen){p.classList.add('open');drawSpectrum();}else{p.classList.remove('open');}}
+document.addEventListener('click',function(e){var p=document.getElementById('colourPanel'),b=document.getElementById('colourBtn');if(cpOpen&&p&&!p.contains(e.target)&&e.target!==b){p.classList.remove('open');cpOpen=false;}});
+function drawSpectrum(){var c=document.getElementById('colourCanvas');if(!c)return;var ctx=c.getContext('2d'),w=c.width,h=c.height;var hg=ctx.createLinearGradient(0,0,w,0);hg.addColorStop(0,'hsl(0,100%,50%)');hg.addColorStop(0.17,'hsl(60,100%,50%)');hg.addColorStop(0.33,'hsl(120,100%,50%)');hg.addColorStop(0.5,'hsl(180,100%,50%)');hg.addColorStop(0.67,'hsl(240,100%,50%)');hg.addColorStop(0.83,'hsl(300,100%,50%)');hg.addColorStop(1,'hsl(360,100%,50%)');ctx.fillStyle=hg;ctx.fillRect(0,0,w,h);var vg=ctx.createLinearGradient(0,0,0,h);vg.addColorStop(0,'rgba(255,255,255,0.85)');vg.addColorStop(0.45,'rgba(255,255,255,0)');vg.addColorStop(0.55,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.85)');ctx.fillStyle=vg;ctx.fillRect(0,0,w,h);}
+window.addEventListener('load',function(){var cv=document.getElementById('colourCanvas');if(!cv)return;cv.addEventListener('mousemove',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpApply(px[0],px[1],px[2]);});cv.addEventListener('mouseleave',function(){if(cpR!==null)cpApply(cpR,cpG,cpB);else resetColour();});cv.addEventListener('click',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpR=px[0];cpG=px[1];cpB=px[2];cpApply(cpR,cpG,cpB);});});
+function cpApply(r,g,b){var isLight=document.body.classList.contains('light'),hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');document.body.style.background=isLight?'rgb('+Math.min(255,215+Math.round(r*0.16))+','+Math.min(255,210+Math.round(g*0.16))+','+Math.min(255,205+Math.round(b*0.16))+')':'rgb('+Math.round(r*0.22)+','+Math.round(g*0.22)+','+Math.round(b*0.22)+')';var nav=document.querySelector('nav');if(nav)nav.style.background=isLight?'rgb('+Math.min(255,235+Math.round(r*0.08))+','+Math.min(255,235+Math.round(g*0.08))+','+Math.min(255,235+Math.round(b*0.08))+')':'rgb('+Math.round(r*0.32)+','+Math.round(g*0.32)+','+Math.round(b*0.32)+')';var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background=hex;if(hx)hx.textContent=hex.toUpperCase();}
+function resetColour(){cpR=null;cpG=null;cpB=null;document.body.style.background='';var nav=document.querySelector('nav');if(nav)nav.style.background='';var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background='#d4af37';if(hx)hx.textContent='#D4AF37';}
+
+// FONT PICKER
+var fontPanelOpen=false,committedFont=null,defaultFont="'Poppins',sans-serif";
+function toggleFontPanel(){fontPanelOpen=!fontPanelOpen;document.getElementById('fontPanel').classList.toggle('open',fontPanelOpen);}
+document.addEventListener('click',function(e){var p=document.getElementById('fontPanel'),b=document.getElementById('fontBtn');if(fontPanelOpen&&p&&!p.contains(e.target)&&e.target!==b){p.classList.remove('open');fontPanelOpen=false;}});
+function applyFont(f){document.body.style.fontFamily=f;document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,button,span,div,input,li').forEach(function(el){el.style.fontFamily=f;});}
+function previewFont(el){applyFont(el.getAttribute('data-font'));}
+function revertFont(){applyFont(committedFont||defaultFont);}
+function lockFont(el){committedFont=el.getAttribute('data-font');applyFont(committedFont);document.querySelectorAll('.font-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');}
+function resetFont(){committedFont=null;applyFont(defaultFont);document.querySelectorAll('.font-item').forEach(function(i){i.classList.remove('active');});}
+</script>
+
+<style>
+.colour-panel{display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:9999;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);}
+.colour-panel.open{display:block;}
+.colour-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Poppins',sans-serif;}
+.colour-panel canvas{display:block;border-radius:10px;cursor:crosshair;border:1px solid rgba(255,255,255,0.1);}
+.colour-panel-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.colour-swatch{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);flex-shrink:0;}
+.colour-hex{font-size:13px;font-weight:700;color:#fff;font-family:'Poppins',sans-serif;}
+.colour-reset{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;}
+.font-panel{display:none;position:fixed;top:70px;right:70px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:9999;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);min-width:220px;}
+.font-panel.open{display:block;}
+.font-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Poppins',sans-serif;}
+.font-list{display:flex;flex-direction:column;gap:4px;max-height:320px;overflow-y:auto;padding-right:4px;}
+.font-list::-webkit-scrollbar{width:4px;}
+.font-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:4px;}
+.font-item{padding:8px 12px;border-radius:10px;cursor:pointer;font-size:15px;color:rgba(255,255,255,0.85);transition:background 0.15s;border:1px solid transparent;}
+.font-item:hover,.font-item.active{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);}
+.font-reset-row{margin-top:10px;display:flex;justify-content:flex-end;}
+.font-reset{font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;}
+</style>
+
+<div class="colour-panel" id="colourPanel">
+  <div class="colour-panel-label">Pick Theme Colour</div>
+  <canvas id="colourCanvas" width="220" height="150"></canvas>
+  <div class="colour-panel-preview">
+    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
+    <span class="colour-hex" id="colourHex">#D4AF37</span>
+    <button class="colour-reset" onclick="resetColour()">Reset</button>
+  </div>
+</div>
+
+<div class="font-panel" id="fontPanel">
+  <div class="font-panel-label">Pick Font</div>
+  <div class="font-list">
+    <div class="font-item" style="font-family:'Poppins',sans-serif;" data-font="'Poppins',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Poppins</div>
+    <div class="font-item" style="font-family:'Inter',sans-serif;" data-font="'Inter',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Inter</div>
+    <div class="font-item" style="font-family:'Montserrat',sans-serif;" data-font="'Montserrat',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Montserrat</div>
+    <div class="font-item" style="font-family:'Raleway',sans-serif;" data-font="'Raleway',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Raleway</div>
+    <div class="font-item" style="font-family:'Nunito',sans-serif;" data-font="'Nunito',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Nunito</div>
+    <div class="font-item" style="font-family:'DM Sans',sans-serif;" data-font="'DM Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">DM Sans</div>
+    <div class="font-item" style="font-family:'Playfair Display',serif;" data-font="'Playfair Display',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Playfair Display</div>
+    <div class="font-item" style="font-family:'Lora',serif;" data-font="'Lora',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lora</div>
+    <div class="font-item" style="font-family:'Space Grotesk',sans-serif;" data-font="'Space Grotesk',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Space Grotesk</div>
+    <div class="font-item" style="font-family:'Outfit',sans-serif;" data-font="'Outfit',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Outfit</div>
+    <div class="font-item" style="font-family:'Josefin Sans',sans-serif;" data-font="'Josefin Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Josefin Sans</div>
+    <div class="font-item" style="font-family:'Quicksand',sans-serif;" data-font="'Quicksand',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Quicksand</div>
+    <div class="font-item" style="font-family:'Urbanist',sans-serif;" data-font="'Urbanist',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Urbanist</div>
+    <div class="font-item" style="font-family:'Sora',sans-serif;" data-font="'Sora',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Sora</div>
+    <div class="font-item" style="font-family:'Plus Jakarta Sans',sans-serif;" data-font="'Plus Jakarta Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Plus Jakarta Sans</div>
+    <div class="font-item" style="font-family:'Cormorant Garamond',serif;" data-font="'Cormorant Garamond',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Cormorant Garamond</div>
+    <div class="font-item" style="font-family:'Libre Baskerville',serif;" data-font="'Libre Baskerville',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Libre Baskerville</div>
+    <div class="font-item" style="font-family:'Jost',sans-serif;" data-font="'Jost',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Jost</div>
+    <div class="font-item" style="font-family:'Figtree',sans-serif;" data-font="'Figtree',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Figtree</div>
+    <div class="font-item" style="font-family:'Lexend',sans-serif;" data-font="'Lexend',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lexend</div>
+  </div>
+  <div class="font-reset-row"><button class="font-reset" onclick="resetFont()">Reset</button></div>
+</div>
+<script src="va_dictionary.js"></script>
+<script src="navbar.js"></script>
