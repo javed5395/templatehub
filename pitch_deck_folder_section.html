@@ -9,9 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #070714; color: #ffffff; }
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; background-color: #f8f8f8; background-image: repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px); color: #1a1a2e; }
     h1, h2, h3, h4, .logo, .section-title, .template-name, .stat-num, .filter-btn, .nav-btn, .btn-download, .template-price, .card-badge, .footer-logo { font-family: 'Poppins', sans-serif; }
-    nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 70px; background: #0a0a20; border-bottom: 1px solid rgba(212,175,55,0.2); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 70px; background: #ffffff; border-bottom: 1px solid rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
     .logo { font-size: 26px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; text-decoration: none; }
     .nav-links { display: flex; align-items: center; gap: 6px; }
     .nav-links a { color: #c8d2dc; text-decoration: none; padding: 8px 16px; font-size: 14px; border-radius: 20px; transition: all 0.2s; }
@@ -26,7 +26,8 @@
     body.light .nav-links a { color: #333; }
     body.light .nav-links a:hover { color: #b8860b; }
     body.light .theme-toggle { background: #fff; border-color: rgba(212,175,55,0.5); }
-    body.light .section-title { color: #0d1b4b; }
+    body.light .section-title { color: #0d0d0d; }
+    .section-title span.red { color: #e03030 !important; -webkit-text-fill-color: #e03030 !important; }
     body.light .section-sub { color: #666; }
     body.light .filter-btn { background: transparent; }
     body.light .filter-btn:hover { color: #fff !important; }
@@ -46,7 +47,7 @@
     body.light .footer-bottom p { color: #666; }
     body.light .gold-divider { background: linear-gradient(90deg, transparent, rgba(212,175,55,0.5), transparent); }
     .section { padding: 80px 70px; }
-    .section-title { font-size: 36px; font-weight: 900; margin-bottom: 10px; letter-spacing: -0.5px; }
+    .section-title { font-size: 46px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.5px; color: #0d0d0d; font-family: 'Playfair Display', serif; }
     .section-sub { color: #8899aa; font-size: 16px; margin-bottom: 36px; line-height: 1.6; }
     .gold-divider { height: 1px; margin: 0 70px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); }
     .filter-bar { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 28px; padding-bottom: 6px; }
@@ -79,7 +80,7 @@
     .filter-btn:hover { background: currentColor; }
     .filter-btn.active { background: currentColor; }
     .grid-4 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
-    .template-card { background: #0f1030; border: 1px solid rgba(212,175,55,0.15); border-radius: 12px; overflow: hidden; transition: all 0.3s; cursor: pointer; position: relative; }
+    .template-card { background: #ffffff; border: 1px solid rgba(0,0,0,0.09); border-radius: 12px; overflow: hidden; transition: all 0.3s; cursor: pointer; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .template-card:hover { border-color: rgba(212,175,55,0.6); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 16px rgba(212,175,55,0.15); }
     .template-preview { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 36px; position: relative; overflow: hidden; }
     .template-preview img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
@@ -96,16 +97,16 @@
     .template-price { font-size: 14px; font-weight: 900; color: #d4af37; }
     .btn-download { background: linear-gradient(90deg, #64c8ff, #b464ff); color: #0a0a1e; border: none; padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; line-height: 1.6; transition: all 0.2s; }
     .btn-download:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(100,200,255,0.4); }
-    .card-badge { position: absolute; top: 10px; left: 10px; z-index: 2; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
+    .card-badge { position: absolute; top: 10px; right: 10px; z-index: 2; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
     .badge-popular { background: rgba(212,175,55,0.9); color: #0a0a1e; }
     .badge-new { background: rgba(80,220,150,0.9); color: #0a0a1e; }
     .badge-hot { background: rgba(255,80,80,0.9); color: #fff; }
     .no-results { text-align: center; padding: 70px 20px; color: #8899aa; font-size: 15px; display: none; }
     .no-results span { display: block; font-size: 44px; margin-bottom: 18px; }
     .search-wrap { padding: 40px 70px 0; }
-    .search-box { display: flex; align-items: center; background: #0f1030; border: 1.5px solid rgba(212,175,55,0.3); border-radius: 50px; padding: 6px 6px 6px 24px; max-width: 680px; margin: 0 auto; transition: border-color 0.3s, box-shadow 0.3s; }
+    .search-box { display: flex; align-items: center; background: #ffffff; border: 1.5px solid rgba(0,0,0,0.15); border-radius: 50px; padding: 6px 6px 6px 24px; max-width: 680px; margin: 0 auto; transition: border-color 0.3s, box-shadow 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .search-box:focus-within { border-color: #d4af37; box-shadow: 0 0 0 4px rgba(212,175,55,0.1); }
-    .search-box input { flex: 1; background: transparent; border: none; outline: none; color: #fff; font-size: 15px; padding: 8px 0; }
+    .search-box input { flex: 1; background: transparent; border: none; outline: none; color: #1a1a2e; font-size: 15px; padding: 8px 0; }
     .search-box input::placeholder { color: #556677; }
     .search-btn { background: linear-gradient(90deg, #d4af37, #f0d060); color: #0a0a1e; border: none; padding: 11px 28px; border-radius: 44px; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
     .search-btn:hover { transform: scale(1.03); box-shadow: 0 4px 15px rgba(212,175,55,0.4); }
@@ -134,7 +135,7 @@
 
 <!-- PITCH DECK SECTION -->
 <section class="section" id="featured">
-  <div class="section-title">📊 Pitch Deck Templates</div>
+  <div class="section-title">Pitch Deck <span class="red">Templates</span></div>
   <div class="section-sub">Investor-ready pitch decks for every industry — fully editable in PowerPoint</div>
 
   <div class="filter-bar">

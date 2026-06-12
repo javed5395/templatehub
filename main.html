@@ -242,7 +242,7 @@
     body:not(.light) .hero-icon .icon-lbl { color: #c8d2dc; }
     body:not(.light) .btn-primary { background: linear-gradient(160deg,#7b94ff 0%,#5b7fff 40%,#7a3fff 100%); box-shadow: 0 6px 22px rgba(91,127,255,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.20); }
     body:not(.light) .btn-secondary { color: #3a2400; }
-    body:not(.light) .hero-deck { box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.08); }
+    body:not(.light) .hero-deck { filter: drop-shadow(0 30px 44px rgba(0,0,0,0.55)) drop-shadow(0 10px 20px rgba(0,0,0,0.35)); }
     body:not(.light) .hero-icon .icon-img { background: linear-gradient(135deg, rgba(40,46,80,0.85) 0%, rgba(20,24,48,0.7) 100%); box-shadow: 0 10px 26px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.3); }
     body:not(.light) .hero-icon:hover .icon-img { box-shadow: 0 20px 44px rgba(0,0,0,0.55), inset 0 1px 2px rgba(255,255,255,0.15); }
     body:not(.light) .stats { background: transparent; border-color: transparent; }
@@ -286,28 +286,50 @@
     .hero-right { flex: 1 1 460px; display: flex; justify-content: center; }
     .hero-platform-wrap { max-width: 1200px; margin: 24px auto 0; }
     .hero-deck {
-      width: 100%; max-width: 560px; height: auto; border-radius: 16px;
-      box-shadow: 0 40px 80px rgba(0,0,0,0.28), 0 16px 32px rgba(0,0,0,0.16), 0 4px 10px rgba(0,0,0,0.10), inset 0 1px 2px rgba(255,255,255,0.15);
-      border: 1px solid rgba(0,0,0,0.06);
-      transform: perspective(1400px) rotateY(-7deg) rotateX(2deg);
-      transition: transform 0.45s ease, box-shadow 0.45s ease;
+      width: 100%; max-width: 580px; height: auto;
+      filter: drop-shadow(0 30px 42px rgba(0,0,0,0.26)) drop-shadow(0 10px 18px rgba(0,0,0,0.15));
+      transform: none;
+      transition: transform 0.55s ease-out, filter 0.55s ease-out;
     }
-    .hero-deck:hover { transform: perspective(1400px) rotateY(0deg) rotateX(0deg) translateY(-6px); box-shadow: 0 55px 100px rgba(0,0,0,0.32), 0 20px 40px rgba(0,0,0,0.18), 0 6px 14px rgba(0,0,0,0.12); }
+    .hero-deck:hover { transform: translateY(-8px) scale(1.02); filter: drop-shadow(0 44px 60px rgba(0,0,0,0.32)) drop-shadow(0 14px 24px rgba(0,0,0,0.18)); }
     .hero-tag { display: inline-block; background: rgba(255,255,255,0.75); border: 1px solid rgba(0,0,0,0.10); color: #555; padding: 8px 24px; border-radius: 50px; font-size: 13px; font-weight: 500; margin-bottom: 28px; letter-spacing: 0.2px; font-family:'Poppins',sans-serif; backdrop-filter: blur(12px); box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
     .hero h1 { font-family: 'Space Grotesk', 'Poppins', sans-serif; font-size: 54px; font-weight: 700; line-height: 1.15; margin-bottom: 20px; letter-spacing: -0.02em; color: #1a1a2e; text-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04); }
     .hero h1 span { background: linear-gradient(90deg, #5b9fff 0%, #3a6aff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 3px 10px rgba(91,127,255,0.30)); }
     .hero p { font-family:'Poppins',sans-serif; font-size: 18px; font-weight:400; color: #6b7280; max-width: 520px; margin: 0 0 32px; line-height: 1.6; }
-    .hero-btns { display: flex; gap: 16px; justify-content: flex-start; flex-wrap: wrap; margin-bottom: 0; }
+    .hero-btns { display: flex; gap: 16px; justify-content: flex-start; flex-wrap: nowrap; margin-bottom: 0; }
 
-    .btn-primary { position: relative; overflow: hidden; background: linear-gradient(160deg, #7b94ff 0%, #5b7fff 40%, #7a3fff 100%); color: #ffffff; padding: 16px 34px; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; border: none; cursor: pointer; box-shadow: 0 6px 22px rgba(91,127,255,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.20); transition: all 0.25s ease; }
+    .btn-primary { position: relative; overflow: hidden; background: linear-gradient(160deg, #7b94ff 0%, #5b7fff 40%, #7a3fff 100%); color: #ffffff; padding: 16px 34px; border-radius: 12px; font-size: 16px; font-weight: 600; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; border: none; cursor: pointer; box-shadow: 0 6px 22px rgba(91,127,255,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.20); transform: perspective(600px) rotateX(10deg) rotateY(-4deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
     .btn-primary::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 52%; background: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 70%, transparent 100%); border-radius: 12px 12px 0 0; pointer-events: none; }
-    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(91,127,255,0.50), inset 0 1px 0 rgba(255,255,255,0.50), inset 0 -1px 0 rgba(0,0,0,0.20); }
-    .btn-primary:active { transform: translateY(-1px); }
+    .btn-primary:hover { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-4px); box-shadow: 0 14px 36px rgba(91,127,255,0.55), inset 0 1px 0 rgba(255,255,255,0.50), inset 0 -1px 0 rgba(0,0,0,0.20); }
+    .btn-primary:active { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-1px); }
 
-    .btn-secondary { position: relative; overflow: hidden; background: linear-gradient(160deg, #f5d060 0%, #e8b830 40%, #c88020 100%); border: none; color: #3a1e00; padding: 16px 34px; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; cursor: pointer; box-shadow: 0 6px 22px rgba(201,151,47,0.40), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.15); transition: all 0.25s ease; }
+    .btn-secondary { position: relative; overflow: hidden; background: linear-gradient(160deg, #f5d060 0%, #e8b830 40%, #c88020 100%); border: none; color: #3a1e00; padding: 16px 34px; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; cursor: pointer; box-shadow: 0 6px 22px rgba(201,151,47,0.40), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.15); transform: perspective(600px) rotateX(10deg) rotateY(-4deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
     .btn-secondary::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 52%; background: linear-gradient(180deg, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.10) 70%, transparent 100%); border-radius: 12px 12px 0 0; pointer-events: none; }
-    .btn-secondary:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(201,151,47,0.52), inset 0 1px 0 rgba(255,255,255,0.60), inset 0 -1px 0 rgba(0,0,0,0.15); }
-    .btn-secondary:active { transform: translateY(-1px); }
+    .btn-secondary:hover { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-4px); box-shadow: 0 14px 36px rgba(201,151,47,0.58), inset 0 1px 0 rgba(255,255,255,0.60), inset 0 -1px 0 rgba(0,0,0,0.15); }
+    .btn-secondary:active { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-1px); }
+
+    .btn-green { position: relative; overflow: hidden; background: linear-gradient(160deg, #6eeaaa 0%, #2ecc82 40%, #00996a 100%); border: none; color: #003a22; padding: 16px 34px; border-radius: 12px; font-size: 16px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; cursor: pointer; box-shadow: 0 6px 22px rgba(46,204,130,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.15); transform: perspective(600px) rotateX(10deg) rotateY(-4deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
+    .btn-green::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 52%; background: linear-gradient(180deg, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.10) 70%, transparent 100%); border-radius: 12px 12px 0 0; pointer-events: none; }
+    .btn-green:hover { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-4px); box-shadow: 0 14px 36px rgba(46,204,130,0.58), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.15); }
+    .btn-green:active { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-1px); }
+
+    /* Hero mockup placeholder (shown until user drops in hero_mockup.png) */
+    .hero-mockup-placeholder {
+      width: 100%; max-width: 560px; aspect-ratio: 16/10;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      border: 2px dashed rgba(212,175,55,0.35);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; color: rgba(255,255,255,0.35); font-family: 'Poppins', sans-serif;
+      font-size: 13px; text-align: center; padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .hero-mockup-placeholder .ph-icon { font-size: 52px; opacity: 0.5; }
+    .hero-mockup-placeholder strong { color: rgba(212,175,55,0.7); font-size: 15px; }
+    .hero-mockup-placeholder code { font-size: 11px; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 6px; color: rgba(255,255,255,0.5); font-family: monospace; }
+    body.light .hero-mockup-placeholder { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.12); color: #aaa; }
+    body.light .hero-mockup-placeholder strong { color: #b8860b; }
+    body.light .hero-mockup-placeholder code { background: rgba(0,0,0,0.06); color: #888; }
 
     .hero-icons { display:flex; justify-content:flex-start; gap:18px; margin:32px 0 36px; flex-wrap:wrap; }
     .hero-icon { text-align:center; }
@@ -655,7 +677,7 @@
     }
   </script>
 </head>
-<body>
+<body data-page="main">
 
 <!-- NAVBAR injected by navbar.js -->
 
@@ -728,11 +750,14 @@
       <div class="hero-btns">
         <a href="pitch_deck_folder_section.html" class="btn-primary">Pitch Decks</a>
         <a href="media_kits_folder_section.html" class="btn-secondary">Media Kits</a>
-        <a href="invoice.html" class="btn-primary" style="background:linear-gradient(160deg,#6eeaaa 0%,#2ecc82 40%,#00996a 100%);box-shadow:0 6px 22px rgba(46,204,130,0.38),inset 0 1px 0 rgba(255,255,255,0.45),inset 0 -1px 0 rgba(0,0,0,0.15);">Invoices</a>
+        <a href="invoice.html" class="btn-green">Invoices</a>
       </div>
     </div>
-    <div class="hero-right" style="flex-direction:column; align-items:center; gap:20px;">
-      <img class="hero-deck" src="../designs/pitch_decks/slide sets/slides set 1/slides set (16 x 9)/ai_startup/slide_01.png" alt="AI Startup Pitch Deck — sample template preview"/>
+    <div class="hero-right" style="flex-direction:column; align-items:center; justify-content:center;">
+      <img id="heroMockupImg"
+           class="hero-deck"
+           src="images/hero_mockup_transparent.png"
+           alt="LazyDog Templates — Pitch Deck and Brand Identity Kit mockups"/>
     </div>
   </div>
   <!-- PLATFORM CARDS — full width below hero -->
