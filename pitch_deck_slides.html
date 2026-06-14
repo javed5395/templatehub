@@ -12,22 +12,6 @@
     body { font-family: 'Inter', 'Segoe UI', sans-serif; background-color: #f8f8f8; background-image: repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px); color: #1a1a2e; }
     h1, h2, h3, .logo, .template-title, .template-badge, .btn-download, .btn-preview, .price-tag, .size-btn, .switcher-btn, .modal-btn { font-family: 'Poppins', sans-serif; }
 
-    nav {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 18px 60px; background: #ffffff; border-bottom: 1px solid rgba(0,0,0,0.08); box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-    }
-    .logo {
-      font-size: 24px; font-weight: 800;
-      background: linear-gradient(90deg, #64c8ff, #b464ff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      text-decoration: none;
-    }
-    .nav-links { display:flex; align-items:center; gap:6px; }
-    .nav-links a { color: #c8d2dc; text-decoration: none; margin-left: 30px; font-size: 14px; }
-    .theme-toggle { background:#0f1030; border:1.5px solid rgba(212,175,55,0.4); color:#d4af37; width:42px; height:42px; border-radius:50%; font-size:18px; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; margin-left:10px; flex-shrink:0; }
-    .theme-toggle:hover { background:rgba(212,175,55,0.1); transform:rotate(20deg); }
-    .font-btn { width:42px; height:42px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); cursor:pointer; margin-left:6px; flex-shrink:0; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); box-shadow:0 2px 10px rgba(0,0,0,0.4); transition:transform 0.3s; font-size:16px; font-weight:900; color:#fff; display:flex; align-items:center; justify-content:center; }
-    .font-btn:hover { transform:scale(1.12); }
     .colour-btn { width:42px; height:42px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); cursor:pointer; margin-left:6px; flex-shrink:0; background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red); box-shadow:0 2px 10px rgba(0,0,0,0.4); transition:transform 0.3s; }
     .colour-btn:hover { transform:scale(1.12); }
     @keyframes panelIn { from{opacity:0;transform:scale(0.85) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);} }
@@ -54,76 +38,24 @@
     .font-reset:hover { color:#fff; border-color:rgba(255,255,255,0.4); }
     body.light .colour-panel,.body.light .font-panel { background:rgba(255,255,255,0.97); border-color:rgba(0,0,0,0.1); }
     body.light { background:#faf8f4; color:#1a1a2e; }
-    body.light nav { background:#ffffff; border-bottom:1px solid rgba(212,175,55,0.3); box-shadow:0 2px 12px rgba(0,0,0,0.08); }
-    body.light .theme-toggle { background:#fff; border-color:rgba(212,175,55,0.5); }
-    .nav-links a:hover { color: #64c8ff; }
-    .nav-btn {
-      background: linear-gradient(90deg, #64c8ff, #b464ff);
-      color: #0a0a1e !important; padding: 8px 20px;
-      border-radius: 20px; font-weight: 700 !important;
-    }
 
 
-    .breadcrumb { padding: 16px 60px; font-size: 13px; color: #8899aa; }
-    .breadcrumb a { color: #64c8ff; text-decoration: none; }
-    .breadcrumb a:hover { text-decoration: underline; }
 
-    /* DESIGN SWITCHER */
-    .design-switcher {
-      display: flex; gap: 10px; padding: 0 60px 24px;
-      align-items: center; flex-wrap: wrap;
-    }
-    .switcher-label { font-size: 13px; color: #8899aa; margin-right: 4px; font-family:'Poppins',sans-serif; }
 
-    /* ── CATEGORY WRAPPER (hover trigger) ── */
-    .cat-wrap { position: relative; }
-    .cat-btn {
-      background: transparent; border: 2px solid currentColor;
-      padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;
-      cursor: pointer; transition: background 0.18s, color 0.18s;
-      white-space: nowrap; font-family:'Poppins',sans-serif;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .cat-btn:hover, .cat-btn.active { background: currentColor; }
-    .cat-btn:hover span, .cat-btn.active span { color: #fff !important; -webkit-text-fill-color: #fff !important; }
-    .cat-btn .cat-label { color: inherit; }
-    .cat-btn:hover .cat-label, .cat-btn.active .cat-label { color: #fff; }
-    .cat-btn .cat-arrow { font-size: 9px; opacity: 0.7; transition: transform 0.2s; }
-    .cat-wrap:hover .cat-arrow { transform: rotate(180deg); }
-
-    /* ── DROPDOWN PANEL ── */
-    .cat-drop {
-      display: none; position: absolute; top: calc(100% + 6px); left: 0;
-      background: rgba(13,13,43,0.97); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px; padding: 6px; min-width: 220px;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.6); backdrop-filter: blur(20px);
-      z-index: 9000; animation: catDrop 0.18s ease;
-    }
-    @keyframes catDrop { from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);} }
-    .cat-wrap:hover .cat-drop { display: block; }
-    .cat-item {
-      display: block; padding: 9px 14px; border-radius: 8px;
-      font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.75);
-      text-decoration: none; font-family:'Poppins',sans-serif;
-      transition: background 0.15s, color 0.15s; white-space: nowrap;
-    }
-    .cat-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
-    .cat-item.active { background: rgba(212,175,55,0.15); color: #d4af37; font-weight: 700; }
-
-    /* light mode */
-    body.light .cat-drop { background: rgba(255,255,255,0.98); border-color: rgba(0,0,0,0.1); box-shadow: 0 16px 48px rgba(0,0,0,0.12); }
-    body.light .cat-item { color: rgba(0,0,0,0.7); }
-    body.light .cat-item:hover { background: rgba(0,0,0,0.05); color: #111; }
-    body.light .cat-item.active { background: rgba(180,83,9,0.08); color: #b45309; }
-
-    /* Category colours */
-    #cat_tech         .cat-btn { color:#1d4ed8; border-color:#1d4ed8; }
-    #cat_medical      .cat-btn { color:#0369a1; border-color:#0369a1; }
-    #cat_finance      .cat-btn { color:#6b21a8; border-color:#6b21a8; }
-    #cat_construction .cat-btn { color:#92400e; border-color:#92400e; }
-    #cat_hr           .cat-btn { color:#166534; border-color:#166534; }
-    #cat_creative     .cat-btn { color:#78350f; border-color:#78350f; }
-    #cat_corporate    .cat-btn { color:#065f46; border-color:#065f46; }
+    /* cat-panel styles (same as folder page) */
+    .cat-panel{position:fixed;background:linear-gradient(160deg,#0e0824 0%,#150d35 100%);border:1px solid rgba(255,255,255,0.10);border-radius:14px;padding:10px 0;z-index:9999;box-shadow:0 24px 64px rgba(0,0,0,0.8);min-width:240px;max-height:420px;overflow-y:auto;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity 0.18s,transform 0.18s;}
+    .cat-panel.open{opacity:1;pointer-events:all;transform:translateY(0);}
+    .cat-panel-title{font-size:9.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,0.35);padding:4px 18px 10px;font-family:'Poppins',sans-serif;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:4px;}
+    .cat-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:13.5px;font-family:'Inter',sans-serif;color:#cdd0e0;cursor:pointer;transition:background 0.12s,color 0.12s;}
+    .cat-item:hover{background:rgba(180,100,255,0.12);color:#fff;}
+    .cat-item .ci-icon{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
+    .cat-item .ci-name{flex:1;}
+    .cat-item .ci-arrow{font-size:16px;color:rgba(255,255,255,0.25);margin-left:auto;}
+    .cat-item:hover .ci-arrow{color:rgba(212,175,55,0.8);}
+    .cat-submenu{position:fixed;background:linear-gradient(160deg,#0e0824 0%,#150d35 100%);border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:6px 0;z-index:10000;box-shadow:0 16px 48px rgba(0,0,0,0.8);min-width:240px;max-height:320px;overflow-y:auto;opacity:0;pointer-events:none;transform:translateX(-6px);transition:opacity 0.15s,transform 0.15s;}
+    .cat-submenu.open{opacity:1;pointer-events:all;transform:translateX(0);}
+    .sub-item{display:block;padding:9px 18px;font-size:13px;color:#cdd0e0;font-family:'Inter',sans-serif;text-decoration:none;transition:background 0.12s,color 0.12s;}
+    .sub-item:hover{background:rgba(180,100,255,0.12);color:#fff;}
 
     .product-layout {
       display: grid; grid-template-columns: 1fr 380px;
@@ -135,6 +67,38 @@
       overflow: hidden; background: #14193a; margin-bottom: 16px; position: relative;
     }
     .main-preview img { width: 100%; display: block; }
+    /* Hover expand circle */
+    .hover-expand-overlay { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.22s;cursor:pointer;z-index:5; }
+    .main-preview:hover .hover-expand-overlay { opacity:1; }
+    .expand-circle { width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,0.5);transition:transform 0.18s,box-shadow 0.18s; }
+    .expand-circle:hover { transform:scale(1.12);box-shadow:0 6px 32px rgba(0,0,0,0.65); }
+    .expand-circle svg { width:26px;height:26px; }
+    /* Lightbox */
+    #lbOverlay { display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88); }
+    #lbOverlay.open { display:flex; }
+    .lb-container { display:flex;width:100%;height:100%; }
+    .lb-left { flex:1;display:flex;flex-direction:column;min-width:0; }
+    .lb-toolbar { display:flex;align-items:center;gap:8px;padding:10px 14px;flex-shrink:0;background:rgba(8,8,20,0.9);border-bottom:1px solid rgba(255,255,255,0.07); }
+    .lb-close-btn { width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s; }
+    .lb-close-btn:hover { background:rgba(220,60,60,0.55); }
+    .lb-slide-info { color:rgba(200,210,220,0.6);font-size:13px;margin-right:auto;padding-left:4px; }
+    .lb-tool-btn { background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#ccd;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background 0.15s;font-family:'Poppins',sans-serif;white-space:nowrap; }
+    .lb-tool-btn:hover { background:rgba(255,255,255,0.17); }
+    .lb-img-area { flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:24px 64px;overflow:hidden; }
+    .lb-img-area img { max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.7);user-select:none; }
+    .lb-nav-btn { position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;z-index:2;line-height:1; }
+    .lb-nav-btn:hover { background:rgba(255,255,255,0.28); }
+    #lbBtnPrev { left:12px; }
+    #lbBtnNext { right:12px; }
+    .lb-strip { width:192px;flex-shrink:0;overflow-y:auto;overflow-x:hidden;background:rgba(4,4,14,0.8);border-left:1px solid rgba(255,255,255,0.06);padding:10px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.18) transparent; }
+    .lb-strip::-webkit-scrollbar { width:4px; }
+    .lb-strip::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.18);border-radius:2px; }
+    .lb-strip-grid { display:grid;grid-template-columns:1fr 1fr;gap:5px; }
+    .lb-thumb { cursor:pointer;border-radius:5px;overflow:hidden;border:2px solid transparent;transition:border-color 0.2s;aspect-ratio:16/9;background:#0a0a1e; }
+    .lb-thumb img { width:100%;height:100%;object-fit:cover;display:block; }
+    .lb-thumb:hover { border-color:rgba(255,255,255,0.35); }
+    .lb-thumb.lb-active { border-color:#64c8ff; }
+    .lb-thumb.lb-big { grid-column:span 2; }
     .slide-counter {
       position: absolute; bottom: 12px; right: 12px;
       background: rgba(0,0,0,0.7); color: #c8d2dc;
@@ -257,20 +221,8 @@
     .modal-close { color: #8899aa; font-size: 13px; cursor: pointer; background: none; border: none; }
     .modal-close:hover { color: #fff; }
 
-    footer {
-      background: #0d0d2b; border-top: 1px solid #1e1e4a; padding: 30px 60px;
-      display: flex; justify-content: space-between; align-items: center; margin-top: 60px;
-    }
-    .footer-logo {
-      font-size: 18px; font-weight: 800;
-      background: linear-gradient(90deg, #64c8ff, #b464ff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    footer p { color: #8899aa; font-size: 13px; }
   
     /* ── FONT PICKER BUTTON ── */
-    .font-btn { width:42px; height:42px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); cursor:pointer; margin-left:6px; flex-shrink:0; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); box-shadow:0 2px 10px rgba(0,0,0,0.4); transition:transform 0.3s,box-shadow 0.3s; font-size:16px; font-weight:900; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Georgia',serif; letter-spacing:-1px; }
-    .font-btn:hover { transform:scale(1.12); box-shadow:0 4px 18px rgba(0,0,0,0.5); }
     .font-panel { display:none; position:fixed; top:70px; right:70px; background:rgba(10,10,30,0.96); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:14px; z-index:9999; box-shadow:0 20px 60px rgba(0,0,0,0.7); backdrop-filter:blur(20px); min-width:220px; }
     .font-panel.open { display:block; }
     .font-panel-label { font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px; font-family:'Poppins',sans-serif; }
@@ -288,6 +240,102 @@
     body.light .font-item { color:rgba(0,0,0,0.75); }
     body.light .font-item:hover,.font-item.active { background:rgba(0,0,0,0.06); color:#1a1a2e; }
     body.light .font-reset { color:rgba(0,0,0,0.35); border-color:rgba(0,0,0,0.15); }
+    /* ══ YELLOW STRIP ══ */
+    .navbar-below-strip {
+      width: 100%; background: #ffcc00;
+      padding: 20px 0 18px 34px; box-sizing: border-box;
+    }
+    .navbar-below-strip h1 {
+      font-family: 'Poppins', sans-serif; font-size: 2.4rem; font-weight: 800;
+      color: #1a1a2e; margin: 0 0 10px 0; line-height: 1.1;
+    }
+    .navbar-below-strip h1 span { color: #cc0000; }
+
+    /* ── ETSY-STYLE PANEL ── */
+    .etsy-panel { margin-top: 4px; }
+    .etsy-price { font-size: 28px; font-weight: 800; color: #fff; font-family: 'Poppins', sans-serif; margin-bottom: 6px; }
+    .etsy-keywords { font-size: 12px; color: #8899aa; line-height: 1.55; margin-bottom: 10px; }
+    .etsy-seller-row { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; font-size: 13px; }
+    .etsy-seller-name { font-weight: 600; color: #64c8ff; }
+    .etsy-stars { color: #d4af37; letter-spacing: 2px; font-size: 14px; }
+    .etsy-btn-outline {
+      width: 100%; background: transparent; border: 2px solid #c8d2dc; color: #c8d2dc;
+      padding: 14px; border-radius: 30px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; margin-bottom: 10px; display: block;
+      font-family: 'Poppins', sans-serif;
+    }
+    .etsy-btn-outline:hover { border-color: #fff; color: #fff; }
+    .etsy-btn-filled {
+      width: 100%; background: #0d0d1e; border: 2px solid #1e2a5a; color: #fff;
+      padding: 14px; border-radius: 30px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; margin-bottom: 12px; display: block;
+      font-family: 'Poppins', sans-serif;
+    }
+    .etsy-btn-filled:hover { border-color: #64c8ff; background: #14193a; }
+    .etsy-collection-link {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      font-size: 13px; color: #8899aa; cursor: pointer; margin-bottom: 22px;
+      transition: color 0.2s; background: none; border: none; width: 100%;
+      font-family: 'Inter', sans-serif;
+    }
+    .etsy-collection-link:hover { color: #c8d2dc; }
+    .etsy-collection-link .heart { color: #e03030; font-size: 16px; }
+    .etsy-accordion { border-top: 1px solid #1e2a5a; }
+    .etsy-accordion-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 0; cursor: pointer; font-size: 14px; font-weight: 600;
+      color: #c8d2dc; user-select: none; transition: color 0.15s;
+    }
+    .etsy-accordion-header:hover { color: #fff; }
+    .etsy-arrow { font-size: 18px; color: #8899aa; line-height: 1; }
+    .etsy-accordion-body { padding-bottom: 14px; }
+    .etsy-accordion:not(.open) .etsy-accordion-body { display: none; }
+    .etsy-highlights-label { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .etsy-item-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13px; color: #c8d2dc; margin-bottom: 10px; line-height: 1.5;
+    }
+    .etsy-item-row .ei-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .etsy-item-row strong { color: #fff; font-weight: 600; }
+    .etsy-sparkle-line { font-size: 12px; color: #8899aa; margin: 10px 0; font-style: italic; }
+    .etsy-desc-text { font-size: 13px; color: #8899aa; line-height: 1.65; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .etsy-desc-text.expanded { display: block; }
+    .etsy-learn-more { font-size: 13px; color: #64c8ff; cursor: pointer; background: none; border: none; padding: 0; font-family: 'Inter', sans-serif; text-decoration: underline; }
+    .etsy-learn-more:hover { color: #b464ff; }
+    .etsy-delivery-heading { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+
+    /* ── LIGHT MODE — all text flips to dark so it's readable on white canvas ── */
+    body.light .template-title { color: #1a1a2e; }
+    body.light .template-title span { background: linear-gradient(90deg, #1a5fa8, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    body.light .template-desc { color: #444; }
+    body.light .main-preview { border-color: #bbb; background: #e8e8e8; }
+    body.light .thumbnails img, body.light .thumb-row2 img { border-color: #bbb; }
+    body.light .thumbnails img.active, body.light .thumb-row2 img.active { border-color: #b8860b; }
+    body.light .slide-counter { background: rgba(0,0,0,0.55); color: #fff; }
+    body.light #sizeBadge { background: rgba(0,0,100,0.04); border-color: #bbb; color: #555; }
+    /* Etsy panel */
+    body.light .etsy-price { color: #1a1a2e; }
+    body.light .etsy-keywords { color: #555; }
+    body.light .etsy-seller-name { color: #1a5fa8; }
+    body.light .etsy-stars { color: #b8860b; }
+    body.light .etsy-btn-outline { border-color: #1a1a2e; color: #1a1a2e; }
+    body.light .etsy-btn-outline:hover { border-color: #444; color: #444; background: rgba(0,0,0,0.04); }
+    body.light .etsy-btn-filled { background: #1a1a2e; border-color: #1a1a2e; color: #fff; }
+    body.light .etsy-btn-filled:hover { background: #333; border-color: #333; }
+    body.light .etsy-collection-link { color: #666; }
+    body.light .etsy-collection-link:hover { color: #1a1a2e; }
+    body.light .etsy-accordion { border-color: #ddd; }
+    body.light .etsy-accordion-header { color: #1a1a2e; }
+    body.light .etsy-accordion-header:hover { color: #333; }
+    body.light .etsy-arrow { color: #888; }
+    body.light .etsy-highlights-label { color: #1a1a2e; }
+    body.light .etsy-item-row { color: #444; }
+    body.light .etsy-item-row strong { color: #1a1a2e; }
+    body.light .etsy-sparkle-line { color: #777; }
+    body.light .etsy-desc-text { color: #555; }
+    body.light .etsy-learn-more { color: #1a5fa8; }
+    body.light .etsy-learn-more:hover { color: #7c3aed; }
+    body.light .etsy-delivery-heading { color: #1a1a2e; }
     </style>
 </head>
 <body class="has-download">
@@ -296,82 +344,132 @@
 
 <!-- NAVBAR injected by navbar.js -->
 
-<div class="breadcrumb">
-  <a href="main.html">Home</a> &nbsp;›&nbsp;
-  <a href="pitch_deck_folder_section.html">Pitch Decks</a> &nbsp;›&nbsp;
-  <span id="breadcrumbName">Template</span>
+<!-- ══ YELLOW STRIP (matches folder page) ══ -->
+<div class="navbar-below-strip">
+  <h1>Pitch Deck <span>Templates</span></h1>
+  <button id="catBtn" onmouseenter="catShow()" onmouseleave="catLeaveBtn()" onclick="catToggleLock()"
+    style="display:inline-flex;align-items:center;gap:8px;color:#1a1a2e;font-size:15px;font-family:'Inter',sans-serif;background:transparent;border:1.5px solid transparent;border-radius:25px;padding:7px 16px;cursor:pointer;transition:border-color 0.2s,background 0.2s;"
+    onmouseover="this.style.borderColor='rgba(0,0,0,0.35)';this.style.background='rgba(0,0,0,0.06)';"
+    onmouseout="this.style.borderColor='transparent';this.style.background='transparent';">
+    <span style="display:flex;flex-direction:column;gap:4px;">
+      <span style="width:18px;height:2px;background:#1a1a2e;display:block;"></span>
+      <span style="width:18px;height:2px;background:#1a1a2e;display:block;"></span>
+      <span style="width:18px;height:2px;background:#1a1a2e;display:block;"></span>
+    </span>
+    <span class="ci-btn-name">Categories</span>
+  </button>
 </div>
 
-<!-- BACK TO TEMPLATES -->
-<div style="padding: 0 40px 0; margin-bottom: -10px;">
-  <a href="pitch_deck_folder_section.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#8899aa;font-size:13px;font-weight:600;font-family:'Poppins',sans-serif;padding:6px 14px;border:1.5px solid rgba(136,153,170,0.35);border-radius:20px;transition:all 0.2s;" onmouseover="this.style.color='#64c8ff';this.style.borderColor='#64c8ff';" onmouseout="this.style.color='#8899aa';this.style.borderColor='rgba(136,153,170,0.35)';">← All Templates</a>
+<div id="catPanel" class="cat-panel" onmouseenter="catEnter()" onmouseleave="catLeave()">
+  <div class="cat-panel-title">Browse Categories</div>
 </div>
+<div id="catSubmenu" class="cat-submenu" onmouseenter="subEnter()" onmouseleave="subLeave()"></div>
 
-<!-- DESIGN SWITCHER — category hover dropdowns -->
-<div class="design-switcher">
-  <span class="switcher-label">Design:</span>
+<script>
+// ── Categories panel JS (pitch_deck_slides) ──
+var PD_CAT_ICONS = {
+  'AI / Tech Startup':          '🤖',
+  'SaaS / Platform':            '🤖',
+  'Tech / Startup':             '💻',
+  'Medical / Healthcare':       '🏥',
+  'Medical / Health Tech':      '🏥',
+  'Finance / Investment':       '💰',
+  'Construction / Real Estate': '🏗️',
+  'HR Tech / Hiring':           '👥',
+  'Creative / Agency':          '🎨',
+  'Corporate / Publishing':     '🏢'
+};
 
-  <div class="cat-wrap" id="cat_tech">
-    <button class="cat-btn"><span class="cat-label">💻 Tech / AI / SaaS</span><span class="cat-arrow">▾</span></button>
-    <div class="cat-drop">
-      <a href="?design=ai_startup" class="cat-item" data-key="ai_startup">AI Startup Pitch Deck</a>
-      <a href="?design=wardiere"   class="cat-item" data-key="wardiere">Wardiere Platform Pitch Deck</a>
-      <a href="?design=deck4"      class="cat-item" data-key="deck4">Modern Bold Pitch Deck</a>
-      <a href="?design=deck11"     class="cat-item" data-key="deck11">Startup Pitch Deck</a>
-    </div>
-  </div>
+// Called after designs{} is defined (below)
+function buildCatPanel(){
+  var panel = document.getElementById('catPanel');
+  // Build category map from designs object
+  var cats = {};
+  Object.keys(designs).forEach(function(key){
+    var d = designs[key];
+    if(d.category){ if(!cats[d.category]) cats[d.category]=[]; cats[d.category].push({key:key, name:d.name}); }
+  });
 
-  <div class="cat-wrap" id="cat_medical">
-    <button class="cat-btn"><span class="cat-label">🏥 Medical / Healthcare</span><span class="cat-arrow">▾</span></button>
-    <div class="cat-drop">
-      <a href="?design=deck5"  class="cat-item" data-key="deck5">Health Tech Pitch Deck</a>
-      <a href="?design=deck13" class="cat-item" data-key="deck13">Medical Healthcare Pitch Deck</a>
-    </div>
-  </div>
+  // "All Pitch Decks" row
+  var allRow = document.createElement('div');
+  allRow.className = 'cat-item';
+  allRow.innerHTML = '<span class="ci-icon">🗂️</span><span class="ci-name">All Pitch Decks</span>';
+  allRow.addEventListener('click', function(){ window.location='pitch_deck_folder_section.html'; });
+  allRow.addEventListener('mouseenter', function(){ hideSub(); });
+  panel.appendChild(allRow);
 
-  <div class="cat-wrap" id="cat_finance">
-    <button class="cat-btn"><span class="cat-label">💰 Finance / Investment</span><span class="cat-arrow">▾</span></button>
-    <div class="cat-drop">
-      <a href="?design=deck6" class="cat-item" data-key="deck6">Professional Investor Pitch Deck</a>
-    </div>
-  </div>
+  Object.keys(cats).forEach(function(cat){
+    var row = document.createElement('div');
+    row.className = 'cat-item';
+    row.setAttribute('data-cat', cat);
+    row.innerHTML = '<span class="ci-icon">'+(PD_CAT_ICONS[cat]||'📁')+'</span><span class="ci-name">'+cat+'</span><span class="ci-arrow">›</span>';
+    row.addEventListener('click', function(){ fillSub(cat); });
+    row.addEventListener('mouseenter', function(){ showSub(cat, row); });
+    row.addEventListener('mouseleave', function(){ subHideTimer = setTimeout(hideSub, 120); });
+    panel.appendChild(row);
+  });
+}
 
-  <div class="cat-wrap" id="cat_construction">
-    <button class="cat-btn"><span class="cat-label">🏗️ Construction / Real Estate</span><span class="cat-arrow">▾</span></button>
-    <div class="cat-drop">
-      <a href="?design=deck7" class="cat-item" data-key="deck7">Construction Solutions Pitch Deck</a>
-      <a href="?design=deck8" class="cat-item" data-key="deck8">Construction Tech Pitch Deck</a>
-    </div>
-  </div>
+function fillSub(cat){
+  var sub = document.getElementById('catSubmenu');
+  sub.innerHTML = '';
+  Object.keys(designs).forEach(function(key){
+    var d = designs[key];
+    if(d.category === cat){
+      var a = document.createElement('a');
+      a.className = 'sub-item';
+      a.href = 'pitch_deck_slides.html?design=' + key;
+      a.textContent = d.name;
+      sub.appendChild(a);
+    }
+  });
+}
 
-  <div class="cat-wrap" id="cat_hr">
-    <button class="cat-btn"><span class="cat-label">👥 HR / Hiring</span><span class="cat-arrow">▾</span></button>
-    <div class="cat-drop">
-      <a href="?design=deck3" class="cat-item" data-key="deck3">Hiring Platform Pitch Deck</a>
-    </div>
-  </div>
+var pdCatTimer=null, pdCatLocked=false, subHideTimer=null, currentSubCat=null;
 
-  <div class="cat-wrap" id="cat_creative">
-    <button class="cat-btn"><span class="cat-label">🎨 Creative / Agency</span><span class="cat-arrow">▾</span></button>
-    <div class="cat-drop">
-      <a href="?design=deck12" class="cat-item" data-key="deck12">Product Launch Brand Guidelines</a>
-    </div>
-  </div>
-
-  <div class="cat-wrap" id="cat_corporate">
-    <button class="cat-btn"><span class="cat-label">🏢 Corporate</span><span class="cat-arrow">▾</span></button>
-    <div class="cat-drop">
-      <a href="?design=deck9"  class="cat-item" data-key="deck9">Corporate Communications Pitch Deck</a>
-      <a href="?design=deck10" class="cat-item" data-key="deck10">Global Business Management Pitch Deck</a>
-    </div>
-  </div>
-</div>
+function catPosition(){
+  var btn=document.getElementById('catBtn'), panel=document.getElementById('catPanel');
+  var r=btn.getBoundingClientRect();
+  panel.style.top=(r.bottom+6)+'px'; panel.style.left=r.left+'px';
+}
+function showSub(cat,rowEl){
+  clearTimeout(subHideTimer);
+  if(currentSubCat!==cat){ fillSub(cat); currentSubCat=cat; }
+  var panel=document.getElementById('catPanel'), sub=document.getElementById('catSubmenu');
+  var rr=rowEl.getBoundingClientRect(), pr=panel.getBoundingClientRect();
+  sub.style.top=rr.top+'px'; sub.style.left=(pr.right+4)+'px';
+  sub.classList.add('open');
+}
+function hideSub(){ document.getElementById('catSubmenu').classList.remove('open'); currentSubCat=null; }
+window.subEnter=function(){ clearTimeout(subHideTimer); };
+window.subLeave=function(){ subHideTimer=setTimeout(hideSub,120); };
+window.catShow=function(){ clearTimeout(pdCatTimer); catPosition(); document.getElementById('catPanel').classList.add('open'); };
+window.catLeaveBtn=function(){ if(pdCatLocked)return; pdCatTimer=setTimeout(function(){ document.getElementById('catPanel').classList.remove('open'); hideSub(); },200); };
+window.catEnter=function(){ clearTimeout(pdCatTimer); };
+window.catLeave=function(){ if(pdCatLocked)return; clearTimeout(subHideTimer); subHideTimer=setTimeout(function(){ document.getElementById('catPanel').classList.remove('open'); hideSub(); },150); };
+window.catToggleLock=function(){
+  pdCatLocked=!pdCatLocked;
+  if(pdCatLocked){ clearTimeout(pdCatTimer); catPosition(); document.getElementById('catPanel').classList.add('open'); }
+  else{ document.getElementById('catPanel').classList.remove('open'); hideSub(); }
+};
+document.addEventListener('click',function(e){
+  var btn=document.getElementById('catBtn'),panel=document.getElementById('catPanel'),sub=document.getElementById('catSubmenu');
+  if(pdCatLocked&&!panel.contains(e.target)&&!btn.contains(e.target)&&!sub.contains(e.target)){
+    pdCatLocked=false; panel.classList.remove('open'); hideSub();
+  }
+});
+</script>
 
 <div class="product-layout">
 
   <div class="preview-section">
     <div class="main-preview">
-      <img id="mainImg" src="" alt="Slide Preview"/ loading="lazy">
+      <img id="mainImg" src="" alt="Slide Preview" loading="lazy">
+      <div class="hover-expand-overlay" onclick="openLightbox()">
+        <div class="expand-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </div>
+      </div>
       <div class="slide-counter" id="slideCounter">Slide 1 of 12</div>
     </div>
     <!-- Size preview badge -->
@@ -383,41 +481,59 @@
   </div>
 
   <div class="info-panel">
-    <div class="template-badge" id="badgeText">📊 Pitch Deck Template</div>
-    <div class="template-title" id="templateTitle"></div>
+<div class="template-title" id="templateTitle"></div>
     <div class="template-desc" id="templateDesc"></div>
 
-    <div class="specs">
-      <div class="spec-row"><span class="spec-label">Slides</span><span class="spec-value accent" id="specSlides">12 Slides</span></div>
-      <div class="spec-row"><span class="spec-label">Format</span><span class="spec-value">.PPTX / .PDF</span></div>
-      <div class="spec-row"><span class="spec-label">Aspect Ratio</span><span class="spec-value">16:9 Widescreen</span></div>
-      <div class="spec-row"><span class="spec-label">Style</span><span class="spec-value accent" id="specStyle"></span></div>
-      <div class="spec-row"><span class="spec-label">Category</span><span class="spec-value" id="specCategory"></span></div>
-      <div class="spec-row"><span class="spec-label">License</span><span class="spec-value">Personal &amp; Commercial</span></div>
-    </div>
+    <div id="sizeGrid" style="display:none;"></div>
 
-    <div class="size-section">
-      <div class="size-label">Choose Format / Size</div>
-      <div class="size-grid" id="sizeGrid"></div>
-      <div style="margin-top:10px; padding:10px 14px; background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:8px; font-size:12px; color:#8899aa; text-align:center;">
-        🕐 Other sizes (4:3, A4, Square, LinkedIn, Stories) — <strong style="color:#d4af37;">coming soon</strong>
+    <!-- Etsy-style panel -->
+    <div class="etsy-panel">
+
+      <!-- Price + keywords + seller -->
+      <div class="etsy-price">USD 13.00</div>
+      <div class="etsy-keywords" id="etsyKeywords"></div>
+      <div class="etsy-seller-row">
+        <span class="etsy-seller-name">LazyDogTemplates</span>
+        <span class="etsy-stars">★★★★★</span>
       </div>
+
+      <!-- Buttons -->
+      <button class="etsy-btn-outline" onclick="openModal(false)">Buy it now</button>
+      <button class="etsy-btn-filled" onclick="openModal(false)">Add to basket</button>
+      <button class="etsy-collection-link"><span class="heart">♥</span> Add to collection</button>
+
+      <!-- Item details -->
+      <div class="etsy-accordion open">
+        <div class="etsy-accordion-header" onclick="toggleAccordion(this)">
+          <span>Item details</span><span class="etsy-arrow">∧</span>
+        </div>
+        <div class="etsy-accordion-body">
+          <div class="etsy-highlights-label">Highlights</div>
+          <div class="etsy-item-row"><span class="ei-icon">🖥️</span><span>Designed by <strong>LazyDogTemplates</strong></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">⬇️</span><span>Digital download</span></div>
+          <div class="etsy-item-row"><span class="ei-icon">📎</span><span>Digital file type(s): <strong>.PPTX + .PDF</strong></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">📊</span><span><strong id="specSlides"></strong> — 16:9 Widescreen | <strong id="specStyle"></strong></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">🏷️</span><span>Category: <strong id="specCategory"></strong></span></div>
+          <div class="etsy-sparkle-line">✦ Professional investor-ready pitch deck — fully editable in PowerPoint ✦</div>
+          <div class="etsy-desc-text" id="etsyDescText"></div>
+          <button class="etsy-learn-more" onclick="toggleLearnMore(this)">Learn more about this item</button>
+        </div>
+      </div>
+
+      <!-- Delivery -->
+      <div class="etsy-accordion open">
+        <div class="etsy-accordion-header" onclick="toggleAccordion(this)">
+          <span>Delivery</span><span class="etsy-arrow">∧</span>
+        </div>
+        <div class="etsy-accordion-body">
+          <div class="etsy-delivery-heading">Instant Download</div>
+          <div class="etsy-item-row"><span class="ei-icon">⚡</span><span>Your files will be available to download once payment is confirmed.</span></div>
+          <div class="etsy-item-row"><span class="ei-icon">🚫</span><span>Digital items don't accept returns, exchanges or cancellations.</span></div>
+        </div>
+      </div>
+
     </div>
 
-    <div class="price-box">
-      <div class="price-tag">FREE</div>
-      <div class="price-sub">Enter email to download instantly</div>
-    </div>
-
-    <div class="includes">
-      <h4>What's Included</h4>
-      <div class="include-item"><span>✓</span> 12 fully designed slides</div>
-      <div class="include-item"><span>✓</span> Editable text &amp; colors</div>
-      <div class="include-item"><span>✓</span> Custom fonts &amp; icons</div>
-      <div class="include-item"><span>✓</span> Widescreen 16:9 format</div>
-      <div class="include-item"><span>✓</span> Works in PowerPoint &amp; Google Slides</div>
-      <div class="include-item"><span>✓</span> License file included</div>
-    </div>
   </div>
 </div>
 
@@ -436,11 +552,6 @@
   </div>
 </div>
 
-<footer>
-  <div class="footer-logo">LazyDogTemplates</div>
-  <p>© 2026 LazyDogTemplates. All rights reserved.</p>
-  <p>Built for designers. Made for everyone.</p>
-</footer>
 
 <script>
 // ── DESIGN DATA ──────────────────────────────────────────────────────────────
@@ -664,6 +775,7 @@ var designs = {
     basePath: '../designs/pitch_decks/slide sets/slides set 4/'
   }
 };
+buildCatPanel();
 
 var currentDesign = 'ai_startup';
 (function(){
@@ -684,7 +796,6 @@ function getSlideUrl(d, n) {
 function loadDesign(key) {
   currentDesign = key;
   var d = designs[key];
-  document.getElementById('breadcrumbName').textContent = d.name;
   document.title = d.name + ' — LazyDogTemplates';
   document.getElementById('templateTitle').innerHTML = d.titleHTML;
   document.getElementById('templateDesc').textContent = d.desc;
@@ -692,6 +803,12 @@ function loadDesign(key) {
   document.getElementById('specStyle').textContent = d.style;
   document.getElementById('specCategory').textContent = d.category;
   document.getElementById('modalDesc').textContent = 'Enter your email to download the ' + d.name + ' instantly. No spam.';
+  var kwEl = document.getElementById('etsyKeywords');
+  if(kwEl) kwEl.textContent = d.name + ' | Editable PPTX | Instant Download';
+  var descEl = document.getElementById('etsyDescText');
+  if(descEl){ descEl.textContent = d.desc; descEl.classList.remove('expanded'); }
+  var lmBtn = document.querySelector('.etsy-learn-more');
+  if(lmBtn) lmBtn.textContent = 'Learn more about this item';
 
   // size grid — only show 16x9 (others coming soon)
   var sg = document.getElementById('sizeGrid');
@@ -825,6 +942,39 @@ function toggleTheme(){
 }
 (function(){if(localStorage.getItem('theme')==='light'){document.body.classList.add('light');document.body.style.background='#faf8f4';var b=document.getElementById('themeBtn');if(b)b.textContent='☀️';}})();
 
+/* ── LIGHTBOX ── */
+function _lbGetUrl(n){return getSlideUrl(designs[currentDesign],n);}
+function _lbTotal(){return designs[currentDesign].slideCount;}
+function buildLbStrip(){
+  var total=_lbTotal(),grid=document.getElementById('lbStripGrid');
+  grid.innerHTML='';
+  var reverse=(total%3===1);
+  for(var i=1;i<=total;i++){
+    var th=document.createElement('div');th.className='lb-thumb';th.dataset.n=i;
+    var isBig=reverse?((i-1)%3===0):(i%3===0);
+    if(isBig)th.classList.add('lb-big');
+    var img=document.createElement('img');img.src=_lbGetUrl(i);img.loading='lazy';
+    th.appendChild(img);
+    th.addEventListener('click',(function(n){return function(){lbGoTo(n);};})(i));
+    grid.appendChild(th);
+  }
+}
+function lbGoTo(n){
+  currentSlideNum=n;
+  document.getElementById('lbImg').src=_lbGetUrl(n);
+  document.getElementById('lbCounter').textContent=n+' / '+_lbTotal();
+  document.querySelectorAll('.lb-thumb').forEach(function(t){t.classList.toggle('lb-active',parseInt(t.dataset.n)===n);});
+  var active=document.querySelector('.lb-thumb.lb-active');
+  if(active)active.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function lbPrev(){var t=_lbTotal();lbGoTo(currentSlideNum>1?currentSlideNum-1:t);}
+function lbNext(){var t=_lbTotal();lbGoTo(currentSlideNum<t?currentSlideNum+1:1);}
+function openLightbox(){buildLbStrip();document.getElementById('lbOverlay').classList.add('open');lbGoTo(currentSlideNum);document.body.style.overflow='hidden';}
+function closeLightbox(){document.getElementById('lbOverlay').classList.remove('open');document.body.style.overflow='';showSlide(currentSlideNum);}
+function lbDownload(){openModal('png');}
+function lbPrint(){var src=document.getElementById('lbImg').src;var w=window.open('about:blank');w.document.write('<html><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh"><img src="'+src+'" style="max-width:100%;max-height:100vh;object-fit:contain"><\/body><\/html>');w.document.close();w.onload=function(){w.focus();w.print();};}
+document.addEventListener('keydown',function(e){var lb=document.getElementById('lbOverlay');if(!lb||!lb.classList.contains('open'))return;if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')lbPrev();if(e.key==='ArrowRight')lbNext();});
+
 // COLOUR PICKER
 var cpOpen=false,cpR=null,cpG=null,cpB=null;
 function toggleColourPanel(){cpOpen=!cpOpen;var p=document.getElementById('colourPanel');if(cpOpen){p.classList.add('open');drawSpectrum();}else{p.classList.remove('open');}}
@@ -843,6 +993,19 @@ function previewFont(el){applyFont(el.getAttribute('data-font'));}
 function revertFont(){applyFont(committedFont||defaultFont);}
 function lockFont(el){committedFont=el.getAttribute('data-font');applyFont(committedFont);document.querySelectorAll('.font-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');}
 function resetFont(){committedFont=null;applyFont(defaultFont);document.querySelectorAll('.font-item').forEach(function(i){i.classList.remove('active');});}
+
+// ACCORDION TOGGLE
+function toggleAccordion(header){
+  var acc = header.parentElement;
+  acc.classList.toggle('open');
+  header.querySelector('.etsy-arrow').textContent = acc.classList.contains('open') ? '∧' : '∨';
+}
+// LEARN MORE TOGGLE
+function toggleLearnMore(btn){
+  var desc = document.getElementById('etsyDescText');
+  desc.classList.toggle('expanded');
+  btn.textContent = desc.classList.contains('expanded') ? 'Show less' : 'Learn more about this item';
+}
 </script>
 
 <div class="colour-panel" id="colourPanel">
@@ -877,13 +1040,42 @@ function resetFont(){committedFont=null;applyFont(defaultFont);document.querySel
     <div class="font-item" style="font-family:'Figtree',sans-serif;" data-font="'Figtree',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Figtree</div>
     <div class="font-item" style="font-family:'Lexend',sans-serif;" data-font="'Lexend',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lexend</div>
   </div>
-  <div class="font-reset-row"><button class="font-reset" oncl    <div class="font-item" style="font-family:'Figtree',sans-serif;" data-font="'Figtree',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Figtree</div>
-    <div class="font-item" style="font-family:'Lexend',sans-serif;" data-font="'Lexend',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lexend</div>
+  <div class="font-reset-row">
+    <button class="font-reset" onclick="resetFont()">Reset</button>
   </div>
-  <div class="font-reset-row"><button class="font-reset" onclick="resetFont()">Reset</button></div>
 </div>
 
+<div id="lbOverlay">
+  <div class="lb-container">
+    <div class="lb-left">
+      <div class="lb-toolbar">
+        <button class="lb-close-btn" onclick="closeLightbox()" title="Close (Esc)">✕</button>
+        <span id="lbCounter" class="lb-slide-info">1 / 12</span>
+        <button class="lb-tool-btn" onclick="lbDownload()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download
+        </button>
+        <button class="lb-tool-btn" onclick="lbPrint()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+      </div>
+      <div class="lb-img-area">
+        <button class="lb-nav-btn" id="lbBtnPrev" onclick="lbPrev()">&#8249;</button>
+        <img id="lbImg" src="" alt="Slide">
+        <button class="lb-nav-btn" id="lbBtnNext" onclick="lbNext()">&#8250;</button>
+      </div>
+    </div>
+    <div class="lb-strip">
+      
+    </div>
+    <div class="lb-strip">
+      <div id="lbStripGrid" class="lb-strip-grid"></div>
+    </div>
+  </div>
+</div>
 <script src="va_dictionary.js"></script>
-<script src="navbar.js"></script><script src="dl_panel.js"></script>
+<script src="navbar.js"></script>
+<script src="footerbar.js"></script>
 </body>
-</html>
+</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
