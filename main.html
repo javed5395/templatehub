@@ -1017,33 +1017,55 @@ document.getElementById('colourCanvas').addEventListener('mouseleave', function(
   }
 });
 
-function hslToRgb(h,s,l){var r,g,b;if(s===0){r=g=b=l;}else{function hue2rgb(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}var q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}
-function canvasHSL(canvas, e){var rect=canvas.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-rect.left,canvas.width-1)),y=Math.max(0,Math.min(e.clientY-rect.top,canvas.height-1)),hue=(x/canvas.width)*360,lightness=95-(y/canvas.height)*90;return hslToRgb(hue/360,1.0,lightness/100);}
-
 document.getElementById('colourCanvas').addEventListener('click', function(e) {
+  // commit the colour on click
   var canvas = document.getElementById('colourCanvas');
-  var rgb = canvasHSL(canvas, e);
-  committedR = rgb[0]; committedG = rgb[1]; committedB = rgb[2];
+  var rect = canvas.getBoundingClientRect();
+  var x = Math.max(0, Math.min(e.clientX - rect.left, canvas.width - 1));
+  var y = Math.max(0, Math.min(e.clientY - rect.top, canvas.height - 1));
+  var pixel = canvas.getContext('2d').getImageData(x, y, 1, 1).data;
+  committedR = pixel[0]; committedG = pixel[1]; committedB = pixel[2];
   applyBgColour(committedR, committedG, committedB);
 });
 
 function pickColour(e) {
   var canvas = document.getElementById('colourCanvas');
-  var rgb = canvasHSL(canvas, e);
-  applyBgColour(rgb[0], rgb[1], rgb[2]);
+  var rect = canvas.getBoundingClientRect();
+  var x = Math.max(0, Math.min(e.clientX - rect.left, canvas.width - 1));
+  var y = Math.max(0, Math.min(e.clientY - rect.top, canvas.height - 1));
+  var pixel = canvas.getContext('2d').getImageData(x, y, 1, 1).data;
+  applyBgColour(pixel[0], pixel[1], pixel[2]);
 }
 
 // ── ONLY BACKGROUNDS CHANGE — text/fonts untouched ──
 function applyBgColour(r, g, b) {
   var hex = '#' + [r,g,b].map(function(v){ return v.toString(16).padStart(2,'0'); }).join('');
-  var full = 'rgb('+r+','+g+','+b+')';
+
+  // Dark mode: dark but clearly tinted version of picked colour
+  var darkBody   = 'rgb('+Math.round(r*0.22)+','+Math.round(g*0.22)+','+Math.round(b*0.22)+')';
+  var darkNav    = 'rgb('+Math.round(r*0.32)+','+Math.round(g*0.32)+','+Math.round(b*0.32)+')';
+  var darkHero1  = 'rgb('+Math.round(r*0.42)+','+Math.round(g*0.42)+','+Math.round(b*0.42)+')';
+  var darkHero2  = 'rgb('+Math.round(r*0.22)+','+Math.round(g*0.22)+','+Math.round(b*0.22)+')';
+
+  // Light mode: very pale tint of picked colour
+  var lightBody  = 'rgb('+Math.min(255,215+Math.round(r*0.16))+','+Math.min(255,210+Math.round(g*0.16))+','+Math.min(255,205+Math.round(b*0.16))+')';
+  var lightNav   = 'rgb('+Math.min(255,235+Math.round(r*0.08))+','+Math.min(255,235+Math.round(g*0.08))+','+Math.min(255,235+Math.round(b*0.08))+')';
+  var lightStats = 'rgb('+Math.min(255,220+Math.round(r*0.14))+','+Math.min(255,215+Math.round(g*0.14))+','+Math.min(255,210+Math.round(b*0.14))+')';
+  var lightHero1 = 'rgb('+Math.min(255,225+Math.round(r*0.12))+','+Math.min(255,222+Math.round(g*0.12))+','+Math.min(255,218+Math.round(b*0.12))+')';
+  var lightHero2 = 'rgb('+Math.min(255,215+Math.round(r*0.14))+','+Math.min(255,210+Math.round(g*0.14))+','+Math.min(255,205+Math.round(b*0.14))+')';
 
   var root = document.documentElement;
-  root.style.setProperty('--bg-body',        full);
-  root.style.setProperty('--bg-stats',       full);
-  root.style.setProperty('--bg-footer',      full);
-  root.style.setProperty('--bg-hero-dark-1', full);
-  root.style.setProperty('--bg-hero-dark-2', full);
+  root.style.setProperty('--bg-body',         darkBody);
+  root.style.setProperty('--bg-nav',          darkNav);
+  root.style.setProperty('--bg-stats',        darkNav);
+  root.style.setProperty('--bg-footer',       darkNav);
+  root.style.setProperty('--bg-hero-dark-1',  darkHero1);
+  root.style.setProperty('--bg-hero-dark-2',  darkHero2);
+  root.style.setProperty('--bg-body-light',   lightBody);
+  root.style.setProperty('--bg-nav-light',    lightNav);
+  root.style.setProperty('--bg-stats-light',  lightStats);
+  root.style.setProperty('--bg-hero-light-1', lightHero1);
+  root.style.setProperty('--bg-hero-light-2', lightHero2);
 
   document.getElementById('colourSwatch').style.background = hex;
   document.getElementById('colourHex').textContent = hex.toUpperCase();
