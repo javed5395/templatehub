@@ -618,6 +618,41 @@ ${wm}
     if(n) n.textContent=(typeof WATERMARK_ON!=='undefined'&&WATERMARK_ON)?'* Includes LazyDogTemplates branding':'✅ Clean download — no watermark';
   });
 </script>
+<!-- ══ COLOUR PICKER ══ -->
+<style>
+.colour-panel{display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:100000;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);}
+.colour-panel.open{display:block!important;}
+.colour-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Segoe UI',sans-serif;}
+.colour-panel canvas{display:block;border-radius:10px;cursor:crosshair;border:1px solid rgba(255,255,255,0.1);}
+.colour-panel-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.colour-swatch{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);flex-shrink:0;}
+.colour-hex{font-size:13px;font-weight:700;color:#fff;font-family:'Segoe UI',sans-serif;}
+.colour-reset{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;transition:all 0.2s;}
+</style>
+<div class="colour-panel" id="colourPanel">
+  <div class="colour-panel-label">Pick Theme Colour</div>
+  <canvas id="colourCanvas" width="220" height="150"></canvas>
+  <div class="colour-panel-preview">
+    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
+    <span class="colour-hex" id="colourHex">#D4AF37</span>
+    <button class="colour-reset" onclick="resetColour()">Reset</button>
+  </div>
+</div>
+<script>
+var cpOpen=false,cpR=null,cpG=null,cpB=null;
+window.toggleColourPanel=function(){cpOpen=!cpOpen;var p=document.getElementById('colourPanel');if(cpOpen){p.classList.add('open');drawSpectrum();}else{p.classList.remove('open');}};
+document.addEventListener('click',function(e){var p=document.getElementById('colourPanel'),b=document.getElementById('colourBtn');if(cpOpen&&p&&!p.contains(e.target)&&e.target!==b){p.classList.remove('open');cpOpen=false;}});
+function drawSpectrum(){var c=document.getElementById('colourCanvas');if(!c)return;var ctx=c.getContext('2d'),w=c.width,h=c.height;var hg=ctx.createLinearGradient(0,0,w,0);hg.addColorStop(0,'hsl(0,100%,50%)');hg.addColorStop(0.17,'hsl(60,100%,50%)');hg.addColorStop(0.33,'hsl(120,100%,50%)');hg.addColorStop(0.5,'hsl(180,100%,50%)');hg.addColorStop(0.67,'hsl(240,100%,50%)');hg.addColorStop(0.83,'hsl(300,100%,50%)');hg.addColorStop(1,'hsl(360,100%,50%)');ctx.fillStyle=hg;ctx.fillRect(0,0,w,h);var vg=ctx.createLinearGradient(0,0,0,h);vg.addColorStop(0,'rgba(255,255,255,0.85)');vg.addColorStop(0.45,'rgba(255,255,255,0)');vg.addColorStop(0.55,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.85)');ctx.fillStyle=vg;ctx.fillRect(0,0,w,h);}
+window.addEventListener('load',function(){var cv=document.getElementById('colourCanvas');if(!cv)return;cv.addEventListener('mousemove',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpApply(px[0],px[1],px[2]);});cv.addEventListener('mouseleave',function(){if(cpR!==null)cpApply(cpR,cpG,cpB);else resetColour();});cv.addEventListener('click',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpR=px[0];cpG=px[1];cpB=px[2];cpApply(cpR,cpG,cpB);});});
+function cpApply(r,g,b){var hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
+  var bg='rgb('+r+','+g+','+b+')';
+  // Exact colour on hero + full page body — navbar untouched
+  var hero=document.querySelector('.hero');if(hero){hero.style.setProperty('background-image','none','important');hero.style.setProperty('background-color',bg,'important');}
+  document.body.style.setProperty('background-color',bg,'important');
+  var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background=hex;if(hx)hx.textContent=hex.toUpperCase();}
+function resetColour(){cpR=null;cpG=null;cpB=null;var hero=document.querySelector('.hero');if(hero){hero.style.removeProperty('background-image');hero.style.removeProperty('background-color');}document.body.style.removeProperty('background-color');var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background='#d4af37';if(hx)hx.textContent='#D4AF37';}
+</script>
+
 <script src="navbar.js"></script>
 <script src="footerbar.js"></script>
 </body>

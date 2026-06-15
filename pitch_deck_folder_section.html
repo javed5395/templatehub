@@ -24,16 +24,35 @@
       min-height: 100vh;
     }
 
-    /* ══ YELLOW STRIP ══ */
+    /* ══ HEADER STRIP ══ */
     .navbar-below-strip {
       width: 100%;
       height: 285px;
-      background: #ffcc00;
+      background: #060626;
       display: flex;
-      align-items: flex-start;
-      justify-content: flex-start;
+      align-items: stretch;
+      justify-content: space-between;
       box-sizing: border-box;
+      padding: 0;
+      overflow: hidden;
+    }
+    .navbar-below-strip .hero-content {
       padding: 20px 0 0 34px;
+      flex-shrink: 0;
+    }
+    .navbar-below-strip .strip-img {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+      align-items: stretch;
+      overflow: hidden;
+    }
+    .navbar-below-strip .strip-img img {
+      height: 100%;
+      width: auto;
+      object-fit: cover;
+      object-position: left center;
+      display: block;
     }
 
     /* ══ HERO SECTION ══ */
@@ -151,7 +170,7 @@
       font-weight: 800;
       line-height: 1.08;
       letter-spacing: -0.5px;
-      color: #1a1a2e;
+      color: #ffffff;
       margin-bottom: 16px;
     }
 
@@ -289,14 +308,14 @@
 
 <!-- NAVBAR injected by navbar.js -->
 
-<!-- ══ YELLOW STRIP ══ -->
+<!-- ══ HEADER STRIP ══ -->
 <div class="navbar-below-strip">
   <div class="hero-content">
     <h1>Pitch Deck <span>Templates</span></h1>
     <button id="catBtn" onmouseenter="catShow()" onmouseleave="catLeaveBtn()" onclick="catToggleLock()" style="
       display:inline-flex; align-items:center; gap:8px;
       margin-top:12px;
-      color:#1a1a2e; font-size:15px; font-family:'Inter',sans-serif;
+      color:#ffffff; font-size:15px; font-family:'Inter',sans-serif;
       background:transparent; border:1.5px solid transparent;
       border-radius:25px; padding:7px 16px;
       cursor:pointer;
@@ -306,12 +325,15 @@
     onmouseout="this.style.borderColor='transparent';this.style.background='transparent'"
     >
       <span style="display:flex; flex-direction:column; gap:4px;">
-        <span style="width:18px; height:2px; background:#1a1a2e; display:block;"></span>
-        <span style="width:18px; height:2px; background:#1a1a2e; display:block;"></span>
-        <span style="width:18px; height:2px; background:#1a1a2e; display:block;"></span>
+        <span style="width:18px; height:2px; background:#ffffff; display:block;"></span>
+        <span style="width:18px; height:2px; background:#ffffff; display:block;"></span>
+        <span style="width:18px; height:2px; background:#ffffff; display:block;"></span>
       </span>
       Categories
     </button>
+  </div>
+  <div class="strip-img">
+    <img src="images/pitchdeck_darkbg_2222.png" alt="" draggable="false">
   </div>
 </div>
 
@@ -682,6 +704,18 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+<!-- ══ LIGHT MODE OVERRIDES ══ -->
+<style>
+body.light { background: #f4f4f8 !important; color: #1a1a2e !important; }
+body.light .navbar-below-strip { background: #060626 !important; }
+body.light .deck-grid-section { background: #f4f4f8 !important; }
+body.light .pd-card-info { background: #ffffff !important; }
+body.light .pd-card-title { color: #1a1a2e !important; }
+body.light .pd-card-label { color: #556677 !important; }
+body.light .pd-card-rating { color: #556677 !important; }
+body.light .hero-section { background: #f4f4f8 !important; }
+</style>
+
 <!-- ══ COLOUR PICKER (restored so the universal navbar Colour button works on this page) ══ -->
 <style>
 .colour-panel{display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:100000;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);}
@@ -712,10 +746,12 @@ document.addEventListener('click',function(e){var p=document.getElementById('col
 function drawSpectrum(){var c=document.getElementById('colourCanvas');if(!c)return;var ctx=c.getContext('2d'),w=c.width,h=c.height;var hg=ctx.createLinearGradient(0,0,w,0);hg.addColorStop(0,'hsl(0,100%,50%)');hg.addColorStop(0.17,'hsl(60,100%,50%)');hg.addColorStop(0.33,'hsl(120,100%,50%)');hg.addColorStop(0.5,'hsl(180,100%,50%)');hg.addColorStop(0.67,'hsl(240,100%,50%)');hg.addColorStop(0.83,'hsl(300,100%,50%)');hg.addColorStop(1,'hsl(360,100%,50%)');ctx.fillStyle=hg;ctx.fillRect(0,0,w,h);var vg=ctx.createLinearGradient(0,0,0,h);vg.addColorStop(0,'rgba(255,255,255,0.85)');vg.addColorStop(0.45,'rgba(255,255,255,0)');vg.addColorStop(0.55,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.85)');ctx.fillStyle=vg;ctx.fillRect(0,0,w,h);}
 window.addEventListener('load',function(){var cv=document.getElementById('colourCanvas');if(!cv)return;cv.addEventListener('mousemove',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpApply(px[0],px[1],px[2]);});cv.addEventListener('mouseleave',function(){if(cpR!==null)cpApply(cpR,cpG,cpB);else resetColour();});cv.addEventListener('click',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpR=px[0];cpG=px[1];cpB=px[2];cpApply(cpR,cpG,cpB);});});
 function cpApply(r,g,b){var isLight=document.body.classList.contains('light'),hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
+  // body tints slightly; navbar stays static
   document.body.style.background=isLight?'rgb('+Math.min(255,215+Math.round(r*0.16))+','+Math.min(255,210+Math.round(g*0.16))+','+Math.min(255,205+Math.round(b*0.16))+')':'rgb('+Math.round(r*0.22)+','+Math.round(g*0.22)+','+Math.round(b*0.22)+')';
-  var nav=document.querySelector('nav');if(nav)nav.style.background=isLight?'rgb('+Math.min(255,235+Math.round(r*0.08))+','+Math.min(255,235+Math.round(g*0.08))+','+Math.min(255,235+Math.round(b*0.08))+')':'rgb('+Math.round(r*0.32)+','+Math.round(g*0.32)+','+Math.round(b*0.32)+')';
+  // Update only the lower cards section background — strip stays static navy
+  var cardSec=document.querySelector('.deck-grid-section');if(cardSec)cardSec.style.setProperty('background','rgb('+r+','+g+','+b+')','important');
   var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background=hex;if(hx)hx.textContent=hex.toUpperCase();}
-function resetColour(){cpR=null;cpG=null;cpB=null;document.body.style.background='';var nav=document.querySelector('nav');if(nav)nav.style.background='';var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background='#d4af37';if(hx)hx.textContent='#D4AF37';}
+function resetColour(){cpR=null;cpG=null;cpB=null;document.body.style.background='';document.documentElement.style.setProperty('--accent','#d4af37');document.querySelectorAll('.pd-card-btn-view').forEach(function(btn){btn.style.background='';btn.style.color='';});var strip=document.querySelector('.navbar-below-strip');if(strip)strip.style.background='';var cardSec=document.querySelector('.deck-grid-section');if(cardSec)cardSec.style.removeProperty('background');var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background='#d4af37';if(hx)hx.textContent='#D4AF37';}
 </script>
 
 <script src="va_dictionary.js"></script>

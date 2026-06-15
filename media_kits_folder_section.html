@@ -24,11 +24,11 @@
       min-height: 100vh;
     }
 
-    /* ══ YELLOW STRIP ══ */
+    /* ══ HEADER STRIP ══ */
     .navbar-below-strip {
       width: 100%;
       height: 285px;
-      background: #ffcc00;
+      background: #060626;
       display: flex;
       align-items: flex-start;
       justify-content: flex-start;
@@ -151,7 +151,7 @@
       font-weight: 800;
       line-height: 1.08;
       letter-spacing: -0.5px;
-      color: #1a1a2e;
+      color: #ffffff;
       margin-bottom: 16px;
     }
 
@@ -296,7 +296,7 @@
     <button id="catBtn" onmouseenter="catShow()" onmouseleave="catLeaveBtn()" onclick="catToggleLock()" style="
       display:inline-flex; align-items:center; gap:8px;
       margin-top:12px;
-      color:#1a1a2e; font-size:15px; font-family:'Inter',sans-serif;
+      color:#ffffff; font-size:15px; font-family:'Inter',sans-serif;
       background:transparent; border:1.5px solid transparent;
       border-radius:25px; padding:7px 16px;
       cursor:pointer;
@@ -306,9 +306,9 @@
     onmouseout="this.style.borderColor='transparent';this.style.background='transparent'"
     >
       <span style="display:flex; flex-direction:column; gap:4px;">
-        <span style="width:18px; height:2px; background:#1a1a2e; display:block;"></span>
-        <span style="width:18px; height:2px; background:#1a1a2e; display:block;"></span>
-        <span style="width:18px; height:2px; background:#1a1a2e; display:block;"></span>
+        <span style="width:18px; height:2px; background:#ffffff; display:block;"></span>
+        <span style="width:18px; height:2px; background:#ffffff; display:block;"></span>
+        <span style="width:18px; height:2px; background:#ffffff; display:block;"></span>
       </span>
       Categories
     </button>
@@ -679,6 +679,54 @@ document.addEventListener('click', function(e) {
     hideSub();
   }
 });
+</script>
+
+<!-- ══ COLOUR PICKER ══ -->
+<!-- ══ LIGHT MODE OVERRIDES ══ -->
+<style>
+body.light { background: #f4f4f8 !important; color: #1a1a2e !important; }
+body.light .navbar-below-strip { background: #060626 !important; }
+body.light .hero-section { background: #f4f4f8 !important; }
+body.light .deck-grid-section { background: #f4f4f8 !important; }
+body.light .pd-card-info { background: #ffffff !important; }
+body.light .pd-card-title { color: #1a1a2e !important; }
+body.light .pd-card-label { color: #556677 !important; }
+body.light .pd-card-rating { color: #556677 !important; }
+</style>
+
+<style>
+.colour-panel{display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:100000;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);}
+.colour-panel.open{display:block!important;}
+.colour-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Poppins',sans-serif;}
+.colour-panel canvas{display:block;border-radius:10px;cursor:crosshair;border:1px solid rgba(255,255,255,0.1);}
+.colour-panel-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.colour-swatch{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);flex-shrink:0;}
+.colour-hex{font-size:13px;font-weight:700;color:#fff;font-family:'Poppins',sans-serif;}
+.colour-reset{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;transition:all 0.2s;}
+</style>
+
+<div class="colour-panel" id="colourPanel">
+  <div class="colour-panel-label">Pick Theme Colour</div>
+  <canvas id="colourCanvas" width="220" height="150"></canvas>
+  <div class="colour-panel-preview">
+    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
+    <span class="colour-hex" id="colourHex">#D4AF37</span>
+    <button class="colour-reset" onclick="resetColour()">Reset</button>
+  </div>
+</div>
+
+<script>
+var cpOpen=false,cpR=null,cpG=null,cpB=null;
+window.toggleColourPanel=function(){cpOpen=!cpOpen;var p=document.getElementById('colourPanel');if(cpOpen){p.classList.add('open');drawSpectrum();}else{p.classList.remove('open');}};
+document.addEventListener('click',function(e){var p=document.getElementById('colourPanel'),b=document.getElementById('colourBtn');if(cpOpen&&p&&!p.contains(e.target)&&e.target!==b){p.classList.remove('open');cpOpen=false;}});
+function drawSpectrum(){var c=document.getElementById('colourCanvas');if(!c)return;var ctx=c.getContext('2d'),w=c.width,h=c.height;var hg=ctx.createLinearGradient(0,0,w,0);hg.addColorStop(0,'hsl(0,100%,50%)');hg.addColorStop(0.17,'hsl(60,100%,50%)');hg.addColorStop(0.33,'hsl(120,100%,50%)');hg.addColorStop(0.5,'hsl(180,100%,50%)');hg.addColorStop(0.67,'hsl(240,100%,50%)');hg.addColorStop(0.83,'hsl(300,100%,50%)');hg.addColorStop(1,'hsl(360,100%,50%)');ctx.fillStyle=hg;ctx.fillRect(0,0,w,h);var vg=ctx.createLinearGradient(0,0,0,h);vg.addColorStop(0,'rgba(255,255,255,0.85)');vg.addColorStop(0.45,'rgba(255,255,255,0)');vg.addColorStop(0.55,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.85)');ctx.fillStyle=vg;ctx.fillRect(0,0,w,h);}
+window.addEventListener('load',function(){var cv=document.getElementById('colourCanvas');if(!cv)return;cv.addEventListener('mousemove',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpApply(px[0],px[1],px[2]);});cv.addEventListener('mouseleave',function(){if(cpR!==null)cpApply(cpR,cpG,cpB);else resetColour();});cv.addEventListener('click',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpR=px[0];cpG=px[1];cpB=px[2];cpApply(cpR,cpG,cpB);});});
+function cpApply(r,g,b){var hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
+  var bg='rgb('+r+','+g+','+b+')';
+  // Apply exact colour to full hero area — navbar bar and cards stay untouched
+  document.querySelectorAll('.navbar-below-strip,.hero-section,.deck-grid-section').forEach(function(el){el.style.setProperty('background',bg,'important');});
+  var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background=hex;if(hx)hx.textContent=hex.toUpperCase();}
+function resetColour(){cpR=null;cpG=null;cpB=null;document.querySelectorAll('.navbar-below-strip,.hero-section,.deck-grid-section').forEach(function(el){el.style.removeProperty('background');});var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background='#d4af37';if(hx)hx.textContent='#D4AF37';}
 </script>
 
 <script src="va_dictionary.js"></script>

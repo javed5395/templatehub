@@ -1037,35 +1037,21 @@ function pickColour(e) {
   applyBgColour(pixel[0], pixel[1], pixel[2]);
 }
 
-// ── ONLY BACKGROUNDS CHANGE — text/fonts untouched ──
+// ── ONLY HERO/BODY BACKGROUNDS CHANGE — navbar stays static ──
 function applyBgColour(r, g, b) {
   var hex = '#' + [r,g,b].map(function(v){ return v.toString(16).padStart(2,'0'); }).join('');
-
-  // Dark mode: dark but clearly tinted version of picked colour
-  var darkBody   = 'rgb('+Math.round(r*0.22)+','+Math.round(g*0.22)+','+Math.round(b*0.22)+')';
-  var darkNav    = 'rgb('+Math.round(r*0.32)+','+Math.round(g*0.32)+','+Math.round(b*0.32)+')';
-  var darkHero1  = 'rgb('+Math.round(r*0.42)+','+Math.round(g*0.42)+','+Math.round(b*0.42)+')';
-  var darkHero2  = 'rgb('+Math.round(r*0.22)+','+Math.round(g*0.22)+','+Math.round(b*0.22)+')';
-
-  // Light mode: very pale tint of picked colour
-  var lightBody  = 'rgb('+Math.min(255,215+Math.round(r*0.16))+','+Math.min(255,210+Math.round(g*0.16))+','+Math.min(255,205+Math.round(b*0.16))+')';
-  var lightNav   = 'rgb('+Math.min(255,235+Math.round(r*0.08))+','+Math.min(255,235+Math.round(g*0.08))+','+Math.min(255,235+Math.round(b*0.08))+')';
-  var lightStats = 'rgb('+Math.min(255,220+Math.round(r*0.14))+','+Math.min(255,215+Math.round(g*0.14))+','+Math.min(255,210+Math.round(b*0.14))+')';
-  var lightHero1 = 'rgb('+Math.min(255,225+Math.round(r*0.12))+','+Math.min(255,222+Math.round(g*0.12))+','+Math.min(255,218+Math.round(b*0.12))+')';
-  var lightHero2 = 'rgb('+Math.min(255,215+Math.round(r*0.14))+','+Math.min(255,210+Math.round(g*0.14))+','+Math.min(255,205+Math.round(b*0.14))+')';
+  var exact = 'rgb('+r+','+g+','+b+')';
 
   var root = document.documentElement;
-  root.style.setProperty('--bg-body',         darkBody);
-  root.style.setProperty('--bg-nav',          darkNav);
-  root.style.setProperty('--bg-stats',        darkNav);
-  root.style.setProperty('--bg-footer',       darkNav);
-  root.style.setProperty('--bg-hero-dark-1',  darkHero1);
-  root.style.setProperty('--bg-hero-dark-2',  darkHero2);
-  root.style.setProperty('--bg-body-light',   lightBody);
-  root.style.setProperty('--bg-nav-light',    lightNav);
-  root.style.setProperty('--bg-stats-light',  lightStats);
-  root.style.setProperty('--bg-hero-light-1', lightHero1);
-  root.style.setProperty('--bg-hero-light-2', lightHero2);
+  // Exact colour on hero + body + stats — nav and footer stay static
+  root.style.setProperty('--bg-body',         exact);
+  root.style.setProperty('--bg-hero-dark-1',  exact);
+  root.style.setProperty('--bg-hero-dark-2',  exact);
+  root.style.setProperty('--bg-body-light',   exact);
+  root.style.setProperty('--bg-hero-light-1', exact);
+  root.style.setProperty('--bg-hero-light-2', exact);
+  root.style.setProperty('--bg-stats',        exact);
+  root.style.setProperty('--bg-stats-light',  exact);
 
   document.getElementById('colourSwatch').style.background = hex;
   document.getElementById('colourHex').textContent = hex.toUpperCase();
