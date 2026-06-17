@@ -108,11 +108,32 @@
     if(menu&&dd&&!menu.contains(e.target)) dd.style.display='none';
   });
 
+  // ── MOBILE HAMBURGER MENU ──
+  window.nbToggleMobileMenu = function() {
+    var links = document.getElementById('nbLinks');
+    if (links) links.classList.toggle('nb-open');
+  };
+  document.addEventListener('click', function(e) {
+    var links = document.getElementById('nbLinks');
+    var burger = document.getElementById('nbHamburgerBtn');
+    if (links && links.classList.contains('nb-open') && !links.contains(e.target) && burger && !burger.contains(e.target)) {
+      links.classList.remove('nb-open');
+    }
+  });
+  // Close the mobile menu automatically if the window is resized back to desktop width
+  window.addEventListener('resize', function() {
+    var links = document.getElementById('nbLinks');
+    if (links && window.innerWidth > 960) links.classList.remove('nb-open');
+  });
+
   // ── INJECT NAVBAR HTML ──
   var navHTML = `
 <nav id="sharedNav">
   <a href="main.html" class="nb-logo notranslate" translate="no">LazyDog<span>Templates</span></a>
-  <div class="nb-links">
+  <button class="nb-hamburger" id="nbHamburgerBtn" onclick="nbToggleMobileMenu()" title="Menu" aria-label="Menu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="nb-links" id="nbLinks">
     <button class="nav-search-icon" id="navSearchBtn" onclick="nbOpenSearch()" title="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
     <button class="nb-lang" id="nbLangBtn" onmouseenter="nbShowLang()" onmouseleave="nbLangLeaveBtn()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span id="nbLangLabel">English</span></button>
     <button class="nb-pro">Pro Plans</button>
