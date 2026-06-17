@@ -24,6 +24,7 @@
   <meta name="twitter:title" content="Media Kit Templates — LazyDogTemplates" />
   <meta name="twitter:description" content="Free media kit templates for influencers and brands. Download and customize instantly." />
   <meta name="twitter:image" content="https://www.lazydogtemplates.com/hero_source.png" />
+  <link rel="preconnect" href="https://res.cloudinary.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Raleway:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;600;700&family=Outfit:wght@400;500;600;700&family=Josefin+Sans:wght@400;600;700&family=Quicksand:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Libre+Baskerville:wght@400;700&family=Jost:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -906,6 +907,14 @@ var kits = {
   }
 };
 
+function getMkUrl(k, n, transform) {
+  var base = k.pageBase;
+  if (transform) {
+    base = base.replace('/image/upload/', '/image/upload/' + transform + '/');
+  }
+  return k.pages ? base + k.pages[n-1] : base + n + k.pageExt;
+}
+
 var currentKit = 'freelancer_kit1';
 (function(){
   var k = new URLSearchParams(window.location.search).get('kit');
@@ -936,7 +945,7 @@ function loadKit(key) {
   row.innerHTML = '';
   for (var i = 1; i <= k.pageCount; i++) {
     var img = document.createElement('img');
-    img.src = k.pages ? k.pageBase + k.pages[i-1] : k.pageBase + i + k.pageExt;
+    img.src = getMkUrl(k, i, 'f_auto,q_auto,w_300');
     img.title = k.pageTitles[i-1] || 'Page ' + i;
     img.loading = 'lazy';
     img.onclick = (function(idx){ return function(){ showSlide(idx); }; })(i);
@@ -949,7 +958,7 @@ var currentSlideNum = 1;
 function showSlide(n) {
   currentSlideNum = n;
   var k = kits[currentKit];
-  var src = k.pages ? k.pageBase + k.pages[n-1] : k.pageBase + n + k.pageExt;
+  var src = getMkUrl(k, n, 'f_auto,q_auto,w_1400');
   document.getElementById('mainImg').src = src;
   document.getElementById('slideCounter').textContent = n + ' / ' + k.pageCount;
   var thumbs = document.getElementById('thumbRow').querySelectorAll('img');
@@ -994,7 +1003,8 @@ function handleDownload(){
 }
 function openCanva(){var k=kits[currentKit];if(k&&k.canvaLink)window.open(k.canvaLink,'_blank');}
 /* ── LIGHTBOX ── */
-function _lbGetUrl(n){var k=kits[currentKit];return k.pages?k.pageBase+k.pages[n-1]:k.pageBase+n+k.pageExt;}
+function _lbGetUrl(n){return getMkUrl(kits[currentKit],n,'f_auto,q_auto,w_1400');}
+function _lbGetThumbUrl(n){return getMkUrl(kits[currentKit],n,'f_auto,q_auto,w_300');}
 function _lbTotal(){return kits[currentKit].pageCount;}
 function buildLbStrip(){
   var total=_lbTotal(),grid=document.getElementById('lbStripGrid');
@@ -1005,7 +1015,7 @@ function buildLbStrip(){
     th.className='lb-thumb';th.dataset.n=i;
     var isBig=reverse?((i-1)%3===0):(i%3===0);
     if(isBig)th.classList.add('lb-big');
-    var img=document.createElement('img');img.src=_lbGetUrl(i);img.loading='lazy';
+    var img=document.createElement('img');img.src=_lbGetThumbUrl(i);img.loading='lazy';
     th.appendChild(img);
     th.addEventListener('click',(function(n){return function(){lbGoTo(n);};})(i));
     grid.appendChild(th);
