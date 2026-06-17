@@ -219,6 +219,7 @@
       var exp = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       document.cookie = 'googtrans=;' + exp;
       document.cookie = 'googtrans=;' + exp + ' domain=.' + window.location.hostname;
+      document.cookie = 'googtrans=;' + exp + ' domain=.' + window.location.hostname.replace(/^www\./, '');
       window.location.reload();
       return;
     }
