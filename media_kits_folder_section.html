@@ -422,50 +422,7 @@
 </style>
 
 <script>
-  // ── Media Kit manifest — Cloudinary CDN ──
-  var CDN_MK = 'https://res.cloudinary.com/dsqxuaucz/image/upload/f_auto,q_auto,w_500/lazydogtemplates/media-kits/';
-  function mkSlides(key, n) {
-    var arr = [];
-    for (var i = 1; i <= n; i++) arr.push(CDN_MK + key + '/' + i + '.png');
-    return arr;
-  }
-  var DECKS = [
-    { title: "Premium Graphic Design Kit", cat: "Creative / Agency", href: "media_kits_slides.html?kit=freelancer_kit1", slides: mkSlides('freelancer_kit1', 6) },
-    { title: "Mindful Mornings Media Kit", cat: "Health / Wellness", href: "media_kits_slides.html?kit=podcast_kit5", slides: mkSlides('podcast_kit5', 9) },
-    { title: "Crime Chronicles Media Kit", cat: "Media / Entertainment", href: "media_kits_slides.html?kit=podcast_kit6", slides: mkSlides('podcast_kit6', 9) },
-    { title: "Founders & Fortune Media Kit", cat: "Finance / Business", href: "media_kits_slides.html?kit=podcast_kit7", slides: mkSlides('podcast_kit7', 9) },
-    { title: "Laugh Out Loud Media Kit", cat: "Media / Entertainment", href: "media_kits_slides.html?kit=podcast_kit8", slides: mkSlides('podcast_kit8', 9) },
-    { title: "GreenEarth Organics Media Kit", cat: "Food / Restaurant", href: "media_kits_slides.html?kit=press_kit9", slides: mkSlides('press_kit9', 9) },
-    { title: "Luxe Fashion House Press Kit", cat: "Fashion", href: "media_kits_slides.html?kit=press_kit10", slides: mkSlides('press_kit10', 11) },
-    { title: "FitLife Press Media Kit", cat: "Health / Wellness", href: "media_kits_slides.html?kit=press_kit11", slides: mkSlides('press_kit11', 10) },
-    { title: "CloudStream Technologies Press Kit", cat: "Tech / SaaS", href: "media_kits_slides.html?kit=press_kit12", slides: mkSlides('press_kit12', 10) },
-    { title: "Sophia Martinez Influencer Kit", cat: "Influencer / Creator", href: "media_kits_slides.html?kit=influencer_kit13", slides: mkSlides('influencer_kit13', 10) },
-    { title: "Lily Chen Influencer Kit", cat: "Influencer / Creator", href: "media_kits_slides.html?kit=influencer_kit14", slides: mkSlides('influencer_kit14', 10) },
-    { title: "Aurora Skincare Brand Media Kit", cat: "Beauty / Wellness", href: "media_kits_slides.html?kit=brand_kit15", slides: mkSlides('brand_kit15', 11) },
-    { title: "Velocity Sports Brand Media Kit", cat: "Sports / Fitness", href: "media_kits_slides.html?kit=brand_kit16", slides: mkSlides('brand_kit16', 13) },
-    { title: "Ember Coffee Co. Media Kit", cat: "Food / Restaurant", href: "media_kits_slides.html?kit=brand_kit17", slides: mkSlides('brand_kit17', 11) },
-    { title: "Black Gold Luxury Presentation", cat: "Corporate", href: "media_kits_slides.html?kit=brand_kit18", slides: mkSlides('brand_kit18', 10) },
-    { title: "Dark Blue Tech Presentation", cat: "Tech / SaaS", href: "media_kits_slides.html?kit=tech_kit20", slides: mkSlides('tech_kit20', 10) },
-    { title: "Skincare Brand Minimal Presentation", cat: "Beauty / Wellness", href: "media_kits_slides.html?kit=brand_kit21", slides: mkSlides('brand_kit21', 13) },
-    { title: "EcoCharge Station Media Kit", cat: "Energy / Green Tech", href: "media_kits_slides.html?kit=press_kit22", slides: mkSlides('press_kit22', 12) },
-    { title: "Black Minimalist Launch Deck", cat: "Corporate", href: "media_kits_slides.html?kit=brand_kit23", slides: mkSlides('brand_kit23', 10) },
-    { title: "GlowUp Serum Launch Media Kit", cat: "Beauty / Wellness", href: "media_kits_slides.html?kit=brand_kit24", slides: mkSlides('brand_kit24', 12) },
-    { title: "Bloom & Willow Fashion Kit", cat: "Fashion", href: "media_kits_slides.html?kit=fashion_kit25", slides: mkSlides('fashion_kit25', 12) },
-    { title: "Solstice Swim Fashion Kit", cat: "Fashion", href: "media_kits_slides.html?kit=fashion_kit26", slides: mkSlides('fashion_kit26', 12) },
-    { title: "FreshCart Startup Media Kit", cat: "Food / Restaurant", href: "media_kits_slides.html?kit=brand_kit27", slides: mkSlides('brand_kit27', 11) },
-    { title: "Marcus Chen Creator Kit", cat: "Influencer / Creator", href: "media_kits_slides.html?kit=influencer_kit28", slides: mkSlides('influencer_kit28', 10) },
-    { title: "Urban Edge Fashion Kit", cat: "Fashion", href: "media_kits_slides.html?kit=fashion_kit29", slides: mkSlides('fashion_kit29', 12) },
-    { title: "Luna & Co. Fashion Kit", cat: "Fashion", href: "media_kits_slides.html?kit=fashion_kit30", slides: mkSlides('fashion_kit30', 12) },
-    { title: "Noir Luxe Fashion Kit", cat: "Fashion", href: "media_kits_slides.html?kit=fashion_kit31", slides: mkSlides('fashion_kit31', 12) },
-    { title: "HomeHero Media Kit", cat: "Corporate", href: "media_kits_slides.html?kit=brand_kit32", slides: mkSlides('brand_kit32', 12) },
-    { title: "BrewMaster Elite Media Kit", cat: "Food / Restaurant", href: "media_kits_slides.html?kit=brand_kit33", slides: mkSlides('brand_kit33', 12) },
-    { title: "CleanWave Startup Media Kit", cat: "Energy / Green Tech", href: "media_kits_slides.html?kit=brand_kit34", slides: mkSlides('brand_kit34', 12) },
-    { title: "Diego Rivera Influencer Kit", cat: "Influencer / Creator", href: "media_kits_slides.html?kit=influencer_kit35", slides: mkSlides('influencer_kit35', 10) },
-    { title: "PetPal Startup Media Kit", cat: "Startup", href: "media_kits_slides.html?kit=brand_kit36", slides: mkSlides('brand_kit36', 12) },
-    { title: "SkillBridge Startup Media Kit", cat: "Startup", href: "media_kits_slides.html?kit=brand_kit37", slides: mkSlides('brand_kit37', 12) }
-  ];
-
-  // ── Render a single deck card (shared by hardcoded + Firebase decks) ──
+  // ── Render a single deck card ──
   function renderDeckCard(grid, deck) {
     var a = document.createElement('a');
     a.className = 'pd-card';
@@ -507,13 +464,7 @@
     grid.appendChild(a);
   }
 
-  // ── Build cards from DECKS array (existing hardcoded decks) ──
-  (function(){
-    var grid = document.getElementById('deckGrid');
-    DECKS.forEach(function(deck){ renderDeckCard(grid, deck); });
-  })();
-
-  // ── Load approved media kits from Firebase and append them ──
+  // ── Load approved media kits from Firebase ──
   (async function loadFirebaseDecks(){
     try {
       var { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
@@ -628,18 +579,18 @@ function filterGrid(cat) {
 function fillSubmenu(cat) {
   var sub = document.getElementById('catSubmenu');
   sub.innerHTML = '';
-  var matches = KITS.filter(function(d) { return d.cat === cat; });
-  if (matches.length === 0) {
+  var cards = document.querySelectorAll('#deckGrid .pd-card[data-cat="' + cat + '"]');
+  if (cards.length === 0) {
     var cs = document.createElement('span');
     cs.className = 'sub-item coming-soon';
     cs.textContent = 'Coming Soon';
     sub.appendChild(cs);
   } else {
-    matches.forEach(function(d) {
+    cards.forEach(function(card) {
       var a = document.createElement('a');
       a.className = 'sub-item';
-      a.href = d.href;
-      a.textContent = d.title;
+      a.href = card.href;
+      a.textContent = card.querySelector('.pd-card-title') ? card.querySelector('.pd-card-title').textContent : '';
       sub.appendChild(a);
     });
   }

@@ -449,7 +449,10 @@ document.addEventListener('click',function(e){
 
 
 <script>
-var kits = {
+// ── KIT DATA (loaded from Firebase) ──────────────────────────────────────────
+var currentKitData = null;
+
+var kits_REMOVED = {
   brand_kit21: {
     canvaLink: 'https://canva.link/1bep8colmzf8pmh',
     name: 'Skincare Elegant Minimalist Brand Kit',
@@ -908,22 +911,60 @@ var kits = {
 };
 
 function getMkUrl(k, n, transform) {
-  var base = k.pageBase;
-  if (transform) {
-    base = base.replace('/image/upload/', '/image/upload/' + transform + '/');
+  var url = (k.slides && k.slides[n - 1]) ? k.slides[n - 1] : '';
+  if (transform && url.indexOf('/image/upload/') !== -1) {
+    url = url.replace('/image/upload/', '/image/upload/' + transform + '/');
   }
-  return k.pages ? base + k.pages[n-1] : base + n + k.pageExt;
+  return url;
 }
 
-var currentKit = 'freelancer_kit1';
-(function(){
-  var k = new URLSearchParams(window.location.search).get('kit');
-  if (k && kits[k]) currentKit = k;
-  loadKit(currentKit);
+// ── Load kit from Firebase using ?firebase=docId ──
+(async function initKit(){
+  var params = new URLSearchParams(window.location.search);
+  var firebaseId = params.get('firebase');
+  if (!firebaseId) {
+    window.location = 'media_kits_folder_section.html';
+    return;
+  }
+  try {
+    var { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
+    var { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+    var firebaseConfig = {
+      apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+      authDomain: "templatehub-16cd7.firebaseapp.com",
+      projectId: "templatehub-16cd7",
+      storageBucket: "templatehub-16cd7.firebasestorage.app",
+      messagingSenderId: "143000893683",
+      appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+    };
+    var app = initializeApp(firebaseConfig);
+    var db = getFirestore(app);
+    var docSnap = await getDoc(doc(db, 'templates', firebaseId));
+    if (!docSnap.exists()) { window.location = 'media_kits_folder_section.html'; return; }
+    var t = (docSnap.data().template) || {};
+    currentKitData = {
+      name: t.name || 'Untitled Media Kit',
+      titleHTML: (t.name || 'Untitled Media Kit') + '<br/><span>Media Kit</span>',
+      desc: t.description || 'A professional media kit template.',
+      type: t.type || 'Brand Media Kit',
+      style: t.style || 'Professional',
+      pageCount: t.slides ? t.slides.length : 0,
+      slides: t.slides || [],
+      pageTitles: t.slideTitles || [],
+      pptxUrl: t.pptxUrl || null,
+      pdfUrl: t.pdfUrl || null,
+      price: t.price || 'free',
+      canvaLink: t.canvaLink || null
+    };
+    loadKit(currentKitData);
+  } catch(err) {
+    console.error('Firebase load failed:', err);
+    window.location = 'media_kits_folder_section.html';
+  }
 })();
 
-function loadKit(key) {
-  var k = kits[key];
+function loadKit(k) {
+  currentKitData = k;
   document.getElementById('breadcrumbName').textContent = k.name;
   document.title = k.name + ' — LazyDogTemplates';
   document.getElementById('templateTitle').innerHTML = k.titleHTML;
@@ -956,10 +997,10 @@ function loadKit(key) {
 
 var currentSlideNum = 1;
 function showSlide(n) {
+  if (!currentKitData) return;
   currentSlideNum = n;
-  var k = kits[currentKit];
-  var src = getMkUrl(k, n, 'f_auto,q_auto,w_1400');
-  document.getElementById('mainImg').src = src;
+  var k = currentKitData;
+  document.getElementById('mainImg').src = getMkUrl(k, n, 'f_auto,q_auto,w_1400');
   document.getElementById('slideCounter').textContent = n + ' / ' + k.pageCount;
   var thumbs = document.getElementById('thumbRow').querySelectorAll('img');
   thumbs.forEach(function(t,i){ t.style.borderColor = (i===n-1) ? '#d4af37' : '#1e2a5a'; });
@@ -969,43 +1010,46 @@ function showSlide(n) {
 function openEditPopup() { document.getElementById('editPopup').style.display = 'flex'; }
 function closeEditPopup() { document.getElementById('editPopup').style.display = 'none'; }
 function editSingleSlide() {
-  var k = kits[currentKit];
-  var src = k.pages ? k.pageBase + k.pages[currentSlideNum-1] : k.pageBase + currentSlideNum + k.pageExt;
+  var k = currentKitData;
+  if (!k) return;
   localStorage.setItem('editMode', 'single');
-  localStorage.setItem('editSlides', JSON.stringify([src]));
+  localStorage.setItem('editSlides', JSON.stringify([getMkUrl(k, currentSlideNum)]));
   closeEditPopup(); window.open('edit_section.html', '_blank');
 }
 function editCompleteDeck() {
-  var k = kits[currentKit]; var slides = [];
-  for (var i = 1; i <= k.pageCount; i++) slides.push(k.pages ? k.pageBase + k.pages[i-1] : k.pageBase + i + k.pageExt);
+  var k = currentKitData;
+  if (!k) return;
+  var slides = [];
+  for (var i = 1; i <= k.pageCount; i++) slides.push(getMkUrl(k, i));
   localStorage.setItem('editMode', 'deck');
   localStorage.setItem('editSlides', JSON.stringify(slides));
   closeEditPopup(); window.open('edit_section.html', '_blank');
 }
 
-// MODAL / DOWNLOAD STUBS
+// MODAL / DOWNLOAD
 var _dlIsPdf = false;
 function openModal(t){_dlIsPdf=(t==='pdf'); document.getElementById('modalOverlay').style.display='flex';}
 function closeModal(){document.getElementById('modalOverlay').style.display='none';}
 function handleDownload(){
-  var k = kits[currentKit];
-  var url;
-  if(_dlIsPdf){
-    // PDF not yet hosted — open Canva link as fallback
-    url = k.canvaLink || null;
-    if(url){ window.open(url,'_blank'); closeModal(); return; }
-  } else {
-    // PNG cover image — served from Cloudinary
-    url = k.pageBase + '1' + (k.pageExt || '.png');
-  }
-  if(url){ var a=document.createElement('a'); a.href=url; a.download=''; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+  var k = currentKitData;
+  if (!k) { closeModal(); return; }
   closeModal();
+  if (_dlIsPdf && k.pdfUrl) {
+    window.open(k.pdfUrl, '_blank');
+  } else if (k.pptxUrl) {
+    var a = document.createElement('a'); a.href = k.pptxUrl; a.target = '_blank';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  } else if (k.canvaLink) {
+    window.open(k.canvaLink, '_blank');
+  } else {
+    alert('Download not available for this template yet.');
+  }
 }
-function openCanva(){var k=kits[currentKit];if(k&&k.canvaLink)window.open(k.canvaLink,'_blank');}
+function openCanva(){ if(currentKitData && currentKitData.canvaLink) window.open(currentKitData.canvaLink,'_blank'); }
 /* ── LIGHTBOX ── */
-function _lbGetUrl(n){return getMkUrl(kits[currentKit],n,'f_auto,q_auto,w_1400');}
-function _lbGetThumbUrl(n){return getMkUrl(kits[currentKit],n,'f_auto,q_auto,w_300');}
-function _lbTotal(){return kits[currentKit].pageCount;}
+function _lbGetUrl(n){ return getMkUrl(currentKitData, n, 'f_auto,q_auto,w_1400'); }
+function _lbGetThumbUrl(n){ return getMkUrl(currentKitData, n, 'f_auto,q_auto,w_300'); }
+function _lbTotal(){ return currentKitData ? currentKitData.pageCount : 0; }
 function buildLbStrip(){
   var total=_lbTotal(),grid=document.getElementById('lbStripGrid');
   grid.innerHTML='';

@@ -444,29 +444,7 @@
 </style>
 
 <script>
-  // ── Deck manifest — Cloudinary CDN ──
-  var CDN_PD = 'https://res.cloudinary.com/dsqxuaucz/image/upload/f_auto,q_auto,w_500/lazydogtemplates/pitch-decks/';
-  function pdSlides(key, n, prefix, ext) {
-    var arr = [];
-    for (var i = 1; i <= n; i++) arr.push(CDN_PD + key + '/' + (prefix || '') + i + (ext || '.png'));
-    return arr;
-  }
-  var DECKS = [
-    { title: "Wardiere Pitch Deck", cat: "Tech / AI / SaaS", href: "pitch_deck_slides.html?design=wardiere", slides: pdSlides('wardiere', 12, 'Slide', '.PNG') },
-    { title: "Hiring Platform Pitch Deck", cat: "HR / Hiring", href: "pitch_deck_slides.html?design=deck3", slides: pdSlides('deck3', 12, 'Slide', '.PNG') },
-    { title: "Modern Bold Pitch Deck", cat: "Tech / AI / SaaS", href: "pitch_deck_slides.html?design=deck4", slides: pdSlides('deck4', 15, 'Slide', '.PNG') },
-    { title: "Health Tech Pitch Deck", cat: "Medical / Healthcare", href: "pitch_deck_slides.html?design=deck5", slides: pdSlides('deck5', 12) },
-    { title: "Professional Investor Pitch Deck", cat: "Finance / Investment", href: "pitch_deck_slides.html?design=deck6", slides: pdSlides('deck6', 12) },
-    { title: "Building the Future — Construction", cat: "Construction / Real Estate", href: "pitch_deck_slides.html?design=deck7", slides: pdSlides('deck7', 12) },
-    { title: "Building Tomorrow — Construction Tech", cat: "Construction / Real Estate", href: "pitch_deck_slides.html?design=deck8", slides: pdSlides('deck8', 12) },
-    { title: "Corporate Communications Catalyst", cat: "Corporate / Publishing", href: "pitch_deck_slides.html?design=deck9", slides: pdSlides('deck9', 10) },
-    { title: "Global Business Management", cat: "Corporate / Publishing", href: "pitch_deck_slides.html?design=deck10", slides: pdSlides('deck10', 15) },
-    { title: "Startup Pitch Deck", cat: "Tech / AI / SaaS", href: "pitch_deck_slides.html?design=deck11", slides: pdSlides('deck11', 10) },
-    { title: "Product Launch Brand Guidelines Deck", cat: "Creative / Agency", href: "pitch_deck_slides.html?design=deck12", slides: pdSlides('deck12', 21) },
-    { title: "Medical Healthcare Pitch Deck", cat: "Medical / Healthcare", href: "pitch_deck_slides.html?design=deck13", slides: pdSlides('deck13', 10) }
-  ];
-
-  // ── Render a single deck card (shared by hardcoded + Firebase decks) ──
+  // ── Render a single deck card ──
   function renderDeckCard(grid, deck) {
     var a = document.createElement('a');
     a.className = 'pd-card';
@@ -508,13 +486,7 @@
     grid.appendChild(a);
   }
 
-  // ── Build cards from DECKS array (existing hardcoded decks) ──
-  (function(){
-    var grid = document.getElementById('deckGrid');
-    DECKS.forEach(function(deck){ renderDeckCard(grid, deck); });
-  })();
-
-  // ── Load approved decks from Firebase and append them ──
+  // ── Load approved decks from Firebase ──
   (async function loadFirebaseDecks(){
     try {
       var { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
@@ -643,22 +615,22 @@ function filterGrid(cat) {
   });
 })();
 
-// ── Fill submenu with decks for a given category ──
+// ── Fill submenu with decks for a given category (from rendered DOM cards) ──
 function fillSubmenu(cat) {
   var sub = document.getElementById('catSubmenu');
   sub.innerHTML = '';
-  var matches = DECKS.filter(function(d) { return d.cat === cat; });
-  if (matches.length === 0) {
+  var cards = document.querySelectorAll('#deckGrid .pd-card[data-cat="' + cat + '"]');
+  if (cards.length === 0) {
     var cs = document.createElement('span');
     cs.className = 'sub-item coming-soon';
     cs.textContent = 'Coming Soon';
     sub.appendChild(cs);
   } else {
-    matches.forEach(function(d) {
+    cards.forEach(function(card) {
       var a = document.createElement('a');
       a.className = 'sub-item';
-      a.href = d.href;
-      a.textContent = d.title;
+      a.href = card.href;
+      a.textContent = card.querySelector('.pd-card-title') ? card.querySelector('.pd-card-title').textContent : '';
       sub.appendChild(a);
     });
   }
