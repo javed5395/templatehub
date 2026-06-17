@@ -155,6 +155,7 @@
       </div>
     </div>
     <button class="nb-edit" onclick="(function(){ if(typeof openEditPopup==='function') openEditPopup(); else window.open('edit_section.html','_blank'); })()">✏️ Edit</button>
+    <button class="nb-seller" onclick="window.location='upload_form.html'">🛍️ Become a Seller</button>
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
     <button class="nb-theme-nb" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode"><svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg></button>
