@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seller Portal — LazyDogTemplates</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --accent: #d4af37; --bg: #070714; --card: #0d0d2b; --text: #e8eaf0; --muted: #8899aa; --border: rgba(212,175,55,0.2); --green: #22c55e; --red: #ef4444; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 40px 20px; }
+    .container { max-width: 700px; margin: 0 auto; }
+    .logo { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+
+    /* ── SECTION CARD ── */
+    .section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 20px; }
+    .section h2 { font-size: 15px; font-weight: 700; color: var(--accent); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+    input, select, textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; transition: border 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    input:disabled { opacity: 0.6; cursor: not-allowed; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 46px; }
+    .pw-eye { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; padding: 0; display: flex; align-items: center; }
+    .pw-eye:hover { color: var(--accent); }
+    select option { background: #0d0d2b; }
+    textarea { resize: vertical; min-height: 90px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:600px) { .row { grid-template-columns: 1fr; } }
+    .required { color: var(--accent); }
+
+    /* ── UPLOAD BOX ── */
+    .upload-box { border: 2px dashed var(--border); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: border 0.2s; position: relative; }
+    .upload-box:hover { border-color: var(--accent); }
+    .upload-box input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 36px; margin-bottom: 10px; }
+    .upload-box p { color: var(--muted); font-size: 13px; }
+    .upload-box strong { color: var(--accent); }
+    .file-list { margin-top: 12px; text-align: left; }
+    .file-item { background: rgba(212,175,55,0.08); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-top: 6px; font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .file-item span { color: var(--accent); }
+
+    /* ── BUTTONS ── */
+    .btn { width: 100%; padding: 16px; background: var(--accent); color: #070714; border: none; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; transition: opacity 0.2s; margin-top: 10px; }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 14px; padding: 12px; margin-top: 8px; }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+    .btn-google { background: #fff; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 700; padding: 12px; margin-top: 10px; border-radius: 12px; border: none; cursor: pointer; transition: opacity 0.2s; width: 100%; font-family: 'Poppins', sans-serif; }
+    .btn-google:hover { opacity: 0.9; }
+    .btn-sm { width: auto; padding: 8px 18px; font-size: 13px; margin-top: 0; border-radius: 8px; }
+
+    /* ── PROGRESS ── */
+    .progress { display: none; margin-top: 20px; }
+    .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; width: 0%; }
+    .progress-text { font-size: 13px; color: var(--muted); }
+
+    /* ── SUCCESS ── */
+    .success { display: none; text-align: center; padding: 40px; }
+    .success .icon { font-size: 60px; margin-bottom: 16px; }
+    .success h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .success p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+    /* ── AUTH TABS ── */
+    .auth-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .auth-tab { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 700; cursor: pointer; background: transparent; color: var(--muted); border: none; font-family: 'Poppins', sans-serif; transition: all 0.2s; }
+    .auth-tab.active { background: var(--accent); color: #070714; }
+    .divider { text-align: center; color: var(--muted); font-size: 12px; margin: 14px 0; position: relative; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: var(--border); }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+    .auth-error { color: var(--red); font-size: 13px; margin-top: 10px; display: none; }
+    .auth-success { color: var(--green); font-size: 13px; margin-top: 10px; display: none; }
+    .forgot-link { display: block; text-align: right; font-size: 12px; color: var(--muted); margin-top: 6px; cursor: pointer; text-decoration: underline; background: none; border: none; font-family: 'Poppins', sans-serif; }
+    .forgot-link:hover { color: var(--accent); }
+    .reset-panel { display: none; }
+    .reset-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .reset-method-btn { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s; }
+    .reset-method-btn:hover, .reset-method-btn.active { border-color: var(--accent); background: rgba(212,175,55,0.08); color: var(--accent); }
+    .reset-method-btn .icon { font-size: 24px; display: block; margin-bottom: 6px; }
+
+    /* ── SELLER BAR ── */
+    .seller-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(212,175,55,0.08); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; }
+    .seller-bar-info { font-size: 14px; }
+    .seller-bar-info strong { color: var(--accent); }
+    .seller-bar-info span { color: var(--muted); font-size: 12px; display: block; margin-top: 2px; }
+    .seller-bar-actions { display: flex; gap: 10px; align-items: center; }
+    .link-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: 'Poppins', sans-serif; text-decoration: underline; }
+    .link-btn:hover { color: var(--accent); }
+
+    /* ── STATUS BADGE ── */
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; }
+    .badge-pending { background: rgba(234,179,8,0.15); color: #eab308; }
+    .badge-approved { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-rejected { background: rgba(239,68,68,0.15); color: var(--red); }
+
+    /* ── MY SUBMISSIONS ── */
+    .submission-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-top: 10px; display: flex; align-items: center; gap: 14px; }
+    .submission-thumb { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; background: rgba(255,255,255,0.05); flex-shrink: 0; }
+    .submission-info { flex: 1; }
+    .submission-name { font-size: 14px; font-weight: 600; }
+    .submission-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    /* ── SUPPORTING DOC NOTE ── */
+    .doc-note { background: rgba(100,200,255,0.06); border: 1px solid rgba(100,200,255,0.2); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; color: #a0d8ef; line-height: 1.6; }
+    .doc-note strong { color: #64c8ff; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">LazyDogTemplates</div>
+  <h1>Seller Portal</h1>
+  <p class="subtitle">Upload your templates, track approvals, and grow your shop.</p>
+
+  <!-- ══ SECTION 1: AUTH GATE ══ -->
+  <div id="authSection">
+    <div class="section">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Create Account</button>
+      </div>
+
+      <!-- Sign In Panel -->
+      <div id="panelSignIn">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="siEmail" placeholder="your@email.com" autocomplete="email"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="siPassword" placeholder="Your password" autocomplete="current-password"/>
+            <button type="button" class="pw-eye" onclick="togglePw('siPassword',this)" title="Show/hide password">👁</button>
+          </div>
+        </div>
+        <button type="button" class="forgot-link" onclick="showResetPanel()">Forgot password?</button>
+        <div class="auth-error" id="siError"></div>
+        <button class="btn" onclick="doSignIn()">Sign In</button>
+        <div class="divider">or</div>
+        <button class="btn-google" onclick="doGoogleSignIn()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.3 30.2 0 24 0 14.6 0 6.6 5.4 2.5 13.3l7.8 6.1C12.3 13 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 6.9-9.9 7.1-17z"/><path fill="#FBBC05" d="M10.3 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.8-6.1A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.5 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.3 0-11.7-4.2-13.7-10l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+      </div>
+
+      <!-- Forgot Password Panel -->
+      <div id="panelReset" class="reset-panel">
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:6px;">Reset Your Password</h2>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Choose how you want to reset your password.</p>
+
+        <div class="reset-methods">
+          <button class="reset-method-btn active" id="resetMethodEmail" onclick="selectResetMethod('email')">
+            <span class="icon">📧</span>Email Link
+          </button>
+          <button class="reset-method-btn" id="resetMethodSms" onclick="selectResetMethod('sms')">
+            <span class="icon">📱</span>SMS Code
+          </button>
+        </div>
+
+        <!-- Email Reset -->
+        <div id="resetEmailPanel">
+          <div class="field">
+            <label>Your Email Address</label>
+            <input type="email" id="resetEmail" placeholder="your@email.com" autocomplete="email"/>
+          </div>
+          <div class="auth-error" id="resetEmailError"></div>
+          <div class="auth-success" id="resetEmailSuccess"></div>
+          <button class="btn" onclick="doEmailReset()">Send Reset Link</button>
+        </div>
+
+        <!-- SMS / Phone Reset -->
+        <div id="resetSmsPanel" style="display:none">
+
+          <!-- Step 1: enter phone -->
+          <div id="resetSmsStep1">
+            <div class="field">
+              <label>Your Registered Phone Number</label>
+              <input type="tel" id="resetPhone" placeholder="+92 300 0000000" autocomplete="tel"/>
+            </div>
+            <!-- Firebase invisible reCAPTCHA anchor -->
+            <div id="recaptcha-container"></div>
+            <div class="auth-error" id="resetSmsError"></div>
+            <div class="auth-success" id="resetSmsSuccess"></div>
+            <button class="btn" id="resetSmsSendBtn" onclick="doSendSmsOtp()">Send SMS Code</button>
+          </div>
+
+          <!-- Step 2: verify OTP -->
+          <div id="resetSmsStep2" style="display:none">
+            <p style="color:var(--muted);font-size:13px;margin-bottom:14px;">Enter the 6-digit code sent to your phone.</p>
+            <div class="field">
+              <label>Verification Code</label>
+              <input type="text" id="resetOtp" placeholder="000000" maxlength="6"
+                style="letter-spacing:8px;font-size:22px;text-align:center;" autocomplete="one-time-code"/>
+            </div>
+            <div class="auth-error" id="resetOtpError"></div>
+            <div class="auth-success" id="resetOtpSuccess"></div>
+            <button class="btn" onclick="doVerifySmsOtp()">Verify & Send Reset Email</button>
+            <button type="button" class="btn btn-outline" style="margin-top:8px" onclick="resetSmsBack()">← Change Number</button>
+          </div>
+
+        </div>
+
+        <button type="button" class="btn btn-outline" style="margin-top:12px" onclick="hideResetPanel()">← Back to Sign In</button>
+      </div>
+
+      <!-- Register Panel -->
+      <div id="panelRegister" style="display:none">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="regEmail" placeholder="your@email.com" autocomplete="email"/>
+        </div>
+        <div class="field">
+          <label>Password (min 6 characters)</label>
+          <div class="pw-wrap">
+            <input type="password" id="regPassword" placeholder="Create a password" autocomplete="new-password"/>
+            <button type="button" class="pw-eye" onclick="togglePw('regPassword',this)" title="Show/hide password">👁</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Confirm Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="regConfirm" placeholder="Repeat password" autocomplete="new-password"/>
+            <button type="button" class="pw-eye" onclick="togglePw('regConfirm',this)" title="Show/hide password">👁</button>
+          </div>
+        </div>
+        <div class="auth-error" id="regError"></div>
+        <button class="btn" onclick="doRegister()">Create Account</button>
+        <div class="divider">or</div>
+        <button class="btn-google" onclick="doGoogleSignIn()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.3 30.2 0 24 0 14.6 0 6.6 5.4 2.5 13.3l7.8 6.1C12.3 13 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 6.9-9.9 7.1-17z"/><path fill="#FBBC05" d="M10.3 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.8-6.1A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.5 10.7l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.3 0-11.7-4.2-13.7-10l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 2: PROFILE SETUP (first login only) ══ -->
+  <div id="profileSetupSection" style="display:none">
+    <div class="section">
+      <h2>🏪 Set Up Your Seller Profile</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">This is a one-time setup. Your info will be saved so you never have to fill it again.</p>
+      <div class="row">
+        <div class="field">
+          <label>Full Name <span class="required">*</span></label>
+          <input type="text" id="profileName" placeholder="Your full name"/>
+        </div>
+        <div class="field">
+          <label>Contact Number <span class="required">*</span></label>
+          <input type="tel" id="profilePhone" placeholder="+92 300 0000000"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Shop / Brand Name (Optional)</label>
+        <input type="text" id="profileShop" placeholder="e.g. PixelCraft Studio"/>
+      </div>
+      <div class="auth-error" id="profileError"></div>
+      <button class="btn" onclick="saveProfile()">Save Profile & Continue</button>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 3: UPLOAD FORM ══ -->
+  <div id="formSection" style="display:none">
+
+    <!-- Seller identity bar -->
+    <div class="seller-bar" id="sellerBar">
+      <div class="seller-bar-info">
+        <strong id="barName">—</strong>
+        <span id="barEmail">—</span>
+      </div>
+      <div class="seller-bar-actions">
+        <button class="link-btn" onclick="showSubmissions()">My Submissions</button>
+        <button class="link-btn" onclick="doSignOut()">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- My Submissions panel (hidden by default) -->
+    <div id="submissionsPanel" style="display:none">
+      <div class="section">
+        <h2>📦 My Submissions</h2>
+        <div id="submissionsList"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+        <button class="btn btn-outline" style="margin-top:16px" onclick="hideSubmissions()">Close</button>
+      </div>
+    </div>
+
+    <!-- TEMPLATE DETAILS -->
+    <div class="section">
+      <h2>📋 Template Details</h2>
+      <div class="field">
+        <label>Template Name <span class="required">*</span></label>
+        <input type="text" id="templateName" placeholder="e.g. Modern Startup Pitch Deck" required/>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Category <span class="required">*</span></label>
+          <select id="category">
+            <option value="">Select category</option>
+            <option value="pitch_deck">Pitch Deck</option>
+            <option value="media_kit">Media Kit</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Number of Slides <span class="required">*</span></label>
+          <input type="number" id="slideCount" placeholder="e.g. 12" min="1" max="50"/>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Industry <span class="required">*</span></label>
+          <select id="industry">
+            <option value="">Select industry</option>
+            <option value="tech">Tech & AI</option>
+            <option value="healthcare">Healthcare & Medical</option>
+            <option value="finance">Finance & Banking</option>
+            <option value="construction">Construction</option>
+            <option value="retail">Retail & E-commerce</option>
+            <option value="education">Education</option>
+            <option value="realestate">Real Estate</option>
+            <option value="fashion">Fashion & Beauty</option>
+            <option value="food">Food & Restaurant</option>
+            <option value="general">General / Business</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Price (USD)</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="number" id="price" placeholder="e.g. 15" min="0" step="0.01" style="flex:1"/>
+            <button type="button" onclick="document.getElementById('price').value='0'" style="padding:12px 16px;background:rgba(212,175,55,0.15);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;font-family:Poppins,sans-serif">Set Free</button>
+          </div>
+          <p style="font-size:11px;color:var(--muted);margin-top:6px">Enter 0 for free, or a dollar amount (e.g. 15 = $15.00)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILE UPLOADS -->
+    <div class="section">
+      <h2>📁 Upload Files</h2>
+
+      <div class="field">
+        <label>PNG Slides <span class="required">*</span> (Select all slide images)</label>
+        <div class="upload-box">
+          <input type="file" id="pngFiles" accept=".png,.jpg,.jpeg" multiple onchange="showFiles('pngFiles','pngList')"/>
+          <div class="upload-icon">🖼️</div>
+          <p><strong>Click to upload PNG slides</strong></p>
+          <p>Select all slide images at once</p>
+        </div>
+        <div class="file-list" id="pngList"></div>
+      </div>
+
+      <div class="field">
+        <label>PPTX File <span class="required">*</span></label>
+        <div class="upload-box">
+          <input type="file" id="pptxFile" accept=".pptx,.ppt" onchange="showFiles('pptxFile','pptxList')"/>
+          <div class="upload-icon">📊</div>
+          <p><strong>Click to upload PPTX file</strong></p>
+          <p>PowerPoint template file</p>
+        </div>
+        <div class="file-list" id="pptxList"></div>
+      </div>
+
+      <div class="field">
+        <label>PDF File (Optional)</label>
+        <div class="upload-box">
+          <input type="file" id="pdfFile" accept=".pdf" onchange="showFiles('pdfFile','pdfList')"/>
+          <div class="upload-icon">📄</div>
+          <p><strong>Click to upload PDF file</strong></p>
+          <p>PDF version of the template</p>
+        </div>
+        <div class="file-list" id="pdfList"></div>
+      </div>
+    </div>
+
+    <!-- SUPPORTING DOCUMENT -->
+    <div class="section">
+      <h2>📝 Supporting Document</h2>
+      <div class="doc-note">
+        <strong>What to include in your document:</strong><br/>
+        Explain the <strong>design logic</strong> behind your template — what inspired the layout, color choices, and typography. Describe the <strong>target audience</strong> (e.g. early-stage startups, healthcare professionals, fashion brands) and how each slide or page serves them. You can also mention the tools used, any customization tips, and what makes this design unique.<br/><br/>
+        <strong>Accepted formats:</strong> PDF, Word (.docx), or plain text (.txt)
+      </div>
+      <div class="field">
+        <label>Design Brief / Description Document (Optional but Recommended)</label>
+        <div class="upload-box">
+          <input type="file" id="designDoc" accept=".pdf,.doc,.docx,.txt" onchange="showFiles('designDoc','designDocList')"/>
+          <div class="upload-icon">📋</div>
+          <p><strong>Click to upload your design brief</strong></p>
+          <p>PDF, Word, or TXT — max 10 MB</p>
+        </div>
+        <div class="file-list" id="designDocList"></div>
+      </div>
+      <div class="field">
+        <label>Quick Description (Alternative to document upload)</label>
+        <textarea id="designNotes" placeholder="Briefly describe your design approach, target audience, and what makes this template stand out..."></textarea>
+      </div>
+    </div>
+
+    <div class="progress" id="progressSection">
+      <p class="progress-text" id="progressText">Uploading files...</p>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <button class="btn" id="submitBtn" onclick="submitForm()">🚀 Submit Template for Review</button>
+  </div>
+
+  <!-- ══ SECTION 4: SUCCESS ══ -->
+  <div class="success" id="successSection">
+    <div class="icon">🎉</div>
+    <h2>Submitted Successfully!</h2>
+    <p>Your template has been submitted for admin review.<br/>You will be notified once approved.</p>
+    <button class="btn btn-sm" onclick="resetForm()" style="width:auto;padding:12px 28px;margin-top:16px;">Upload Another Template</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, getDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+  authDomain: "templatehub-16cd7.firebaseapp.com",
+  projectId: "templatehub-16cd7",
+  storageBucket: "templatehub-16cd7.firebasestorage.app",
+  messagingSenderId: "143000893683",
+  appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+const CLOUDINARY_CLOUD  = "dsqxuaucz";
+const CLOUDINARY_PRESET = "lazydog_unsigned";
+const APPS_SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec";
+
+let currentUser    = null;
+let sellerProfile  = null;
+
+// ── AUTH STATE LISTENER ──────────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    const profile = await loadSellerProfile(user.uid);
+    if (!profile) {
+      showSection('profileSetup');
+    } else {
+      sellerProfile = profile;
+      populateSellerBar();
+      showSection('form');
+    }
+  } else {
+    currentUser = null;
+    sellerProfile = null;
+    showSection('auth');
+  }
+});
+
+function showSection(name) {
+  document.getElementById('authSection').style.display        = name === 'auth'        ? 'block' : 'none';
+  document.getElementById('profileSetupSection').style.display = name === 'profileSetup' ? 'block' : 'none';
+  document.getElementById('formSection').style.display        = name === 'form'        ? 'block' : 'none';
+  document.getElementById('successSection').style.display     = name === 'success'     ? 'block' : 'none';
+}
+
+// ── SELLER PROFILE ───────────────────────────────────────────────────────────
+async function loadSellerProfile(uid) {
+  const snap = await getDoc(doc(db, 'sellers', uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+window.saveProfile = async function() {
+  const name  = document.getElementById('profileName').value.trim();
+  const phone = document.getElementById('profilePhone').value.trim();
+  const shop  = document.getElementById('profileShop').value.trim();
+  const errEl = document.getElementById('profileError');
+
+  if (!name || !phone) { showErr(errEl, 'Name and phone number are required.'); return; }
+
+  try {
+    const profile = {
+      uid:       currentUser.uid,
+      email:     currentUser.email,
+      name,
+      phone,
+      shopName:  shop || name,
+      createdAt: serverTimestamp()
+    };
+    await setDoc(doc(db, 'sellers', currentUser.uid), profile);
+    sellerProfile = profile;
+    populateSellerBar();
+    showSection('form');
+  } catch(err) {
+    showErr(errEl, 'Failed to save profile. Please try again.');
+    console.error(err);
+  }
+};
+
+function populateSellerBar() {
+  document.getElementById('barName').textContent  = sellerProfile.shopName || sellerProfile.name;
+  document.getElementById('barEmail').textContent = sellerProfile.email || currentUser.email;
+}
+
+// ── AUTH ACTIONS ─────────────────────────────────────────────────────────────
+window.switchTab = function(tab) {
+  const isSignIn = tab === 'signin';
+  document.getElementById('tabSignIn').classList.toggle('active', isSignIn);
+  document.getElementById('tabRegister').classList.toggle('active', !isSignIn);
+  document.getElementById('panelSignIn').style.display    = isSignIn ? 'block' : 'none';
+  document.getElementById('panelRegister').style.display  = isSignIn ? 'none'  : 'block';
+};
+
+window.doSignIn = async function() {
+  const email    = document.getElementById('siEmail').value.trim();
+  const password = document.getElementById('siPassword').value;
+  const errEl    = document.getElementById('siError');
+  if (!email || !password) { showErr(errEl, 'Please enter email and password.'); return; }
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch(err) {
+    showErr(errEl, friendlyAuthError(err.code));
+  }
+};
+
+window.doRegister = async function() {
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const confirm  = document.getElementById('regConfirm').value;
+  const errEl    = document.getElementById('regError');
+  if (!email || !password) { showErr(errEl, 'Please fill all fields.'); return; }
+  if (password !== confirm) { showErr(errEl, 'Passwords do not match.'); return; }
+  if (password.length < 6)  { showErr(errEl, 'Password must be at least 6 characters.'); return; }
+  try {
+    await createUserWithEmailAndPassword(auth, email, password);
+  } catch(err) {
+    showErr(errEl, friendlyAuthError(err.code));
+  }
+};
+
+window.doGoogleSignIn = async function() {
+  try {
+    await signInWithPopup(auth, googleProvider);
+  } catch(err) {
+    console.error(err);
+  }
+};
+
+window.doSignOut = async function() {
+  await signOut(auth);
+};
+
+function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+function friendlyAuthError(code) {
+  const map = {
+    'auth/user-not-found':      'No account found with this email.',
+    'auth/wrong-password':      'Incorrect password.',
+    'auth/email-already-in-use':'An account already exists with this email.',
+    'auth/invalid-email':       'Please enter a valid email address.',
+    'auth/too-many-requests':   'Too many attempts. Please try again later.'
+  };
+  return map[code] || 'Something went wrong. Please try again.';
+}
+
+// ── MY SUBMISSIONS ───────────────────────────────────────────────────────────
+window.showSubmissions = async function() {
+  document.getElementById('submissionsPanel').style.display = 'block';
+  const list = document.getElementById('submissionsList');
+  list.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+  try {
+    const q = query(
+      collection(db, 'templates'),
+      where('sellerId', '==', currentUser.uid),
+      orderBy('uploadedAt', 'desc')
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) { list.innerHTML = '<p style="color:var(--muted);font-size:13px;">No submissions yet.</p>'; return; }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const t = d.data();
+      const tm = t.template || {};
+      const badge = `<span class="badge badge-${t.status}">${t.status}</span>`;
+      list.innerHTML += `
+        <div class="submission-item">
+          ${tm.coverImage ? `<img class="submission-thumb" src="${tm.coverImage}" alt=""/>` : '<div class="submission-thumb"></div>'}
+          <div class="submission-info">
+            <div class="submission-name">${tm.name || 'Untitled'}</div>
+            <div class="submission-meta">${tm.category || ''} &bull; ${tm.slideCount || 0} slides &bull; ${badge}</div>
+          </div>
+        </div>`;
+    });
+  } catch(err) {
+    // If index not yet built, fall back to unordered query
+    try {
+      const q2 = query(collection(db, 'templates'), where('sellerId', '==', currentUser.uid));
+      const snap2 = await getDocs(q2);
+      if (snap2.empty) { list.innerHTML = '<p style="color:var(--muted);font-size:13px;">No submissions yet.</p>'; return; }
+      list.innerHTML = '';
+      snap2.forEach(d => {
+        const t = d.data(); const tm = t.template || {};
+        const badge = `<span class="badge badge-${t.status}">${t.status}</span>`;
+        list.innerHTML += `<div class="submission-item"><div class="submission-info"><div class="submission-name">${tm.name || 'Untitled'}</div><div class="submission-meta">${tm.category || ''} &bull; ${badge}</div></div></div>`;
+      });
+    } catch(e) { list.innerHTML = '<p style="color:var(--muted);font-size:13px;">Could not load submissions.</p>'; }
+  }
+};
+
+window.hideSubmissions = function() {
+  document.getElementById('submissionsPanel').style.display = 'none';
+};
+
+// ── FILE DISPLAY ─────────────────────────────────────────────────────────────
+window.showFiles = function(inputId, listId) {
+  const input = document.getElementById(inputId);
+  const list  = document.getElementById(listId);
+  list.innerHTML = '';
+  Array.from(input.files).forEach(f => {
+    list.innerHTML += `<div class="file-item"><span>✓</span> ${f.name} (${(f.size/1024/1024).toFixed(1)} MB)</div>`;
+  });
+};
+
+// ── UPLOAD HELPERS ────────────────────────────────────────────────────────────
+async function uploadToCloudinary(file, folder, resourceType = 'image') {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_PRESET);
+  formData.append('folder', folder);
+  const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`, { method: 'POST', body: formData });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error(data.error?.message || 'Cloudinary upload failed');
+  return data.secure_url;
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadPptxToDrive(file) {
+  const base64Data = await readFileAsBase64(file);
+  const res  = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation' })
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Failed to upload PPTX to Google Drive');
+  return data.fileUrl;
+}
+
+async function uploadDocToDrive(file) {
+  const base64Data = await readFileAsBase64(file);
+  const res  = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/octet-stream' })
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Failed to upload document');
+  return data.fileUrl;
+}
+
+function setProgress(pct, text) {
+  document.getElementById('progressFill').style.width   = pct + '%';
+  document.getElementById('progressText').textContent   = text;
+}
+
+// ── SUBMIT FORM ───────────────────────────────────────────────────────────────
+window.submitForm = async function() {
+  if (!currentUser || !sellerProfile) { alert('Please sign in first.'); return; }
+
+  const templateName = document.getElementById('templateName').value.trim();
+  const category     = document.getElementById('category').value;
+  const slideCount   = document.getElementById('slideCount').value;
+  const industry     = document.getElementById('industry').value;
+  const priceRaw     = parseFloat(document.getElementById('price').value) || 0;
+  const price        = priceRaw === 0 ? 'free' : priceRaw.toFixed(2);
+  const designNotes  = document.getElementById('designNotes').value.trim();
+  const pngFiles     = document.getElementById('pngFiles').files;
+  const pptxFile     = document.getElementById('pptxFile').files[0];
+  const pdfFile      = document.getElementById('pdfFile').files[0];
+  const designDocFile= document.getElementById('designDoc').files[0];
+
+  if (!templateName || !category || !slideCount || !industry) {
+    alert('Please fill all required template fields!'); return;
+  }
+  if (pngFiles.length === 0) { alert('Please upload PNG slides!'); return; }
+  if (!pptxFile) { alert('Please upload the PPTX file!'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  document.getElementById('progressSection').style.display = 'block';
+
+  try {
+    const folder    = `lazydog/${category}/${templateName.replace(/\s+/g,'_')}`;
+    const slideUrls = [];
+
+    // 1. Upload PNG slides
+    for (let i = 0; i < pngFiles.length; i++) {
+      setProgress(Math.round((i / pngFiles.length) * 55), `Uploading slide ${i+1} of ${pngFiles.length}...`);
+      slideUrls.push(await uploadToCloudinary(pngFiles[i], `${folder}/slides`));
+    }
+
+    // 2. Upload PPTX to Google Drive
+    setProgress(65, 'Uploading PPTX to Google Drive...');
+    const pptxUrl = await uploadPptxToDrive(pptxFile);
+
+    // 3. Upload PDF (optional)
+    let pdfUrl = null;
+    if (pdfFile) {
+      setProgress(78, 'Uploading PDF...');
+      pdfUrl = await uploadToCloudinary(pdfFile, `${folder}/pdf`, 'raw');
+    }
+
+    // 4. Upload supporting document (optional)
+    let designDocUrl = null;
+    if (designDocFile) {
+      setProgress(88, 'Uploading design brief...');
+      designDocUrl = await uploadDocToDrive(designDocFile);
+    }
+
+    // 5. Save to Firestore
+    setProgress(95, 'Saving to database...');
+    await addDoc(collection(db, 'templates'), {
+      status:     'pending',
+      uploadedAt: serverTimestamp(),
+      sellerId:   currentUser.uid,
+      uploader: {
+        name:  sellerProfile.name,
+        phone: sellerProfile.phone,
+        email: sellerProfile.email || currentUser.email,
+        shopName: sellerProfile.shopName || sellerProfile.name
+      },
+      template: {
+        name:        templateName,
+        category,
+        slideCount:  parseInt(slideCount),
+        industry,
+        price,
+        slides:      slideUrls,
+        pptxUrl,
+        pdfUrl,
+        coverImage:  slideUrls[0] || null,
+        designDocUrl,
+        designNotes
+      }
+    });
+
+    setProgress(100, 'Done!');
+    showSection('success');
+
+  } catch(err) {
+    console.error(err);
+    alert('Upload error: ' + err.message);
+    btn.disabled = false;
+  }
+};
+
+// ── FORGOT PASSWORD ───────────────────────────────────────────────────────────
+let resetMethod       = 'email';
+let smsConfirmResult  = null;
+let recaptchaVerifier = null;
+
+window.showResetPanel = function() {
+  document.getElementById('panelSignIn').style.display   = 'none';
+  document.getElementById('panelRegister').style.display = 'none';
+  document.getElementById('panelReset').style.display    = 'block';
+  document.querySelector('.auth-tabs').style.display     = 'none';
+};
+
+window.hideResetPanel = function() {
+  document.getElementById('panelReset').style.display    = 'none';
+  document.getElementById('panelSignIn').style.display   = 'block';
+  document.querySelector('.auth-tabs').style.display     = 'flex';
+  resetSmsState();
+};
+
+window.selectResetMethod = function(method) {
+  resetMethod = method;
+  document.getElementById('resetMethodEmail').classList.toggle('active', method === 'email');
+  document.getElementById('resetMethodSms').classList.toggle('active', method === 'sms');
+  document.getElementById('resetEmailPanel').style.display = method === 'email' ? 'block' : 'none';
+  document.getElementById('resetSmsPanel').style.display   = method === 'sms'   ? 'block' : 'none';
+};
+
+window.doEmailReset = async function() {
+  const email = document.getElementById('resetEmail').value.trim();
+  const errEl = document.getElementById('resetEmailError');
+  const sucEl = document.getElementById('resetEmailSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if (!email) { showErr(errEl, 'Please enter your email address.'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    sucEl.textContent   = '✅ Reset link sent! Check your inbox (and spam folder).';
+    sucEl.style.display = 'block';
+    document.getElementById('resetEmail').value = '';
+  } catch(err) {
+    showErr(errEl, err.code === 'auth/user-not-found'
+      ? 'No account found with this email.'
+      : 'Failed to send reset email. Try again.');
+  }
+};
+
+// ── SMS RESET ─────────────────────────────────────────────────────────────────
+window.doSendSmsOtp = async function() {
+  const phone  = document.getElementById('resetPhone').value.trim();
+  const errEl  = document.getElementById('resetSmsError');
+  const sucEl  = document.getElementById('resetSmsSuccess');
+  const btn    = document.getElementById('resetSmsSendBtn');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if (!phone) { showErr(errEl, 'Please enter your phone number (include country code, e.g. +92...).'); return; }
+
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    // Set up invisible reCAPTCHA (required by Firebase Phone Auth)
+    if (!recaptchaVerifier) {
+      recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+    }
+    smsConfirmResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+    // Show step 2
+    document.getElementById('resetSmsStep1').style.display = 'none';
+    document.getElementById('resetSmsStep2').style.display = 'block';
+  } catch(err) {
+    btn.disabled = false; btn.textContent = 'Send SMS Code';
+    showErr(errEl, 'Could not send SMS. Check the number format (e.g. +923001234567) and try again.');
+    console.error(err);
+    // Reset reCAPTCHA on failure
+    if (recaptchaVerifier) { recaptchaVerifier.clear(); recaptchaVerifier = null; }
+  }
+};
+
+window.doVerifySmsOtp = async function() {
+  const otp   = document.getElementById('resetOtp').value.trim();
+  const errEl = document.getElementById('resetOtpError');
+  const sucEl = document.getElementById('resetOtpSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if (!otp || otp.length < 6) { showErr(errEl, 'Enter the 6-digit code.'); return; }
+
+  try {
+    // Verify OTP — this signs user in with phone credential
+    const result = await smsConfirmResult.confirm(otp);
+    const phoneUid = result.user.uid;
+
+    // Look up email from sellers collection by phone number
+    const phone = document.getElementById('resetPhone').value.trim();
+    const sellersSnap = await getDocs(query(collection(db, 'sellers'), where('phone', '==', phone)));
+
+    if (sellersSnap.empty) {
+      showErr(errEl, 'No seller account found with this phone number.');
+      await signOut(auth); return;
+    }
+
+    const sellerEmail = sellersSnap.docs[0].data().email;
+    // Sign out the temporary phone auth session
+    await signOut(auth);
+    // Send password reset email to their registered email
+    await sendPasswordResetEmail(auth, sellerEmail);
+    sucEl.textContent   = `✅ Reset link sent to ${sellerEmail}. Check your inbox to set a new password.`;
+    sucEl.style.display = 'block';
+    document.getElementById('resetOtp').value = '';
+
+  } catch(err) {
+    if (err.code === 'auth/invalid-verification-code') {
+      showErr(errEl, 'Wrong code. Please check and try again.');
+    } else {
+      showErr(errEl, 'Verification failed. Please try again.');
+      console.error(err);
+    }
+  }
+};
+
+window.resetSmsBack = function() {
+  resetSmsState();
+};
+
+function resetSmsState() {
+  smsConfirmResult = null;
+  document.getElementById('resetSmsStep1').style.display = 'block';
+  document.getElementById('resetSmsStep2').style.display = 'none';
+  document.getElementById('resetSmsSendBtn').disabled    = false;
+  document.getElementById('resetSmsSendBtn').textContent = 'Send SMS Code';
+  document.getElementById('resetPhone').value = '';
+  document.getElementById('resetOtp').value   = '';
+  if (recaptchaVerifier) { recaptchaVerifier.clear(); recaptchaVerifier = null; }
+}
+
+// ── PASSWORD TOGGLE ──────────────────────────────────────────────────────────
+window.togglePw = function(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const show  = input.type === 'password';
+  input.type  = show ? 'text' : 'password';
+  btn.textContent = show ? '🙈' : '👁';
+};
+
+// ── RESET ─────────────────────────────────────────────────────────────────────
+window.resetForm = function() {
+  document.getElementById('templateName').value = '';
+  document.getElementById('category').value     = '';
+  document.getElementById('slideCount').value   = '';
+  document.getElementById('industry').value     = '';
+  document.getElementById('price').value        = 'free';
+  document.getElementById('designNotes').value  = '';
+  document.getElementById('pngList').innerHTML  = '';
+  document.getElementById('pptxList').innerHTML = '';
+  document.getElementById('pdfList').innerHTML  = '';
+  document.getElementById('designDocList').innerHTML = '';
+  document.getElementById('progressSection').style.display = 'none';
+  document.getElementById('progressFill').style.width      = '0%';
+  document.getElementById('submitBtn').disabled            = false;
+  showSection('form');
+};
+</script>
+</body>
+</html>

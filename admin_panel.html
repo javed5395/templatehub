@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — LazyDogTemplates</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --accent: #d4af37; --bg: #070714; --card: #0d0d2b; --text: #e8eaf0; --muted: #8899aa; --border: rgba(212,175,55,0.2); --green: #4ade80; --red: #f87171; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* LOGIN */
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; max-width: 380px; width: 100%; text-align: center; }
+    .login-box .logo { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+    .login-box h2 { font-size: 18px; margin-bottom: 24px; color: var(--muted); font-weight: 500; }
+    .login-box input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; margin-bottom: 14px; }
+    .login-box input:focus { border-color: var(--accent); }
+    .login-box button { width: 100%; padding: 14px; background: var(--accent); color: #070714; border: none; border-radius: 10px; font-weight: 800; font-size: 15px; cursor: pointer; }
+    .login-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; }
+
+    /* PANEL */
+    .admin-panel { display: none; padding: 30px 40px; max-width: 1400px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
+    .header .logo { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header h1 { font-size: 24px; font-weight: 800; margin-top: 4px; }
+    .stats { display: flex; gap: 16px; }
+    .stat-pill { background: var(--card); border: 1px solid var(--border); border-radius: 30px; padding: 8px 18px; font-size: 13px; font-weight: 600; }
+    .stat-pill .num { color: var(--accent); font-weight: 800; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 24px; }
+    .tab { padding: 10px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); transition: all 0.2s; }
+    .tab.active { background: var(--accent); color: #070714; border-color: var(--accent); }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+    .submission-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .card-thumb { height: 170px; background: #1a1a3a; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; }
+    .card-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+    .card-thumb:hover img { transform: scale(1.04); }
+    .card-thumb-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+    .card-thumb:hover .card-thumb-overlay { opacity: 1; }
+    .card-thumb-overlay span { background: var(--accent); color: #070714; font-weight: 800; font-size: 13px; padding: 8px 18px; border-radius: 20px; }
+    .card-body { padding: 18px; }
+    .card-body h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .card-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); color: var(--muted); }
+    .badge.cat { background: rgba(100,200,255,0.15); color: #64c8ff; }
+    .uploader-info { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.7; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; }
+    .status-tag { font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
+    .status-tag.pending { background: rgba(212,175,55,0.2); color: var(--accent); }
+    .status-tag.approved { background: rgba(74,222,128,0.2); color: var(--green); }
+    .status-tag.rejected { background: rgba(248,113,113,0.2); color: var(--red); }
+
+    /* NOTES PREVIEW */
+    .notes-preview { background: rgba(100,200,255,0.05); border: 1px solid rgba(100,200,255,0.15); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px; color: #a0d8ef; line-height: 1.6; display: none; }
+    .notes-preview.has-notes { display: block; }
+    .notes-toggle { font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: 'Poppins', sans-serif; margin-bottom: 12px; display: block; }
+    .notes-toggle:hover { color: var(--accent); }
+
+    /* ACTION BUTTONS */
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .card-actions-row2 { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-approve, .btn-reject, .btn-view, .btn-slides, .btn-doc { flex: 1; padding: 9px 6px; border: none; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: 'Poppins', sans-serif; white-space: nowrap; }
+    .btn-approve { background: var(--green); color: #070714; }
+    .btn-reject  { background: var(--red);   color: #070714; }
+    .btn-view    { background: rgba(255,255,255,0.08); color: var(--text); }
+    .btn-slides  { background: rgba(212,175,55,0.15); color: var(--accent); border: 1px solid var(--border); }
+    .btn-doc     { background: rgba(100,200,255,0.1); color: #64c8ff; border: 1px solid rgba(100,200,255,0.2); }
+    .btn-doc:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .empty-state .icon { font-size: 50px; margin-bottom: 16px; }
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+
+    /* ── SLIDE LIGHTBOX ── */
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
+    .lightbox.open { display: flex; }
+    .lb-header { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: rgba(7,7,20,0.85); border-bottom: 1px solid var(--border); z-index: 2; }
+    .lb-title { font-size: 15px; font-weight: 700; }
+    .lb-counter { font-size: 13px; color: var(--muted); }
+    .lb-close { background: none; border: none; color: var(--text); font-size: 26px; cursor: pointer; line-height: 1; }
+    .lb-close:hover { color: var(--accent); }
+    .lb-body { margin-top: 60px; margin-bottom: 80px; max-width: 90vw; max-height: 80vh; display: flex; align-items: center; justify-content: center; }
+    .lb-body img { max-width: 100%; max-height: 80vh; border-radius: 8px; object-fit: contain; box-shadow: 0 0 60px rgba(0,0,0,0.8); }
+    .lb-footer { position: absolute; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 20px; padding: 16px 24px; background: rgba(7,7,20,0.85); border-top: 1px solid var(--border); }
+    .lb-btn { background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: var(--text); padding: 10px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Poppins', sans-serif; }
+    .lb-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .lb-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 0 10px; max-width: 70vw; }
+    .lb-thumb { width: 54px; height: 38px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; opacity: 0.6; transition: all 0.2s; }
+    .lb-thumb.active { border-color: var(--accent); opacity: 1; }
+
+    /* ── DOC VIEWER MODAL ── */
+    .doc-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9999; flex-direction: column; }
+    .doc-modal.open { display: flex; }
+    .doc-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: var(--card); border-bottom: 1px solid var(--border); }
+    .doc-header h3 { font-size: 15px; font-weight: 700; }
+    .doc-close { background: none; border: none; color: var(--text); font-size: 26px; cursor: pointer; }
+    .doc-close:hover { color: var(--accent); }
+    .doc-body { flex: 1; overflow: auto; padding: 30px; display: flex; align-items: flex-start; justify-content: center; }
+    .doc-body iframe { width: 100%; height: 100%; min-height: 75vh; border: none; border-radius: 8px; background: #fff; }
+    .doc-txt { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 800px; width: 100%; font-size: 14px; line-height: 1.8; white-space: pre-wrap; color: var(--text); }
+    .doc-actions { display: flex; gap: 12px; padding: 16px 24px; background: var(--card); border-top: 1px solid var(--border); }
+    .doc-btn { padding: 10px 20px; background: var(--accent); color: #070714; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: 'Poppins', sans-serif; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="logo">LazyDogTemplates</div>
+    <h2>Admin Panel Login</h2>
+    <input type="password" id="adminPassword" placeholder="Enter admin password" onkeypress="if(event.key==='Enter') checkLogin()"/>
+    <button onclick="checkLogin()">Login</button>
+    <p class="login-error" id="loginError">Wrong password. Try again.</p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-panel" id="adminPanel">
+  <div class="header">
+    <div>
+      <div class="logo">LazyDogTemplates</div>
+      <h1>Admin Panel</h1>
+    </div>
+    <div class="stats">
+      <div class="stat-pill">Pending: <span class="num" id="pendingCount">0</span></div>
+      <div class="stat-pill">Approved: <span class="num" id="approvedCount">0</span></div>
+      <div class="stat-pill">Rejected: <span class="num" id="rejectedCount">0</span></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-status="pending" onclick="switchTab('pending')">⏳ Pending</div>
+    <div class="tab" data-status="approved" onclick="switchTab('approved')">✅ Approved</div>
+    <div class="tab" data-status="rejected" onclick="switchTab('rejected')">❌ Rejected</div>
+  </div>
+  <div id="cardsContainer" class="cards-grid">
+    <div class="loading">Loading submissions...</div>
+  </div>
+</div>
+
+<!-- SLIDE LIGHTBOX -->
+<div class="lightbox" id="slideLightbox">
+  <div class="lb-header">
+    <span class="lb-title" id="lbTitle">—</span>
+    <span class="lb-counter" id="lbCounter">1 / 1</span>
+    <button class="lb-close" onclick="closeLightbox()">✕</button>
+  </div>
+  <div class="lb-body">
+    <img id="lbImage" src="" alt="Slide"/>
+  </div>
+  <div class="lb-footer">
+    <button class="lb-btn" onclick="lbPrev()">◀ Prev</button>
+    <div class="lb-thumbs" id="lbThumbs"></div>
+    <button class="lb-btn" onclick="lbNext()">Next ▶</button>
+  </div>
+</div>
+
+<!-- DOC VIEWER MODAL -->
+<div class="doc-modal" id="docModal">
+  <div class="doc-header">
+    <h3 id="docModalTitle">Design Brief</h3>
+    <button class="doc-close" onclick="closeDocModal()">✕</button>
+  </div>
+  <div class="doc-body" id="docModalBody"></div>
+  <div class="doc-actions">
+    <button class="doc-btn" id="docOpenBtn" onclick="openDocExternal()">🔗 Open in New Tab</button>
+    <button class="doc-btn" style="background:rgba(255,255,255,0.08);color:var(--text)" onclick="closeDocModal()">Close</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+  authDomain: "templatehub-16cd7.firebaseapp.com",
+  projectId: "templatehub-16cd7",
+  storageBucket: "templatehub-16cd7.firebasestorage.app",
+  messagingSenderId: "143000893683",
+  appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+const ADMIN_PASSWORD = "lazydog2026";
+let currentTab = 'pending';
+let allDocs    = [];
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+window.checkLogin = function() {
+  const pass = document.getElementById('adminPassword').value;
+  if (pass === ADMIN_PASSWORD) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminPanel').style.display  = 'block';
+    loadSubmissions();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+};
+
+window.switchTab = function(status) {
+  currentTab = status;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-status="${status}"]`).classList.add('active');
+  renderCards();
+};
+
+async function loadSubmissions() {
+  const snapshot = await getDocs(collection(db, 'templates'));
+  allDocs = [];
+  snapshot.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
+  updateCounts();
+  renderCards();
+}
+
+function updateCounts() {
+  document.getElementById('pendingCount').textContent  = allDocs.filter(d => d.status === 'pending').length;
+  document.getElementById('approvedCount').textContent = allDocs.filter(d => d.status === 'approved').length;
+  document.getElementById('rejectedCount').textContent = allDocs.filter(d => d.status === 'rejected').length;
+}
+
+function renderCards() {
+  const container = document.getElementById('cardsContainer');
+  const filtered  = allDocs.filter(d => d.status === currentTab);
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">📭</div><p>No ${currentTab} submissions</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(d => {
+    const t       = d.template  || {};
+    const u       = d.uploader  || {};
+    const cover   = t.coverImage || (t.slides && t.slides[0]) || '';
+    const slides  = t.slides    || [];
+    const hasDoc  = !!t.designDocUrl;
+    const hasNotes= !!(t.designNotes && t.designNotes.trim());
+    const slidesJson = JSON.stringify(slides).replace(/"/g, '&quot;');
+    const nameEsc    = (t.name || 'Untitled').replace(/'/g, "\\'");
+    const docUrl     = t.designDocUrl || '';
+
+    return `
+      <div class="submission-card">
+        <div class="card-thumb" onclick="openLightbox('${nameEsc}', '${slidesJson}', 0)">
+          ${cover ? `<img src="${cover}" loading="lazy"/>` : '<span style="font-size:40px">🖼️</span>'}
+          <div class="card-thumb-overlay"><span>👁 View ${slides.length} Slides</span></div>
+        </div>
+        <div class="card-body">
+          <span class="status-tag ${d.status}">${d.status.toUpperCase()}</span>
+          <h3>${t.name || 'Untitled'}</h3>
+          <div class="card-meta">
+            <span class="badge cat">${t.category === 'pitch_deck' ? '📊 Pitch Deck' : '📰 Media Kit'}</span>
+            <span class="badge">${t.slideCount || slides.length} slides</span>
+            <span class="badge">${t.industry || 'N/A'}</span>
+            <span class="badge">${t.price === 'free' ? 'FREE' : 'PRO'}</span>
+          </div>
+          <div class="uploader-info">
+            👤 ${u.shopName ? `<strong>${u.shopName}</strong> (${u.name || ''})` : (u.name || 'Unknown')}<br/>
+            📧 ${u.email || 'N/A'}<br/>
+            📱 ${u.phone || 'N/A'}
+          </div>
+
+          ${hasNotes ? `
+            <button class="notes-toggle" onclick="toggleNotes(this)">📝 Show design notes</button>
+            <div class="notes-preview" style="display:none">${(t.designNotes||'').replace(/\n/g,'<br/>')}</div>
+          ` : ''}
+
+          <div class="card-actions">
+            ${currentTab === 'pending' ? `
+              <button class="btn-approve" onclick="approveDoc('${d.id}')">✓ Approve</button>
+              <button class="btn-reject"  onclick="rejectDoc('${d.id}')">✕ Reject</button>
+            ` : currentTab === 'approved' ? `
+              <button class="btn-view" onclick="window.open('${t.pptxUrl||''}','_blank')">📊 PPTX</button>
+            ` : `
+              <button class="btn-approve" onclick="approveDoc('${d.id}')">↺ Re-approve</button>
+            `}
+          </div>
+          <div class="card-actions-row2">
+            <button class="btn-slides" onclick="openLightbox('${nameEsc}', '${slidesJson}', 0)">🖼 Review All Slides (${slides.length})</button>
+            <button class="btn-doc" ${!hasDoc ? 'disabled title="No document uploaded"' : `onclick="openDocModal('${docUrl}','${nameEsc}')"`}>
+              ${hasDoc ? '📄 Read Brief' : '📄 No Brief'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── APPROVE / REJECT ─────────────────────────────────────────────────────────
+window.approveDoc = async function(id) {
+  await updateDoc(doc(db, 'templates', id), { status: 'approved' });
+  const idx = allDocs.findIndex(d => d.id === id);
+  if (idx > -1) allDocs[idx].status = 'approved';
+  updateCounts(); renderCards();
+};
+
+window.rejectDoc = async function(id) {
+  if (!confirm('Reject this submission?')) return;
+  await updateDoc(doc(db, 'templates', id), { status: 'rejected' });
+  const idx = allDocs.findIndex(d => d.id === id);
+  if (idx > -1) allDocs[idx].status = 'rejected';
+  updateCounts(); renderCards();
+};
+
+// ── NOTES TOGGLE ─────────────────────────────────────────────────────────────
+window.toggleNotes = function(btn) {
+  const box = btn.nextElementSibling;
+  const show = box.style.display === 'none';
+  box.style.display  = show ? 'block' : 'none';
+  btn.textContent    = show ? '📝 Hide design notes' : '📝 Show design notes';
+};
+
+// ── SLIDE LIGHTBOX ────────────────────────────────────────────────────────────
+let lbSlides = [];
+let lbIndex  = 0;
+
+window.openLightbox = function(name, slidesJson, startIdx) {
+  try { lbSlides = JSON.parse(slidesJson.replace(/&quot;/g, '"')); } catch(e) { lbSlides = []; }
+  if (!lbSlides.length) { alert('No slides available.'); return; }
+  lbIndex = startIdx || 0;
+  document.getElementById('lbTitle').textContent = name + ' — Slides';
+  buildThumbs();
+  showSlide(lbIndex);
+  document.getElementById('slideLightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeLightbox = function() {
+  document.getElementById('slideLightbox').classList.remove('open');
+  document.body.style.overflow = '';
+};
+
+function buildThumbs() {
+  const container = document.getElementById('lbThumbs');
+  container.innerHTML = lbSlides.map((url, i) =>
+    `<img class="lb-thumb ${i === lbIndex ? 'active' : ''}" src="${url}" onclick="showSlide(${i})" title="Slide ${i+1}"/>`
+  ).join('');
+}
+
+window.showSlide = function(idx) {
+  lbIndex = Math.max(0, Math.min(idx, lbSlides.length - 1));
+  document.getElementById('lbImage').src = lbSlides[lbIndex];
+  document.getElementById('lbCounter').textContent = `${lbIndex + 1} / ${lbSlides.length}`;
+  document.querySelectorAll('.lb-thumb').forEach((t, i) => t.classList.toggle('active', i === lbIndex));
+  // scroll active thumb into view
+  const thumbs = document.querySelectorAll('.lb-thumb');
+  if (thumbs[lbIndex]) thumbs[lbIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+};
+
+window.lbNext = function() { showSlide(lbIndex + 1); };
+window.lbPrev = function() { showSlide(lbIndex - 1); };
+
+// keyboard nav
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('slideLightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowRight') lbNext();
+  if (e.key === 'ArrowLeft')  lbPrev();
+  if (e.key === 'Escape')     closeLightbox();
+});
+
+// ── DOC VIEWER ────────────────────────────────────────────────────────────────
+let currentDocUrl = '';
+
+window.openDocModal = function(url, name) {
+  currentDocUrl = url;
+  document.getElementById('docModalTitle').textContent = `📄 Design Brief — ${name}`;
+  const body = document.getElementById('docModalBody');
+
+  const ext = url.split('?')[0].split('.').pop().toLowerCase();
+
+  if (ext === 'pdf') {
+    // Embed PDF directly
+    body.innerHTML = `<iframe src="${url}" title="Design Brief"></iframe>`;
+  } else if (ext === 'docx' || ext === 'doc') {
+    // Use Google Docs viewer for Word files
+    body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true" title="Design Brief"></iframe>`;
+  } else if (ext === 'txt' || ext === '') {
+    // Fetch and display text inline
+    body.innerHTML = `<div class="doc-txt">Loading document...</div>`;
+    fetch(url)
+      .then(r => r.text())
+      .then(txt => { body.querySelector('.doc-txt').textContent = txt; })
+      .catch(() => { body.querySelector('.doc-txt').textContent = 'Could not load document. Click "Open in New Tab" to view it.'; });
+  } else {
+    // Generic: try Google Docs viewer
+    body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true" title="Design Brief"></iframe>`;
+  }
+
+  document.getElementById('docModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeDocModal = function() {
+  document.getElementById('docModal').classList.remove('open');
+  document.getElementById('docModalBody').innerHTML = '';
+  document.body.style.overflow = '';
+};
+
+window.openDocExternal = function() {
+  if (currentDocUrl) window.open(currentDocUrl, '_blank');
+};
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('docModal').classList.contains('open') && e.key === 'Escape') closeDocModal();
+});
+</script>
+</body>
+</html>
