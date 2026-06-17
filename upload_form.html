@@ -8,7 +8,16 @@
   <style>
     :root { --accent: #d4af37; --bg: #070714; --card: #0d0d2b; --text: #e8eaf0; --muted: #8899aa; --border: rgba(212,175,55,0.2); --green: #22c55e; --red: #ef4444; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 40px 20px; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 0; }
+    .container { padding: 40px 20px; }
+    .colour-panel { display:none; position:fixed; top:70px; right:20px; background:rgba(10,10,30,0.96); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:14px; z-index:999; box-shadow:0 20px 60px rgba(0,0,0,0.7); backdrop-filter:blur(20px); }
+    .colour-panel.open { display:block; }
+    .colour-panel-label { font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px; font-family:'Poppins',sans-serif; }
+    .colour-panel canvas { display:block; border-radius:10px; cursor:crosshair; border:1px solid rgba(255,255,255,0.1); }
+    .colour-panel-preview { display:flex; align-items:center; gap:10px; margin-top:10px; }
+    .colour-swatch { width:32px; height:32px; border-radius:50%; border:2px solid rgba(255,255,255,0.3); flex-shrink:0; }
+    .colour-hex { font-size:13px; font-weight:700; color:#fff; font-family:'Poppins',sans-serif; }
+    .colour-reset { margin-left:auto; font-size:11px; color:rgba(255,255,255,0.4); cursor:pointer; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:transparent; font-family:'Poppins',sans-serif; }
     .container { max-width: 700px; margin: 0 auto; }
     .logo { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
     h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
@@ -110,9 +119,22 @@
     .doc-note strong { color: #64c8ff; }
   </style>
 </head>
-<body>
+<body data-page="upload_form">
+<!-- NAVBAR injected by navbar.js -->
+<style>.nb-seller{display:none!important;}</style>
+
+<!-- COLOUR PICKER PANEL -->
+<div class="colour-panel" id="colourPanel">
+  <div class="colour-panel-label">🎨 Pick Theme Colour</div>
+  <canvas id="colourCanvas" width="220" height="150"></canvas>
+  <div class="colour-panel-preview">
+    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
+    <span class="colour-hex" id="colourHex">#D4AF37</span>
+    <button class="colour-reset" onclick="resetColour()">Reset</button>
+  </div>
+</div>
+
 <div class="container">
-  <div class="logo">LazyDogTemplates</div>
   <h1>Seller Portal</h1>
   <p class="subtitle">Upload your templates, track approvals, and grow your shop.</p>
 
@@ -914,6 +936,66 @@ window.resetForm = function() {
   document.getElementById('submitBtn').disabled            = false;
   showSection('form');
 };
+
+// ── COLOUR PANEL ──
+var panelOpen = false;
+function toggleColourPanel() {
+  panelOpen = !panelOpen;
+  var panel = document.getElementById('colourPanel');
+  if (panelOpen) { panel.classList.add('open'); drawSpectrum(); }
+  else { panel.classList.remove('open'); }
+}
+window.toggleColourPanel = toggleColourPanel;
+document.addEventListener('click', function(e) {
+  var panel = document.getElementById('colourPanel');
+  var btn = document.getElementById('colourBtn');
+  if (panelOpen && !panel.contains(e.target) && e.target !== btn) { panel.classList.remove('open'); panelOpen = false; }
+});
+function drawSpectrum() {
+  var canvas = document.getElementById('colourCanvas');
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  var hueGrad = ctx.createLinearGradient(0,0,w,0);
+  hueGrad.addColorStop(0,'hsl(0,100%,50%)'); hueGrad.addColorStop(0.17,'hsl(60,100%,50%)');
+  hueGrad.addColorStop(0.33,'hsl(120,100%,50%)'); hueGrad.addColorStop(0.5,'hsl(180,100%,50%)');
+  hueGrad.addColorStop(0.67,'hsl(240,100%,50%)'); hueGrad.addColorStop(0.83,'hsl(300,100%,50%)');
+  hueGrad.addColorStop(1,'hsl(360,100%,50%)');
+  ctx.fillStyle = hueGrad; ctx.fillRect(0,0,w,h);
+  var vGrad = ctx.createLinearGradient(0,0,0,h);
+  vGrad.addColorStop(0,'rgba(255,255,255,0.85)'); vGrad.addColorStop(0.45,'rgba(255,255,255,0)');
+  vGrad.addColorStop(0.55,'rgba(0,0,0,0)'); vGrad.addColorStop(1,'rgba(0,0,0,0.85)');
+  ctx.fillStyle = vGrad; ctx.fillRect(0,0,w,h);
+}
+var committedR = null, committedG = null, committedB = null;
+document.getElementById('colourCanvas').addEventListener('mousemove', function(e) {
+  var c = document.getElementById('colourCanvas'), r = c.getBoundingClientRect();
+  var x = Math.max(0,Math.min(e.clientX-r.left,c.width-1)), y = Math.max(0,Math.min(e.clientY-r.top,c.height-1));
+  var p = c.getContext('2d').getImageData(x,y,1,1).data; applyBgColour(p[0],p[1],p[2]);
+});
+document.getElementById('colourCanvas').addEventListener('mouseleave', function() {
+  if (committedR !== null) applyBgColour(committedR,committedG,committedB); else resetColour();
+});
+document.getElementById('colourCanvas').addEventListener('click', function(e) {
+  var c = document.getElementById('colourCanvas'), r = c.getBoundingClientRect();
+  var x = Math.max(0,Math.min(e.clientX-r.left,c.width-1)), y = Math.max(0,Math.min(e.clientY-r.top,c.height-1));
+  var p = c.getContext('2d').getImageData(x,y,1,1).data;
+  committedR=p[0]; committedG=p[1]; committedB=p[2]; applyBgColour(p[0],p[1],p[2]);
+});
+function applyBgColour(r,g,b) {
+  var hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
+  document.body.style.backgroundColor = hex;
+  document.getElementById('colourSwatch').style.background = hex;
+  document.getElementById('colourHex').textContent = hex.toUpperCase();
+}
+function resetColour() {
+  committedR=null; committedG=null; committedB=null;
+  document.body.style.backgroundColor = '#070714';
+  document.getElementById('colourSwatch').style.background = '#d4af37';
+  document.getElementById('colourHex').textContent = '#D4AF37';
+}
 </script>
+<script src="footerbar.js"></script>
+<script src="va_dictionary.js"></script>
+<script src="navbar.js"></script>
 </body>
 </html>
