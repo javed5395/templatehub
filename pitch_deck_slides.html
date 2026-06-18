@@ -502,14 +502,14 @@ document.addEventListener('click',function(e){
         </div>
         <div class="etsy-accordion-body">
           <div class="etsy-highlights-label">Highlights</div>
-          <div class="etsy-item-row"><span class="ei-icon">🖥️</span><span>Designed by <strong>LazyDogTemplates</strong></span></div>
-          <div class="etsy-item-row"><span class="ei-icon">⬇️</span><span>Digital download</span></div>
-          <div class="etsy-item-row"><span class="ei-icon">📎</span><span>Digital file type(s): <strong id="fileTypeDisplay">.PPTX + .PDF</strong></span></div>
-          <div class="etsy-item-row" id="editableAppsRow" style="display:none;"><span class="ei-icon">🖊️</span><span>Editable in: <span class="app-badges" id="editableAppsDisplay"></span></span></div>
-          <div class="etsy-item-row"><span class="ei-icon">📊</span><span><strong id="specSlides"></strong> — 16:9 Widescreen | <strong id="specStyle"></strong></span></div>
-          <div class="etsy-item-row"><span class="ei-icon">🏷️</span><span>Industry: <strong id="specCategory"></strong></span></div>
-          <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:600;">📥 Download Design Brief / Support Document</a></span></div>
-          <div class="etsy-sparkle-line" id="etsySparkle">✦ Professional pitch deck — fully editable ✦</div>
+          <div class="etsy-item-row"><span class="ei-icon">🖥️</span><span><strong>Designed by</strong> LazyDogTemplates</span></div>
+          <div class="etsy-item-row"><span class="ei-icon">⬇️</span><span><strong>Digital download</strong></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">📎</span><span><strong>Digital file type(s):</strong> <span id="fileTypeDisplay">.PPTX + .PDF</span></span></div>
+          <div class="etsy-item-row" id="editableAppsRow" style="display:none;"><span class="ei-icon">🖊️</span><span><strong>Editable in:</strong><br/><span class="app-badges" id="editableAppsDisplay"></span></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">📊</span><span><strong id="specSlides"></strong> <span style="font-weight:400;color:#8899aa;">— 16:9 Widescreen | <span id="specStyle"></span></span></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">🏷️</span><span><strong>Industry:</strong> <span id="specCategory"></span></span></div>
+          <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><strong>Support Document:</strong> <a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:400;">📥 Download Design Brief</a></span></div>
+          <div class="etsy-sparkle-line" id="etsySparkle">✦ Professional pitch deck — instant digital download ✦</div>
           <div class="etsy-desc-text" id="etsyDescText"></div>
           <button class="etsy-learn-more" onclick="toggleLearnMore(this)">Learn more about this item</button>
         </div>
@@ -661,15 +661,11 @@ function loadDesign(d) {
     else { docRowEl.style.display = 'none'; }
   }
 
-  // Sparkle line — dynamic
+  // Sparkle line — summary tagline (editable apps shown in the row above, not repeated here)
   var sparkleEl = document.getElementById('etsySparkle');
   if (sparkleEl) {
-    if (d.editableApps && d.editableApps.length) {
-      var shortApps = d.editableApps.slice(0, 3).join(' / ');
-      sparkleEl.textContent = '✦ Fully editable in ' + shortApps + (d.editableApps.length > 3 ? ' & more' : '') + ' ✦';
-    } else {
-      sparkleEl.textContent = '✦ Professional ' + (d.style || 'pitch deck') + ' — fully editable ✦';
-    }
+    var pricePart = (d.price && d.price !== 'free' && d.price !== '0') ? 'Premium' : 'Free';
+    sparkleEl.textContent = '✦ ' + pricePart + ' ' + (d.style || 'Pitch Deck') + ' — instant digital download ✦';
   }
 
   // Keywords + description

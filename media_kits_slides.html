@@ -181,9 +181,13 @@
     .etsy-accordion-body { display:none; padding-top:8px; flex-direction:column; gap:7px; }
     .etsy-accordion.open .etsy-accordion-body { display:flex; }
     .etsy-highlights-label { font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#8899aa; margin-bottom:2px; }
-    .etsy-item-row { display:flex; gap:8px; font-size:13px; color:#ccd6e0; align-items:flex-start; }
-    .ei-icon { font-size:15px; flex-shrink:0; }
-    .etsy-sparkle-line { font-size:12px; color:#b464ff; text-align:center; padding:4px 0; }
+    .etsy-item-row { display:flex; gap:8px; font-size:13px; color:#ccd6e0; align-items:flex-start; line-height:1.5; }
+    .etsy-item-row strong { color:#ffffff; font-weight:700; }
+    .etsy-item-row .ei-val { font-weight:400; color:#ccd6e0; }
+    .ei-icon { font-size:15px; flex-shrink:0; margin-top:1px; }
+    .app-badges { display:flex; flex-wrap:wrap; gap:4px; margin-top:2px; }
+    .app-badge { display:inline-block; background:rgba(180,100,255,0.15); border:1px solid rgba(180,100,255,0.35); color:#c084fc; font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+    .etsy-sparkle-line { font-size:12px; color:#b464ff; text-align:center; padding:6px 0 2px; font-style:italic; }
     .etsy-desc-text { font-size:13px; color:#8899aa; line-height:1.5; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
     .etsy-desc-text.expanded { display:block; -webkit-line-clamp:unset; }
     .etsy-learn-more { background:none; border:none; color:#64c8ff; font-size:13px; cursor:pointer; padding:0; text-align:left; }
@@ -408,14 +412,14 @@ document.addEventListener('click',function(e){
         </div>
         <div class="etsy-accordion-body">
           <div class="etsy-highlights-label">Highlights</div>
-          <div class="etsy-item-row"><span class="ei-icon">🖥️</span><span>Designed by <strong>LazyDogTemplates</strong></span></div>
-          <div class="etsy-item-row"><span class="ei-icon">⬇️</span><span>Digital download</span></div>
-          <div class="etsy-item-row"><span class="ei-icon">📎</span><span>Digital file type(s): <strong id="fileTypeDisplay">.PDF + .PNG</strong></span></div>
-          <div class="etsy-item-row" id="editableAppsRow" style="display:none;"><span class="ei-icon">🖊️</span><span>Editable in: <span class="app-badges" id="editableAppsDisplay"></span></span></div>
-          <div class="etsy-item-row"><span class="ei-icon">📄</span><span><strong id="specPages"></strong> — <strong id="specType"></strong></span></div>
-          <div class="etsy-item-row"><span class="ei-icon">🎨</span><span>Style: <strong id="specStyle"></strong></span></div>
-          <div class="etsy-item-row" id="industryRow" style="display:none;"><span class="ei-icon">🏢</span><span>Industry: <strong id="specIndustry"></strong></span></div>
-          <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:600;">📥 Download Design Brief / Support Document</a></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">🖥️</span><span><strong>Designed by</strong> <span class="ei-val">LazyDogTemplates</span></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">⬇️</span><span><strong>Digital download</strong></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">📎</span><span><strong>Digital file type(s):</strong> <span class="ei-val" id="fileTypeDisplay">.PDF + .PNG</span></span></div>
+          <div class="etsy-item-row" id="editableAppsRow" style="display:none;"><span class="ei-icon">🖊️</span><span><strong>Editable in:</strong><br/><span class="app-badges" id="editableAppsDisplay"></span></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">📄</span><span><strong id="specPages"></strong> <span class="ei-val">— <span id="specType"></span></span></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">🎨</span><span><strong>Style:</strong> <span class="ei-val" id="specStyle"></span></span></div>
+          <div class="etsy-item-row" id="industryRow" style="display:none;"><span class="ei-icon">🏢</span><span><strong>Industry:</strong> <span class="ei-val" id="specIndustry"></span></span></div>
+          <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><strong>Support Document:</strong> <a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:400;">📥 Download Design Brief</a></span></div>
           <div class="etsy-sparkle-line" id="etsySparkle">✦ Professional media kit — fully editable ✦</div>
           <div class="etsy-desc-text" id="etsyDescText"></div>
           <button class="etsy-learn-more" onclick="toggleLearnMore(this)">Learn more about this item</button>
@@ -1039,15 +1043,11 @@ function loadKit(k) {
     }
   }
 
-  // Sparkle line — dynamic based on editable apps
+  // Sparkle line — summary tagline (does NOT repeat editable apps, those show in the row above)
   var sparkleEl = document.getElementById('etsySparkle');
   if (sparkleEl) {
-    if (k.editableApps && k.editableApps.length) {
-      var shortApps = k.editableApps.slice(0, 3).join(' / ');
-      sparkleEl.textContent = '✦ Fully editable in ' + shortApps + (k.editableApps.length > 3 ? ' & more' : '') + ' ✦';
-    } else {
-      sparkleEl.textContent = '✦ Professional ' + (k.type || 'template') + ' — fully editable ✦';
-    }
+    var pricePart = (k.price && k.price !== 'free' && k.price !== '0') ? 'Premium' : 'Free';
+    sparkleEl.textContent = '✦ ' + pricePart + ' ' + (k.type || 'Media Kit') + ' — instant digital download ✦';
   }
 
   // Keywords row
