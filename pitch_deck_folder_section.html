@@ -508,14 +508,31 @@
       onSnapshot(q, function(snapshot) {
         var grid = document.getElementById('deckGrid');
         grid.innerHTML = '';
-        window.pdCatMap = {};
+        var INDUSTRY_LABELS = {
+  tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance',
+  construction:'Construction', retail:'Retail & E-commerce', education:'Education',
+  realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant',
+  general:'General Business', other:'Other'
+};
+function resolveSubCat(t) {
+  if (t.subCategory) return t.subCategory;
+  return t.industry || 'other';
+}
+function resolveSubCatLabel(t) {
+  if (t.subCategory) return subCatLabel(t.subCategory);
+  return INDUSTRY_LABELS[t.industry] || t.industry || 'Other';
+}
+window.pdCatMap = {};
 
         snapshot.forEach(function(docSnap){
           var data = docSnap.data();
           var t = data.template || {};
           if (!t.slides || t.slides.length === 0) return;
 
-          var subCat = t.subCategory || 'Other';
+          var subCat = resolveSubCat(t);
+          var subCatDisplayLabel = resolveSubCatLabel(t);
+          if (!window.pdCatLabelMap) window.pdCatLabelMap = {};
+          window.pdCatLabelMap[subCat] = subCatDisplayLabel;
           var title  = t.name || 'Untitled Deck';
           var href   = 'pitch_deck_slides.html?firebase=' + docSnap.id;
 
@@ -564,6 +581,20 @@ function subCatLabel(key) {
   return labels[key] || key;
 }
 
+var INDUSTRY_LABELS = {
+  tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance',
+  construction:'Construction', retail:'Retail & E-commerce', education:'Education',
+  realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant',
+  general:'General Business', other:'Other'
+};
+function resolveSubCat(t) {
+  if (t.subCategory) return t.subCategory;
+  return t.industry || 'other';
+}
+function resolveSubCatLabel(t) {
+  if (t.subCategory) return subCatLabel(t.subCategory);
+  return INDUSTRY_LABELS[t.industry] || t.industry || 'Other';
+}
 window.pdCatMap = {};
 var activeCat = 'All';
 
@@ -593,7 +624,7 @@ function buildCatPanelFromData() {
   panel.appendChild(allRow);
 
   Object.keys(window.pdCatMap).forEach(function(cat) {
-    var label = subCatLabel(cat);
+    var label = (window.pdCatLabelMap && window.pdCatLabelMap[cat]) ? window.pdCatLabelMap[cat] : subCatLabel(cat);
     var icon  = PD_SUB_ICONS[cat] || '📁';
     var row = document.createElement('div');
     row.className = 'cat-item';

@@ -260,7 +260,22 @@ function mkSubCatLabel(key) {
   return labels[key] || key;
 }
 
+var MK_INDUSTRY_LABELS = {
+  tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance',
+  construction:'Construction', retail:'Retail & E-commerce', education:'Education',
+  realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant',
+  general:'General Business', other:'Other'
+};
+function mkResolveSubCat(t) {
+  if (t.subCategory) return t.subCategory;
+  return t.industry || 'other';
+}
+function mkResolveLabel(key, t) {
+  if (t && t.subCategory) return mkSubCatLabel(t.subCategory);
+  return MK_INDUSTRY_LABELS[key] || mkSubCatLabel(key);
+}
 window.mkSlideCatMap = {};
+      if (!window.mkSlideLabelMap) window.mkSlideLabelMap = {};
 
 function buildMkCatPanel() {
   var panel = document.getElementById('catPanel');
@@ -276,7 +291,7 @@ function buildMkCatPanel() {
   panel.appendChild(allRow);
 
   Object.keys(window.mkSlideCatMap).forEach(function(cat) {
-    var label = mkSubCatLabel(cat);
+    var label = (window.mkSlideLabelMap && window.mkSlideLabelMap[cat]) ? window.mkSlideLabelMap[cat] : mkSubCatLabel(cat);
     var icon  = MK_SUB_ICONS[cat] || '📁';
     var row = document.createElement('div');
     row.className = 'cat-item';
@@ -328,10 +343,27 @@ function fillMkSub(cat) {
     var db = getFirestore(app);
     var q = query(collection(db, 'templates'), where('status','==','approved'), where('template.category','==','media_kit'));
     onSnapshot(q, function(snapshot) {
-      window.mkSlideCatMap = {};
+      var MK_INDUSTRY_LABELS = {
+  tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance',
+  construction:'Construction', retail:'Retail & E-commerce', education:'Education',
+  realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant',
+  general:'General Business', other:'Other'
+};
+function mkResolveSubCat(t) {
+  if (t.subCategory) return t.subCategory;
+  return t.industry || 'other';
+}
+function mkResolveLabel(key, t) {
+  if (t && t.subCategory) return mkSubCatLabel(t.subCategory);
+  return MK_INDUSTRY_LABELS[key] || mkSubCatLabel(key);
+}
+window.mkSlideCatMap = {};
+      if (!window.mkSlideLabelMap) window.mkSlideLabelMap = {};
       snapshot.forEach(function(docSnap) {
         var t = (docSnap.data().template || {});
-        var subCat = t.subCategory || 'Other';
+        var subCat = mkResolveSubCat(t);
+        var dispLabel = mkResolveLabel(subCat, t);
+        window.mkSlideLabelMap[subCat] = dispLabel;
         if (!window.mkSlideCatMap[subCat]) window.mkSlideCatMap[subCat] = [];
         window.mkSlideCatMap[subCat].push({
           title: t.name || 'Untitled Media Kit',

@@ -486,14 +486,31 @@
       onSnapshot(q, function(snapshot) {
         var grid = document.getElementById('deckGrid');
         grid.innerHTML = '';                    // clear + rebuild on every change
-        window.mkCatMap = {};                   // reset live category map
+        var INDUSTRY_LABELS = {
+  tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance',
+  construction:'Construction', retail:'Retail & E-commerce', education:'Education',
+  realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant',
+  general:'General Business', other:'Other'
+};
+function resolveSubCat(t) {
+  if (t.subCategory) return t.subCategory;
+  return t.industry || 'other';
+}
+function resolveSubCatLabel(t) {
+  if (t.subCategory) return subCatLabel(t.subCategory);
+  return INDUSTRY_LABELS[t.industry] || t.industry || 'Other';
+}
+window.mkCatMap = {};                   // reset live category map
 
         snapshot.forEach(function(docSnap){
           var data = docSnap.data();
           var t = data.template || {};
           if (!t.slides || t.slides.length === 0) return;
 
-          var subCat = t.subCategory || 'Other';
+          var subCat = resolveSubCat(t);
+          var subCatDisplayLabel = resolveSubCatLabel(t);
+          if (!window.mkCatLabelMap) window.mkCatLabelMap = {};
+          window.mkCatLabelMap[subCat] = subCatDisplayLabel;
           var title  = t.name || 'Untitled Media Kit';
           var href   = 'media_kits_slides.html?firebase=' + docSnap.id;
 
@@ -545,6 +562,20 @@ function subCatLabel(key) {
   return labels[key] || key;
 }
 
+var INDUSTRY_LABELS = {
+  tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance',
+  construction:'Construction', retail:'Retail & E-commerce', education:'Education',
+  realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant',
+  general:'General Business', other:'Other'
+};
+function resolveSubCat(t) {
+  if (t.subCategory) return t.subCategory;
+  return t.industry || 'other';
+}
+function resolveSubCatLabel(t) {
+  if (t.subCategory) return subCatLabel(t.subCategory);
+  return INDUSTRY_LABELS[t.industry] || t.industry || 'Other';
+}
 window.mkCatMap = {};
 var activeCat = 'All';
 
@@ -576,7 +607,7 @@ function buildCatPanelFromData() {
 
   // One row per sub-category that actually has templates
   Object.keys(window.mkCatMap).forEach(function(cat) {
-    var label = subCatLabel(cat);
+    var label = (window.mkCatLabelMap && window.mkCatLabelMap[cat]) ? window.mkCatLabelMap[cat] : subCatLabel(cat);
     var icon  = MK_SUB_ICONS[cat] || '📁';
     var row = document.createElement('div');
     row.className = 'cat-item';
