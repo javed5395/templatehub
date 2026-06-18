@@ -486,11 +486,11 @@
     grid.appendChild(a);
   }
 
-  // ── Load approved decks from Firebase ──
+  // ── Load approved decks from Firebase (live / real-time) ──
   (async function loadFirebaseDecks(){
     try {
       var { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
-      var { getFirestore, collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+      var { getFirestore, collection, onSnapshot, query, where } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
 
       var firebaseConfig = {
         apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
@@ -504,21 +504,29 @@
       var db = getFirestore(app);
 
       var q = query(collection(db, 'templates'), where('status', '==', 'approved'), where('template.category', '==', 'pitch_deck'));
-      var snapshot = await getDocs(q);
-      var grid = document.getElementById('deckGrid');
 
-      snapshot.forEach(function(docSnap){
-        var data = docSnap.data();
-        var t = data.template || {};
-        if (!t.slides || t.slides.length === 0) return;
-        var deck = {
-          title: t.name || 'Untitled Deck',
-          cat: 'Startup',
-          href: 'pitch_deck_slides.html?firebase=' + docSnap.id,
-          slides: t.slides,
-          price: t.price
-        };
-        renderDeckCard(grid, deck);
+      onSnapshot(q, function(snapshot) {
+        var grid = document.getElementById('deckGrid');
+        grid.innerHTML = '';
+        window.pdCatMap = {};
+
+        snapshot.forEach(function(docSnap){
+          var data = docSnap.data();
+          var t = data.template || {};
+          if (!t.slides || t.slides.length === 0) return;
+
+          var subCat = t.subCategory || 'Other';
+          var title  = t.name || 'Untitled Deck';
+          var href   = 'pitch_deck_slides.html?firebase=' + docSnap.id;
+
+          if (!window.pdCatMap[subCat]) window.pdCatMap[subCat] = [];
+          window.pdCatMap[subCat].push({ title: title, href: href });
+
+          var deck = { title: title, cat: subCat, href: href, slides: t.slides, price: t.price };
+          renderDeckCard(grid, deck);
+        });
+
+        buildCatPanelFromData();
       });
     } catch (err) {
       console.error('Firebase decks failed to load:', err);
@@ -538,103 +546,90 @@
 </div>
 
 <script>
-// ── Category icon map ──
-var CAT_ICONS = {
-  'Tech / AI / SaaS':        '🤖',
-  'Medical / Healthcare':    '🏥',
-  'Finance / Investment':    '💰',
-  'Education':               '🎓',
-  'Construction / Real Estate': '🏗️',
-  'HR / Hiring':             '🤝',
-  'Retail / E-Commerce':     '🛍️',
-  'Food / Restaurant':       '🍔',
-  'Creative / Agency':       '🎨',
-  'Logistics':               '🚚',
-  'Energy / Green Tech':     '🌱',
-  'Legal / Consulting':      '⚖️',
-  'Sports / Fitness':        '🏋️',
-  'Travel / Tourism':        '✈️',
-  'NGO / Non-Profit':        '🎗️',
-  'Media / Entertainment':   '🎬',
-  'Agriculture':             '🌾',
-  'Automotive':              '🚗',
-  'Fashion':                 '👗',
-  'Beauty / Wellness':       '💆',
-  'Corporate / Publishing':  '🏢',
-  'Crypto & Web3':           '🌐',
-  'Startup':                 '🚀'
+// ── Sub-category icon map (Pitch Deck) ──
+var PD_SUB_ICONS = {
+  'startup':   '🚀', 'Startup':    '🚀',
+  'corporate': '🏢', 'Corporate':  '🏢',
+  'sales':     '📈', 'Sales':      '📈',
+  'education': '🎓', 'Education':  '🎓',
+  'nonprofit': '🎗️', 'Non-profit': '🎗️',
+  'creative':  '🎨', 'Creative':   '🎨',
+  'other':     '📦', 'Other':      '📦'
 };
 
-// ── All categories in display order ──
-var ALL_CATS = Object.keys(CAT_ICONS);
+function subCatLabel(key) {
+  var labels = { startup:'Startup', corporate:'Corporate', sales:'Sales',
+                  education:'Education', nonprofit:'Non-profit',
+                  creative:'Creative', other:'Other' };
+  return labels[key] || key;
+}
 
-// ── Active filter ──
+window.pdCatMap = {};
 var activeCat = 'All';
 
-// ── Filter deck grid ──
 function filterGrid(cat) {
   activeCat = cat;
   var cards = document.querySelectorAll('.pd-card');
   cards.forEach(function(c) {
     c.style.display = (cat === 'All' || c.getAttribute('data-cat') === cat) ? '' : 'none';
   });
-  // Update button label
   var nameEl = document.querySelector('#catBtn .ci-btn-name');
-  if (nameEl) nameEl.textContent = (cat === 'All') ? 'Categories' : cat;
-  // Close panels
+  if (nameEl) nameEl.textContent = (cat === 'All') ? 'Categories' : subCatLabel(cat);
   document.getElementById('catPanel').classList.remove('open');
   hideSub();
 }
 
-// ── Build category rows ──
-(function() {
+function buildCatPanelFromData() {
   var panel = document.getElementById('catPanel');
+  var title  = panel.querySelector('.cat-panel-title');
+  panel.innerHTML = '';
+  if (title) panel.appendChild(title);
 
-  // "All" row at top
   var allRow = document.createElement('div');
   allRow.className = 'cat-item';
-  allRow.innerHTML =
-    '<span class="ci-icon">🗂️</span>' +
-    '<span class="ci-name">All</span>';
+  allRow.innerHTML = '<span class="ci-icon">🗂️</span><span class="ci-name">All Pitch Decks</span>';
   allRow.addEventListener('click', function() { filterGrid('All'); });
   allRow.addEventListener('mouseenter', function() { hideSub(); });
   panel.appendChild(allRow);
 
-  ALL_CATS.forEach(function(cat) {
+  Object.keys(window.pdCatMap).forEach(function(cat) {
+    var label = subCatLabel(cat);
+    var icon  = PD_SUB_ICONS[cat] || '📁';
     var row = document.createElement('div');
     row.className = 'cat-item';
     row.setAttribute('data-cat', cat);
-    row.innerHTML =
-      '<span class="ci-icon">' + (CAT_ICONS[cat] || '📁') + '</span>' +
-      '<span class="ci-name">' + cat + '</span>' +
-      '<span class="ci-arrow">›</span>';
+    row.innerHTML = '<span class="ci-icon">' + icon + '</span>' +
+                    '<span class="ci-name">' + label + '</span>' +
+                    '<span class="ci-arrow">›</span>';
     row.addEventListener('click', function() { filterGrid(cat); });
     row.addEventListener('mouseenter', function() { showSub(cat, row); });
     row.addEventListener('mouseleave', function() { subHideTimer = setTimeout(hideSub, 120); });
     panel.appendChild(row);
   });
-})();
 
-// ── Fill submenu with decks for a given category (from rendered DOM cards) ──
+  filterGrid(activeCat);
+}
+
 function fillSubmenu(cat) {
   var sub = document.getElementById('catSubmenu');
   sub.innerHTML = '';
-  var cards = document.querySelectorAll('#deckGrid .pd-card[data-cat="' + cat + '"]');
-  if (cards.length === 0) {
+  var items = window.pdCatMap[cat] || [];
+  if (items.length === 0) {
     var cs = document.createElement('span');
     cs.className = 'sub-item coming-soon';
     cs.textContent = 'Coming Soon';
     sub.appendChild(cs);
   } else {
-    cards.forEach(function(card) {
+    items.forEach(function(d) {
       var a = document.createElement('a');
       a.className = 'sub-item';
-      a.href = card.href;
-      a.textContent = card.querySelector('.pd-card-title') ? card.querySelector('.pd-card-title').textContent : '';
+      a.href = d.href;
+      a.textContent = d.title;
       sub.appendChild(a);
     });
   }
 }
+
 
 // ── Panel open/close state ──
 var catTimer = null;

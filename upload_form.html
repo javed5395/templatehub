@@ -413,7 +413,7 @@
       <div class="row">
         <div class="field">
           <label>Category <span class="required">*</span></label>
-          <select id="category">
+          <select id="category" onchange="updateSubCategories()">
             <option value="">Select category</option>
             <option value="pitch_deck">Pitch Deck</option>
             <option value="media_kit">Media Kit</option>
@@ -422,6 +422,14 @@
         <div class="field">
           <label>Number of Slides <span class="required">*</span></label>
           <input type="number" id="slideCount" placeholder="e.g. 12" min="1" max="50"/>
+        </div>
+      </div>
+      <div class="row" id="subCategoryRow" style="display:none;">
+        <div class="field" style="max-width:340px;">
+          <label>Sub-Category</label>
+          <select id="subCategory">
+            <option value="">Select sub-category</option>
+          </select>
         </div>
       </div>
       <div class="row">
@@ -839,10 +847,11 @@ function setProgress(pct, text) {
 window.submitForm = async function() {
   if (!currentUser || !sellerProfile) { alert('Please sign in first.'); return; }
 
-  const templateName = document.getElementById('templateName').value.trim();
-  const category     = document.getElementById('category').value;
-  const slideCount   = document.getElementById('slideCount').value;
-  const industry     = document.getElementById('industry').value;
+  const templateName  = document.getElementById('templateName').value.trim();
+  const category      = document.getElementById('category').value;
+  const subCategory   = document.getElementById('subCategory').value || '';
+  const slideCount    = document.getElementById('slideCount').value;
+  const industry      = document.getElementById('industry').value;
   const priceRaw     = parseFloat(document.getElementById('price').value) || 0;
   const price        = priceRaw === 0 ? 'free' : priceRaw.toFixed(2);
   const designNotes  = document.getElementById('designNotes').value.trim();
@@ -940,6 +949,7 @@ window.submitForm = async function() {
       template: {
         name:        templateName,
         category,
+        subCategory,
         slideCount:  parseInt(slideCount),
         industry,
         price,
@@ -1103,10 +1113,36 @@ window.togglePw = function(inputId, btn) {
   btn.textContent = show ? '🙈' : '👁';
 };
 
+// ── SUB-CATEGORY UPDATER ──────────────────────────────────────────────────────
+window.updateSubCategories = function() {
+  var cat = document.getElementById('category').value;
+  var row = document.getElementById('subCategoryRow');
+  var sel = document.getElementById('subCategory');
+  var opts = { '': 'Select sub-category' };
+  if (cat === 'media_kit') {
+    opts = { '':'Select sub-category', freelancer:'Freelancer', podcast:'Podcast',
+              press_pr:'Press / PR', influencer:'Influencer', brand:'Brand',
+              tech:'Tech', fashion:'Fashion', other:'Other' };
+  } else if (cat === 'pitch_deck') {
+    opts = { '':'Select sub-category', startup:'Startup', corporate:'Corporate',
+              sales:'Sales', education:'Education', nonprofit:'Non-profit',
+              creative:'Creative', other:'Other' };
+  }
+  sel.innerHTML = '';
+  Object.entries(opts).forEach(function(pair){
+    var o = document.createElement('option');
+    o.value = pair[0]; o.textContent = pair[1];
+    sel.appendChild(o);
+  });
+  row.style.display = (cat === 'media_kit' || cat === 'pitch_deck') ? '' : 'none';
+};
+
 // ── RESET ─────────────────────────────────────────────────────────────────────
 window.resetForm = function() {
   document.getElementById('templateName').value = '';
   document.getElementById('category').value     = '';
+  document.getElementById('subCategory').value  = '';
+  document.getElementById('subCategoryRow').style.display = 'none';
   document.getElementById('slideCount').value   = '';
   document.getElementById('industry').value     = '';
   document.getElementById('price').value        = 'free';

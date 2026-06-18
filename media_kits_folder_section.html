@@ -464,11 +464,11 @@
     grid.appendChild(a);
   }
 
-  // ── Load approved media kits from Firebase ──
+  // ── Load approved media kits from Firebase (live / real-time) ──
   (async function loadFirebaseDecks(){
     try {
       var { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
-      var { getFirestore, collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+      var { getFirestore, collection, onSnapshot, query, where } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
 
       var firebaseConfig = {
         apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
@@ -482,21 +482,31 @@
       var db = getFirestore(app);
 
       var q = query(collection(db, 'templates'), where('status', '==', 'approved'), where('template.category', '==', 'media_kit'));
-      var snapshot = await getDocs(q);
-      var grid = document.getElementById('deckGrid');
 
-      snapshot.forEach(function(docSnap){
-        var data = docSnap.data();
-        var t = data.template || {};
-        if (!t.slides || t.slides.length === 0) return;
-        var deck = {
-          title: t.name || 'Untitled Media Kit',
-          cat: 'Startup',
-          href: 'media_kits_slides.html?firebase=' + docSnap.id,
-          slides: t.slides,
-          price: t.price
-        };
-        renderDeckCard(grid, deck);
+      onSnapshot(q, function(snapshot) {
+        var grid = document.getElementById('deckGrid');
+        grid.innerHTML = '';                    // clear + rebuild on every change
+        window.mkCatMap = {};                   // reset live category map
+
+        snapshot.forEach(function(docSnap){
+          var data = docSnap.data();
+          var t = data.template || {};
+          if (!t.slides || t.slides.length === 0) return;
+
+          var subCat = t.subCategory || 'Other';
+          var title  = t.name || 'Untitled Media Kit';
+          var href   = 'media_kits_slides.html?firebase=' + docSnap.id;
+
+          // populate category map for panel
+          if (!window.mkCatMap[subCat]) window.mkCatMap[subCat] = [];
+          window.mkCatMap[subCat].push({ title: title, href: href });
+
+          // render grid card
+          var deck = { title: title, cat: subCat, href: href, slides: t.slides, price: t.price };
+          renderDeckCard(grid, deck);
+        });
+
+        buildCatPanelFromData();   // rebuild panel with live data
       });
     } catch (err) {
       console.error('Firebase decks failed to load:', err);
@@ -516,24 +526,26 @@
 </div>
 
 <script>
-// ── Category icon map ──
-var CAT_ICONS = {
-  'Fashion':              '👗',
-  'Beauty / Wellness':    '💆',
-  'Influencer / Creator': '📱',
-  'Food / Restaurant':    '🍔',
-  'Health / Wellness':    '🌿',
-  'Corporate':            '🏢',
-  'Tech / SaaS':          '💻',
-  'Media / Entertainment':'🎬',
-  'Sports / Fitness':     '🏋️',
-  'Energy / Green Tech':  '🌱',
-  'Finance / Business':   '💰',
-  'Creative / Agency':    '🎨',
-  'Startup':              '🚀'
+// ── Sub-category icon map (Media Kit) ──
+var MK_SUB_ICONS = {
+  'freelancer': '💼', 'Freelancer': '💼',
+  'podcast':    '🎙️', 'Podcast':    '🎙️',
+  'press_pr':   '📰', 'Press / PR': '📰',
+  'influencer': '✨', 'Influencer': '✨',
+  'brand':      '🎨', 'Brand':      '🎨',
+  'tech':       '💻', 'Tech':       '💻',
+  'fashion':    '👗', 'Fashion':    '👗',
+  'other':      '📦', 'Other':      '📦'
 };
 
-var ALL_CATS = Object.keys(CAT_ICONS);
+function subCatLabel(key) {
+  var labels = { freelancer:'Freelancer', podcast:'Podcast', press_pr:'Press / PR',
+                  influencer:'Influencer', brand:'Brand', tech:'Tech',
+                  fashion:'Fashion', other:'Other' };
+  return labels[key] || key;
+}
+
+window.mkCatMap = {};
 var activeCat = 'All';
 
 function filterGrid(cat) {
@@ -543,54 +555,60 @@ function filterGrid(cat) {
     c.style.display = (cat === 'All' || c.getAttribute('data-cat') === cat) ? '' : 'none';
   });
   var nameEl = document.querySelector('#catBtn .ci-btn-name');
-  if (nameEl) nameEl.textContent = (cat === 'All') ? 'Categories' : cat;
+  if (nameEl) nameEl.textContent = (cat === 'All') ? 'Categories' : subCatLabel(cat);
   document.getElementById('catPanel').classList.remove('open');
   hideSub();
 }
 
-(function() {
+function buildCatPanelFromData() {
   var panel = document.getElementById('catPanel');
+  var title  = panel.querySelector('.cat-panel-title');
+  panel.innerHTML = '';
+  if (title) panel.appendChild(title);
 
-  // "All" row at top
+  // "All" row
   var allRow = document.createElement('div');
   allRow.className = 'cat-item';
-  allRow.innerHTML =
-    '<span class="ci-icon">\uD83D\uDDC2\uFE0F</span>' +
-    '<span class="ci-name">All</span>';
+  allRow.innerHTML = '<span class="ci-icon">🗂️</span><span class="ci-name">All Media Kits</span>';
   allRow.addEventListener('click', function() { filterGrid('All'); });
   allRow.addEventListener('mouseenter', function() { hideSub(); });
   panel.appendChild(allRow);
 
-  ALL_CATS.forEach(function(cat) {
+  // One row per sub-category that actually has templates
+  Object.keys(window.mkCatMap).forEach(function(cat) {
+    var label = subCatLabel(cat);
+    var icon  = MK_SUB_ICONS[cat] || '📁';
     var row = document.createElement('div');
     row.className = 'cat-item';
     row.setAttribute('data-cat', cat);
-    row.innerHTML =
-      '<span class="ci-icon">' + (CAT_ICONS[cat] || '\uD83D\uDCC1') + '</span>' +
-      '<span class="ci-name">' + cat + '</span>' +
-      '<span class="ci-arrow">\u203A</span>';
+    row.innerHTML = '<span class="ci-icon">' + icon + '</span>' +
+                    '<span class="ci-name">' + label + '</span>' +
+                    '<span class="ci-arrow">›</span>';
     row.addEventListener('click', function() { filterGrid(cat); });
     row.addEventListener('mouseenter', function() { showSub(cat, row); });
     row.addEventListener('mouseleave', function() { subHideTimer = setTimeout(hideSub, 120); });
     panel.appendChild(row);
   });
-})();
+
+  // Re-apply active filter after rebuild
+  filterGrid(activeCat);
+}
 
 function fillSubmenu(cat) {
   var sub = document.getElementById('catSubmenu');
   sub.innerHTML = '';
-  var cards = document.querySelectorAll('#deckGrid .pd-card[data-cat="' + cat + '"]');
-  if (cards.length === 0) {
+  var items = window.mkCatMap[cat] || [];
+  if (items.length === 0) {
     var cs = document.createElement('span');
     cs.className = 'sub-item coming-soon';
     cs.textContent = 'Coming Soon';
     sub.appendChild(cs);
   } else {
-    cards.forEach(function(card) {
+    items.forEach(function(d) {
       var a = document.createElement('a');
       a.className = 'sub-item';
-      a.href = card.href;
-      a.textContent = card.querySelector('.pd-card-title') ? card.querySelector('.pd-card-title').textContent : '';
+      a.href = d.href;
+      a.textContent = d.title;
       sub.appendChild(a);
     });
   }

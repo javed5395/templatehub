@@ -241,102 +241,108 @@
 <div id="catSubmenu" class="cat-submenu" onmouseenter="subEnter()" onmouseleave="subLeave()"></div>
 
 <script>
-// ── Categories panel JS (media_kits_slides) ──
-var MK_CAT_ICONS = {
-  'Freelancer': '💼',
-  'Podcast':    '🎙️',
-  'Press / PR': '📰',
-  'Influencer': '✨',
-  'Brand':      '🎨',
-  'Tech':       '💻',
-  'Fashion':    '👗'
+// ── Categories panel JS (media_kits_slides) — Firebase-driven ──
+var MK_SUB_ICONS = {
+  'freelancer': '💼', 'Freelancer': '💼',
+  'podcast':    '🎙️', 'Podcast':    '🎙️',
+  'press_pr':   '📰', 'Press / PR': '📰',
+  'influencer': '✨', 'Influencer': '✨',
+  'brand':      '🎨', 'Brand':      '🎨',
+  'tech':       '💻', 'Tech':       '💻',
+  'fashion':    '👗', 'Fashion':    '👗',
+  'other':      '📦', 'Other':      '📦'
 };
 
-// Map each kit key → category and name for the submenu
-var MK_CATS = {
-  'Freelancer': [
-    { key:'freelancer_kit1', name:'Freelancer Media Kit' }
-  ],
-  'Podcast': [
-    { key:'podcast_kit4',  name:'Podcast Media Kit 4' },
-    { key:'podcast_kit5',  name:'Podcast Media Kit 5' },
-    { key:'podcast_kit6',  name:'Podcast Media Kit 6' },
-    { key:'podcast_kit7',  name:'Podcast Media Kit 7' },
-    { key:'podcast_kit8',  name:'Podcast Media Kit 8' }
-  ],
-  'Press / PR': [
-    { key:'press_kit9',  name:'Press Media Kit 9' },
-    { key:'press_kit10', name:'Luxe Fashion House Press Kit' },
-    { key:'press_kit11', name:'Press Media Kit 11' },
-    { key:'press_kit12', name:'Press Media Kit 12' },
-    { key:'press_kit22', name:'Press Media Kit 22' }
-  ],
-  'Influencer': [
-    { key:'influencer_kit13', name:'Influencer Media Kit 13' },
-    { key:'influencer_kit14', name:'Influencer Media Kit 14' },
-    { key:'influencer_kit28', name:'Influencer Media Kit 28' },
-    { key:'influencer_kit35', name:'Influencer Media Kit 35' }
-  ],
-  'Brand': [
-    { key:'brand_kit15', name:'Aurora Skincare Brand Kit' },
-    { key:'brand_kit16', name:'Velocity Sports Brand Kit' },
-    { key:'brand_kit17', name:'Ember Coffee Brand Kit' },
-    { key:'brand_kit18', name:'Luxury Brand Kit' },
-    { key:'brand_kit19', name:'Emerald Mint Brand Kit' },
-    { key:'brand_kit21', name:'Skincare Elegant Minimalist Brand Kit' },
-    { key:'brand_kit23', name:'Black Minimalist Product Launch Kit' },
-    { key:'brand_kit24', name:'GlowUp Serum Launch Media Kit' },
-    { key:'brand_kit27', name:'FreshCart Startup Media Kit' },
-    { key:'brand_kit32', name:'HomeHero Media Kit' },
-    { key:'brand_kit33', name:'BrewMaster Elite Media Kit' },
-    { key:'brand_kit34', name:'CleanWave Startup Media Kit' },
-    { key:'brand_kit36', name:'PetPal Startup Media Kit' },
-    { key:'brand_kit37', name:'SkillBridge Startup Media Kit' }
-  ],
-  'Tech': [
-    { key:'tech_kit20', name:'Tech Media Kit 20' }
-  ],
-  'Fashion': [
-    { key:'fashion_kit25', name:'Fashion Kit 25' },
-    { key:'fashion_kit26', name:'Fashion Kit 26' },
-    { key:'fashion_kit29', name:'Fashion Kit 29' },
-    { key:'fashion_kit30', name:'Fashion Kit 30' },
-    { key:'fashion_kit31', name:'Fashion Kit 31' }
-  ]
-};
+function mkSubCatLabel(key) {
+  var labels = { freelancer:'Freelancer', podcast:'Podcast', press_pr:'Press / PR',
+                  influencer:'Influencer', brand:'Brand', tech:'Tech',
+                  fashion:'Fashion', other:'Other' };
+  return labels[key] || key;
+}
 
-(function(){
+window.mkSlideCatMap = {};
+
+function buildMkCatPanel() {
   var panel = document.getElementById('catPanel');
-  // All row
+  var title  = panel.querySelector('.cat-panel-title');
+  panel.innerHTML = '';
+  if (title) panel.appendChild(title);
+
   var allRow = document.createElement('div');
   allRow.className = 'cat-item';
   allRow.innerHTML = '<span class="ci-icon">🗂️</span><span class="ci-name">All Media Kits</span>';
-  allRow.addEventListener('click', function(){ window.location='media_kits_folder_section.html'; });
-  allRow.addEventListener('mouseenter', function(){ hideSub(); });
+  allRow.addEventListener('click', function() { window.location = 'media_kits_folder_section.html'; });
+  allRow.addEventListener('mouseenter', function() { hideSub(); });
   panel.appendChild(allRow);
 
-  Object.keys(MK_CATS).forEach(function(cat){
+  Object.keys(window.mkSlideCatMap).forEach(function(cat) {
+    var label = mkSubCatLabel(cat);
+    var icon  = MK_SUB_ICONS[cat] || '📁';
     var row = document.createElement('div');
     row.className = 'cat-item';
-    row.innerHTML = '<span class="ci-icon">'+(MK_CAT_ICONS[cat]||'📁')+'</span><span class="ci-name">'+cat+'</span><span class="ci-arrow">›</span>';
-    row.addEventListener('click', function(){ fillMkSub(cat); });
-    row.addEventListener('mouseenter', function(){ showSub(cat, row); });
-    row.addEventListener('mouseleave', function(){ subHideTimer = setTimeout(hideSub, 120); });
+    row.innerHTML = '<span class="ci-icon">' + icon + '</span>' +
+                    '<span class="ci-name">' + label + '</span>' +
+                    '<span class="ci-arrow">›</span>';
+    row.addEventListener('click', function() { fillMkSub(cat); });
+    row.addEventListener('mouseenter', function() { showSub(cat, row); });
+    row.addEventListener('mouseleave', function() { subHideTimer = setTimeout(hideSub, 120); });
     panel.appendChild(row);
   });
-})();
+}
 
-function fillMkSub(cat){
+function fillMkSub(cat) {
   var sub = document.getElementById('catSubmenu');
   sub.innerHTML = '';
-  (MK_CATS[cat]||[]).forEach(function(d){
-    var a = document.createElement('a');
-    a.className = 'sub-item';
-    a.href = 'media_kits_slides.html?kit='+d.key;
-    a.textContent = d.name;
-    sub.appendChild(a);
-  });
+  var items = window.mkSlideCatMap[cat] || [];
+  if (items.length === 0) {
+    var cs = document.createElement('span');
+    cs.className = 'sub-item coming-soon';
+    cs.textContent = 'Coming Soon';
+    sub.appendChild(cs);
+  } else {
+    items.forEach(function(d) {
+      var a = document.createElement('a');
+      a.className = 'sub-item';
+      a.href = d.href;
+      a.textContent = d.title;
+      sub.appendChild(a);
+    });
+  }
 }
+
+// Load Firebase data for category panel
+(async function loadMkCatData(){
+  try {
+    var { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
+    var { getFirestore, collection, onSnapshot, query, where } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+    var firebaseConfig = {
+      apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+      authDomain: "templatehub-16cd7.firebaseapp.com",
+      projectId: "templatehub-16cd7",
+      storageBucket: "templatehub-16cd7.firebasestorage.app",
+      messagingSenderId: "143000893683",
+      appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+    };
+    var apps = getApps();
+    var app = apps.length ? apps[0] : initializeApp(firebaseConfig);
+    var db = getFirestore(app);
+    var q = query(collection(db, 'templates'), where('status','==','approved'), where('template.category','==','media_kit'));
+    onSnapshot(q, function(snapshot) {
+      window.mkSlideCatMap = {};
+      snapshot.forEach(function(docSnap) {
+        var t = (docSnap.data().template || {});
+        var subCat = t.subCategory || 'Other';
+        if (!window.mkSlideCatMap[subCat]) window.mkSlideCatMap[subCat] = [];
+        window.mkSlideCatMap[subCat].push({
+          title: t.name || 'Untitled Media Kit',
+          href:  'media_kits_slides.html?firebase=' + docSnap.id
+        });
+      });
+      buildMkCatPanel();
+    });
+  } catch(e) { console.warn('Cat panel Firebase load failed:', e); }
+})();
+
 
 var mkCatTimer=null, mkCatLocked=false, subHideTimer=null, currentSubCat=null;
 
