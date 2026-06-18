@@ -117,6 +117,29 @@
     /* ── SUPPORTING DOC NOTE ── */
     .doc-note { background: rgba(100,200,255,0.06); border: 1px solid rgba(100,200,255,0.2); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; color: #a0d8ef; line-height: 1.6; }
     .doc-note strong { color: #64c8ff; }
+
+    /* ── PAYOUT DETAILS ── */
+    .payout-status { padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 18px; font-weight: 600; }
+    .payout-status-warn { background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.35); color: #eab308; }
+    .payout-status-ok   { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.35);  color: var(--green); }
+    .payout-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .payout-tab { padding: 9px 20px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .payout-tab.active { background: rgba(212,175,55,0.12); border-color: var(--accent); color: var(--accent); }
+    .payout-tab:hover:not(.active) { border-color: rgba(255,255,255,0.25); color: var(--text); }
+    .payout-actions { display: flex; gap: 12px; margin-top: 6px; }
+    .payout-actions .btn { flex: 1; margin-top: 0; }
+    .payout-skip { background: transparent; border: 1px solid var(--border); color: var(--muted); flex: 1; padding: 14px; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .payout-skip:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+    .payout-section-toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 0; }
+    .payout-toggle-arrow { font-size: 18px; color: var(--muted); transition: transform 0.2s; }
+    .payout-toggle-arrow.open { transform: rotate(180deg); }
+    @keyframes fadeSlideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    .app-check-label { display:flex; align-items:center; gap:10px; padding:9px 14px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s; }
+    .app-check-label:hover { border-color:var(--accent); background:rgba(212,175,55,0.06); }
+    .app-check-label input[type="checkbox"] { accent-color:var(--accent); width:16px; height:16px; cursor:pointer; flex-shrink:0; }
+    .app-check-label input[type="checkbox"]:checked + span { color:var(--accent); }
+    .app-check-label:has(input:checked) { border-color:var(--accent); background:rgba(212,175,55,0.08); }
+    @media(max-width:600px) { #uploadCompatGrid { grid-template-columns:1fr !important; } }
   </style>
 </head>
 <body data-page="upload_form">
@@ -308,6 +331,78 @@
       </div>
     </div>
 
+    <!-- ══ PAYOUT DETAILS ══ -->
+    <div class="section" id="payoutSection">
+      <div class="payout-section-toggle" onclick="togglePayoutPanel()">
+        <h2 style="margin-bottom:0;">💳 Payout Details</h2>
+        <span class="payout-toggle-arrow open" id="payoutArrow">∨</span>
+      </div>
+      <div id="payoutBody" style="margin-top:18px;">
+        <!-- Status banner -->
+        <div class="payout-status payout-status-warn" id="payoutStatus">
+          ⚠️ No payout method set up yet — required only when withdrawing earnings. You can add it now or any time later.
+        </div>
+
+        <!-- Method tabs -->
+        <div class="payout-tabs">
+          <button class="payout-tab active" id="ptabPaypal" onclick="switchPayoutMethod('paypal')">💸 PayPal</button>
+          <button class="payout-tab" id="ptabBank"   onclick="switchPayoutMethod('bank')">🏦 Bank Transfer</button>
+          <button class="payout-tab" id="ptabStripe" onclick="switchPayoutMethod('stripe')">⚡ Stripe</button>
+        </div>
+
+        <!-- PayPal panel -->
+        <div id="payoutPaypal">
+          <div class="field">
+            <label>PayPal Email Address</label>
+            <input type="email" id="paypalEmail" placeholder="your@paypal.com" autocomplete="email"/>
+          </div>
+        </div>
+
+        <!-- Bank Transfer panel -->
+        <div id="payoutBank" style="display:none;">
+          <div class="row">
+            <div class="field">
+              <label>Account Holder Name</label>
+              <input type="text" id="bankHolderName" placeholder="Full name on account"/>
+            </div>
+            <div class="field">
+              <label>Bank Name</label>
+              <input type="text" id="bankName" placeholder="e.g. Standard Chartered"/>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Account Number / IBAN</label>
+              <input type="text" id="bankAccount" placeholder="Account number or IBAN"/>
+            </div>
+            <div class="field">
+              <label>SWIFT / BIC Code</label>
+              <input type="text" id="bankSwift" placeholder="e.g. SCBLPKKA"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>Country</label>
+            <input type="text" id="bankCountry" placeholder="e.g. Pakistan"/>
+          </div>
+        </div>
+
+        <!-- Stripe panel -->
+        <div id="payoutStripe" style="display:none;">
+          <div class="field">
+            <label>Stripe Account Email</label>
+            <input type="email" id="stripeEmail" placeholder="your@stripe.com" autocomplete="email"/>
+          </div>
+        </div>
+
+        <div class="payout-actions">
+          <button class="btn" onclick="savePayoutDetails()" style="margin-top:0;">💾 Save Payout Details</button>
+          <button class="payout-skip" onclick="togglePayoutPanel()">Do this later ↑</button>
+        </div>
+        <div class="auth-error"   id="payoutError"   style="margin-top:10px;"></div>
+        <div class="auth-success" id="payoutSuccess" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
     <!-- TEMPLATE DETAILS -->
     <div class="section">
       <h2>📋 Template Details</h2>
@@ -358,42 +453,89 @@
       </div>
     </div>
 
-    <!-- FILE UPLOADS -->
+    <!-- FILE UPLOADS + EDITABLE APPS -->
     <div class="section">
-      <h2>📁 Upload Files</h2>
+      <h2>📁 Upload Files & Compatibility</h2>
 
-      <div class="field">
-        <label>PNG Slides <span class="required">*</span> (Select all slide images)</label>
-        <div class="upload-box">
-          <input type="file" id="pngFiles" accept=".png,.jpg,.jpeg" multiple onchange="showFiles('pngFiles','pngList')"/>
-          <div class="upload-icon">🖼️</div>
-          <p><strong>Click to upload PNG slides</strong></p>
-          <p>Select all slide images at once</p>
-        </div>
-        <div class="file-list" id="pngList"></div>
-      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
 
-      <div class="field">
-        <label>PPTX File <span class="required">*</span></label>
-        <div class="upload-box">
-          <input type="file" id="pptxFile" accept=".pptx,.ppt" onchange="showFiles('pptxFile','pptxList')"/>
-          <div class="upload-icon">📊</div>
-          <p><strong>Click to upload PPTX file</strong></p>
-          <p>PowerPoint template file</p>
-        </div>
-        <div class="file-list" id="pptxList"></div>
-      </div>
+        <!-- LEFT: File Uploads -->
+        <div>
+          <p style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">File Uploads</p>
 
-      <div class="field">
-        <label>PDF File (Optional)</label>
-        <div class="upload-box">
-          <input type="file" id="pdfFile" accept=".pdf" onchange="showFiles('pdfFile','pdfList')"/>
-          <div class="upload-icon">📄</div>
-          <p><strong>Click to upload PDF file</strong></p>
-          <p>PDF version of the template</p>
+          <!-- REQUIRED -->
+          <div class="field">
+            <label>PNG Slides <span class="required">*</span></label>
+            <div class="upload-box">
+              <input type="file" id="pngFiles" accept=".png,.jpg,.jpeg" multiple onchange="showFiles('pngFiles','pngList')"/>
+              <div class="upload-icon">🖼️</div>
+              <p><strong>Click to upload PNG slides</strong></p>
+              <p style="font-size:11px;">Select all at once</p>
+            </div>
+            <div class="file-list" id="pngList"></div>
+          </div>
+
+          <div class="field">
+            <label>PPTX File <span class="required">*</span></label>
+            <div class="upload-box">
+              <input type="file" id="pptxFile" accept=".pptx,.ppt" onchange="showFiles('pptxFile','pptxList')"/>
+              <div class="upload-icon">📊</div>
+              <p><strong>Click to upload PPTX</strong></p>
+            </div>
+            <div class="file-list" id="pptxList"></div>
+          </div>
+
+          <div class="field">
+            <label>PDF <span style="color:var(--muted);font-weight:400;">(Optional)</span></label>
+            <div class="upload-box">
+              <input type="file" id="pdfFile" accept=".pdf" onchange="showFiles('pdfFile','pdfList')"/>
+              <div class="upload-icon">📄</div>
+              <p><strong>Click to upload PDF</strong></p>
+            </div>
+            <div class="file-list" id="pdfList"></div>
+          </div>
+
+          <div class="field">
+            <label>Keynote <span style="color:var(--muted);font-weight:400;">(Optional — Mac/Apple)</span></label>
+            <div class="upload-box">
+              <input type="file" id="keyFile" accept=".key" onchange="showFiles('keyFile','keyList')"/>
+              <div class="upload-icon">🍎</div>
+              <p><strong>Click to upload .KEY file</strong></p>
+            </div>
+            <div class="file-list" id="keyList"></div>
+          </div>
+
+          <!-- DYNAMIC EXTRA BOXES -->
+          <div id="extraFormatsContainer"></div>
+          <button type="button" class="btn btn-outline" onclick="addExtraFormat()" style="margin-top:8px;font-size:13px;">
+            ➕ Add Another Format
+          </button>
+          <p style="font-size:11px;color:var(--muted);margin-top:6px;">Any file type — .SVG .AI .DOCX .XLSX .GIF etc. Keep clicking to add more.</p>
         </div>
-        <div class="file-list" id="pdfList"></div>
-      </div>
+
+        <!-- RIGHT: Editable In -->
+        <div>
+          <p style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">🖊️ Editable In</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Which applications can buyers use to edit this template? Check all that apply.</p>
+
+          <div style="display:flex;flex-direction:column;gap:10px;" id="editableAppsList">
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Microsoft PowerPoint"/> <span>📊 Microsoft PowerPoint</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Google Slides"/> <span>🖥️ Google Slides</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Apple Keynote"/> <span>🍎 Apple Keynote</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Canva"/> <span>🎨 Canva</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Figma"/> <span>🔷 Figma</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Adobe Illustrator"/> <span>🔶 Adobe Illustrator</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Adobe InDesign"/> <span>🟣 Adobe InDesign</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Adobe Photoshop"/> <span>🔵 Adobe Photoshop</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Affinity Designer"/> <span>🟦 Affinity Designer</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Sketch"/> <span>💎 Sketch</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="LibreOffice Impress"/> <span>📂 LibreOffice Impress</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Microsoft Word"/> <span>📝 Microsoft Word</span></label>
+            <label class="app-check-label"><input type="checkbox" name="editableApps" value="Microsoft Excel"/> <span>📈 Microsoft Excel</span></label>
+          </div>
+        </div>
+
+      </div><!-- end grid -->
     </div>
 
     <!-- SUPPORTING DOCUMENT -->
@@ -474,6 +616,7 @@ onAuthStateChanged(auth, async (user) => {
       sellerProfile = profile;
       populateSellerBar();
       showSection('form');
+      loadPayoutDetails(user.uid);
     }
   } else {
     currentUser = null;
@@ -706,7 +849,18 @@ window.submitForm = async function() {
   const pngFiles     = document.getElementById('pngFiles').files;
   const pptxFile     = document.getElementById('pptxFile').files[0];
   const pdfFile      = document.getElementById('pdfFile').files[0];
+  const keyFile      = document.getElementById('keyFile').files[0];
   const designDocFile= document.getElementById('designDoc').files[0];
+
+  // Collect all extra format files
+  const extraFiles = [];
+  for (let i = 1; i <= extraFormatCount; i++) {
+    const el = document.getElementById('extraFile_' + i);
+    if (el && el.files[0]) extraFiles.push(el.files[0]);
+  }
+
+  // Collect editable apps checkboxes
+  const editableApps = Array.from(document.querySelectorAll('input[name="editableApps"]:checked')).map(cb => cb.value);
 
   if (!templateName || !category || !slideCount || !industry) {
     alert('Please fill all required template fields!'); return;
@@ -739,14 +893,39 @@ window.submitForm = async function() {
       pdfUrl = await uploadToCloudinary(pdfFile, `${folder}/pdf`, 'raw');
     }
 
-    // 4. Upload supporting document (optional)
+    // 4. Upload Keynote (optional)
+    let keyUrl = null;
+    if (keyFile) {
+      setProgress(82, 'Uploading Keynote file...');
+      keyUrl = await uploadDocToDrive(keyFile);
+    }
+
+    // 5. Upload extra formats (optional, unlimited)
+    const extraUrls = [];
+    for (let i = 0; i < extraFiles.length; i++) {
+      setProgress(84 + Math.round((i / Math.max(extraFiles.length,1)) * 6), `Uploading extra file ${i+1} of ${extraFiles.length}...`);
+      const ext = extraFiles[i].name.split('.').pop().toLowerCase();
+      const url = await uploadDocToDrive(extraFiles[i]);
+      extraUrls.push({ name: extraFiles[i].name, ext: '.' + ext.toUpperCase(), url });
+    }
+
+    // 6. Upload supporting document (optional)
     let designDocUrl = null;
     if (designDocFile) {
-      setProgress(88, 'Uploading design brief...');
+      setProgress(91, 'Uploading design brief...');
       designDocUrl = await uploadDocToDrive(designDocFile);
     }
 
-    // 5. Save to Firestore
+    // Build fileTypes array dynamically
+    const fileTypes = [
+      ...(pngFiles.length > 0 ? ['.PNG']  : []),
+      ...(pptxFile            ? ['.PPTX'] : []),
+      ...(pdfFile             ? ['.PDF']  : []),
+      ...(keyFile             ? ['.KEY']  : []),
+      ...extraUrls.map(e => e.ext)
+    ];
+
+    // 7. Save to Firestore
     setProgress(95, 'Saving to database...');
     await addDoc(collection(db, 'templates'), {
       status:     'pending',
@@ -764,9 +943,14 @@ window.submitForm = async function() {
         slideCount:  parseInt(slideCount),
         industry,
         price,
+        watermark:   priceRaw > 0,
+        fileTypes,
         slides:      slideUrls,
         pptxUrl,
         pdfUrl,
+        keyUrl,
+        extraFiles:  extraUrls,
+        editableApps,
         coverImage:  slideUrls[0] || null,
         designDocUrl,
         designNotes
@@ -935,6 +1119,155 @@ window.resetForm = function() {
   document.getElementById('progressFill').style.width      = '0%';
   document.getElementById('submitBtn').disabled            = false;
   showSection('form');
+};
+
+// ── PAYOUT DETAILS ───────────────────────────────────────────────────────────
+
+// Load payout details from Firestore and pre-fill form on login
+async function loadPayoutDetails(uid) {
+  try {
+    const snap = await getDoc(doc(db, 'sellers', uid));
+    if (snap.exists()) {
+      const data = snap.data();
+      const payout = data.payout || {};
+      if (payout.method) {
+        switchPayoutMethod(payout.method);
+        if (payout.method === 'paypal' && payout.paypalEmail) {
+          document.getElementById('paypalEmail').value = payout.paypalEmail;
+        }
+        if (payout.method === 'bank') {
+          if (payout.bankHolderName) document.getElementById('bankHolderName').value = payout.bankHolderName;
+          if (payout.bankName)       document.getElementById('bankName').value       = payout.bankName;
+          if (payout.bankAccount)    document.getElementById('bankAccount').value    = payout.bankAccount;
+          if (payout.bankSwift)      document.getElementById('bankSwift').value      = payout.bankSwift;
+          if (payout.bankCountry)    document.getElementById('bankCountry').value    = payout.bankCountry;
+        }
+        if (payout.method === 'stripe' && payout.stripeEmail) {
+          document.getElementById('stripeEmail').value = payout.stripeEmail;
+        }
+        // Update status banner to green
+        const statusEl = document.getElementById('payoutStatus');
+        statusEl.className = 'payout-status payout-status-ok';
+        const methodLabel = payout.method === 'paypal' ? 'PayPal' : payout.method === 'bank' ? 'Bank Transfer' : 'Stripe';
+        statusEl.textContent = `✅ Payout method set: ${methodLabel}. You can update it any time.`;
+      }
+    }
+  } catch(err) {
+    console.error('Could not load payout details:', err);
+  }
+}
+
+// Save payout details to Firestore
+window.savePayoutDetails = async function() {
+  const errEl = document.getElementById('payoutError');
+  const sucEl = document.getElementById('payoutSuccess');
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+
+  if (!currentUser) { errEl.textContent = 'Please sign in first.'; errEl.style.display = 'block'; return; }
+
+  // Detect active method
+  const activeTab = document.querySelector('.payout-tab.active');
+  const method = activeTab ? activeTab.id.replace('ptab','').toLowerCase() : 'paypal';
+
+  let payoutData = { method, updatedAt: serverTimestamp() };
+
+  if (method === 'paypal') {
+    const email = document.getElementById('paypalEmail').value.trim();
+    if (!email) { errEl.textContent = 'Please enter your PayPal email.'; errEl.style.display = 'block'; return; }
+    if (!email.includes('@')) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return; }
+    payoutData.paypalEmail = email;
+
+  } else if (method === 'bank') {
+    const holderName = document.getElementById('bankHolderName').value.trim();
+    const bankName   = document.getElementById('bankName').value.trim();
+    const account    = document.getElementById('bankAccount').value.trim();
+    const swift      = document.getElementById('bankSwift').value.trim();
+    const country    = document.getElementById('bankCountry').value.trim();
+    if (!holderName || !bankName || !account) {
+      errEl.textContent = 'Account holder name, bank name, and account number are required.';
+      errEl.style.display = 'block'; return;
+    }
+    payoutData.bankHolderName = holderName;
+    payoutData.bankName       = bankName;
+    payoutData.bankAccount    = account;
+    payoutData.bankSwift      = swift;
+    payoutData.bankCountry    = country;
+
+  } else if (method === 'stripe') {
+    const email = document.getElementById('stripeEmail').value.trim();
+    if (!email) { errEl.textContent = 'Please enter your Stripe account email.'; errEl.style.display = 'block'; return; }
+    if (!email.includes('@')) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return; }
+    payoutData.stripeEmail = email;
+  }
+
+  try {
+    await setDoc(doc(db, 'sellers', currentUser.uid), { payout: payoutData }, { merge: true });
+    // Update status banner
+    const statusEl = document.getElementById('payoutStatus');
+    statusEl.className = 'payout-status payout-status-ok';
+    const methodLabel = method === 'paypal' ? 'PayPal' : method === 'bank' ? 'Bank Transfer' : 'Stripe';
+    statusEl.textContent = `✅ Payout method set: ${methodLabel}. You can update it any time.`;
+    sucEl.textContent = '✅ Payout details saved successfully!';
+    sucEl.style.display = 'block';
+    setTimeout(() => { sucEl.style.display = 'none'; }, 4000);
+  } catch(err) {
+    console.error(err);
+    errEl.textContent = 'Failed to save. Please try again.';
+    errEl.style.display = 'block';
+  }
+};
+
+// Switch between PayPal / Bank / Stripe tabs
+window.switchPayoutMethod = function(method) {
+  document.getElementById('ptabPaypal').classList.toggle('active', method === 'paypal');
+  document.getElementById('ptabBank').classList.toggle('active',   method === 'bank');
+  document.getElementById('ptabStripe').classList.toggle('active', method === 'stripe');
+  document.getElementById('payoutPaypal').style.display = method === 'paypal' ? 'block' : 'none';
+  document.getElementById('payoutBank').style.display   = method === 'bank'   ? 'block' : 'none';
+  document.getElementById('payoutStripe').style.display = method === 'stripe' ? 'block' : 'none';
+};
+
+// Toggle payout panel open/closed
+window.togglePayoutPanel = function() {
+  const body  = document.getElementById('payoutBody');
+  const arrow = document.getElementById('payoutArrow');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  arrow.classList.toggle('open', !isOpen);
+};
+
+// ── EXTRA FORMAT BOXES ───────────────────────────────────────────────────────
+var extraFormatCount = 0;
+window.addExtraFormat = function() {
+  extraFormatCount++;
+  var n   = extraFormatCount;
+  var id  = 'extraFile_' + n;
+  var lid = 'extraList_' + n;
+
+  var div = document.createElement('div');
+  div.className = 'field';
+  div.id = 'extraField_' + n;
+  div.style.cssText = 'animation: fadeSlideIn 0.25s ease;';
+  div.innerHTML =
+    '<label>Extra Format #' + n + ' <span style="color:var(--muted);font-weight:400;">(Optional)</span>' +
+    ' <button type="button" onclick="removeExtraFormat(' + n + ')" style="float:right;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:Poppins,sans-serif;">✕ Remove</button></label>' +
+    '<div class="upload-box" onclick="document.getElementById(\'' + id + '\').click()" style="cursor:pointer;">' +
+      '<input type="file" id="' + id + '" style="display:none;" onchange="showFiles(\'' + id + '\',\'' + lid + '\')" />' +
+      '<div class="upload-icon">📎</div>' +
+      '<p><strong>Click to upload any format</strong></p>' +
+      '<p style="font-size:11px;color:var(--muted);">.SVG, .AI, .FIGMA, .XLSX, .DOCX, .GIF, or any other</p>' +
+    '</div>' +
+    '<div class="file-list" id="' + lid + '"></div>';
+
+  document.getElementById('extraFormatsContainer').appendChild(div);
+  // scroll into view smoothly
+  setTimeout(function(){ div.scrollIntoView({ behavior:'smooth', block:'center' }); }, 50);
+};
+
+window.removeExtraFormat = function(n) {
+  var el = document.getElementById('extraField_' + n);
+  if (el) el.remove();
 };
 
 // ── COLOUR PANEL ──
