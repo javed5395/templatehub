@@ -410,10 +410,13 @@ document.addEventListener('click',function(e){
           <div class="etsy-highlights-label">Highlights</div>
           <div class="etsy-item-row"><span class="ei-icon">🖥️</span><span>Designed by <strong>LazyDogTemplates</strong></span></div>
           <div class="etsy-item-row"><span class="ei-icon">⬇️</span><span>Digital download</span></div>
-          <div class="etsy-item-row"><span class="ei-icon">📎</span><span>Digital file type(s): <strong>.PDF + .PNG</strong></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">📎</span><span>Digital file type(s): <strong id="fileTypeDisplay">.PDF + .PNG</strong></span></div>
+          <div class="etsy-item-row" id="editableAppsRow" style="display:none;"><span class="ei-icon">🖊️</span><span>Editable in: <span class="app-badges" id="editableAppsDisplay"></span></span></div>
           <div class="etsy-item-row"><span class="ei-icon">📄</span><span><strong id="specPages"></strong> — <strong id="specType"></strong></span></div>
           <div class="etsy-item-row"><span class="ei-icon">🎨</span><span>Style: <strong id="specStyle"></strong></span></div>
-          <div class="etsy-sparkle-line">✦ Professional media kit — fully editable in Canva / PowerPoint ✦</div>
+          <div class="etsy-item-row" id="industryRow" style="display:none;"><span class="ei-icon">🏢</span><span>Industry: <strong id="specIndustry"></strong></span></div>
+          <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:600;">📥 Download Design Brief / Support Document</a></span></div>
+          <div class="etsy-sparkle-line" id="etsySparkle">✦ Professional media kit — fully editable ✦</div>
           <div class="etsy-desc-text" id="etsyDescText"></div>
           <button class="etsy-learn-more" onclick="toggleLearnMore(this)">Learn more about this item</button>
         </div>
@@ -942,19 +945,29 @@ function getMkUrl(k, n, transform) {
     var docSnap = await getDoc(doc(db, 'templates', firebaseId));
     if (!docSnap.exists()) { window.location = 'media_kits_folder_section.html'; return; }
     var t = (docSnap.data().template) || {};
+    // ── category label mapping ──
+    var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume:'Resume', report:'Report' };
+    var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKitData = {
-      name: t.name || 'Untitled Media Kit',
-      titleHTML: (t.name || 'Untitled Media Kit') + '<br/><span>Media Kit</span>',
-      desc: t.description || 'A professional media kit template.',
-      type: t.type || 'Brand Media Kit',
-      style: t.style || 'Professional',
-      pageCount: t.slides ? t.slides.length : 0,
-      slides: t.slides || [],
-      pageTitles: t.slideTitles || [],
-      pptxUrl: t.pptxUrl || null,
-      pdfUrl: t.pdfUrl || null,
-      price: t.price || 'free',
-      canvaLink: t.canvaLink || null
+      name:         t.name || 'Untitled Media Kit',
+      titleHTML:    (t.name || 'Untitled Media Kit') + '<br/><span>Media Kit</span>',
+      desc:         t.designNotes || t.description || 'A professional media kit template.',
+      type:         catLabels[t.category] || t.type || 'Media Kit',
+      style:        industryLabels[t.industry] || t.style || 'Professional',
+      pageCount:    t.slideCount || (t.slides ? t.slides.length : 0),
+      slides:       t.slides || [],
+      pageTitles:   t.slideTitles || [],
+      pptxUrl:      t.pptxUrl || null,
+      pdfUrl:       t.pdfUrl || null,
+      price:        t.price || 'free',
+      fileTypes:    t.fileTypes && t.fileTypes.length ? t.fileTypes : (t.pptxUrl ? ['.PPTX'] : []).concat(t.pdfUrl ? ['.PDF'] : []).concat(t.slides && t.slides.length ? ['.PNG'] : []),
+      watermark:    (t.price && t.price !== 'free' && parseFloat(t.price) > 0),
+      editableApps: t.editableApps || [],
+      canvaLink:    t.canvaLink || null,
+      designDocUrl: t.designDocUrl || null,
+      designNotes:  t.designNotes || null,
+      industry:     industryLabels[t.industry] || t.industry || null,
+      extraFiles:   t.extraFiles || []
     };
     loadKit(currentKitData);
   } catch(err) {
@@ -966,6 +979,13 @@ function getMkUrl(k, n, transform) {
 function loadKit(k) {
   currentKitData = k;
   document.getElementById('breadcrumbName').textContent = k.name;
+  // Fix price display
+  var priceEl = document.querySelector('.etsy-price');
+  if (priceEl) {
+    if (!k.price || k.price === 'free' || k.price === '0' || parseFloat(k.price) === 0) priceEl.textContent = 'FREE Template';
+    else if (k.price === 'pro') priceEl.textContent = 'PRO Template';
+    else priceEl.textContent = 'USD ' + parseFloat(k.price).toFixed(2);
+  }
   document.title = k.name + ' — LazyDogTemplates';
   document.getElementById('templateTitle').innerHTML = k.titleHTML;
   document.getElementById('templateDesc').textContent = k.desc;
@@ -973,7 +993,66 @@ function loadKit(k) {
   document.getElementById('specStyle').textContent = k.style;
   document.getElementById('specPages').textContent = k.pageCount + ' Pages';
   var kwEl = document.getElementById('etsyKeywords');
-  if (kwEl) kwEl.textContent = k.name + ' | Editable PDF + PNG | Instant Download';
+  // Update file types display dynamically
+  var ftEl = document.getElementById('fileTypeDisplay');
+  if (ftEl) {
+    var types = k.fileTypes && k.fileTypes.length ? k.fileTypes : [];
+    if (types.length === 0) {
+      if (k.pptxUrl) types.push('.PPTX');
+      if (k.pdfUrl)  types.push('.PDF');
+      if (k.slides && k.slides.length) types.push('.PNG');
+    }
+    ftEl.textContent = types.length ? types.join(' + ') : '.PDF + .PNG';
+  }
+  // Update editable apps display
+  var appsEl = document.getElementById('editableAppsDisplay');
+  if (appsEl) {
+    if (k.editableApps && k.editableApps.length) {
+      appsEl.innerHTML = k.editableApps.map(function(a){ return '<span class="app-badge">' + a + '</span>'; }).join('');
+      document.getElementById('editableAppsRow').style.display = 'flex';
+    } else {
+      document.getElementById('editableAppsRow').style.display = 'none';
+    }
+  }
+
+  // Industry row
+  var industryRowEl = document.getElementById('industryRow');
+  var specIndustryEl = document.getElementById('specIndustry');
+  if (industryRowEl && specIndustryEl) {
+    if (k.industry) {
+      specIndustryEl.textContent = k.industry;
+      industryRowEl.style.display = 'flex';
+    } else {
+      industryRowEl.style.display = 'none';
+    }
+  }
+
+  // Supporting document link
+  var docRowEl  = document.getElementById('designDocRow');
+  var docLinkEl = document.getElementById('designDocLink');
+  if (docRowEl && docLinkEl) {
+    if (k.designDocUrl) {
+      docLinkEl.href = k.designDocUrl;
+      docRowEl.style.display = 'flex';
+    } else {
+      docRowEl.style.display = 'none';
+    }
+  }
+
+  // Sparkle line — dynamic based on editable apps
+  var sparkleEl = document.getElementById('etsySparkle');
+  if (sparkleEl) {
+    if (k.editableApps && k.editableApps.length) {
+      var shortApps = k.editableApps.slice(0, 3).join(' / ');
+      sparkleEl.textContent = '✦ Fully editable in ' + shortApps + (k.editableApps.length > 3 ? ' & more' : '') + ' ✦';
+    } else {
+      sparkleEl.textContent = '✦ Professional ' + (k.type || 'template') + ' — fully editable ✦';
+    }
+  }
+
+  // Keywords row
+  var fileTypesStr = (k.fileTypes && k.fileTypes.length) ? k.fileTypes.join(' + ') : 'PDF + PNG';
+  if (kwEl) kwEl.textContent = k.name + ' | Editable ' + fileTypesStr + ' | Instant Download';
   var descEl = document.getElementById('etsyDescText');
   if (descEl) { descEl.textContent = k.desc; descEl.classList.remove('expanded'); }
   var lmBtn = document.querySelector('.etsy-learn-more');
@@ -990,7 +1069,10 @@ function loadKit(k) {
     img.title = k.pageTitles[i-1] || 'Page ' + i;
     img.loading = 'lazy';
     img.onclick = (function(idx){ return function(){ showSlide(idx); }; })(i);
-    row.appendChild(img);
+    // Wrap thumbnail in watermark overlay only for paid templates
+    var isPaid = k.price && k.price !== 'free' && k.price !== '0' && k.price !== 0;
+    var thumbEl = (isPaid && typeof wrapThumbWm === 'function') ? wrapThumbWm(img) : img;
+    row.appendChild(thumbEl);
   }
   showSlide(1);
 }
@@ -1217,6 +1299,7 @@ function toggleLearnMore(btn){
     </div>
   </div>
 </div>
+<script src="watermark.js"></script>
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
 <script src="footerbar.js"></script>

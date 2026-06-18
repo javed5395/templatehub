@@ -257,6 +257,8 @@
     .etsy-price { font-size: 28px; font-weight: 800; color: #fff; font-family: 'Poppins', sans-serif; margin-bottom: 6px; }
     .format-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
     .format-badge { background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.35); color: #d4af37; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; font-family: 'Poppins', sans-serif; letter-spacing: 0.3px; }
+    .app-badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 14px; }
+    .app-badge { background: rgba(100,200,255,0.1); border: 1px solid rgba(100,200,255,0.3); color: #64c8ff; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; font-family: 'Poppins', sans-serif; letter-spacing: 0.3px; }
     .etsy-btn-buy { display:block; width:100%; padding:13px; background:#d4af37; color:#07071a; border:none; border-radius:8px; font-size:15px; font-weight:700; cursor:pointer; font-family:'Poppins',sans-serif; margin-bottom:10px; transition:opacity 0.2s; }
     .etsy-btn-buy:hover { opacity:0.88; }
     .etsy-keywords { font-size: 12px; color: #8899aa; line-height: 1.55; margin-bottom: 10px; }
@@ -502,10 +504,12 @@ document.addEventListener('click',function(e){
           <div class="etsy-highlights-label">Highlights</div>
           <div class="etsy-item-row"><span class="ei-icon">🖥️</span><span>Designed by <strong>LazyDogTemplates</strong></span></div>
           <div class="etsy-item-row"><span class="ei-icon">⬇️</span><span>Digital download</span></div>
-          <div class="etsy-item-row"><span class="ei-icon">📎</span><span>Digital file type(s): <strong>.PPTX + .PDF</strong></span></div>
+          <div class="etsy-item-row"><span class="ei-icon">📎</span><span>Digital file type(s): <strong id="fileTypeDisplay">.PPTX + .PDF</strong></span></div>
+          <div class="etsy-item-row" id="editableAppsRow" style="display:none;"><span class="ei-icon">🖊️</span><span>Editable in: <span class="app-badges" id="editableAppsDisplay"></span></span></div>
           <div class="etsy-item-row"><span class="ei-icon">📊</span><span><strong id="specSlides"></strong> — 16:9 Widescreen | <strong id="specStyle"></strong></span></div>
-          <div class="etsy-item-row"><span class="ei-icon">🏷️</span><span>Category: <strong id="specCategory"></strong></span></div>
-          <div class="etsy-sparkle-line">✦ Professional investor-ready pitch deck — fully editable in PowerPoint ✦</div>
+          <div class="etsy-item-row"><span class="ei-icon">🏷️</span><span>Industry: <strong id="specCategory"></strong></span></div>
+          <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:600;">📥 Download Design Brief / Support Document</a></span></div>
+          <div class="etsy-sparkle-line" id="etsySparkle">✦ Professional pitch deck — fully editable ✦</div>
           <div class="etsy-desc-text" id="etsyDescText"></div>
           <button class="etsy-learn-more" onclick="toggleLearnMore(this)">Learn more about this item</button>
         </div>
@@ -574,18 +578,28 @@ buildCatPanel();
     var docSnap = await getDoc(doc(db, 'templates', firebaseId));
     if (!docSnap.exists()) { window.location = 'pitch_deck_folder_section.html'; return; }
     var t = (docSnap.data().template) || {};
+    // ── category / industry label mappings ──
+    var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume:'Resume', report:'Report' };
+    var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentDeckData = {
-      name: t.name || 'Untitled Deck',
-      titleHTML: (t.name || 'Untitled Deck') + '<br/><span>Pitch Deck</span>',
-      desc: t.description || 'A professional pitch deck template. Fully editable in Microsoft PowerPoint.',
-      style: t.style || 'Professional',
-      category: t.industry || 'General',
-      slideCount: t.slides ? t.slides.length : 0,
-      slides: t.slides || [],
-      pptxUrl: t.pptxUrl || null,
-      pdfUrl: t.pdfUrl || null,
-      price: t.price || 'free',
-      slideTitles: t.slideTitles || []
+      name:         t.name || 'Untitled Deck',
+      titleHTML:    (t.name || 'Untitled Deck') + '<br/><span>Pitch Deck</span>',
+      desc:         t.designNotes || t.description || 'A professional pitch deck template. Fully editable in Microsoft PowerPoint.',
+      style:        catLabels[t.category] || t.style || 'Pitch Deck',
+      category:     industryLabels[t.industry] || t.category || 'General',
+      slideCount:   t.slideCount || (t.slides ? t.slides.length : 0),
+      slides:       t.slides || [],
+      pptxUrl:      t.pptxUrl || null,
+      pdfUrl:       t.pdfUrl || null,
+      price:        t.price || 'free',
+      fileTypes:    t.fileTypes && t.fileTypes.length ? t.fileTypes : (t.pptxUrl ? ['.PPTX'] : []).concat(t.pdfUrl ? ['.PDF'] : []).concat(t.slides && t.slides.length ? ['.PNG'] : []),
+      watermark:    (t.price && t.price !== 'free' && parseFloat(t.price) > 0),
+      slideTitles:  t.slideTitles || [],
+      editableApps: t.editableApps || [],
+      designDocUrl: t.designDocUrl || null,
+      designNotes:  t.designNotes || null,
+      industry:     industryLabels[t.industry] || t.industry || null,
+      extraFiles:   t.extraFiles || []
     };
     loadDesign(currentDeckData);
   } catch(err) {
@@ -612,9 +626,56 @@ function loadDesign(d) {
   document.getElementById('specCategory').textContent = d.category;
   document.getElementById('modalDesc').textContent = 'Enter your email to download the ' + d.name + ' instantly. No spam.';
   var priceEl = document.getElementById('etsyPrice');
-  if(priceEl) priceEl.textContent = d.price === 'pro' ? 'PRO Template' : 'FREE Template';
+  if(priceEl) {
+    if (d.price === 'pro') priceEl.textContent = 'PRO Template';
+    else if (!d.price || d.price === 'free' || d.price === '0' || parseFloat(d.price) === 0) priceEl.textContent = 'FREE Template';
+    else priceEl.textContent = 'USD ' + parseFloat(d.price).toFixed(2);
+  }
+  // Update file types display dynamically
+  var ftEl = document.getElementById('fileTypeDisplay');
+  if (ftEl) {
+    var types = d.fileTypes && d.fileTypes.length ? d.fileTypes : [];
+    if (types.length === 0) {
+      if (d.pptxUrl) types.push('.PPTX');
+      if (d.pdfUrl)  types.push('.PDF');
+      if (d.slides && d.slides.length) types.push('.PNG');
+    }
+    ftEl.textContent = types.length ? types.join(' + ') : '.PPTX';
+  }
+  // Update editable apps display
+  var appsEl = document.getElementById('editableAppsDisplay');
+  if (appsEl) {
+    if (d.editableApps && d.editableApps.length) {
+      appsEl.innerHTML = d.editableApps.map(function(a){ return '<span class="app-badge">' + a + '</span>'; }).join('');
+      document.getElementById('editableAppsRow').style.display = 'flex';
+    } else {
+      document.getElementById('editableAppsRow').style.display = 'none';
+    }
+  }
+
+  // Supporting document link
+  var docRowEl  = document.getElementById('designDocRow');
+  var docLinkEl = document.getElementById('designDocLink');
+  if (docRowEl && docLinkEl) {
+    if (d.designDocUrl) { docLinkEl.href = d.designDocUrl; docRowEl.style.display = 'flex'; }
+    else { docRowEl.style.display = 'none'; }
+  }
+
+  // Sparkle line — dynamic
+  var sparkleEl = document.getElementById('etsySparkle');
+  if (sparkleEl) {
+    if (d.editableApps && d.editableApps.length) {
+      var shortApps = d.editableApps.slice(0, 3).join(' / ');
+      sparkleEl.textContent = '✦ Fully editable in ' + shortApps + (d.editableApps.length > 3 ? ' & more' : '') + ' ✦';
+    } else {
+      sparkleEl.textContent = '✦ Professional ' + (d.style || 'pitch deck') + ' — fully editable ✦';
+    }
+  }
+
+  // Keywords + description
+  var fileTypesStr = (d.fileTypes && d.fileTypes.length) ? d.fileTypes.join(' + ') : 'PPTX + PDF';
   var kwEl = document.getElementById('etsyKeywords');
-  if(kwEl) kwEl.textContent = d.name + ' | Editable PPTX | Instant Download';
+  if(kwEl) kwEl.textContent = d.name + ' | Editable ' + fileTypesStr + ' | Instant Download';
   var descEl = document.getElementById('etsyDescText');
   if(descEl){ descEl.textContent = d.desc; descEl.classList.remove('expanded'); }
   var lmBtn = document.querySelector('.etsy-learn-more');
@@ -642,8 +703,11 @@ function loadDesign(d) {
     img.title = d.slideTitles[i-1] || 'Slide ' + i;
     img.loading = 'lazy';
     img.onclick = (function(idx){ return function(){ showSlide(idx); }; })(i);
-    if (i <= 6) row1.appendChild(img);
-    else row2.appendChild(img);
+    // Wrap thumbnail in watermark overlay only for paid templates
+    var isPaid = d.price && d.price !== 'free' && d.price !== '0' && d.price !== 0;
+    var thumbEl = (isPaid && typeof wrapThumbWm === 'function') ? wrapThumbWm(img) : img;
+    if (i <= 6) row1.appendChild(thumbEl);
+    else row2.appendChild(thumbEl);
   }
   showSlide(1);
 }
@@ -884,6 +948,7 @@ function toggleLearnMore(btn){
     </div>
   </div>
 </div>
+<script src="watermark.js"></script>
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
 <script src="footerbar.js"></script>
