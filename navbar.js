@@ -136,7 +136,6 @@
   <div class="nb-links" id="nbLinks">
     <button class="nav-search-icon" id="navSearchBtn" onclick="nbOpenSearch()" title="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
     <button class="nb-lang" id="nbLangBtn" onmouseenter="nbShowLang()" onmouseleave="nbLangLeaveBtn()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span id="nbLangLabel">English</span></button>
-    <button class="nb-pro">Pro Plans</button>
     <div class="nb-feat-wrap" id="nbFeatWrap" onmouseenter="nbFeatHover(true)" onmouseleave="nbFeatHover(false)">
       <button class="nb-features" id="nbFeatBtn" onclick="nbFeatLockToggle()">⭐ Features</button>
       <div class="nb-feat-dropdown">

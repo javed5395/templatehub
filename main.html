@@ -334,6 +334,11 @@
     .btn-green:hover { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-4px); box-shadow: 0 14px 36px rgba(46,204,130,0.58), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.15); }
     .btn-green:active { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-1px); }
 
+    .hero-btns-soon { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+    .btn-soon { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.25); color: rgba(255,255,255,0.55); padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; font-family: 'Poppins', sans-serif; cursor: default; user-select: none; }
+    .btn-soon .soon-label { font-size: 11px; letter-spacing: 0.4px; opacity: 0.75; }
+    body.light .btn-soon { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.18); color: rgba(0,0,0,0.45); }
+
     /* Hero mockup placeholder (shown until user drops in hero_mockup.png) */
     .hero-mockup-placeholder {
       width: 100%; max-width: 560px; aspect-ratio: 16/10;
@@ -596,6 +601,39 @@
     .auth-name-field { display: none; }
     .auth-name-field.show { display: block; }
     .search-overlay.open { display: block; }
+
+    /* ── BETA / TEST PHASE FLASHING BADGE ── */
+    .beta-badge {
+      position: fixed; top: 50%; right: 0; transform: translateY(-50%);
+      z-index: 600; display: flex; align-items: center; gap: 8px;
+      padding: 12px 10px 12px 14px;
+      background: linear-gradient(135deg, #ff3b3b, #d4af37);
+      border-radius: 12px 0 0 12px;
+      box-shadow: 0 0 0 0 rgba(255,59,59,0.6);
+      cursor: default; user-select: none;
+      animation: betaFlash 1.4s ease-in-out infinite;
+    }
+    .beta-badge .beta-dot {
+      width: 9px; height: 9px; border-radius: 50%; background: #fff;
+      flex-shrink: 0; animation: betaDot 1.4s ease-in-out infinite;
+    }
+    .beta-badge span.beta-text {
+      writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+      font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 11px;
+      letter-spacing: 1px; color: #fff; text-transform: uppercase; white-space: nowrap;
+    }
+    @keyframes betaFlash {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,59,0.55); }
+      50% { box-shadow: 0 0 0 14px rgba(255,59,59,0); }
+    }
+    @keyframes betaDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.25; }
+    }
+    @media (max-width: 600px) {
+      .beta-badge { padding: 10px 8px 10px 11px; }
+      .beta-badge span.beta-text { font-size: 10px; }
+    }
   </style>
 
   <!-- ── FIREBASE AUTH ── -->
@@ -783,13 +821,16 @@
 <section class="hero">
   <div class="hero-inner">
     <div class="hero-left">
-      <div class="hero-tag">✦ Professional Templates — Pitch Decks · Media Kits · More Coming</div>
+      <div class="hero-tag">✦ Professional Templates — Pitch Decks · Media Kits · Invoices · More Coming</div>
       <h1>Premium Templates That<br/>Make You <span>Stand Out</span></h1>
-      <p>Investor-ready pitch decks, brand media kits, and premium templates for every industry. Download free — no subscription, no signup required.</p>
+      <p>Investor-ready pitch decks, brand media kits, and premium templates for every industry. Crafted by design experts, ready to download in minutes.</p>
       <div class="hero-btns">
         <a href="pitch_deck_folder_section.html" class="btn-primary">Pitch Decks</a>
         <a href="media_kits_folder_section.html" class="btn-secondary">Media Kits</a>
         <a href="invoice.html" class="btn-green">Invoices</a>
+      </div>
+      <div class="hero-btns-soon">
+        <span class="btn-soon">Resumes <span class="soon-label">···Coming Soon···</span></span>
       </div>
     </div>
     <div class="hero-right" style="flex-direction:column; align-items:center; justify-content:center;">
@@ -1098,5 +1139,11 @@ function resetColour() {
 
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
+
+<!-- ── BETA / TEST PHASE FLASHING BADGE ── -->
+<div class="beta-badge" title="This site is currently in beta — testing and trial phase">
+  <span class="beta-dot"></span>
+  <span class="beta-text">Site Under Beta · Test &amp; Trial Phase</span>
+</div>
 </body>
 </html>
