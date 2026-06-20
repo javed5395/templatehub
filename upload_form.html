@@ -1057,7 +1057,7 @@ window.submitForm = async function() {
     let pdfUrl = null; let pdfPublicId = null;
     if (pdfFile) {
       setProgress(78, 'Uploading PDF...');
-      const r = await uploadToCloudinary(pdfFile, `${folder}/pdf`, 'raw');
+      const r = await uploadToCloudinary(pdfFile, `${folder}/pdf`, 'auto');
       pdfUrl = r.url; pdfPublicId = r.publicId;
     }
 
