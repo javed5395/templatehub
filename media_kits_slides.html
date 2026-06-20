@@ -1148,7 +1148,16 @@ function editCompleteDeck() {
 
 // MODAL / DOWNLOAD
 var _dlIsPdf = false;
-function openModal(t){_dlIsPdf=(t==='pdf'); document.getElementById('modalOverlay').style.display='flex';}
+function openModal(t){
+  var k = currentKitData;
+  var isFree = !k || !k.price || k.price === 'free' || k.price === '0' || parseFloat(k.price) === 0;
+  if (!isFree) {
+    alert('💳 Payment coming soon! This is a paid template. Online checkout will be available shortly.');
+    return;
+  }
+  _dlIsPdf = (t === 'pdf');
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
 function closeModal(){document.getElementById('modalOverlay').style.display='none';}
 function handleDownload(){
   var k = currentKitData;
