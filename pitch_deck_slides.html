@@ -750,7 +750,16 @@ function browseAllSlides() {
 }
 
 var _dlIsPdf = false;
-function openModal(isPdf){ _dlIsPdf = isPdf; document.getElementById('modalOverlay').style.display='flex'; }
+function openModal(isPdf){
+  var d = currentDeckData;
+  var isFree = !d || !d.price || d.price === 'free' || d.price === '0' || parseFloat(d.price) === 0;
+  if (!isFree) {
+    alert('\u{1F4B3} Payment coming soon! This is a paid template. Online checkout will be available shortly.');
+    return;
+  }
+  _dlIsPdf = isPdf;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
 function closeModal(){ document.getElementById('modalOverlay').style.display='none'; }
 function handleDownload(){
   closeModal();
