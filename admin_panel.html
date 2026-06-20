@@ -213,8 +213,8 @@ const ADMIN_PASSWORD = "lazydog2026";
 // ── CLOUDINARY DELETE CONFIG ──────────────────────────────────────────────────
 // Paste your Cloudinary API Key and Secret from: cloudinary.com/console → API Keys
 const CLOUDINARY_CLOUD      = 'dsqxuaucz';
-const CLOUDINARY_API_KEY    = 'YOUR_CLOUDINARY_API_KEY';    // ← replace this
-const CLOUDINARY_API_SECRET = 'YOUR_CLOUDINARY_API_SECRET'; // ← replace this
+const CLOUDINARY_API_KEY    = '886796574862833';
+const CLOUDINARY_API_SECRET = 'kB2uyeXQvWvI31beBc5P9rocnxM';
 const APPS_SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec';
 
 // SHA-1 via Web Crypto (needed to sign Cloudinary delete requests)
@@ -225,28 +225,36 @@ async function sha1Hex(str) {
 
 // Delete a single asset from Cloudinary (image or raw)
 async function deleteCloudinaryAsset(publicId, resourceType = 'image') {
-  if (!publicId || publicId.startsWith('http')) return; // skip if URL instead of public_id
-  const ts  = Math.round(Date.now() / 1000);
-  const sig = await sha1Hex(`public_id=${publicId}&timestamp=${ts}${CLOUDINARY_API_SECRET}`);
-  const form = new FormData();
-  form.append('public_id', publicId);
-  form.append('api_key',   CLOUDINARY_API_KEY);
-  form.append('timestamp', ts);
-  form.append('signature', sig);
-  await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/destroy`, {
-    method: 'POST', body: form
-  });
+  if (!publicId || publicId.startsWith('http')) return;
+  // Try both 'raw' and 'image' types — PDF uploaded as 'auto' may land in either
+  const types = resourceType === 'raw' ? ['raw', 'image'] : [resourceType];
+  for (const rType of types) {
+    const ts  = Math.round(Date.now() / 1000);
+    const sig = await sha1Hex(`public_id=${publicId}&timestamp=${ts}${CLOUDINARY_API_SECRET}`);
+    const form = new FormData();
+    form.append('public_id', publicId);
+    form.append('api_key',   CLOUDINARY_API_KEY);
+    form.append('timestamp', ts);
+    form.append('signature', sig);
+    const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${rType}/destroy`, {
+      method: 'POST', body: form
+    });
+    const json = await res.json().catch(() => ({}));
+    if (json.result === 'ok') return; // deleted successfully
+  }
 }
 
 // Delete a file from Google Drive via Apps Script
 async function deleteDriveFile(fileId) {
   if (!fileId) return;
   try {
-    await fetch(APPS_SCRIPT_URL, {
+    const res  = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       body: JSON.stringify({ action: 'delete', fileId })
     });
-  } catch(e) { console.warn('Drive delete skipped for', fileId, e.message); }
+    const json = await res.json().catch(() => ({}));
+    if (json.error) console.error('Drive delete error for', fileId, json.error);
+  } catch(e) { console.error('Drive delete failed for', fileId, e.message); }
 }
 
 function extractDriveFileId(url) {
@@ -393,6 +401,9 @@ window.rejectDoc = async function(docId) {
 
     // 2. Delete PDF from Cloudinary (raw resource type)
     if (cIds.pdf) await deleteCloudinaryAsset(cIds.pdf, 'raw');
+
+    // 2b. Delete PDF from Google Drive (when PDF was too large for Cloudinary)
+    if (dIds.pdf) await deleteDriveFile(dIds.pdf);
 
     // 3. Delete PPTX from Google Drive
     const pptxId = dIds.pptx || extractDriveFileId(t.pptxUrl);
