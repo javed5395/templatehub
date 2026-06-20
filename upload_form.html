@@ -593,6 +593,7 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, getDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -995,6 +996,35 @@ window.resetSubmitForm = function() {
   document.getElementById('uploadErrorMsg').textContent     = '';
 };
 
+// ── PDF COMPRESSION ───────────────────────────────────────────────────────────
+const CLOUDINARY_PDF_MAX = 10 * 1024 * 1024; // 10 MB hard limit
+
+async function compressPdfIfNeeded(file) {
+  if (file.size <= CLOUDINARY_PDF_MAX) return file; // already fine
+
+  setProgress(73, `Compressing PDF (${(file.size/1024/1024).toFixed(1)} MB → targeting <10 MB)...`);
+  try {
+    const { PDFDocument } = window.PDFLib;
+    const arrayBuffer    = await file.arrayBuffer();
+    const pdfDoc         = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+    const compressedBytes = await pdfDoc.save({ useObjectStreams: true });
+    const compressed      = new File([compressedBytes], file.name, { type: 'application/pdf' });
+
+    if (compressed.size > CLOUDINARY_PDF_MAX) {
+      throw new Error(
+        `PDF is still ${(compressed.size/1024/1024).toFixed(1)} MB after compression ` +
+        `(Cloudinary limit is 10 MB). Please manually reduce the PDF size and try again.`
+      );
+    }
+
+    console.log(`PDF compressed: ${(file.size/1024/1024).toFixed(1)} MB → ${(compressed.size/1024/1024).toFixed(1)} MB`);
+    return compressed;
+  } catch(err) {
+    if (err.message.includes('still')) throw err;
+    throw new Error('PDF compression failed: ' + err.message + '. Please try a smaller PDF.');
+  }
+}
+
 // ── SUBMIT FORM ───────────────────────────────────────────────────────────────
 window.submitForm = async function() {
   if (!currentUser || !sellerProfile) { alert('Please sign in first.'); return; }
@@ -1054,11 +1084,21 @@ window.submitForm = async function() {
     const pptxFileId = extractDriveFileId(pptxUrl);
 
     // 3. Upload PDF (optional)
-    let pdfUrl = null; let pdfPublicId = null;
+    // ≤ 50 MB → compress if needed → Cloudinary
+    // > 50 MB → Google Drive (no size restriction)
+    const PDF_DRIVE_THRESHOLD = 50 * 1024 * 1024;
+    let pdfUrl = null; let pdfPublicId = null; let pdfDriveFileId = null;
     if (pdfFile) {
-      setProgress(78, 'Uploading PDF...');
-      const r = await uploadToCloudinary(pdfFile, `${folder}/pdf`, 'auto');
-      pdfUrl = r.url; pdfPublicId = r.publicId;
+      if (pdfFile.size > PDF_DRIVE_THRESHOLD) {
+        setProgress(75, `Large PDF (${(pdfFile.size/1024/1024).toFixed(1)} MB) — uploading to Google Drive...`);
+        pdfUrl        = await uploadDocToDrive(pdfFile);
+        pdfDriveFileId = extractDriveFileId(pdfUrl);
+      } else {
+        const uploadPdf = await compressPdfIfNeeded(pdfFile);
+        setProgress(78, `Uploading PDF (${(uploadPdf.size/1024/1024).toFixed(1)} MB)...`);
+        const r = await uploadToCloudinary(uploadPdf, `${folder}/pdf`, 'auto');
+        pdfUrl = r.url; pdfPublicId = r.publicId;
+      }
     }
 
     // 4. Upload Keynote (optional)
@@ -1115,8 +1155,9 @@ window.submitForm = async function() {
         pdf:    pdfPublicId || null
       },
       driveFileIds: {
-        pptx:       pptxFileId    || null,
-        key:        keyFileId     || null,
+        pptx:       pptxFileId      || null,
+        pdf:        pdfDriveFileId  || null,
+        key:        keyFileId       || null,
         designDoc:  designDocFileId || null,
         extraFiles: extraFileIds
       },
