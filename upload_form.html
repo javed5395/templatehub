@@ -575,6 +575,11 @@
       <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     </div>
 
+    <div id="uploadErrorBox" style="display:none; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); border-radius:12px; padding:16px 20px; margin-top:12px;">
+      <p id="uploadErrorMsg" style="color:#f87171; font-size:13px; font-weight:600; margin-bottom:12px;">Upload failed. Please check the error above.</p>
+      <button class="btn btn-outline" onclick="resetSubmitForm()" style="margin-top:0; font-size:13px; padding:10px 20px; width:auto;">↺ Reset &amp; Try Again</button>
+    </div>
+
     <button class="btn" id="submitBtn" onclick="submitForm()">🚀 Submit Template for Review</button>
   </div>
 
@@ -609,6 +614,35 @@ const googleProvider = new GoogleAuthProvider();
 const CLOUDINARY_CLOUD  = "dsqxuaucz";
 const CLOUDINARY_PRESET = "lazydog_unsigned";
 const APPS_SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec";
+
+// ── FILE SIZE LIMITS (change these to adjust limits) ─────────────────────────
+const FILE_LIMITS = {
+  pngFiles:  { maxMB: 1,   label: 'PNG / JPG slide'   },
+  pptxFile:  { maxMB: 80,  label: 'PPTX file'          },
+  pdfFile:   { maxMB: 80,  label: 'PDF file'            },
+  keyFile:   { maxMB: 150, label: 'Keynote file'        },
+  designDoc: { maxMB: 1,   label: 'Design brief doc'    },
+  extraFile: { maxMB: 100, label: 'Extra format file'   }
+};
+
+// ── BLOCKED DANGEROUS EXTENSIONS ─────────────────────────────────────────────
+const BLOCKED_EXTENSIONS = ['exe','bat','cmd','sh','bash','ps1','vbs','js','mjs',
+  'php','py','rb','pl','jar','com','scr','pif','reg','dll','msi','dmg','app',
+  'iso','img','lnk','hta','wsf','cpl','inf','sys','drv'];
+
+// ── MAGIC BYTES (file signature verification) ─────────────────────────────────
+const MAGIC_SIGNATURES = {
+  png:  { sig: [0x89,0x50,0x4E,0x47], desc: 'PNG image'       },
+  jpg:  { sig: [0xFF,0xD8,0xFF],       desc: 'JPEG image'      },
+  jpeg: { sig: [0xFF,0xD8,0xFF],       desc: 'JPEG image'      },
+  pdf:  { sig: [0x25,0x50,0x44,0x46], desc: 'PDF document'    },
+  pptx: { sig: [0x50,0x4B,0x03,0x04], desc: 'PPTX (ZIP-based)'},
+  ppt:  { sig: [0xD0,0xCF,0x11,0xE0], desc: 'PPT document'    },
+  key:  { sig: [0x50,0x4B,0x03,0x04], desc: 'Keynote (ZIP)'   },
+  docx: { sig: [0x50,0x4B,0x03,0x04], desc: 'DOCX (ZIP-based)'},
+  doc:  { sig: [0xD0,0xCF,0x11,0xE0], desc: 'DOC document'    },
+  txt:  null  // plain text — no magic bytes
+};
 
 let currentUser    = null;
 let sellerProfile  = null;
@@ -785,13 +819,108 @@ window.hideSubmissions = function() {
   document.getElementById('submissionsPanel').style.display = 'none';
 };
 
-// ── FILE DISPLAY ─────────────────────────────────────────────────────────────
-window.showFiles = function(inputId, listId) {
+// ── FILE VALIDATION HELPERS ───────────────────────────────────────────────────
+function showFilePopup(icon, title, msg) {
+  document.getElementById('fvIcon').textContent  = icon;
+  document.getElementById('fvTitle').textContent = title;
+  document.getElementById('fvMsg').innerHTML     = msg;
+  document.getElementById('fileValidationPopup').style.display = 'flex';
+}
+
+function getExtension(filename) {
+  return filename.split('.').pop().toLowerCase();
+}
+
+function getLimitKey(inputId) {
+  if (inputId.startsWith('extraFile')) return 'extraFile';
+  return FILE_LIMITS[inputId] ? inputId : 'extraFile';
+}
+
+// Returns a Promise<true> if file passes magic bytes check, false otherwise
+function checkMagicBytes(file) {
+  return new Promise(resolve => {
+    const ext = getExtension(file.name);
+    const sig = MAGIC_SIGNATURES[ext];
+    if (sig === undefined) { resolve(true); return; }   // unknown ext — let size check handle it
+    if (sig === null)      { resolve(true); return; }   // txt — no magic bytes to check
+    const reader = new FileReader();
+    reader.onload = e => {
+      const bytes = new Uint8Array(e.target.result);
+      const match = sig.sig.every((b, i) => bytes[i] === b);
+      resolve(match);
+    };
+    reader.onerror = () => resolve(false);
+    reader.readAsArrayBuffer(file.slice(0, 8));
+  });
+}
+
+// ── FILE DISPLAY + VALIDATION ─────────────────────────────────────────────────
+window.showFiles = async function(inputId, listId) {
   const input = document.getElementById(inputId);
   const list  = document.getElementById(listId);
   list.innerHTML = '';
-  Array.from(input.files).forEach(f => {
-    list.innerHTML += `<div class="file-item"><span>✓</span> ${f.name} (${(f.size/1024/1024).toFixed(1)} MB)</div>`;
+
+  const files    = Array.from(input.files);
+  const limitKey = getLimitKey(inputId);
+  const limit    = FILE_LIMITS[limitKey];
+  const maxBytes = limit.maxMB * 1024 * 1024;
+  const rejected = [];
+  const accepted = [];
+
+  for (const file of files) {
+    const ext = getExtension(file.name);
+
+    // 1. Block dangerous extensions
+    if (BLOCKED_EXTENSIONS.includes(ext)) {
+      rejected.push({ file, reason: `<strong>${file.name}</strong> is a potentially dangerous file type (<code>.${ext}</code>) and cannot be uploaded.` });
+      continue;
+    }
+
+    // 2. File size check
+    if (file.size > maxBytes) {
+      rejected.push({ file, reason: `<strong>${file.name}</strong> is <strong>${(file.size/1024/1024).toFixed(1)} MB</strong>. Maximum allowed for ${limit.label} is <strong>${limit.maxMB} MB</strong>.` });
+      continue;
+    }
+
+    // 3. Magic bytes check (file content vs extension)
+    const magicOk = await checkMagicBytes(file);
+    if (!magicOk) {
+      rejected.push({ file, reason: `<strong>${file.name}</strong> does not appear to be a valid ${getExtension(file.name).toUpperCase()} file. The file content does not match its extension — it may be corrupted or disguised.` });
+      continue;
+    }
+
+    accepted.push(file);
+  }
+
+  // Show rejection popup if any file failed
+  // NOTE: Only the rejected files in THIS box are cleared.
+  //       All other upload boxes on the form are NEVER touched.
+  if (rejected.length > 0) {
+    const msgs = rejected.map(r => `• ${r.reason}`).join('<br/><br/>');
+    showFilePopup(
+      rejected.some(r => r.reason.includes('dangerous')) ? '🚫' : '📏',
+      rejected.length === 1 ? 'File Not Accepted' : `${rejected.length} Files Not Accepted`,
+      msgs + (accepted.length > 0 ? `<br/><br/><span style="color:#4ade80">✓ ${accepted.length} file(s) were accepted and kept.</span>` : '')
+    );
+    // For multi-file inputs (PNG): keep only the accepted files, reject the bad ones
+    if (input.multiple) {
+      if (accepted.length > 0) {
+        const dt = new DataTransfer();
+        accepted.forEach(f => dt.items.add(f));
+        input.files = dt.files;
+      } else {
+        input.value = ''; // all files in this box failed — clear only this box
+      }
+    } else {
+      // Single-file input: clear only this specific box, nothing else
+      input.value = '';
+    }
+  }
+
+  // Display accepted files in this box only
+  const display = input.multiple ? Array.from(input.files) : (input.files[0] ? [input.files[0]] : []);
+  display.forEach(f => {
+    list.innerHTML += `<div class="file-item"><span>✓</span> ${f.name} <span style="color:var(--muted)">(${(f.size/1024/1024).toFixed(1)} MB)</span></div>`;
   });
 };
 
@@ -804,7 +933,18 @@ async function uploadToCloudinary(file, folder, resourceType = 'image') {
   const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`, { method: 'POST', body: formData });
   const data = await res.json();
   if (!data.secure_url) throw new Error(data.error?.message || 'Cloudinary upload failed');
-  return data.secure_url;
+  return { url: data.secure_url, publicId: data.public_id };
+}
+
+// Extract Google Drive file ID from any Drive URL format
+function extractDriveFileId(url) {
+  if (!url) return null;
+  // Format 1: uc?export=download&id=FILE_ID  (Apps Script upload URL)
+  let m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  // Format 2: /d/FILE_ID/view  (standard share URL)
+  m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
 }
 
 function readFileAsBase64(file) {
@@ -843,6 +983,17 @@ function setProgress(pct, text) {
   document.getElementById('progressText').textContent   = text;
 }
 
+window.resetSubmitForm = function() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled    = false;
+  btn.textContent = '🚀 Submit Template for Review';
+  document.getElementById('progressSection').style.display  = 'none';
+  document.getElementById('progressFill').style.width       = '0%';
+  document.getElementById('progressText').textContent       = 'Uploading files...';
+  document.getElementById('uploadErrorBox').style.display   = 'none';
+  document.getElementById('uploadErrorMsg').textContent     = '';
+};
+
 // ── SUBMIT FORM ───────────────────────────────────────────────────────────────
 window.submitForm = async function() {
   if (!currentUser || !sellerProfile) { alert('Please sign in first.'); return; }
@@ -879,50 +1030,61 @@ window.submitForm = async function() {
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
+  btn.textContent = '⏳ Uploading... Please Wait';
   document.getElementById('progressSection').style.display = 'block';
+  document.getElementById('uploadErrorBox').style.display  = 'none';
 
   try {
-    const folder    = `lazydog/${category}/${templateName.replace(/\s+/g,'_')}`;
-    const slideUrls = [];
+    const folder         = `lazydog/${category}/${templateName.replace(/\s+/g,'_')}`;
+    const slideUrls      = [];
+    const slidePublicIds = [];
 
     // 1. Upload PNG slides
     for (let i = 0; i < pngFiles.length; i++) {
       setProgress(Math.round((i / pngFiles.length) * 55), `Uploading slide ${i+1} of ${pngFiles.length}...`);
-      slideUrls.push(await uploadToCloudinary(pngFiles[i], `${folder}/slides`));
+      const r = await uploadToCloudinary(pngFiles[i], `${folder}/slides`);
+      slideUrls.push(r.url);
+      slidePublicIds.push(r.publicId);
     }
 
     // 2. Upload PPTX to Google Drive
     setProgress(65, 'Uploading PPTX to Google Drive...');
-    const pptxUrl = await uploadPptxToDrive(pptxFile);
+    const pptxUrl    = await uploadPptxToDrive(pptxFile);
+    const pptxFileId = extractDriveFileId(pptxUrl);
 
     // 3. Upload PDF (optional)
-    let pdfUrl = null;
+    let pdfUrl = null; let pdfPublicId = null;
     if (pdfFile) {
       setProgress(78, 'Uploading PDF...');
-      pdfUrl = await uploadToCloudinary(pdfFile, `${folder}/pdf`, 'raw');
+      const r = await uploadToCloudinary(pdfFile, `${folder}/pdf`, 'raw');
+      pdfUrl = r.url; pdfPublicId = r.publicId;
     }
 
     // 4. Upload Keynote (optional)
-    let keyUrl = null;
+    let keyUrl = null; let keyFileId = null;
     if (keyFile) {
       setProgress(82, 'Uploading Keynote file...');
-      keyUrl = await uploadDocToDrive(keyFile);
+      keyUrl    = await uploadDocToDrive(keyFile);
+      keyFileId = extractDriveFileId(keyUrl);
     }
 
     // 5. Upload extra formats (optional, unlimited)
-    const extraUrls = [];
+    const extraUrls    = [];
+    const extraFileIds = [];
     for (let i = 0; i < extraFiles.length; i++) {
       setProgress(84 + Math.round((i / Math.max(extraFiles.length,1)) * 6), `Uploading extra file ${i+1} of ${extraFiles.length}...`);
-      const ext = extraFiles[i].name.split('.').pop().toLowerCase();
-      const url = await uploadDocToDrive(extraFiles[i]);
+      const ext  = extraFiles[i].name.split('.').pop().toLowerCase();
+      const url  = await uploadDocToDrive(extraFiles[i]);
       extraUrls.push({ name: extraFiles[i].name, ext: '.' + ext.toUpperCase(), url });
+      extraFileIds.push(extractDriveFileId(url));
     }
 
     // 6. Upload supporting document (optional)
-    let designDocUrl = null;
+    let designDocUrl = null; let designDocFileId = null;
     if (designDocFile) {
       setProgress(91, 'Uploading design brief...');
-      designDocUrl = await uploadDocToDrive(designDocFile);
+      designDocUrl    = await uploadDocToDrive(designDocFile);
+      designDocFileId = extractDriveFileId(designDocUrl);
     }
 
     // Build fileTypes array dynamically
@@ -945,6 +1107,17 @@ window.submitForm = async function() {
         phone: sellerProfile.phone,
         email: sellerProfile.email || currentUser.email,
         shopName: sellerProfile.shopName || sellerProfile.name
+      },
+      // Storage IDs — used by admin panel to delete files on rejection
+      cloudinaryIds: {
+        slides: slidePublicIds,
+        pdf:    pdfPublicId || null
+      },
+      driveFileIds: {
+        pptx:       pptxFileId    || null,
+        key:        keyFileId     || null,
+        designDoc:  designDocFileId || null,
+        extraFiles: extraFileIds
       },
       template: {
         name:        templateName,
@@ -972,8 +1145,9 @@ window.submitForm = async function() {
 
   } catch(err) {
     console.error(err);
-    alert('Upload error: ' + err.message);
-    btn.disabled = false;
+    document.getElementById('uploadErrorMsg').textContent = '❌ Upload failed: ' + err.message;
+    document.getElementById('uploadErrorBox').style.display = 'block';
+    // btn stays disabled — user must click Reset & Try Again deliberately
   }
 };
 
@@ -1363,6 +1537,25 @@ function resetColour() {
   document.getElementById('colourHex').textContent = '#D4AF37';
 }
 </script>
+<!-- ── FILE VALIDATION POPUP ──────────────────────────────────────────────── -->
+<div id="fileValidationPopup" style="
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75);
+  z-index:99999; align-items:center; justify-content:center;">
+  <div style="
+    background:#0d0d2b; border:1px solid rgba(212,175,55,0.35);
+    border-radius:20px; padding:36px 32px; max-width:420px; width:90%;
+    text-align:center; box-shadow:0 30px 80px rgba(0,0,0,0.8);
+    font-family:'Poppins',sans-serif;">
+    <div id="fvIcon" style="font-size:52px; margin-bottom:14px;">⚠️</div>
+    <h3 id="fvTitle" style="font-size:17px; font-weight:800; color:#e8eaf0; margin-bottom:10px;">File Not Accepted</h3>
+    <p id="fvMsg" style="font-size:13px; color:#8899aa; line-height:1.7; margin-bottom:24px;"></p>
+    <button onclick="document.getElementById('fileValidationPopup').style.display='none'"
+      style="background:#d4af37; color:#070714; border:none; border-radius:10px;
+             padding:12px 32px; font-family:'Poppins',sans-serif; font-size:14px;
+             font-weight:800; cursor:pointer;">Got it</button>
+  </div>
+</div>
+
 <script src="footerbar.js"></script>
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>

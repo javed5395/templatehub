@@ -209,6 +209,55 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 const ADMIN_PASSWORD = "lazydog2026";
+
+// ── CLOUDINARY DELETE CONFIG ──────────────────────────────────────────────────
+// Paste your Cloudinary API Key and Secret from: cloudinary.com/console → API Keys
+const CLOUDINARY_CLOUD      = 'dsqxuaucz';
+const CLOUDINARY_API_KEY    = 'YOUR_CLOUDINARY_API_KEY';    // ← replace this
+const CLOUDINARY_API_SECRET = 'YOUR_CLOUDINARY_API_SECRET'; // ← replace this
+const APPS_SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec';
+
+// SHA-1 via Web Crypto (needed to sign Cloudinary delete requests)
+async function sha1Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Delete a single asset from Cloudinary (image or raw)
+async function deleteCloudinaryAsset(publicId, resourceType = 'image') {
+  if (!publicId || publicId.startsWith('http')) return; // skip if URL instead of public_id
+  const ts  = Math.round(Date.now() / 1000);
+  const sig = await sha1Hex(`public_id=${publicId}&timestamp=${ts}${CLOUDINARY_API_SECRET}`);
+  const form = new FormData();
+  form.append('public_id', publicId);
+  form.append('api_key',   CLOUDINARY_API_KEY);
+  form.append('timestamp', ts);
+  form.append('signature', sig);
+  await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/destroy`, {
+    method: 'POST', body: form
+  });
+}
+
+// Delete a file from Google Drive via Apps Script
+async function deleteDriveFile(fileId) {
+  if (!fileId) return;
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', fileId })
+    });
+  } catch(e) { console.warn('Drive delete skipped for', fileId, e.message); }
+}
+
+function extractDriveFileId(url) {
+  if (!url) return null;
+  // Format 1: uc?export=download&id=FILE_ID  (Apps Script upload URL)
+  let m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  // Format 2: /d/FILE_ID/view  (standard share URL)
+  m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
 let currentTab = 'pending';
 let allDocs    = [];
 
@@ -313,19 +362,65 @@ function renderCards() {
 }
 
 // ── APPROVE / REJECT ─────────────────────────────────────────────────────────
-window.approveDoc = async function(id) {
-  await updateDoc(doc(db, 'templates', id), { status: 'approved' });
-  const idx = allDocs.findIndex(d => d.id === id);
-  if (idx > -1) allDocs[idx].status = 'approved';
-  updateCounts(); renderCards();
+window.approveDoc = async function(docId) {
+  if (!confirm('Approve this submission? It will become visible on the site.')) return;
+  try {
+    await updateDoc(doc(db, 'templates', docId), { status: 'approved' });
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs[idx].status = 'approved';
+    updateCounts(); renderCards();
+  } catch(e) { alert('Approve failed: ' + e.message); }
 };
 
-window.rejectDoc = async function(id) {
-  if (!confirm('Reject this submission?')) return;
-  await updateDoc(doc(db, 'templates', id), { status: 'rejected' });
-  const idx = allDocs.findIndex(d => d.id === id);
-  if (idx > -1) allDocs[idx].status = 'rejected';
-  updateCounts(); renderCards();
+window.rejectDoc = async function(docId) {
+  if (!confirm('Reject this submission?\n\nThis will permanently DELETE all files from Cloudinary and Google Drive. This cannot be undone.')) return;
+
+  const entry = allDocs.find(d => d.id === docId);
+  const t     = entry?.template    || {};
+  const cIds  = entry?.cloudinaryIds || {};
+  const dIds  = entry?.driveFileIds  || {};
+
+  // Disable the reject button to prevent double-click
+  const btn = document.querySelector(`[onclick="rejectDoc('${docId}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Deleting...'; }
+
+  try {
+    // 1. Delete PNG slides from Cloudinary
+    const slidePubIds = cIds.slides || [];
+    for (const pid of slidePubIds) {
+      await deleteCloudinaryAsset(pid, 'image');
+    }
+
+    // 2. Delete PDF from Cloudinary (raw resource type)
+    if (cIds.pdf) await deleteCloudinaryAsset(cIds.pdf, 'raw');
+
+    // 3. Delete PPTX from Google Drive
+    const pptxId = dIds.pptx || extractDriveFileId(t.pptxUrl);
+    await deleteDriveFile(pptxId);
+
+    // 4. Delete Keynote from Google Drive
+    const keyId = dIds.key || extractDriveFileId(t.keyUrl);
+    await deleteDriveFile(keyId);
+
+    // 5. Delete design doc from Google Drive
+    const docFileId = dIds.designDoc || extractDriveFileId(t.designDocUrl);
+    await deleteDriveFile(docFileId);
+
+    // 6. Delete extra format files from Google Drive
+    const extraIds = dIds.extraFiles || [];
+    for (const fid of extraIds) await deleteDriveFile(fid);
+
+    // 7. Update Firestore status
+    await updateDoc(doc(db, 'templates', docId), { status: 'rejected' });
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs[idx].status = 'rejected';
+    updateCounts(); renderCards();
+
+  } catch(err) {
+    console.error('Rejection error:', err);
+    alert('Error during rejection: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '✕ Reject'; }
+  }
 };
 
 // ── NOTES TOGGLE ─────────────────────────────────────────────────────────────
