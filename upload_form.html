@@ -1098,6 +1098,26 @@ window.submitForm = async function() {
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
+  btn.textContent = '⏳ Checking...';
+
+  // ── DUPLICATE CHECK — block if same seller already has pending submission with same name ──
+  try {
+    const dupQ    = query(collection(db, 'templates'),
+                      where('sellerId',      '==', currentUser.uid),
+                      where('template.name', '==', templateName),
+                      where('status',        '==', 'pending'));
+    const dupSnap = await getDocs(dupQ);
+    if (!dupSnap.empty) {
+      alert(`⚠️ You already have a pending submission named "${templateName}".\n\nWait for admin review or contact support to remove it before resubmitting.`);
+      btn.disabled    = false;
+      btn.textContent = '🚀 Submit Template for Review';
+      return;
+    }
+  } catch(dupErr) {
+    console.warn('Duplicate check failed:', dupErr);
+    // Continue anyway if check fails
+  }
+
   btn.textContent = '⏳ Uploading... Please Wait';
   document.getElementById('progressSection').style.display = 'block';
   document.getElementById('uploadErrorBox').style.display  = 'none';
