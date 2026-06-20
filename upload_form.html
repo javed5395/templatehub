@@ -594,6 +594,8 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, getDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -999,29 +1001,63 @@ window.resetSubmitForm = function() {
 // ── PDF COMPRESSION ───────────────────────────────────────────────────────────
 const CLOUDINARY_PDF_MAX = 10 * 1024 * 1024; // 10 MB hard limit
 
+// Canvas-based PDF compression — renders each page as JPEG and rebuilds PDF.
+// Tries 3 quality levels. Returns best result; caller checks size and routes accordingly.
 async function compressPdfIfNeeded(file) {
   if (file.size <= CLOUDINARY_PDF_MAX) return file; // already fine
 
-  setProgress(73, `Compressing PDF (${(file.size/1024/1024).toFixed(1)} MB → targeting <10 MB)...`);
   try {
-    const { PDFDocument } = window.PDFLib;
-    const arrayBuffer    = await file.arrayBuffer();
-    const pdfDoc         = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
-    const compressedBytes = await pdfDoc.save({ useObjectStreams: true });
-    const compressed      = new File([compressedBytes], file.name, { type: 'application/pdf' });
+    const pdfjsLib = window.pdfjsLib;
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    const { jsPDF } = window.jspdf;
 
-    if (compressed.size > CLOUDINARY_PDF_MAX) {
-      throw new Error(
-        `PDF is still ${(compressed.size/1024/1024).toFixed(1)} MB after compression ` +
-        `(Cloudinary limit is 10 MB). Please manually reduce the PDF size and try again.`
-      );
+    const buffer  = await file.arrayBuffer();
+    const pdfDoc  = await pdfjsLib.getDocument({ data: buffer }).promise;
+    const numPages = pdfDoc.numPages;
+
+    // Try progressively lower quality until it fits under 10 MB
+    const attempts = [[0.75, 1.5], [0.6, 1.2], [0.45, 1.0]];
+    let best = file;
+
+    for (const [quality, scale] of attempts) {
+      setProgress(72, `Compressing PDF — quality ${Math.round(quality * 100)}% (${(file.size/1024/1024).toFixed(1)} MB)...`);
+
+      const firstPage = await pdfDoc.getPage(1);
+      const fpVp      = firstPage.getViewport({ scale: 1 });
+      const jdoc      = new jsPDF({
+        orientation: fpVp.width > fpVp.height ? 'l' : 'p',
+        unit: 'pt',
+        format: [fpVp.width, fpVp.height],
+        compress: true
+      });
+
+      for (let p = 1; p <= numPages; p++) {
+        if (p > 1) {
+          const pg   = await pdfDoc.getPage(p);
+          const pgVp = pg.getViewport({ scale: 1 });
+          jdoc.addPage([pgVp.width, pgVp.height]);
+        }
+        const page  = await pdfDoc.getPage(p);
+        const vp    = page.getViewport({ scale });
+        const cv    = document.createElement('canvas');
+        cv.width    = vp.width;
+        cv.height   = vp.height;
+        await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+        const pg1vp = page.getViewport({ scale: 1 });
+        jdoc.addImage(cv.toDataURL('image/jpeg', quality), 'JPEG', 0, 0, pg1vp.width, pg1vp.height, '', 'FAST');
+      }
+
+      const result = new File([jdoc.output('arraybuffer')], file.name, { type: 'application/pdf' });
+      console.log(`PDF compress [q=${quality}]: ${(file.size/1024/1024).toFixed(1)} → ${(result.size/1024/1024).toFixed(1)} MB`);
+      best = result;
+      if (result.size <= CLOUDINARY_PDF_MAX) return result; // fits — done
     }
 
-    console.log(`PDF compressed: ${(file.size/1024/1024).toFixed(1)} MB → ${(compressed.size/1024/1024).toFixed(1)} MB`);
-    return compressed;
+    return best; // best attempt — caller routes to Drive if still too large
   } catch(err) {
-    if (err.message.includes('still')) throw err;
-    throw new Error('PDF compression failed: ' + err.message + '. Please try a smaller PDF.');
+    console.warn('Canvas PDF compression failed:', err);
+    return file; // fallback to original — caller will route to Drive
   }
 }
 
@@ -1084,20 +1120,19 @@ window.submitForm = async function() {
     const pptxFileId = extractDriveFileId(pptxUrl);
 
     // 3. Upload PDF (optional)
-    // ≤ 50 MB → compress if needed → Cloudinary
-    // > 50 MB → Google Drive (no size restriction)
-    const PDF_DRIVE_THRESHOLD = 50 * 1024 * 1024;
+    // Try compress → if result ≤ 10 MB → Cloudinary
+    //               if result still > 10 MB → Google Drive (auto fallback)
     let pdfUrl = null; let pdfPublicId = null; let pdfDriveFileId = null;
     if (pdfFile) {
-      if (pdfFile.size > PDF_DRIVE_THRESHOLD) {
-        setProgress(75, `Large PDF (${(pdfFile.size/1024/1024).toFixed(1)} MB) — uploading to Google Drive...`);
-        pdfUrl        = await uploadDocToDrive(pdfFile);
-        pdfDriveFileId = extractDriveFileId(pdfUrl);
-      } else {
-        const uploadPdf = await compressPdfIfNeeded(pdfFile);
-        setProgress(78, `Uploading PDF (${(uploadPdf.size/1024/1024).toFixed(1)} MB)...`);
+      const uploadPdf = await compressPdfIfNeeded(pdfFile);
+      if (uploadPdf.size <= CLOUDINARY_PDF_MAX) {
+        setProgress(78, `Uploading PDF (${(uploadPdf.size/1024/1024).toFixed(1)} MB) to Cloudinary...`);
         const r = await uploadToCloudinary(uploadPdf, `${folder}/pdf`, 'auto');
         pdfUrl = r.url; pdfPublicId = r.publicId;
+      } else {
+        setProgress(75, `PDF too large for Cloudinary — sending to Google Drive (${(pdfFile.size/1024/1024).toFixed(1)} MB)...`);
+        pdfUrl         = await uploadDocToDrive(pdfFile);
+        pdfDriveFileId = extractDriveFileId(pdfUrl);
       }
     }
 
