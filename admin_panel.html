@@ -150,6 +150,7 @@
       <div class="stat-pill">Pending: <span class="num" id="pendingCount">0</span></div>
       <div class="stat-pill">Approved: <span class="num" id="approvedCount">0</span></div>
       <div class="stat-pill">Rejected: <span class="num" id="rejectedCount">0</span></div>
+      <button onclick="cleanOrphanDriveFiles()" style="margin-left:12px;padding:8px 18px;background:#e53e3e;color:#fff;border:none;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;font-family:Poppins,sans-serif;">🧹 Clean Drive Orphans</button>
     </div>
   </div>
   <div class="tabs">
@@ -535,6 +536,53 @@ window.openDocExternal = function() {
 document.addEventListener('keydown', e => {
   if (document.getElementById('docModal').classList.contains('open') && e.key === 'Escape') closeDocModal();
 });
+
+// ── CLEAN ORPHAN DRIVE FILES ──
+window.cleanOrphanDriveFiles = async function() {
+  if (!confirm('This will scan Google Drive folder, compare with Firestore records, and DELETE all orphan files not linked to any submission.\n\nContinue?')) return;
+
+  try {
+    // Step 1: Collect all valid fileIds from Firestore
+    const validIds = new Set();
+    allDocs.forEach(function(d) {
+      var dIds = d.driveFileIds || {};
+      if (dIds.pptx)      validIds.add(dIds.pptx);
+      if (dIds.pdf)       validIds.add(dIds.pdf);
+      if (dIds.key)       validIds.add(dIds.key);
+      if (dIds.designDoc) validIds.add(dIds.designDoc);
+      (dIds.extraFiles || []).forEach(function(id) { if(id) validIds.add(id); });
+    });
+
+    // Step 2: List all files in Drive folder via Apps Script
+    const res  = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'listFolder' })
+    });
+    const data = await res.json();
+    if (!data.success) { alert('Could not list Drive files: ' + (data.error || 'Unknown error')); return; }
+
+    const driveFiles = data.files || [];
+    const orphans    = driveFiles.filter(function(f) { return !validIds.has(f.id); });
+
+    if (orphans.length === 0) { alert('✅ No orphan files found. Drive is clean!'); return; }
+
+    if (!confirm(`Found ${orphans.length} orphan file(s) not linked to any submission:\n\n${orphans.map(f=>f.name).join('\n')}\n\nDelete all?`)) return;
+
+    // Step 3: Delete orphans
+    let deleted = 0, failed = 0;
+    for (const f of orphans) {
+      try {
+        await deleteDriveFile(f.id);
+        deleted++;
+      } catch(e) { failed++; }
+    }
+
+    alert(`🧹 Done!\nDeleted: ${deleted}\nFailed: ${failed}`);
+
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+};
 </script>
 <script>
 // ── COLOUR PANEL ──
