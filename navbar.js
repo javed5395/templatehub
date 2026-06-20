@@ -624,7 +624,20 @@
         var t = e.results[e.results.length - 1][0].transcript.trim();
         vaHandleCommand(t);
       };
-      vaRecognition.onerror = function() { vaListening = false; if(btn) btn.classList.remove('va-listening'); };
+      vaRecognition.onerror = function(e) {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          vaListening = false;
+          if (btn) btn.classList.remove('va-listening');
+          vaShowBubble('Mic access denied');
+        }
+        // other errors (network, no-speech) — let onend handle restart
+      };
+      vaRecognition.onend = function() {
+        // Auto-restart if still supposed to be listening (Chrome stops after silence)
+        if (vaListening) {
+          try { vaRecognition.start(); } catch(ex) {}
+        }
+      };
       vaRecognition.start();
       vaListening = true;
       if (btn) btn.classList.add('va-listening');
