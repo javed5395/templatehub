@@ -153,7 +153,6 @@
         </div>
       </div>
     </div>
-    <button class="nb-edit" onclick="(function(){ if(typeof openEditPopup==='function') openEditPopup(); else window.open('edit_section.html','_blank'); })()">✏️ Edit</button>
     <button class="nb-seller" onclick="window.location='upload_form.html'">🛍️ Become a Seller</button>
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
