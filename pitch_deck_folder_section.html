@@ -465,7 +465,7 @@
       '<div class="pd-card-title">' + deck.title + '</div>' +
       '<div class="pd-card-meta">' +
         '<span><span class="pd-card-stars">★★★★★</span><span class="pd-card-rating">(48)</span></span>' +
-        '<span class="pd-card-price">' + (deck.price === 'pro' ? 'PRO' : 'FREE') + '</span>' +
+        (deck.price && deck.price !== 'free' && deck.price !== '0' && parseFloat(deck.price) > 0 ? '<span class="pd-card-price">USD ' + parseFloat(deck.price).toFixed(2) + '</span>' : '') +
       '</div>' +
       '<div class="pd-card-actions"><div class="pd-card-btn-view">View Slides</div></div>';
     a.appendChild(info);
