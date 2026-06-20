@@ -1117,10 +1117,24 @@ function applyBgColour(r, g, b) {
 
   document.getElementById('colourSwatch').style.background = hex;
   document.getElementById('colourHex').textContent = hex.toUpperCase();
+
+  // Auto-adapt text colour based on luminance of picked background
+  var luminance = 0.299*r + 0.587*g + 0.114*b;
+  var isDark = luminance <= 160;
+  var textColour = isDark ? '#ffffff' : '#0d0d1a';
+  document.body.style.color = textColour;
+  // Hero h1 has its own hardcoded colour rule — must override it directly
+  document.querySelectorAll('.hero h1, .hero p, .hero-sub, .hero-tag, .stat-num, .stat-label, .section-title').forEach(function(el) {
+    el.style.color = textColour;
+  });
 }
 
 function resetColour() {
   committedR = null; committedG = null; committedB = null;
+  document.body.style.color = '';
+  document.querySelectorAll('.hero h1, .hero p, .hero-sub, .hero-tag, .stat-num, .stat-label, .section-title').forEach(function(el) {
+    el.style.color = '';
+  });
   var root = document.documentElement;
   root.style.setProperty('--bg-body',         '#070714');
   root.style.setProperty('--bg-nav',          '#0a0a20');
