@@ -6,6 +6,7 @@
   <title>Edit — LazyDogTemplates</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background-color: #f8f8f8; background-image: repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px); }
@@ -314,6 +315,7 @@
 
   <div id="toast"></div>
   <input type="file" id="uploadImgInput" accept="image/*" style="display:none" onchange="handleUploadImg(this)"/>
+  <input type="file" id="uploadPPTXInput" accept=".pptx" style="display:none" onchange="handlePPTXUpload(this)"/>
 
   <!-- RIGHT CLICK CONTEXT MENU -->
   <div id="ctxMenu">
@@ -695,7 +697,7 @@
       'Templates': '<div class="panel-title">Templates</div><div class="panel-item" onclick="window.open(\'pitch_deck_folder_section.html\',\'_blank\')"><i class="ti ti-layout"></i>Pitch Deck</div><div class="panel-item" onclick="window.open(\'media_kits_folder_section.html\',\'_blank\')"><i class="ti ti-id-badge"></i>Media Kit</div><div class="panel-item" onclick="window.open(\'invoice.html\',\'_blank\')"><i class="ti ti-file-invoice"></i>Invoice</div><div class="panel-item" onclick="showToast(\'Poster templates coming soon\')"><i class="ti ti-presentation"></i>Poster</div>',
       'Elements':  '<div class="panel-title">Elements</div><div class="panel-item" onclick="addShape(\'rect\')"><i class="ti ti-square"></i>Rectangle</div><div class="panel-item" onclick="addShape(\'circle\')"><i class="ti ti-circle"></i>Circle</div><div class="panel-item" onclick="addShape(\'triangle\')"><i class="ti ti-triangle"></i>Triangle</div><div class="panel-item" onclick="addShape(\'line\')"><i class="ti ti-minus"></i>Line</div>',
       'Text':      '<div class="panel-title">Text</div><div class="panel-item" onclick="addText(\'heading\')"><i class="ti ti-letter-t"></i>Heading</div><div class="panel-item" onclick="addText(\'subheading\')"><i class="ti ti-text-size"></i>Subheading</div><div class="panel-item" onclick="addText(\'body\')"><i class="ti ti-align-left"></i>Body Text</div>',
-      'Uploads':   '<div class="panel-title">Uploads</div><div class="panel-item" onclick="document.getElementById(\'uploadImgInput\').click()"><i class="ti ti-upload"></i>Upload Image</div><div class="panel-item" onclick="showToast(\'File upload coming soon\')"><i class="ti ti-file"></i>Upload File</div>',
+      'Uploads':   '<div class="panel-title">Uploads</div><div class="panel-item" onclick="document.getElementById(\'uploadImgInput\').click()"><i class="ti ti-upload"></i>Upload Image</div><div class="panel-item" onclick="document.getElementById(\'uploadPPTXInput\').click()"><i class="ti ti-presentation"></i>Upload PPTX</div>',
       'Photos':    '<div class="panel-title">Photos</div><div class="panel-item" onclick="showToast(\'Browse photos coming soon\')"><i class="ti ti-photo"></i>Browse Photos</div><div class="panel-item" onclick="showToast(\'Search photos coming soon\')"><i class="ti ti-search"></i>Search Photos</div>',
       'Audio':     '<div class="panel-title">Audio</div><div class="panel-item" onclick="showToast(\'Audio coming soon\')"><i class="ti ti-music"></i>Browse Audio</div>',
       'Apps':      '<div class="panel-title">Apps</div><div class="panel-item" onclick="showToast(\'Apps coming soon\')"><i class="ti ti-apps"></i>Browse Apps</div>',
@@ -755,7 +757,11 @@
 
     /* ── FILE MENU FUNCTIONS ── */
     function fileNewDesign() { if(confirm('Start a new design? Current work will be lost.')) { fc.clear(); fc.setBackgroundColor('#fff',fc.renderAll.bind(fc)); localStorage.removeItem('editSlides'); localStorage.removeItem('editMode'); showToast('New design started'); } }
-    function fileOpen() { document.getElementById('uploadImgInput').click(); }
+    function fileOpen() {
+      var choice = confirm('Open a PPTX file?\n\nOK = PPTX file\nCancel = Image file');
+      if (choice) document.getElementById('uploadPPTXInput').click();
+      else document.getElementById('uploadImgInput').click();
+    }
     function filePrint() { window.print(); }
     function fileDelete() { if(confirm('Delete everything on this canvas?')) { fc.clear(); fc.setBackgroundColor('#fff',fc.renderAll.bind(fc)); showToast('Canvas cleared'); } }
 
@@ -875,7 +881,317 @@
       if (!e.target.closest('#helpPanel') && !e.target.closest('.ti-headphones')) {
         document.getElementById('helpPanel').classList.remove('open');
       }
+
     });
+
+    /* ══════════════════════════════════════════════
+       PPTX PARSER — JSZip + XML → Fabric.js objects
+    ══════════════════════════════════════════════ */
+
+    window._pptxSlides = [];
+    window._pptxCurrentSlide = 0;
+
+    function byLocal(parent, localName) {
+      var result = [];
+      var all = parent.getElementsByTagName('*');
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].localName === localName) result.push(all[i]);
+      }
+      return result;
+    }
+
+    function childLocal(parent, localName) {
+      if (!parent) return null;
+      for (var i = 0; i < parent.children.length; i++) {
+        if (parent.children[i].localName === localName) return parent.children[i];
+      }
+      return null;
+    }
+
+    function attrLocal(el, localName) {
+      if (!el) return null;
+      for (var i = 0; i < el.attributes.length; i++) {
+        if (el.attributes[i].localName === localName) return el.attributes[i].value;
+      }
+      return null;
+    }
+
+    async function handlePPTXUpload(input) {
+      if (!input.files || !input.files[0]) { showToast('No file selected'); return; }
+      if (!fc) { alert('Editor not ready — please wait a moment and try again.'); return; }
+      if (typeof JSZip === 'undefined') { alert('JSZip library failed to load. Check internet connection and reload.'); return; }
+      var file = input.files[0];
+      input.value = '';
+      showToast('Parsing PPTX…');
+
+      try {
+        var zip = await JSZip.loadAsync(file);
+
+        window._pptxSlides = [];
+        for (var i = 1; i <= 500; i++) {
+          var sf = zip.file('ppt/slides/slide' + i + '.xml');
+          if (!sf) break;
+          var slideXML = await sf.async('string');
+
+          var imageData = {};
+          var relsFile = zip.file('ppt/slides/_rels/slide' + i + '.xml.rels');
+          if (relsFile) {
+            var relsXML = await relsFile.async('string');
+            var rDoc = new DOMParser().parseFromString(relsXML, 'application/xml');
+            var rels = rDoc.querySelectorAll('Relationship');
+            for (var r = 0; r < rels.length; r++) {
+              var rel = rels[r];
+              var type = rel.getAttribute('Type') || '';
+              if (!type.includes('image')) continue;
+              var rId = rel.getAttribute('Id');
+              var target = rel.getAttribute('Target') || '';
+              if (target.startsWith('../')) target = 'ppt/' + target.slice(3);
+              else target = 'ppt/slides/' + target;
+              var imgFile = zip.file(target);
+              if (imgFile) {
+                var b64 = await imgFile.async('base64');
+                var ext = target.split('.').pop().toLowerCase();
+                var mime = (ext === 'jpg' || ext === 'jpeg') ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : 'image/png';
+                imageData[rId] = 'data:' + mime + ';base64,' + b64;
+              }
+            }
+          }
+          window._pptxSlides.push({ xml: slideXML, images: imageData, index: i });
+        }
+
+        if (!window._pptxSlides.length) { showToast('No slides found in PPTX'); return; }
+
+        buildPPTXStrip(window._pptxSlides.length);
+        await renderPPTXSlide(0);
+        showToast('Loaded ' + window._pptxSlides.length + ' slide(s) ✓');
+
+      } catch (e) {
+        console.error(e);
+        alert('PPTX error: ' + e.message);
+      }
+    }
+
+    function buildPPTXStrip(count) {
+      slideCount = count;
+      var strip = document.getElementById('slideStrip');
+      strip.innerHTML = '';
+      for (var i = 0; i < count; i++) {
+        (function(idx) {
+          var thumb = document.createElement('div');
+          thumb.className = 'slide-thumb';
+          thumb.style.cssText += 'padding:2px 5px;font-size:10px;color:#888;';
+          thumb.textContent = idx + 1;
+          thumb.onclick = function() { renderPPTXSlide(idx); selectSlide(thumb); };
+          strip.appendChild(thumb);
+        })(i);
+      }
+      var addBtn = document.createElement('div');
+      addBtn.className = 'slide-add'; addBtn.id = 'slideAddBtn';
+      addBtn.textContent = '+'; addBtn.onclick = addSlide;
+      strip.appendChild(addBtn);
+      if (strip.firstChild) selectSlide(strip.firstChild);
+    }
+
+    async function renderPPTXSlide(slideIndex) {
+      var slideData = window._pptxSlides[slideIndex];
+      if (!slideData || !fc) return;
+      window._pptxCurrentSlide = slideIndex;
+
+      var doc = new DOMParser().parseFromString(slideData.xml, 'application/xml');
+      var images = slideData.images;
+      var EMU_W = 9144000, EMU_H = 5143500;
+      var cw = fc._baseWidth  || fc.getWidth();
+      var ch = fc._baseHeight || fc.getHeight();
+      var sx = cw / EMU_W;
+      var sy = ch / EMU_H;
+
+      function toX(emu) { return parseFloat(emu || 0) * sx; }
+      function toY(emu) { return parseFloat(emu || 0) * sy; }
+      function toFont(sz) { return Math.max(8, Math.round(parseFloat(sz || 1800) * 127 * sx)); }
+
+      fc.clear();
+
+      var bgSolid = byLocal(doc, 'solidFill')[0];
+      var bgColor = '#ffffff';
+      if (bgSolid) {
+        var bgSrgb = byLocal(bgSolid, 'srgbClr')[0];
+        if (bgSrgb) bgColor = '#' + (bgSrgb.getAttribute('val') || 'ffffff');
+      }
+      fc.setBackgroundColor(bgColor, fc.renderAll.bind(fc));
+
+      var spTree = byLocal(doc, 'spTree')[0];
+      if (!spTree) { fc.renderAll(); return; }
+
+      var imagePromises = [];
+
+      function readXfrm(spPr) {
+        var res = { x:0, y:0, w:200, h:100, rot:0 };
+        if (!spPr) return res;
+        var xfrm = byLocal(spPr, 'xfrm')[0];
+        if (!xfrm) return res;
+        var off = childLocal(xfrm, 'off');
+        var ext = childLocal(xfrm, 'ext');
+        if (off) { res.x = toX(off.getAttribute('x')); res.y = toY(off.getAttribute('y')); }
+        if (ext) { res.w = toX(ext.getAttribute('cx')); res.h = toY(ext.getAttribute('cy')); }
+        var rotVal = xfrm.getAttribute('rot');
+        if (rotVal) res.rot = parseFloat(rotVal) / 60000;
+        return res;
+      }
+
+      function readFill(el) {
+        if (!el) return null;
+        var sf = byLocal(el, 'solidFill')[0];
+        if (!sf) return null;
+        var srgb = byLocal(sf, 'srgbClr')[0];
+        if (srgb) return '#' + (srgb.getAttribute('val') || '000000');
+        var scheme = byLocal(sf, 'schemeClr')[0];
+        if (scheme) {
+          var sname = scheme.getAttribute('val') || '';
+          var map = { dk1:'#000000', lt1:'#ffffff', dk2:'#1a1a2e', lt2:'#f5f5f5', accent1:'#6c63ff', accent2:'#e03030', accent3:'#2d6a4f', accent4:'#fca311', accent5:'#0096c7', accent6:'#f77f00' };
+          return map[sname] || null;
+        }
+        return null;
+      }
+
+      for (var ci = 0; ci < spTree.children.length; ci++) {
+        var node = spTree.children[ci];
+        var tag  = node.localName;
+
+        if (tag === 'sp') {
+          var spPr      = childLocal(node, 'spPr');
+          var txBody    = childLocal(node, 'txBody');
+          var pos       = readXfrm(spPr);
+          var shapeFill = readFill(spPr);
+
+          if (txBody) {
+            var paragraphs = byLocal(txBody, 'p');
+            var lines = [];
+            var fontPx = 18, isBold = false, isItalic = false, textFill = '#1a1a2e', align = 'left';
+
+            for (var pi = 0; pi < paragraphs.length; pi++) {
+              var para = paragraphs[pi];
+              var pPr = childLocal(para, 'pPr');
+              if (pPr) {
+                var algn = pPr.getAttribute('algn');
+                if (algn === 'ctr') align = 'center';
+                else if (algn === 'r') align = 'right';
+              }
+              var runs = byLocal(para, 'r');
+              var lineText = '';
+              for (var ri = 0; ri < runs.length; ri++) {
+                var run = runs[ri];
+                var rPr = childLocal(run, 'rPr');
+                var tEl = childLocal(run, 't');
+                if (tEl) lineText += tEl.textContent;
+                if (rPr) {
+                  var sz = rPr.getAttribute('sz');
+                  if (sz) fontPx = toFont(sz);
+                  if (rPr.getAttribute('b') === '1') isBold = true;
+                  if (rPr.getAttribute('i') === '1') isItalic = true;
+                  var tc = readFill(rPr);
+                  if (tc) textFill = tc;
+                }
+              }
+              lines.push(lineText);
+            }
+
+            var fullText = lines.join('\n');
+            if (fullText.trim()) {
+              var tObj = new fabric.IText(fullText, {
+                left: pos.x, top: pos.y, width: pos.w || 200,
+                fontSize: Math.max(8, fontPx),
+                fontWeight: isBold ? 'bold' : 'normal',
+                fontStyle: isItalic ? 'italic' : 'normal',
+                fill: textFill, textAlign: align,
+                fontFamily: 'Segoe UI, sans-serif', editable: true, angle: pos.rot
+              });
+              fc.add(tObj);
+            } else if (shapeFill && pos.w > 0 && pos.h > 0) {
+              fc.add(new fabric.Rect({ left:pos.x, top:pos.y, width:pos.w, height:pos.h, fill:shapeFill, angle:pos.rot }));
+            }
+          } else if (shapeFill && pos.w > 0 && pos.h > 0) {
+            fc.add(new fabric.Rect({ left:pos.x, top:pos.y, width:pos.w, height:pos.h, fill:shapeFill, angle:pos.rot }));
+          }
+
+        } else if (tag === 'pic') {
+          var picSpPr  = childLocal(node, 'spPr');
+          var blipFill = childLocal(node, 'blipFill');
+          var picPos   = readXfrm(picSpPr);
+          if (blipFill) {
+            var blip = byLocal(blipFill, 'blip')[0];
+            if (blip) {
+              var rId2 = attrLocal(blip, 'embed');
+              if (rId2 && images[rId2]) {
+                (function(src, p) {
+                  imagePromises.push(new Promise(function(resolve) {
+                    fabric.Image.fromURL(src, function(img) {
+                      if (p.w > 0 && p.h > 0) {
+                        img.set({ left:p.x, top:p.y, scaleX:p.w/img.width, scaleY:p.h/img.height, angle:p.rot });
+                      } else {
+                        img.set({ left:p.x, top:p.y, angle:p.rot });
+                      }
+                      fc.add(img);
+                      resolve();
+                    }, { crossOrigin:'anonymous' });
+                  }));
+                })(images[rId2], picPos);
+              }
+            }
+          }
+        }
+      }
+
+      await Promise.all(imagePromises);
+      fc.renderAll();
+      if (typeof saveState === 'function') saveState();
+      document.getElementById('slideCounter').textContent = (slideIndex + 1) + ' / ' + window._pptxSlides.length;
+    }
+
+    /* ── ZOOM ── */
+    var BASE_W = 0, BASE_H = 0;
+    function doZoom(val) {
+      if (!fc) return;
+      if (!BASE_W) { BASE_W = fc.getWidth(); BASE_H = fc.getHeight(); }
+      var z = val / 100;
+      fc.setZoom(z);
+      fc.setWidth(BASE_W * z);
+      fc.setHeight(BASE_H * z);
+      document.getElementById('zoomLabel').textContent = val + '%';
+    }
+  </script>
+
+</body>
+</html>
+) {
+              var rId = attrLocal(blip, 'embed');
+              if (rId && images[rId]) {
+                (function(src, p) {
+                  imagePromises.push(new Promise(function(resolve) {
+                    fabric.Image.fromURL(src, function(img) {
+                      if (p.w > 0 && p.h > 0) {
+                        img.set({ left:p.x, top:p.y, scaleX:p.w/img.width, scaleY:p.h/img.height, angle:p.rot });
+                      } else {
+                        img.set({ left:p.x, top:p.y, angle:p.rot });
+                      }
+                      fc.add(img);
+                      resolve();
+                    }, { crossOrigin:'anonymous' });
+                  }));
+                })(images[rId], picPos);
+              }
+            }
+          }
+        }
+      } /* end spTree walk */
+
+      await Promise.all(imagePromises);
+      fc.renderAll();
+      saveState();
+
+      /* Update counter */
+      document.getElementById('slideCounter').textContent =
+        (slideIndex + 1) + ' / ' + window._pptxSlides.length;
+    }
 
     /* ── ZOOM ── */
     var BASE_W = 0, BASE_H = 0;

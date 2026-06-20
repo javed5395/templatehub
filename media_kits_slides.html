@@ -457,7 +457,7 @@ document.addEventListener('click',function(e){
           <div class="etsy-item-row"><span class="ei-icon">📄</span><span><strong id="specPages"></strong> <span class="ei-val">— <span id="specType"></span></span></span></div>
           <div class="etsy-item-row"><span class="ei-icon">🎨</span><span><strong>Style:</strong> <span class="ei-val" id="specStyle"></span></span></div>
           <div class="etsy-item-row" id="industryRow" style="display:none;"><span class="ei-icon">🏢</span><span><strong>Industry:</strong> <span class="ei-val" id="specIndustry"></span></span></div>
-          <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><strong>Support Document:</strong> <a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:400;">📥 Download Design Brief</a></span></div>
+          <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><strong>Design Description:</strong> <a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:400;">📥 Download Design Brief</a></span></div>
           <div class="etsy-sparkle-line" id="etsySparkle">✦ Professional media kit — fully editable ✦</div>
           <div class="etsy-desc-text" id="etsyDescText"></div>
           <button class="etsy-learn-more" onclick="toggleLearnMore(this)">Learn more about this item</button>
@@ -1334,6 +1334,25 @@ function toggleLearnMore(btn){
     </div>
     <div class="lb-strip">
       <div id="lbStripGrid" class="lb-strip-grid"></div>
+    </div>
+  </div>
+</div>
+<!-- ── EDIT POPUP MODAL ── -->
+<div id="editPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:18px;padding:36px 32px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;font-family:'Poppins',sans-serif;position:relative;">
+    <button onclick="closeEditPopup()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:20px;cursor:pointer;color:#888;">✕</button>
+    <div style="font-size:28px;margin-bottom:8px;">✏️</div>
+    <h2 style="font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:6px;">Edit Template</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:24px;">Choose what you want to edit in the editor.</p>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <button onclick="editSingleSlide()" style="padding:14px 20px;border-radius:12px;border:2px solid #6c63ff;background:#f5f4ff;color:#6c63ff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;"
+        onmouseover="this.style.background='#6c63ff';this.style.color='#fff'" onmouseout="this.style.background='#f5f4ff';this.style.color='#6c63ff'">
+        🖼️ Edit Current Slide
+      </button>
+      <button onclick="editCompleteDeck()" style="padding:14px 20px;border-radius:12px;border:2px solid #1a1a2e;background:#f8f8f8;color:#1a1a2e;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;"
+        onmouseover="this.style.background='#1a1a2e';this.style.color='#fff'" onmouseout="this.style.background='#f8f8f8';this.style.color='#1a1a2e'">
+        📑 Edit Whole Deck
+      </button>
     </div>
   </div>
 </div>
