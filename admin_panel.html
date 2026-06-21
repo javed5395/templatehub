@@ -151,6 +151,7 @@
       <div class="stat-pill">Approved: <span class="num" id="approvedCount">0</span></div>
       <div class="stat-pill">Rejected: <span class="num" id="rejectedCount">0</span></div>
       <button onclick="cleanOrphanDriveFiles()" style="margin-left:12px;padding:8px 18px;background:#e53e3e;color:#fff;border:none;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;font-family:Poppins,sans-serif;">🧹 Clean Drive Orphans</button>
+      <button onclick="cleanOrphanCloudinaryFiles()" style="margin-left:8px;padding:8px 18px;background:#e8650a;color:#fff;border:none;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;font-family:Poppins,sans-serif;">☁️ Clean Cloudinary Orphans</button>
     </div>
   </div>
   <div class="tabs">
@@ -355,6 +356,7 @@ function renderCards() {
               <button class="btn-reject"  onclick="rejectDoc('${d.id}')">✕ Reject</button>
             ` : currentTab === 'approved' ? `
               <button class="btn-view" onclick="window.open('${t.pptxUrl||''}','_blank')">📊 PPTX</button>
+              <button class="btn-reject" onclick="removeDoc('${d.id}')">🗑 Remove</button>
             ` : `
               <button class="btn-approve" onclick="approveDoc('${d.id}')">↺ Re-approve</button>
             `}
@@ -432,6 +434,49 @@ window.rejectDoc = async function(docId) {
     console.error('Rejection error:', err);
     alert('Error during rejection: ' + err.message);
     if (btn) { btn.disabled = false; btn.textContent = '✕ Reject'; }
+  }
+};
+
+// ── REMOVE A LIVE (APPROVED) TEMPLATE ────────────────────────────────────────
+// Same auto-purge as Reject (deletes every file from Cloudinary + Google Drive),
+// then takes it off the site by moving its status to 'rejected'.
+window.removeDoc = async function(docId) {
+  if (!confirm('Remove this LIVE template?\n\nThis permanently DELETES all its files from Cloudinary and Google Drive, and takes it OFF the site. This cannot be undone.')) return;
+
+  const entry = allDocs.find(d => d.id === docId);
+  const t     = entry?.template      || {};
+  const cIds  = entry?.cloudinaryIds || {};
+  const dIds  = entry?.driveFileIds  || {};
+
+  const btn = document.querySelector(`[onclick="removeDoc('${docId}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Removing...'; }
+
+  try {
+    // 1. PNG slides from Cloudinary
+    for (const pid of (cIds.slides || [])) await deleteCloudinaryAsset(pid, 'image');
+    // 2. PDF from Cloudinary
+    if (cIds.pdf) await deleteCloudinaryAsset(cIds.pdf, 'raw');
+    // 2b. PDF from Google Drive (if it was too large for Cloudinary)
+    if (dIds.pdf) await deleteDriveFile(dIds.pdf);
+    // 3. PPTX from Google Drive
+    await deleteDriveFile(dIds.pptx || extractDriveFileId(t.pptxUrl));
+    // 4. Keynote from Google Drive
+    await deleteDriveFile(dIds.key || extractDriveFileId(t.keyUrl));
+    // 5. Design doc from Google Drive
+    await deleteDriveFile(dIds.designDoc || extractDriveFileId(t.designDocUrl));
+    // 6. Extra format files from Google Drive
+    for (const fid of (dIds.extraFiles || [])) await deleteDriveFile(fid);
+
+    // 7. Take it off the site
+    await updateDoc(doc(db, 'templates', docId), { status: 'rejected' });
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs[idx].status = 'rejected';
+    updateCounts(); renderCards();
+
+  } catch(err) {
+    console.error('Remove error:', err);
+    alert('Error during removal: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '🗑 Remove'; }
   }
 };
 
@@ -578,6 +623,56 @@ window.cleanOrphanDriveFiles = async function() {
     }
 
     alert(`🧹 Done!\nDeleted: ${deleted}\nFailed: ${failed}`);
+
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+};
+
+window.cleanOrphanCloudinaryFiles = async function() {
+  if (!confirm('This will scan ALL Cloudinary assets via Apps Script, compare with Firestore, and DELETE orphans.\n\nContinue?')) return;
+
+  try {
+    // Step 1: Collect valid Cloudinary public_ids from ALL Firestore docs
+    const validIds = new Set();
+    allDocs.forEach(function(d) {
+      var cIds = d.cloudinaryIds || {};
+      if (cIds.pdf) validIds.add(cIds.pdf);
+      const slides = Array.isArray(cIds.slides) ? cIds.slides : (cIds.slides ? [cIds.slides] : []);
+      slides.forEach(function(id) { if (id) validIds.add(id); });
+    });
+
+    // Step 2: List all Cloudinary assets via Apps Script (server-side, no CORS)
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action:    'listCloudinary',
+        cloudName: CLOUDINARY_CLOUD,
+        apiKey:    CLOUDINARY_API_KEY,
+        apiSecret: CLOUDINARY_API_SECRET
+      })
+    });
+    const data = await res.json();
+    if (!data.success) { alert('Could not list Cloudinary assets: ' + (data.error || 'Unknown')); return; }
+
+    const allAssets = data.assets || [];
+    if (allAssets.length === 0) { alert('No Cloudinary assets found.'); return; }
+
+    const orphans = allAssets.filter(function(a) { return !validIds.has(a.id); });
+
+    if (orphans.length === 0) { alert('✅ Cloudinary is clean! No orphans found.'); return; }
+
+    if (!confirm(`Found ${orphans.length} orphan Cloudinary asset(s):\n\n${orphans.slice(0,15).map(a=>a.id).join('\n')}${orphans.length>15?'\n...and more':''}\n\nDelete all?`)) return;
+
+    let deleted = 0, failed = 0;
+    for (const asset of orphans) {
+      try {
+        await deleteCloudinaryAsset(asset.id, asset.type);
+        deleted++;
+      } catch(e) { failed++; }
+    }
+
+    alert(`☁️ Done!\nDeleted: ${deleted}\nFailed: ${failed}`);
 
   } catch(err) {
     alert('Error: ' + err.message);
