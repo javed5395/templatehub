@@ -661,24 +661,13 @@
       const userMenu = document.getElementById('nbUserMenu');
       const userName = document.getElementById('nbUserName');
       const userAvatar = document.getElementById('nbUserAvatar');
-      if (user) {
-        if(signinBtn) signinBtn.style.display = 'none';
-        if(signupBtn) signupBtn.style.display = 'none';
-        if(userMenu) userMenu.style.display = 'flex';
-        const displayName = user.displayName || user.email.split('@')[0];
-        if(userName) userName.textContent = displayName;
-        if(userAvatar) {
-          if(user.photoURL) {
-            userAvatar.innerHTML = '<img src="'+user.photoURL+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
-          } else {
-            userAvatar.textContent = displayName.charAt(0).toUpperCase();
-          }
-        }
-      } else {
-        if(signinBtn) signinBtn.style.display = 'inline-flex';
-        if(signupBtn) signupBtn.style.display = 'inline-flex';
-        if(userMenu) userMenu.style.display = 'none';
-      }
+      // Main page: always show Sign In / Sign Up (same as every other page),
+      // whether or not the visitor is logged in.
+      if(signinBtn) signinBtn.style.display = 'inline-flex';
+      if(signupBtn) signupBtn.style.display = 'inline-flex';
+      if(userMenu) userMenu.style.display = 'none';
+      // (avatar/menu intentionally not shown here; buttons are kept visible)
+      void userName; void userAvatar; void user;
     });
 
     // Sign Up

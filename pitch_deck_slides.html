@@ -347,7 +347,7 @@
 </head>
 <body class="has-download">
 
-<button id="nbDlBtn" onclick="nbToggleDlPanel()" style="position:fixed;top:12px;right:80px;z-index:9999;background:#fff;color:#4B6BFF;border:1.5px solid #4B6BFF;border-radius:6px;padding:7px 18px;font-weight:600;font-size:13px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='#4B6BFF';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#4B6BFF'">Download</button>
+<button id="nbDlBtn" onclick="openModal(false)" style="position:fixed;top:12px;right:80px;z-index:9999;background:#fff;color:#4B6BFF;border:1.5px solid #4B6BFF;border-radius:6px;padding:7px 18px;font-weight:600;font-size:13px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='#4B6BFF';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#4B6BFF'">Download</button>
 
 <!-- NAVBAR injected by navbar.js -->
 
@@ -797,7 +797,7 @@ function handleDownload(){
   } else {
     if (d.pptxUrl) {
       var a = document.createElement('a');
-      a.href = d.pptxUrl;
+      a.href = toDirectDownload(d.pptxUrl);
       a.target = '_blank';
       document.body.appendChild(a);
       a.click();
@@ -806,6 +806,13 @@ function handleDownload(){
       alert('PPTX download not available for this template yet.');
     }
   }
+}
+// Convert a Google Drive view link into a direct-download link so big PPTX files
+// download straight away instead of opening a Drive preview page.
+function toDirectDownload(url){
+  if(!url) return url;
+  var m = url.match(/\/d\/([A-Za-z0-9_-]+)/) || url.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  return m ? 'https://drive.google.com/uc?export=download&id=' + m[1] : url;
 }
 
 // THEME TOGGLE
