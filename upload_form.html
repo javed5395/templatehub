@@ -961,15 +961,77 @@ function readFileAsBase64(file) {
   });
 }
 
-async function uploadPptxToDrive(file) {
-  const base64Data = await readFileAsBase64(file);
-  const res  = await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify({ fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation' })
+async function readSliceAsBase64(slice) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(slice);
   });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error || 'Failed to upload PPTX to Google Drive');
-  return data.fileUrl;
+}
+
+// Sends one chunk with a hard timeout (AbortController) so a dropped/stalled
+// connection fails fast instead of hanging — and retries with backoff before
+// giving up. Same chunkIndex can be safely re-sent: the backend just
+// overwrites that index's entry in chunkMap, so a retry can never duplicate
+// or break the final ordering.
+async function sendChunkWithRetry(payload, chunkLabel, onRetryMsg) {
+  const MAX_ATTEMPTS  = 4;
+  const TIMEOUT_MS    = 25000; // 25s — fail fast instead of waiting on a dead connection
+  let lastErr = null;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const res  = await fetch(APPS_SCRIPT_URL, {
+        method : 'POST',
+        body   : JSON.stringify(payload),
+        signal : controller.signal
+      });
+      clearTimeout(timer);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || `${chunkLabel} rejected by server`);
+      return data; // success
+    } catch (err) {
+      clearTimeout(timer);
+      lastErr = err.name === 'AbortError' ? new Error(`${chunkLabel} timed out`) : err;
+      if (attempt < MAX_ATTEMPTS) {
+        onRetryMsg(`${chunkLabel} failed (${lastErr.message}) — retrying ${attempt}/${MAX_ATTEMPTS - 1}…`);
+        await new Promise(r => setTimeout(r, attempt * 1500)); // 1.5s, 3s, 4.5s backoff
+      }
+    }
+  }
+  throw new Error(`${chunkLabel} failed after ${MAX_ATTEMPTS} attempts: ${lastErr.message}`);
+}
+
+async function uploadPptxToDrive(file) {
+  const CHUNK_SIZE  = 3 * 1024 * 1024; // 3 MB — MUST be divisible by 3 for base64 alignment (3*1024*1024 = 3,145,728 = 3×1,048,576, zero remainder)
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  const uploadId    = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+  for (let i = 0; i < totalChunks; i++) {
+    const start    = i * CHUNK_SIZE;
+    const end      = Math.min(start + CHUNK_SIZE, file.size);
+    const chunkB64 = await readSliceAsBase64(file.slice(start, end));
+    const label    = `Chunk ${i + 1} of ${totalChunks}`;
+
+    setProgress(65 + Math.round(((i + 0.5) / totalChunks) * 20),
+      `Uploading PPTX to Google Drive… ${label}`);
+
+    const data = await sendChunkWithRetry({
+      action      : 'uploadChunk',
+      uploadId,
+      fileName    : file.name,
+      mimeType    : file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      chunkIndex  : i,
+      totalChunks,
+      chunkData   : chunkB64
+    }, label, (msg) => setProgress(65 + Math.round(((i + 0.5) / totalChunks) * 20), msg));
+
+    if (data.fileUrl) return data.fileUrl;  // final chunk returns the Drive URL
+  }
+  throw new Error('PPTX upload completed but no file URL returned');
 }
 
 async function uploadDocToDrive(file) {
