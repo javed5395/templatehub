@@ -975,9 +975,9 @@ async function readSliceAsBase64(slice) {
 // giving up. Same chunkIndex can be safely re-sent: the backend just
 // overwrites that index's entry in chunkMap, so a retry can never duplicate
 // or break the final ordering.
-async function sendChunkWithRetry(payload, chunkLabel, onRetryMsg) {
+async function sendChunkWithRetry(payload, chunkLabel, onRetryMsg, timeoutMs) {
   const MAX_ATTEMPTS  = 4;
-  const TIMEOUT_MS    = 25000; // 25s — fail fast instead of waiting on a dead connection
+  const TIMEOUT_MS    = timeoutMs || 25000; // default 25s; final (assembly) chunk passes a long timeout
   let lastErr = null;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -1019,6 +1019,12 @@ async function uploadPptxToDrive(file) {
     setProgress(65 + Math.round(((i + 0.5) / totalChunks) * 20),
       `Uploading PPTX to Google Drive… ${label}`);
 
+    const isLast = (i === totalChunks - 1);
+    // The last chunk triggers server-side assembly of the whole ~44 MB file,
+    // which legitimately takes much longer than a normal chunk save. Give it a
+    // long timeout so it succeeds on the first attempt instead of aborting at 25s.
+    const chunkTimeout = isLast ? 180000 : 25000;
+
     const data = await sendChunkWithRetry({
       action      : 'uploadChunk',
       uploadId,
@@ -1027,10 +1033,23 @@ async function uploadPptxToDrive(file) {
       chunkIndex  : i,
       totalChunks,
       chunkData   : chunkB64
-    }, label, (msg) => setProgress(65 + Math.round(((i + 0.5) / totalChunks) * 20), msg));
+    }, label, (msg) => setProgress(65 + Math.round(((i + 0.5) / totalChunks) * 20), msg), chunkTimeout);
 
     if (data.fileUrl) return data.fileUrl;  // final chunk returns the Drive URL
   }
+
+  // Safety net: if the loop finished without a URL (e.g. the last response was
+  // lost in transit), ask the backend to finalize. The fixed backend caches the
+  // result, so this returns the same Drive URL idempotently.
+  const fin = await sendChunkWithRetry({
+    action      : 'finalizeUpload',
+    uploadId,
+    fileName    : file.name,
+    mimeType    : file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    totalChunks
+  }, 'Finalizing upload', (msg) => setProgress(85, msg), 180000);
+  if (fin.fileUrl) return fin.fileUrl;
+
   throw new Error('PPTX upload completed but no file URL returned');
 }
 
