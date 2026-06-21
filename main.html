@@ -18,13 +18,13 @@
   <meta property="og:description" content="Premium pitch deck and media kit templates for startups, brands and creators. Download and customize instantly." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.lazydogtemplates.com/" />
-  <meta property="og:image" content="https://www.lazydogtemplates.com/images/hero_source.png" />
+  <meta property="og:image" content="https://www.lazydogtemplates.com/hero_source.png" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="LazyDogTemplates — Pitch Decks & Media Kit Templates" />
   <meta name="twitter:description" content="Premium pitch deck and media kit templates. Download and customize instantly." />
-  <meta name="twitter:image" content="https://www.lazydogtemplates.com/images/hero_source.png" />
+  <meta name="twitter:image" content="https://www.lazydogtemplates.com/hero_source.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Raleway:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;600;700&family=Outfit:wght@400;500;600;700&family=Josefin+Sans:wght@400;600;700&family=Quicksand:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Libre+Baskerville:wght@400;700&family=Jost:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -658,9 +658,9 @@
     onAuthStateChanged(auth, (user) => {
       const signinBtn = document.getElementById('signinBtn');
       const signupBtn = document.getElementById('signupBtn');
-      const userMenu = document.getElementById('userMenu');
-      const userName = document.getElementById('userName');
-      const userAvatar = document.getElementById('userAvatar');
+      const userMenu = document.getElementById('nbUserMenu');
+      const userName = document.getElementById('nbUserName');
+      const userAvatar = document.getElementById('nbUserAvatar');
       if (user) {
         if(signinBtn) signinBtn.style.display = 'none';
         if(signupBtn) signupBtn.style.display = 'none';
@@ -696,8 +696,8 @@
         await cred.user.reload();
         closeAuthModal();
         // Force update display name immediately
-        const userName = document.getElementById('userName');
-        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('nbUserName');
+        const userAvatar = document.getElementById('nbUserAvatar');
         if(userName) userName.textContent = name;
         if(userAvatar) userAvatar.textContent = name.charAt(0).toUpperCase();
       } catch(e) {
@@ -723,7 +723,7 @@
     // Sign Out
     window.doSignOut = async function() {
       await signOut(auth);
-      document.getElementById('userDropdown').style.display='none';
+      var _dd = document.getElementById('nbUserDropdown'); if(_dd) _dd.style.display='none';
     }
 
     // Google Sign In
