@@ -551,7 +551,16 @@ function resolveSubCatLabel(t) {
 }
 window.pdCatMap = {};
 
-        snapshot.forEach(function(docSnap){
+        // Sort by uploadedAt descending — latest first
+        var allDocs = [];
+        snapshot.forEach(function(docSnap){ allDocs.push(docSnap); });
+        allDocs.sort(function(a, b) {
+          var aTime = a.data().uploadedAt ? (a.data().uploadedAt.toDate ? a.data().uploadedAt.toDate().getTime() : new Date(a.data().uploadedAt).getTime()) : 0;
+          var bTime = b.data().uploadedAt ? (b.data().uploadedAt.toDate ? b.data().uploadedAt.toDate().getTime() : new Date(b.data().uploadedAt).getTime()) : 0;
+          return bTime - aTime;
+        });
+
+        allDocs.forEach(function(docSnap){
           var data = docSnap.data();
           var t = data.template || {};
           if (!t.slides || t.slides.length === 0) return;
