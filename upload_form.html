@@ -772,10 +772,21 @@ window.doRegister = async function() {
 };
 
 window.doGoogleSignIn = async function() {
+  const errEl = document.getElementById('siError');
   try {
     await signInWithPopup(auth, googleProvider);
   } catch(err) {
     console.error(err);
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+      try {
+        await signInWithRedirect(auth, googleProvider);
+      } catch(redirectErr) {
+        console.error(redirectErr);
+        if (errEl) { errEl.textContent = 'Google sign-in failed. Please try again.'; errEl.style.display = 'block'; }
+      }
+    } else {
+      if (errEl) { errEl.textContent = 'Google sign-in failed: ' + (err.message || err.code); errEl.style.display = 'block'; }
+    }
   }
 };
 
