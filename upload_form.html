@@ -417,6 +417,24 @@
             <option value="">Select category</option>
             <option value="pitch_deck">Pitch Deck</option>
             <option value="media_kit">Media Kit</option>
+            <option value="resume_cv">Resume / CV</option>
+            <option value="company_profile">Company Profile</option>
+            <option value="business_proposal">Business Proposal</option>
+            <option value="social_media_kit">Social Media Kit</option>
+            <option value="brand_identity">Brand Identity</option>
+            <option value="investor_deck">Investor Deck</option>
+            <option value="product_catalog">Product Catalog</option>
+            <option value="event_proposal">Event Proposal</option>
+            <option value="portfolio">Portfolio</option>
+            <option value="case_study">Case Study</option>
+            <option value="newsletter">Newsletter Template</option>
+            <option value="sponsorship_deck">Sponsorship Deck</option>
+            <option value="one_pager">One Pager</option>
+            <option value="lookbook">Lookbook</option>
+            <option value="annual_report">Annual Report</option>
+            <option value="course_deck">Course / Training Deck</option>
+            <option value="ugc_kit">UGC Creator Kit</option>
+            <option value="press_kit">Press Kit</option>
           </select>
         </div>
         <div class="field">
@@ -622,7 +640,7 @@ const APPS_SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM
 
 // ── FILE SIZE LIMITS (change these to adjust limits) ─────────────────────────
 const FILE_LIMITS = {
-  pngFiles:  { maxMB: 4,   label: 'PNG / JPG slide'   },
+  pngFiles:  { maxMB: 3,   label: 'PNG / JPG slide'   },
   pptxFile:  { maxMB: 80,  label: 'PPTX file'          },
   pdfFile:   { maxMB: 80,  label: 'PDF file'            },
   keyFile:   { maxMB: 150, label: 'Keynote file'        },
@@ -1478,11 +1496,72 @@ window.updateSubCategories = function() {
   if (cat === 'media_kit') {
     opts = { '':'Select sub-category', freelancer:'Freelancer', podcast:'Podcast',
               press_pr:'Press / PR', influencer:'Influencer', brand:'Brand',
-              tech:'Tech', fashion:'Fashion', other:'Other' };
+              tech:'Tech', fashion:'Fashion', ugc:'UGC Creator', photography:'Photography',
+              music_artist:'Music / Artist', sports_fitness:'Sports & Fitness',
+              food_lifestyle:'Food & Lifestyle', beauty_makeup:'Beauty & Makeup',
+              travel:'Travel', corporate:'Corporate', other:'Other' };
   } else if (cat === 'pitch_deck') {
     opts = { '':'Select sub-category', startup:'Startup', corporate:'Corporate',
               sales:'Sales', education:'Education', nonprofit:'Non-profit',
-              creative:'Creative', other:'Other' };
+              creative:'Creative', investment:'Investment', product_launch:'Product Launch',
+              partnership:'Partnership', real_estate:'Real Estate',
+              healthcare:'Healthcare', tech_ai:'Tech & AI', other:'Other' };
+  } else if (cat === 'resume_cv') {
+    opts = { '':'Select sub-category', fresher:'Fresher / Entry Level', experienced:'Experienced',
+              executive:'Executive / C-Level', creative:'Creative', tech:'Tech / Developer',
+              ats_optimized:'ATS Optimized', academic:'Academic', other:'Other' };
+  } else if (cat === 'company_profile') {
+    opts = { '':'Select sub-category', startup:'Startup', corporate:'Corporate',
+              ngo:'NGO / Non-profit', agency:'Agency', retail:'Retail', other:'Other' };
+  } else if (cat === 'business_proposal') {
+    opts = { '':'Select sub-category', service:'Service Proposal', project:'Project Proposal',
+              partnership:'Partnership', sponsorship:'Sponsorship', other:'Other' };
+  } else if (cat === 'social_media_kit') {
+    opts = { '':'Select sub-category', instagram:'Instagram', tiktok:'TikTok',
+              linkedin:'LinkedIn', youtube:'YouTube', twitter_x:'Twitter / X',
+              facebook:'Facebook', multi_platform:'Multi Platform', other:'Other' };
+  } else if (cat === 'brand_identity') {
+    opts = { '':'Select sub-category', logo_kit:'Logo Kit', color_palette:'Color Palette',
+              brand_guidelines:'Brand Guidelines', full_kit:'Full Brand Kit', other:'Other' };
+  } else if (cat === 'investor_deck') {
+    opts = { '':'Select sub-category', seed:'Seed Round', series_a:'Series A',
+              series_b:'Series B', angel:'Angel Investor', vc:'Venture Capital', other:'Other' };
+  } else if (cat === 'product_catalog') {
+    opts = { '':'Select sub-category', fashion:'Fashion', electronics:'Electronics',
+              food:'Food & Beverage', beauty:'Beauty', furniture:'Furniture', other:'Other' };
+  } else if (cat === 'event_proposal') {
+    opts = { '':'Select sub-category', corporate_event:'Corporate Event', wedding:'Wedding',
+              concert:'Concert / Music', conference:'Conference', social:'Social Event', other:'Other' };
+  } else if (cat === 'portfolio') {
+    opts = { '':'Select sub-category', design:'Design / Creative', photography:'Photography',
+              architecture:'Architecture', writing:'Writing', developer:'Developer', other:'Other' };
+  } else if (cat === 'case_study') {
+    opts = { '':'Select sub-category', marketing:'Marketing', product:'Product',
+              business:'Business', tech:'Tech', other:'Other' };
+  } else if (cat === 'newsletter') {
+    opts = { '':'Select sub-category', business:'Business', lifestyle:'Lifestyle',
+              tech:'Tech', fashion:'Fashion', health:'Health & Wellness', other:'Other' };
+  } else if (cat === 'sponsorship_deck') {
+    opts = { '':'Select sub-category', influencer:'Influencer', podcast:'Podcast',
+              event:'Event', sports:'Sports', other:'Other' };
+  } else if (cat === 'one_pager') {
+    opts = { '':'Select sub-category', startup:'Startup', product:'Product',
+              service:'Service', personal:'Personal Brand', other:'Other' };
+  } else if (cat === 'lookbook') {
+    opts = { '':'Select sub-category', fashion:'Fashion', interior:'Interior Design',
+              product:'Product', lifestyle:'Lifestyle', other:'Other' };
+  } else if (cat === 'annual_report') {
+    opts = { '':'Select sub-category', corporate:'Corporate', ngo:'NGO / Non-profit',
+              startup:'Startup', other:'Other' };
+  } else if (cat === 'course_deck') {
+    opts = { '':'Select sub-category', business:'Business', tech:'Tech',
+              design:'Design', marketing:'Marketing', personal_dev:'Personal Development', other:'Other' };
+  } else if (cat === 'ugc_kit') {
+    opts = { '':'Select sub-category', tiktok:'TikTok UGC', instagram:'Instagram UGC',
+              youtube:'YouTube UGC', amazon:'Amazon UGC', brand_collab:'Brand Collab', other:'Other' };
+  } else if (cat === 'press_kit') {
+    opts = { '':'Select sub-category', startup:'Startup', celebrity:'Celebrity / Artist',
+              brand:'Brand', ngo:'NGO', event:'Event', other:'Other' };
   }
   sel.innerHTML = '';
   Object.entries(opts).forEach(function(pair){
@@ -1490,7 +1569,8 @@ window.updateSubCategories = function() {
     o.value = pair[0]; o.textContent = pair[1];
     sel.appendChild(o);
   });
-  row.style.display = (cat === 'media_kit' || cat === 'pitch_deck') ? '' : 'none';
+  var showSub = cat !== '' && cat !== null;
+  row.style.display = showSub ? '' : 'none';
 };
 
 // ── RESET ─────────────────────────────────────────────────────────────────────
