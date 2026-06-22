@@ -173,12 +173,12 @@
       <div id="panelSignIn">
         <div class="field">
           <label>Email Address</label>
-          <input type="email" id="siEmail" placeholder="your@email.com" autocomplete="email"/>
+          <input type="email" id="siEmail" name="email" placeholder="your@email.com" autocomplete="email"/>
         </div>
         <div class="field">
           <label>Password</label>
           <div class="pw-wrap">
-            <input type="password" id="siPassword" placeholder="Your password" autocomplete="current-password"/>
+            <input type="password" id="siPassword" name="password" placeholder="Your password" autocomplete="current-password"/>
             <button type="button" class="pw-eye" onclick="togglePw('siPassword',this)" title="Show/hide password">👁</button>
           </div>
         </div>
@@ -318,6 +318,7 @@
       </div>
       <div class="seller-bar-actions">
         <button class="link-btn" onclick="showSubmissions()">My Submissions</button>
+        <button class="link-btn" onclick="doSwitchAccount()">Switch Account</button>
         <button class="link-btn" onclick="doSignOut()">Sign Out</button>
       </div>
     </div>
@@ -792,6 +793,12 @@ window.doGoogleSignIn = async function() {
 
 window.doSignOut = async function() {
   await signOut(auth);
+};
+
+window.doSwitchAccount = async function() {
+  await signOut(auth);
+  // onAuthStateChanged will automatically show the auth section
+  switchTab('signin');
 };
 
 function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
