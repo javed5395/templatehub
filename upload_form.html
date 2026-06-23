@@ -310,8 +310,13 @@
   <!-- ══ SECTION 3: UPLOAD FORM ══ -->
   <div id="formSection" style="display:none">
 
-    <!-- Seller identity bar -->
-    <div class="seller-bar" id="sellerBar">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:flex-start;">
+
+    <!-- LEFT: Data filling block -->
+    <div id="dataFillingBlock">
+
+    <!-- Seller identity bar (hidden here, moved to right) -->
+    <div class="seller-bar" id="sellerBar" style="display:none">
       <div class="seller-bar-info">
         <strong id="barName">—</strong>
         <span id="barEmail">—</span>
@@ -323,7 +328,7 @@
       </div>
     </div>
 
-    <!-- My Submissions panel (hidden by default) -->
+    <!-- My Submissions panel (moved to right) -->
     <div id="submissionsPanel" style="display:none">
       <div class="section">
         <h2>📦 My Submissions</h2>
@@ -332,8 +337,8 @@
       </div>
     </div>
 
-    <!-- ══ PAYOUT DETAILS ══ -->
-    <div class="section" id="payoutSection">
+    <!-- ══ PAYOUT DETAILS ══ (moved to right panel) -->
+    <div class="section" id="payoutSection" style="display:none;">
       <div class="payout-section-toggle" onclick="togglePayoutPanel()">
         <h2 style="margin-bottom:0;">💳 Payout Details</h2>
         <span class="payout-toggle-arrow open" id="payoutArrow">∨</span>
@@ -601,7 +606,84 @@
       <button class="btn btn-outline" onclick="resetSubmitForm()" style="margin-top:0; font-size:13px; padding:10px 20px; width:auto;">↺ Reset &amp; Try Again</button>
     </div>
 
+    <!-- ══ PREVIEW CLIP UPLOAD ══ -->
+    <div class="section" style="background:linear-gradient(135deg,rgba(100,200,255,0.06) 0%,rgba(180,100,255,0.06) 100%);border:1.5px dashed rgba(100,200,255,0.35);border-radius:16px;margin-bottom:20px;">
+      <h2 style="color:#64c8ff;">🎬 Preview Clip <span style="font-size:13px;font-weight:500;color:var(--muted);margin-left:8px;">(Optional)</span></h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Upload a short preview clip of your template slides. This helps buyers see your design in action before purchasing.</p>
+      <div class="upload-box" id="clipUploadBox" style="border-color:rgba(100,200,255,0.4);background:rgba(100,200,255,0.04);" onclick="document.getElementById('previewClip').click()">
+        <input type="file" id="previewClip" accept="video/mp4,video/mpeg,video/webm,.mp4,.mpeg,.webm" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="handleClipUpload(event)"/>
+        <div class="upload-icon">🎞️</div>
+        <p><strong style="color:#64c8ff;">Click to upload preview clip</strong></p>
+        <p>MP4 or MPEG format — max <strong>10 MB</strong></p>
+      </div>
+      <div class="file-list" id="clipFileList"></div>
+      <div id="clipPreviewWrap" style="display:none;margin-top:14px;">
+        <video id="clipPreviewPlayer" controls style="width:100%;border-radius:10px;max-height:200px;background:#000;"></video>
+        <button onclick="removeClip()" style="margin-top:8px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#f87171;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;">✕ Remove Clip</button>
+      </div>
+    </div>
+
     <button class="btn" id="submitBtn" onclick="submitForm()">🚀 Submit Template for Review</button>
+
+    </div><!-- end left data filling block -->
+
+    <!-- RIGHT: Seller block -->
+    <div id="sellerRightBlock" style="position:sticky;top:20px;">
+
+      <!-- Seller identity bar -->
+      <div class="seller-bar" id="sellerBarRight" style="margin-bottom:0;flex-direction:column;align-items:flex-start;gap:12px;">
+        <div class="seller-bar-info">
+          <strong id="barNameRight">—</strong>
+          <span id="barEmailRight">—</span>
+        </div>
+        <div class="seller-bar-actions" style="flex-wrap:wrap;">
+          <button class="link-btn" onclick="showSubmissions()">My Submissions</button>
+          <button class="link-btn" onclick="doSwitchAccount()">Switch Account</button>
+          <button class="link-btn" onclick="doSignOut()">Sign Out</button>
+        </div>
+      </div>
+
+      <!-- Payout section (moved to right) -->
+      <div class="section" id="payoutSectionRight" style="margin-top:16px;">
+        <div class="payout-section-toggle" onclick="togglePayoutPanel()">
+          <h2 style="margin-bottom:0;font-size:16px;">💳 Payout Details</h2>
+          <span class="payout-toggle-arrow open" id="payoutArrowRight">∨</span>
+        </div>
+        <div id="payoutBodyRight" style="margin-top:14px;">
+          <div class="payout-status payout-status-warn" id="payoutStatusRight">
+            ⚠️ No payout method set up yet — required only when withdrawing earnings.
+          </div>
+          <div class="payout-tabs">
+            <button class="payout-tab active" id="ptabPaypalR" onclick="switchPayoutMethod('paypal')">💸 PayPal</button>
+            <button class="payout-tab" id="ptabBankR" onclick="switchPayoutMethod('bank')">🏦 Bank</button>
+            <button class="payout-tab" id="ptabStripeR" onclick="switchPayoutMethod('stripe')">⚡ Stripe</button>
+          </div>
+          <div id="payoutPaypalR">
+            <div class="field">
+              <label>PayPal Email</label>
+              <input type="email" id="paypalEmailR" placeholder="your@paypal.com"/>
+            </div>
+          </div>
+          <div class="payout-actions">
+            <button class="btn" onclick="savePayoutDetails()" style="margin-top:0;font-size:13px;padding:10px 16px;">💾 Save</button>
+            <button class="payout-skip" onclick="togglePayoutPanel()">Later ↑</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submissions panel -->
+      <div id="submissionsPanelRight" style="margin-top:16px;display:none;">
+        <div class="section">
+          <h2 style="font-size:16px;">📦 My Submissions</h2>
+          <div id="submissionsListRight"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+          <button class="btn btn-outline" style="margin-top:16px;font-size:13px;" onclick="hideSubmissions()">Close</button>
+        </div>
+      </div>
+
+    </div><!-- end right seller block -->
+
+    </div><!-- end two-col grid -->
+
   </div>
 
   <!-- ══ SECTION 4: SUCCESS ══ -->
@@ -636,6 +718,63 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
 const CLOUDINARY_CLOUD  = "dsqxuaucz";
+
+// ── CLIP UPLOAD HANDLING ──
+let clipFile = null;
+
+window.handleClipUpload = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const maxMB = 10;
+  if (file.size > maxMB * 1024 * 1024) {
+    alert('Clip too large! Maximum size is 10 MB.');
+    e.target.value = '';
+    return;
+  }
+  const allowed = ['video/mp4','video/mpeg','video/webm'];
+  if (!allowed.includes(file.type) && !file.name.match(/\.(mp4|mpeg|webm)$/i)) {
+    alert('Only MP4, MPEG, or WebM formats allowed!');
+    e.target.value = '';
+    return;
+  }
+  clipFile = file;
+  // Show file name
+  document.getElementById('clipFileList').innerHTML =
+    '<div class="file-item">🎬 ' + file.name + ' (' + (file.size/1024/1024).toFixed(2) + ' MB)</div>';
+  // Show preview
+  const url = URL.createObjectURL(file);
+  const player = document.getElementById('clipPreviewPlayer');
+  player.src = url;
+  document.getElementById('clipPreviewWrap').style.display = 'block';
+};
+
+window.removeClip = function() {
+  clipFile = null;
+  document.getElementById('previewClip').value = '';
+  document.getElementById('clipFileList').innerHTML = '';
+  document.getElementById('clipPreviewWrap').style.display = 'none';
+  document.getElementById('clipPreviewPlayer').src = '';
+};
+
+async function uploadClipToCloudinary(file) {
+  // Try Cloudinary first (supports video)
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    fd.append('folder', 'lazydog/clips');
+    fd.append('resource_type', 'video');
+    const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/video/upload', {
+      method: 'POST', body: fd
+    });
+    if (!res.ok) throw new Error('Cloudinary video upload failed');
+    const data = await res.json();
+    return data.secure_url;
+  } catch(err) {
+    console.warn('Cloudinary clip upload failed:', err);
+    return null; // fallback — no crash
+  }
+}
 const CLOUDINARY_PRESET = "lazydog_unsigned";
 const APPS_SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec";
 
@@ -732,7 +871,9 @@ window.saveProfile = async function() {
 };
 
 function populateSellerBar() {
-  document.getElementById('barName').textContent  = sellerProfile.shopName || sellerProfile.name;
+  document.getElementById('barNameRight') && (document.getElementById('barNameRight').textContent = document.getElementById('barName').textContent);
+      document.getElementById('barEmailRight') && (document.getElementById('barEmailRight').textContent = document.getElementById('barEmail').textContent);
+      document.getElementById('barName').textContent  = sellerProfile.shopName || sellerProfile.name;
   document.getElementById('barEmail').textContent = sellerProfile.email || currentUser.email;
 }
 
@@ -1258,6 +1399,13 @@ window.submitForm = async function() {
     // 2. Upload PPTX to Google Drive
     setProgress(65, 'Uploading PPTX to Google Drive...');
     const pptxUrl    = await uploadPptxToDrive(pptxFile);
+
+    // Upload preview clip if provided
+    let clipUrl = null;
+    if (clipFile) {
+      updateProgress(88, 'Uploading preview clip...');
+      clipUrl = await uploadClipToCloudinary(clipFile);
+    }
     const pptxFileId = extractDriveFileId(pptxUrl);
 
     // 3. Upload PDF (optional)
@@ -1348,6 +1496,7 @@ window.submitForm = async function() {
         fileTypes,
         slides:      slideUrls,
         pptxUrl,
+        clipUrl:      clipUrl || null,
         pdfUrl,
         keyUrl,
         extraFiles:  extraUrls,
