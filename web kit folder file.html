@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Website UI & Landing Page Kits — Business, E-commerce, SaaS & Portfolio | LazyDogTemplates</title>
+  <meta name="description" content="Professional website UI kits and landing page templates for businesses, e-commerce stores, SaaS products and personal portfolios. Pixel-perfect designs ready to download instantly." />
+  <meta name="keywords" content="website templates, landing page templates, UI kits, SaaS landing page, e-commerce template, portfolio website, business website template, LazyDogTemplates" />
+  <meta name="author" content="LazyDogTemplates" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.lazydogtemplates.com/web kit folder file.html" />
+  <meta property="og:title" content="Website UI & Landing Page Kits — LazyDogTemplates" />
+  <meta property="og:description" content="Website UI kits and landing page templates for every niche. Download and customize instantly." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.lazydogtemplates.com/web kit folder file.html" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --accent: #d4af37;
+      --red: #e03030;
+      --purple: #b464ff;
+      --blue: #5b7fff;
+      --bg: #07071a;
+      --bg-card: #0d0d26;
+      --bg-hero: #060626;
+      --text: #e8eaf0;
+      --muted: #8899aa;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ══ HERO ══ */
+    .hero-section {
+      width: 100%; background: var(--bg-hero);
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 32px 0 0 0; overflow: hidden; position: relative;
+      border-bottom: 1px solid rgba(212,175,55,0.15);
+    }
+    .hero-content { flex: 1; padding: 24px 40px 40px 40px; z-index: 2; }
+    .hero-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--muted); font-size: 13px; text-decoration: none;
+      margin-bottom: 20px; padding: 6px 14px; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1); transition: all 0.2s;
+    }
+    .hero-back:hover { color: var(--accent); border-color: rgba(212,175,55,0.4); }
+    .hero-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent);
+      font-family: 'Poppins', sans-serif; margin-bottom: 12px;
+    }
+    .hero-title {
+      font-family: 'Space Grotesk', 'Poppins', sans-serif;
+      font-size: 48px; font-weight: 700; line-height: 1.12;
+      letter-spacing: -0.02em; color: #fff; margin-bottom: 16px;
+    }
+    .hero-title span {
+      background: linear-gradient(90deg, var(--accent), #f0d060);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle { font-size: 15px; color: var(--muted); max-width: 520px; line-height: 1.7; margin-bottom: 28px; }
+    .hero-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+    .hero-stat { display: flex; flex-direction: column; gap: 2px; }
+    .hero-stat-num { font-size: 26px; font-weight: 900; color: #fff; font-family: 'Poppins', sans-serif; line-height: 1; }
+    .hero-stat-num .gold { color: var(--accent); }
+    .hero-stat-lbl { font-size: 11px; color: var(--muted); letter-spacing: 0.3px; }
+
+    /* decorative platform cards */
+    .hero-visual { flex-shrink: 0; display: flex; align-items: flex-end; gap: 14px; padding: 0 40px 0 0; align-self: flex-end; }
+    .platform-card { width: 110px; border-radius: 12px; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.6); flex-shrink: 0; }
+    .platform-card-header { height: 72px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .platform-card-body { background: #fff; padding: 8px 10px; }
+    .pc-line { height: 5px; border-radius: 3px; background: #e0e0e0; margin-bottom: 4px; }
+    .pc-line.short { width: 60%; }
+
+    /* ══ CATEGORY TABS — sticky, centrally overridden by navbar.js theme ══ */
+    .cat-tabs-wrap {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,7,26,0.97); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(212,175,55,0.12);
+      padding: 0 40px; display: flex; gap: 0;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .cat-tabs-wrap::-webkit-scrollbar { display: none; }
+    .cat-tab {
+      flex-shrink: 0; padding: 16px 20px;
+      font-size: 13px; font-weight: 600; font-family: 'Poppins', sans-serif;
+      color: var(--muted); cursor: pointer;
+      border-bottom: 2px solid transparent; transition: all 0.2s;
+      white-space: nowrap; display: flex; align-items: center; gap: 7px;
+    }
+    .cat-tab:hover { color: var(--text); }
+    .cat-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ══ SECTION BODY ══ */
+    .section-body { padding: 0 40px 80px; }
+    .cat-panel { display: none; }
+    .cat-panel.active { display: block; padding-top: 36px; }
+    .cat-panel-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+    .cat-panel-title { font-family: 'Space Grotesk', 'Poppins', sans-serif; font-size: 26px; font-weight: 700; color: #fff; }
+    .cat-panel-title span { color: var(--accent); }
+    .cat-panel-sub { font-size: 13px; color: var(--muted); margin-top: 4px; max-width: 520px; line-height: 1.6; }
+    .cat-panel-sort { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sort-btn {
+      font-size: 11px; font-weight: 600; padding: 6px 16px;
+      border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+      color: var(--muted); background: transparent; cursor: pointer; transition: all 0.2s;
+    }
+    .sort-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+    .sort-btn.active { background: rgba(212,175,55,0.1); border-color: var(--accent); color: var(--accent); }
+
+    /* ══ SUBCATEGORY ══ */
+    .subcat-section { margin-bottom: 44px; }
+    .subcat-label { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .subcat-tag { font-size: 9px; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.8px; flex-shrink: 0; }
+    .badge-new   { background: rgba(180,100,255,0.18); color: #b464ff; }
+    .badge-pop   { background: rgba(212,175,55,0.18);  color: #d4af37; }
+    .badge-trend { background: rgba(80,220,150,0.18);  color: #50dc96; }
+    .badge-free  { background: rgba(91,127,255,0.18);  color: #5b7fff; }
+    .badge-pro   { background: rgba(224,48,48,0.15);   color: #e03030; }
+    .subcat-label h3 { font-size: 15px; font-weight: 700; color: var(--text); font-family: 'Poppins', sans-serif; }
+    .subcat-divider { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent); }
+    .gold-divider { height: 1px; margin: 20px 0; background: linear-gradient(90deg, rgba(212,175,55,0.3), transparent); }
+
+    /* ══ TEMPLATE GRID ══ */
+    .template-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+    .tmpl-card {
+      background: var(--bg-card); border-radius: 14px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.07); transition: all 0.25s; cursor: pointer;
+    }
+    .tmpl-card:hover { transform: translateY(-4px); border-color: rgba(212,175,55,0.4); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+    .tmpl-card.coming-soon { opacity: 0.45; cursor: default; }
+    .tmpl-card.coming-soon:hover { transform: none; border-color: rgba(255,255,255,0.07); box-shadow: none; }
+    .tmpl-thumb { width: 100%; aspect-ratio: 4/3; position: relative; overflow: hidden; background: #0d0d26; }
+    .tmpl-thumb.portrait { aspect-ratio: 9/16; }
+    .tmpl-thumb.wide    { aspect-ratio: 5/2;  }
+    .tmpl-thumb.square  { aspect-ratio: 1/1;  }
+    .cs-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .cs-icon { font-size: 20px; }
+    .cs-text { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; }
+    .tmpl-info { padding: 12px 14px 14px; }
+    .tmpl-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; font-family: 'Poppins', sans-serif; }
+    .tmpl-type { font-size: 10px; color: var(--muted); }
+
+    /* ── Platform thumb previews ── */
+    .ig-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 3px; width: 100%; height: 100%; padding: 8px; }
+    .ig-cell { border-radius: 3px; }
+    .story-prev { width:100%;height:100%;display:flex;align-items:center;justify-content:center; }
+    .story-phone { width:42px;height:76px;border-radius:8px;border:2px solid rgba(255,255,255,0.3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,255,255,0.4); }
+    .banner-prev { width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:12px; }
+    .banner-box { width:100%;height:36px;border-radius:4px;display:flex;align-items:center;padding:0 8px;gap:6px; }
+    .banner-avatar { width:22px;height:22px;border-radius:50%;flex-shrink:0; }
+    .bn-line { height:4px;border-radius:2px;background:rgba(255,255,255,0.35);margin-bottom:4px; }
+    .bn-line.s { width:55%;margin-bottom:0; }
+    .yt-prev { width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:10px; }
+    .yt-box { width:100%;height:100%;border-radius:6px;background:#1a0505;position:relative;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,0,0,0.2); }
+    .yt-play { width:0;height:0;border-top:10px solid transparent;border-bottom:10px solid transparent;border-left:18px solid rgba(255,60,60,0.8);margin-left:3px; }
+    .yt-new { position:absolute;top:5px;right:5px;background:#22c55e;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:3px; }
+    .tk-prev { width:100%;height:100%;display:flex;align-items:center;justify-content:center; }
+    .tk-phone { width:36px;height:64px;border-radius:6px;background:#010101;border:1px solid rgba(105,201,208,0.4);position:relative;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(105,201,208,0.5); }
+    .tk-rec { position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:#ee1d52; }
+    .pin-prev { width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:6px; }
+    .pin-box { width:44px;height:68px;border-radius:8px;background:#e60023;display:flex;flex-direction:column;padding:6px;gap:3px; }
+    .pin-line { height:4px;border-radius:2px;background:rgba(255,255,255,0.5); }
+    .pin-line.s { width:70%; }
+    .hl-prev { width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;padding:10px; }
+    .hl-icon { border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px; }
+    .car-prev { width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px; }
+    .car-slide { flex:1;border-radius:5px;height:80%;display:flex;flex-direction:column;justify-content:flex-end;padding:6px 4px;gap:3px; }
+    .c-line { height:3px;border-radius:2px;background:rgba(255,255,255,0.3); }
+    .c-line.s { width:70%; }
+
+    /* ══ LIGHT MODE — navbar.js applies body.light ══ */
+    body.light { background: #f5f5f8; color: #1a1a2e; }
+    body.light .hero-section { background: #0d0d2e; }
+    body.light .cat-tabs-wrap { background: rgba(245,245,248,0.97); border-bottom-color: rgba(212,175,55,0.2); }
+    body.light .cat-tab { color: #666; }
+    body.light .cat-tab:hover { color: #1a1a2e; }
+    body.light .cat-tab.active { color: var(--accent); }
+    body.light .cat-panel-title { color: #1a1a2e; }
+    body.light .cat-panel-sub { color: #777; }
+    body.light .sort-btn { background: #fff; border-color: #ddd; color: #555; }
+    body.light .sort-btn.active { background: rgba(212,175,55,0.1); border-color: var(--accent); color: var(--accent); }
+    body.light .subcat-label h3 { color: #1a1a2e; }
+    body.light .tmpl-card { background: #fff; border-color: rgba(0,0,0,0.08); }
+    body.light .tmpl-card:hover { border-color: rgba(212,175,55,0.5); }
+    body.light .tmpl-name { color: #1a1a2e; }
+    body.light .tmpl-type { color: #888; }
+
+    /* ══ COLOUR PICKER PANEL — shared style, toggleColourPanel() called by navbar.js ══ */
+    .colour-panel { display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:100000;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px); }
+    .colour-panel.open { display:block!important; }
+    .colour-panel-label { font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Poppins',sans-serif; }
+    .colour-panel canvas { display:block;border-radius:10px;cursor:crosshair;border:1px solid rgba(255,255,255,0.1); }
+    .colour-panel-preview { display:flex;align-items:center;gap:10px;margin-top:10px; }
+    .colour-swatch { width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);flex-shrink:0; }
+    .colour-hex { font-size:13px;font-weight:700;color:#fff;font-family:'Poppins',sans-serif; }
+    .colour-reset { margin-left:auto;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;transition:all 0.2s; }
+
+    /* ══ RESPONSIVE ══ */
+    @media (max-width: 1200px) { .template-grid { grid-template-columns: repeat(4,1fr); } }
+    @media (max-width: 900px) {
+      .template-grid { grid-template-columns: repeat(3,1fr); }
+      .hero-title { font-size: 32px; } .hero-visual { display: none; }
+      .hero-content { padding: 24px 20px 36px; }
+      .cat-tabs-wrap { padding: 0 20px; }
+      .section-body { padding: 0 20px 60px; }
+    }
+    @media (max-width: 600px) { .template-grid { grid-template-columns: repeat(2,1fr); } .hero-title { font-size: 24px; } }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR — centrally controlled by navbar.js. Any new button added here appears on ALL pages ══ -->
+<script src="navbar.js"></script>
+
+<!-- ══ HERO ══ -->
+<section class="hero-section">
+  <div class="hero-content">
+    <a href="main.html" class="hero-back">← Back to Home</a>
+    <div class="hero-eyebrow">✦ Website UI Kits · Business · E-commerce · SaaS · Portfolios · Landing Pages</div>
+    <h1 class="hero-title">Launch Faster with<br><span>Website UI & Landing Page Kits</span></h1>
+    <p class="hero-subtitle">Business websites, e-commerce storefronts, SaaS launch pages and personal portfolio layouts — pixel-perfect UI kits built to convert visitors into customers.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="hero-stat-num">40<span class="gold">+</span></span><span class="hero-stat-lbl">UI Kits</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">4</span><span class="hero-stat-lbl">Categories</span></div>
+      <div class="hero-stat"><span class="hero-stat-num" style="font-size:18px;line-height:1.5;">Pixel<span class="gold">✓</span></span><span class="hero-stat-lbl">Perfect Layouts</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="platform-card" style="transform:rotate(-4deg) translateY(12px);">
+      <div class="platform-card-header" style="background:linear-gradient(135deg,#1a3a6e,#2255cc);">🏢</div>
+      <div class="platform-card-body"><div class="pc-line"></div><div class="pc-line short"></div></div>
+    </div>
+    <div class="platform-card">
+      <div class="platform-card-header" style="background:linear-gradient(135deg,#0d4a2a,#22c55e);">🛍️</div>
+      <div class="platform-card-body"><div class="pc-line"></div><div class="pc-line short"></div></div>
+    </div>
+    <div class="platform-card" style="transform:rotate(3deg) translateY(8px);">
+      <div class="platform-card-header" style="background:linear-gradient(135deg,#1a0533,#7a3fff);">🚀</div>
+      <div class="platform-card-body"><div class="pc-line"></div><div class="pc-line short"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CATEGORY TABS ══ -->
+<div class="cat-tabs-wrap">
+  <div class="cat-tab active" onclick="switchCat('business',this)">🏢 Business &amp; Corporate</div>
+  <div class="cat-tab" onclick="switchCat('ecommerce',this)">🛍️ E-commerce &amp; Shops</div>
+  <div class="cat-tab" onclick="switchCat('landing',this)">🚀 Modern Landing Pages</div>
+  <div class="cat-tab" onclick="switchCat('portfolio',this)">🎨 Personal Portfolios</div>
+</div>
+
+<!-- ══ SECTION BODY ══ -->
+<div class="section-body">
+
+  <!-- ─── BUSINESS & CORPORATE ─── -->
+  <div class="cat-panel active" id="panel-business">
+    <div class="cat-panel-header">
+      <div><div class="cat-panel-title">Business &amp; <span>Corporate</span></div><div class="cat-panel-sub">School websites, medical clinic pages and real estate portfolios built to project authority and trust</div></div>
+      <div class="cat-panel-sort"><button class="sort-btn active">All</button><button class="sort-btn">Newest</button><button class="sort-btn">Popular</button><button class="sort-btn">Free</button></div>
+    </div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-new">New</span><h3>School &amp; Academy Webs</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card" style="cursor:pointer;" onclick="window.location='web kit slides.html?deck=modern_academy'">
+          <div class="tmpl-thumb" style="background:linear-gradient(135deg,#0a1a3a,#1a3a6e);">
+            <div class="banner-prev"><div class="banner-box" style="background:rgba(34,85,204,0.5);flex-direction:column;align-items:flex-start;padding:6px 8px;gap:4px;height:auto;"><div class="bn-line" style="width:70%;"></div><div class="bn-line s"></div></div></div>
+          </div>
+          <div class="tmpl-info"><div class="tmpl-name">Modern Academy Homepage</div><div class="tmpl-type">Web Kit · School / Education</div></div>
+        </div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">University Landing Page</div><div class="tmpl-type">Web Kit · Education</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Online Course Platform</div><div class="tmpl-type">Web Kit · EdTech</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Tutoring Centre Site</div><div class="tmpl-type">Web Kit · Education</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Preschool Website</div><div class="tmpl-type">Web Kit · Education</div></div></div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-pop">Popular</span><h3>Medical &amp; Clinic Landing Pages</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card" style="cursor:pointer;" onclick="window.location='web kit slides.html?deck=clean_clinic'">
+          <div class="tmpl-thumb" style="background:linear-gradient(135deg,#051a14,#0d3a28);">
+            <div class="banner-prev"><div class="banner-box" style="background:rgba(16,185,129,0.4);flex-direction:column;align-items:flex-start;padding:6px 8px;gap:4px;height:auto;"><div class="bn-line" style="width:60%;background:rgba(16,185,129,0.8);"></div><div class="bn-line s" style="background:rgba(255,255,255,0.3);"></div></div></div>
+          </div>
+          <div class="tmpl-info"><div class="tmpl-name">Clean Clinic Homepage</div><div class="tmpl-type">Web Kit · Healthcare</div></div>
+        </div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Dental Practice Page</div><div class="tmpl-type">Web Kit · Healthcare</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Wellness Spa Landing</div><div class="tmpl-type">Web Kit · Wellness</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Physiotherapy Page</div><div class="tmpl-type">Web Kit · Healthcare</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Psychology Practice</div><div class="tmpl-type">Web Kit · Healthcare</div></div></div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-trend">Trending</span><h3>Real Estate &amp; Corporate Portfolios</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Luxury Real Estate Site</div><div class="tmpl-type">Web Kit · Real Estate</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Property Listings Page</div><div class="tmpl-type">Web Kit · Real Estate</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Law Firm Homepage</div><div class="tmpl-type">Web Kit · Corporate</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Finance Corp Website</div><div class="tmpl-type">Web Kit · Corporate</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Construction Co. Site</div><div class="tmpl-type">Web Kit · Corporate</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── E-COMMERCE ─── -->
+  <div class="cat-panel" id="panel-ecommerce">
+    <div class="cat-panel-header">
+      <div><div class="cat-panel-title">E-commerce &amp; <span>Shops</span></div><div class="cat-panel-sub">Digital marketplaces, restaurant menus and fashion storefronts designed to turn browsers into buyers</div></div>
+      <div class="cat-panel-sort"><button class="sort-btn active">All</button><button class="sort-btn">Newest</button><button class="sort-btn">Popular</button><button class="sort-btn">Free</button></div>
+    </div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-pop">Popular</span><h3>Digital Marketplace Hubs</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card" style="cursor:pointer;" onclick="window.location='web kit slides.html?deck=dark_marketplace'">
+          <div class="tmpl-thumb" style="background:linear-gradient(135deg,#0d1a0d,#1a3a1a);">
+            <div class="banner-prev"><div class="banner-box" style="background:rgba(34,197,94,0.3);flex-direction:column;align-items:flex-start;padding:6px 8px;gap:4px;height:auto;"><div class="bn-line" style="width:65%;background:rgba(34,197,94,0.7);"></div><div class="bn-line s"></div></div></div>
+          </div>
+          <div class="tmpl-info"><div class="tmpl-name">Dark Marketplace Hub</div><div class="tmpl-type">Web Kit · Digital Store</div></div>
+        </div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Template Store Front</div><div class="tmpl-type">Web Kit · Digital Products</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Course Marketplace</div><div class="tmpl-type">Web Kit · EdTech Store</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Plugin &amp; Asset Shop</div><div class="tmpl-type">Web Kit · Digital Products</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Photography Store</div><div class="tmpl-type">Web Kit · Digital Store</div></div></div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-new">New</span><h3>Restaurant Menu &amp; Delivery Pages</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Fine Dining Menu Page</div><div class="tmpl-type">Web Kit · Restaurant</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Fast Food Delivery Page</div><div class="tmpl-type">Web Kit · Food &amp; Delivery</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Café &amp; Bakery Site</div><div class="tmpl-type">Web Kit · Food</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Food Truck Homepage</div><div class="tmpl-type">Web Kit · Food</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Online Ordering Page</div><div class="tmpl-type">Web Kit · Food &amp; Delivery</div></div></div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-trend">Trending</span><h3>Fashion Boutique Storefronts</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Luxury Fashion Store</div><div class="tmpl-type">Web Kit · Fashion</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Streetwear Boutique</div><div class="tmpl-type">Web Kit · Fashion</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Jewellery Shop Page</div><div class="tmpl-type">Web Kit · Fashion</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Beauty &amp; Cosmetics Store</div><div class="tmpl-type">Web Kit · Fashion</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Vintage Clothing Store</div><div class="tmpl-type">Web Kit · Fashion</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODERN LANDING PAGES ─── -->
+  <div class="cat-panel" id="panel-landing">
+    <div class="cat-panel-header">
+      <div><div class="cat-panel-title">Modern <span>Landing Pages</span></div><div class="cat-panel-sub">SaaS launch pages, mobile app showcases and lead generation splash pages built to convert</div></div>
+      <div class="cat-panel-sort"><button class="sort-btn active">All</button><button class="sort-btn">Newest</button><button class="sort-btn">Popular</button><button class="sort-btn">Free</button></div>
+    </div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-pop">Popular</span><h3>SaaS Product Launch Pages</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card" style="cursor:pointer;" onclick="window.location='web kit slides.html?deck=dark_saas'">
+          <div class="tmpl-thumb" style="background:linear-gradient(135deg,#0d0626,#1a0a40);">
+            <div class="banner-prev"><div class="banner-box" style="background:rgba(122,63,255,0.4);flex-direction:column;align-items:flex-start;padding:6px 8px;gap:4px;height:auto;"><div class="bn-line" style="width:60%;background:rgba(122,63,255,0.8);"></div><div class="bn-line s"></div></div></div>
+          </div>
+          <div class="tmpl-info"><div class="tmpl-name">Dark SaaS Launch Page</div><div class="tmpl-type">Web Kit · SaaS / Tech</div></div>
+        </div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">AI Tool Landing Page</div><div class="tmpl-type">Web Kit · AI / SaaS</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Startup Homepage Kit</div><div class="tmpl-type">Web Kit · SaaS</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Pricing Page Template</div><div class="tmpl-type">Web Kit · SaaS</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Feature Showcase Page</div><div class="tmpl-type">Web Kit · SaaS / Tech</div></div></div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-new">New</span><h3>Mobile App Showcase Layouts</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">iOS App Landing Page</div><div class="tmpl-type">Web Kit · Mobile App</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Android App Page</div><div class="tmpl-type">Web Kit · Mobile App</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Game App Showcase</div><div class="tmpl-type">Web Kit · Mobile App</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Fitness App Landing</div><div class="tmpl-type">Web Kit · Mobile App</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Finance App Page</div><div class="tmpl-type">Web Kit · Mobile App</div></div></div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-trend">Trending</span><h3>Lead Generation Splash Pages</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Email Capture Page</div><div class="tmpl-type">Web Kit · Lead Gen</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Webinar Registration</div><div class="tmpl-type">Web Kit · Lead Gen</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Free Trial Sign-Up</div><div class="tmpl-type">Web Kit · Lead Gen</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Countdown Launch Page</div><div class="tmpl-type">Web Kit · Lead Gen</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Waitlist Page</div><div class="tmpl-type">Web Kit · Lead Gen</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PERSONAL PORTFOLIOS ─── -->
+  <div class="cat-panel" id="panel-portfolio">
+    <div class="cat-panel-header">
+      <div><div class="cat-panel-title">Personal <span>Portfolios</span></div><div class="cat-panel-sub">Freelancer grids, agency showcases and live resume websites that make hiring managers stop scrolling</div></div>
+      <div class="cat-panel-sort"><button class="sort-btn active">All</button><button class="sort-btn">Newest</button><button class="sort-btn">Popular</button><button class="sort-btn">Free</button></div>
+    </div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-pop">Popular</span><h3>Freelancer Portfolio Grids</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card" style="cursor:pointer;" onclick="window.location='web kit slides.html?deck=dark_designer_portfolio'">
+          <div class="tmpl-thumb" style="background:linear-gradient(135deg,#0d0d26,#1a1a40);">
+            <div class="ig-grid">
+              <div class="ig-cell" style="background:rgba(212,175,55,0.4);"></div><div class="ig-cell" style="background:rgba(91,127,255,0.3);"></div><div class="ig-cell" style="background:rgba(180,100,255,0.3);"></div>
+              <div class="ig-cell" style="background:rgba(91,127,255,0.3);"></div><div class="ig-cell" style="background:rgba(212,175,55,0.4);"></div><div class="ig-cell" style="background:rgba(255,255,255,0.06);"></div>
+              <div class="ig-cell" style="background:rgba(180,100,255,0.3);"></div><div class="ig-cell" style="background:rgba(255,255,255,0.06);"></div><div class="ig-cell" style="background:rgba(212,175,55,0.4);"></div>
+            </div>
+          </div>
+          <div class="tmpl-info"><div class="tmpl-name">Dark Designer Portfolio</div><div class="tmpl-type">Web Kit · Freelancer</div></div>
+        </div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Developer Portfolio</div><div class="tmpl-type">Web Kit · Freelancer</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Photographer Portfolio</div><div class="tmpl-type">Web Kit · Freelancer</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Copywriter Portfolio</div><div class="tmpl-type">Web Kit · Freelancer</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Video Editor Reel Site</div><div class="tmpl-type">Web Kit · Freelancer</div></div></div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-new">New</span><h3>Agency Showcase Layouts</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Creative Agency Home</div><div class="tmpl-type">Web Kit · Agency</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Digital Marketing Agency</div><div class="tmpl-type">Web Kit · Agency</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Branding Agency Page</div><div class="tmpl-type">Web Kit · Agency</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">PR Agency Website</div><div class="tmpl-type">Web Kit · Agency</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Web Dev Studio Page</div><div class="tmpl-type">Web Kit · Agency</div></div></div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <div class="subcat-section">
+      <div class="subcat-label"><span class="subcat-tag badge-free">Free</span><h3>Resume/CV Live Websites</h3><div class="subcat-divider"></div></div>
+      <div class="template-grid">
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Minimal CV Website</div><div class="tmpl-type">Web Kit · Resume / CV</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Dark CV Homepage</div><div class="tmpl-type">Web Kit · Resume / CV</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Interactive Resume Page</div><div class="tmpl-type">Web Kit · Resume / CV</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">Executive Bio Page</div><div class="tmpl-type">Web Kit · Resume / CV</div></div></div>
+        <div class="tmpl-card coming-soon"><div class="tmpl-thumb" style="background:#0d0d26;"><div class="cs-label"><span class="cs-icon">🔒</span><span class="cs-text">Coming Soon</span></div></div><div class="tmpl-info"><div class="tmpl-name">One-Page CV Site</div><div class="tmpl-type">Web Kit · Resume / CV</div></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /section-body -->
+
+<!-- ══ COLOUR PICKER PANEL — required by navbar.js Features button ══ -->
+<div class="colour-panel" id="colourPanel">
+  <div class="colour-panel-label">🎨 Pick Theme Colour</div>
+  <canvas id="colourCanvas" width="220" height="150"></canvas>
+  <div class="colour-panel-preview">
+    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
+    <span class="colour-hex" id="colourHex">#D4AF37</span>
+    <button class="colour-reset" onclick="resetColour()">Reset</button>
+  </div>
+</div>
+
+<!-- ══ FOOTER — centrally controlled by footerbar.js. One edit here updates ALL pages ══ -->
+<script src="footerbar.js"></script>
+<!-- ══ VOICE ASSISTANT DICTIONARY ══ -->
+<script src="va_dictionary.js"></script>
+
+<script>
+// ── COLOUR PICKER ──
+(function(){
+  var canvas = document.getElementById('colourCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  function drawWheel() {
+    var g1 = ctx.createLinearGradient(0,0,canvas.width,0);
+    ['#ff0000','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff','#ff0000'].forEach(function(c,i){ g1.addColorStop(i/6,c); });
+    ctx.fillStyle=g1; ctx.fillRect(0,0,canvas.width,canvas.height);
+    var g2 = ctx.createLinearGradient(0,0,0,canvas.height);
+    g2.addColorStop(0,'rgba(255,255,255,1)'); g2.addColorStop(0.5,'rgba(255,255,255,0)');
+    g2.addColorStop(0.5,'rgba(0,0,0,0)');     g2.addColorStop(1,'rgba(0,0,0,1)');
+    ctx.fillStyle=g2; ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+  drawWheel();
+  function pickColour(e) {
+    var r=canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+    var d=ctx.getImageData(x,y,1,1).data;
+    var hex='#'+[d[0],d[1],d[2]].map(function(v){return v.toString(16).padStart(2,'0');}).join('').toUpperCase();
+    document.getElementById('colourSwatch').style.background=hex;
+    document.getElementById('colourHex').textContent=hex;
+    document.documentElement.style.setProperty('--accent',hex);
+  }
+  canvas.addEventListener('click',pickColour);
+  canvas.addEventListener('mousemove',function(e){if(e.buttons===1)pickColour(e);});
+  window.resetColour=function(){
+    document.documentElement.style.setProperty('--accent','#d4af37');
+    document.getElementById('colourSwatch').style.background='#d4af37';
+    document.getElementById('colourHex').textContent='#D4AF37';
+  };
+  window.toggleColourPanel=function(){
+    var p=document.getElementById('colourPanel'), btn=document.getElementById('colourBtn');
+    var open=!p.classList.contains('open');
+    p.classList.toggle('open',open);
+    if(open&&btn){var r=btn.getBoundingClientRect();p.style.cssText+='position:fixed!important;top:'+(r.bottom+8)+'px!important;left:'+r.left+'px!important;right:auto!important;';}
+  };
+  document.addEventListener('click',function(e){
+    var p=document.getElementById('colourPanel'),btn=document.getElementById('colourBtn');
+    if(p&&p.classList.contains('open')&&!p.contains(e.target)&&e.target!==btn)p.classList.remove('open');
+  });
+})();
+</script>
+
+<script>
+// ── TAB SWITCHER ──
+function switchCat(cat, btn) {
+  document.querySelectorAll('.cat-tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.cat-panel').forEach(function(p){ p.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + cat);
+  if (panel) panel.classList.add('active');
+  document.querySelector('.section-body').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+// ── SORT BUTTONS ──
+document.querySelectorAll('.sort-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    this.closest('.cat-panel-sort').querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('active'); });
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
