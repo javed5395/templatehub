@@ -471,8 +471,17 @@
           'body,h1,h2,h3,h4,h5,h6,p,a,button,input,li,span{font-family:'+font+'!important;}' +
           '#fontPanel,#fontPanel *{font-family:Poppins,sans-serif!important;}';
       };
-      window.nbPreviewFont = function(el) { nbApplyFont(el.getAttribute('data-font')); };
-      window.nbRevertFont  = function()   { nbApplyFont(nbCommittedFont || nbDefaultFont); };
+      var nbFontTimer = null;
+      // Debounce: only apply font after cursor pauses 150ms on an item — eliminates rapid-sweep jerk
+      window.nbPreviewFont = function(el) {
+        clearTimeout(nbFontTimer);
+        var font = el.getAttribute('data-font');
+        nbFontTimer = setTimeout(function(){ nbApplyFont(font); }, 150);
+      };
+      window.nbRevertFont = function() {
+        clearTimeout(nbFontTimer); // cancel any pending preview
+        nbApplyFont(nbCommittedFont || nbDefaultFont);
+      };
       window.nbLockFont    = function(el) {
         nbCommittedFont = el.getAttribute('data-font');
         nbApplyFont(nbCommittedFont);
@@ -611,4 +620,288 @@
       document.getElementById('nbCpHueThumb').style.background='hsl('+cpH+',100%,50%)';
       document.getElementById('nbCpHueSlider').value=cpH;
       if(cpModeStr==='rgb'){document.getElementById('nbCpC1').value=rgb[0];document.getElementById('nbCpC2').value=rgb[1];document.getElementById('nbCpC3').value=rgb[2];}
-      else{var hsl=rgbHsl(rgb[0],rgb[1],rgb[2]);document.getEle
+      else{var hsl=rgbHsl(rgb[0],rgb[1],rgb[2]);document.getElementById('nbCpC1').value=hsl[0];document.getElementById('nbCpC2').value=hsl[1];document.getElementById('nbCpC3').value=hsl[2];}
+      return rgb;
+    }
+    // Update UI AND apply colour to page (only called when user actually moves the picker)
+    function cpUpd(){ var rgb=cpUpdUI(); cpApplyColour(rgb[0],rgb[1],rgb[2]); }
+
+    window.nbCpSetTab=function(tab){
+      cpTab=tab;
+      document.getElementById('nbCpTabTheme').classList.toggle('active',tab==='theme');
+      document.getElementById('nbCpTabFonts').classList.toggle('active',tab==='fonts');
+    };
+
+    document.getElementById('nbCpHueSlider').addEventListener('input',function(){cpH=parseInt(this.value);cpUpd();});
+    var gb=document.getElementById('nbCpGradBox');
+    gb.addEventListener('mousedown',function(e){cpDrag=true;cpMv(e);});
+    document.addEventListener('mousemove',function(e){if(cpDrag)cpMv(e);});
+    document.addEventListener('mouseup',function(){cpDrag=false;});
+    function cpMv(e){var rc=document.getElementById('nbCpGradBox').getBoundingClientRect();cpSx=cl((e.clientX-rc.left)/rc.width,0,1);cpSy=cl((e.clientY-rc.top)/rc.height,0,1);cpUpd();}
+
+    window.nbCpHexIn=function(v){v=v.trim();if(/^#?[0-9a-fA-F]{6}$/.test(v)){var h=v.replace('#','');var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);document.getElementById('nbCpSwatch').style.background='#'+h;document.getElementById('nbCpColorBar').style.background='#'+h;document.getElementById('nbCpC1').value=r;document.getElementById('nbCpC2').value=g;document.getElementById('nbCpC3').value=b;cpApplyColour(r,g,b);}};
+    window.nbCpChIn=function(){var v1=parseInt(document.getElementById('nbCpC1').value)||0,v2=parseInt(document.getElementById('nbCpC2').value)||0,v3=parseInt(document.getElementById('nbCpC3').value)||0;if(cpModeStr==='rgb'){var hex='#'+th(v1)+th(v2)+th(v3);document.getElementById('nbCpSwatch').style.background=hex;document.getElementById('nbCpColorBar').style.background=hex;document.getElementById('nbCpHex').value=hex.toUpperCase();cpApplyColour(v1,v2,v3);}};
+    window.nbCpMode=function(){cpModeStr=cpModeStr==='rgb'?'hsl':'rgb';document.getElementById('nbCpL1').textContent=cpModeStr==='rgb'?'R':'H';document.getElementById('nbCpL2').textContent=cpModeStr==='rgb'?'G':'S';document.getElementById('nbCpL3').textContent=cpModeStr==='rgb'?'B':'L';document.getElementById('nbCpC1').max=cpModeStr==='rgb'?255:360;document.getElementById('nbCpC2').max=cpModeStr==='rgb'?255:100;document.getElementById('nbCpC3').max=cpModeStr==='rgb'?255:100;cpUpd();};
+    window.nbCpEyedrop=function(){if(window.EyeDropper){new EyeDropper().open().then(function(r){document.getElementById('nbCpHex').value=r.sRGBHex.toUpperCase();window.nbCpHexIn(r.sRGBHex);}).catch(function(){});}else{alert('Eyedropper works in Chrome / Edge only.');}};
+    window.nbCpReset=function(){
+      if(cpTab==='theme'){
+        // Call page-level reset if available (restores both dark navy + cream)
+        if(typeof window.resetColour==='function'){
+          window.resetColour();
+        } else {
+          // Generic fallback: remove all inline CSS variable overrides so stylesheet defaults take over
+          var root=document.documentElement;
+          ['--bg-body','--bg-hero-dark-1','--bg-hero-dark-2','--bg-body-light',
+           '--bg-hero-light-1','--bg-hero-light-2','--bg-stats','--bg-stats-light'].forEach(function(v){
+            root.style.removeProperty(v);
+          });
+        }
+      } else {
+        // Fonts tab — clear injected font colour
+        var fs=document.getElementById('nbFontColorStyle');
+        if(fs) fs.textContent='';
+      }
+      // Refresh picker UI to reflect reset state, but do NOT re-apply colour
+      cpUpdUI();
+    };
+    window.nbCpApply=function(){document.getElementById('nbCPicker').classList.remove('open');};
+
+    window.nbTriggerColourPanel=function(){
+      var picker=document.getElementById('nbCPicker');
+      var btn=document.getElementById('colourBtn');
+      if(!picker||!btn)return;
+      if(picker.classList.contains('open')){picker.classList.remove('open');}
+      else{var rc=btn.getBoundingClientRect();picker.style.top=(rc.bottom+8)+'px';picker.style.left=rc.left+'px';picker.classList.add('open');cpUpdUI();}
+    };
+    document.addEventListener('click',function(e){var picker=document.getElementById('nbCPicker');var btn=document.getElementById('colourBtn');if(picker&&picker.classList.contains('open')&&!picker.contains(e.target)&&e.target!==btn)picker.classList.remove('open');});
+    cpUpdUI(); // initialise picker display only — do NOT apply colour on page load
+  })();
+
+  // ── FEATURES DROPDOWN: hover + click-lock ──
+  window.nbFeatHover = function(entering) {
+    var wrap = document.getElementById('nbFeatWrap');
+    if (!wrap) return;
+    if (entering) wrap.classList.add('nb-feat-hover');
+    else wrap.classList.remove('nb-feat-hover');
+  };
+  window.nbFeatLockToggle = function() {
+    var wrap = document.getElementById('nbFeatWrap');
+    var btn  = document.getElementById('nbFeatBtn');
+    if (!wrap) return;
+    var locked = wrap.classList.toggle('nb-feat-open');
+    if (btn) btn.classList.toggle('nb-feat-locked', locked);
+  };
+  // Close locked dropdown when clicking anywhere outside
+  document.addEventListener('click', function(e) {
+    var wrap = document.getElementById('nbFeatWrap');
+    if (wrap && !wrap.contains(e.target)) {
+      wrap.classList.remove('nb-feat-open');
+      var btn = document.getElementById('nbFeatBtn');
+      if (btn) btn.classList.remove('nb-feat-locked');
+    }
+  });
+
+  var NB_LIGHT_BG_COLOR = '#f8f8f8';
+  var NB_LIGHT_BG_IMAGE = 'repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px)';
+  var NB_DARK_BG_COLOR  = '#0d0d28';
+  var NB_DARK_BG_IMAGE  = '';
+  // main.html uses CSS vars for theming — skip inline bg override there
+  var NB_IS_MAIN = document.body.getAttribute('data-page') === 'main';
+
+  function nbSetThemeIcons(isLight) {
+    var btn = document.getElementById('themeBtn');
+    if (!btn) return;
+    btn.innerHTML = isLight
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+      : '<svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg>';
+  }
+
+  window.nbToggleTheme = function() {
+    var body = document.body;
+    if (body.classList.contains('light')) {
+      // → switch to DARK
+      body.classList.remove('light');
+      if (!NB_IS_MAIN) {
+        body.style.backgroundColor = NB_DARK_BG_COLOR;
+        body.style.backgroundImage = NB_DARK_BG_IMAGE;
+        body.style.color = '#e8eaf6';
+      }
+      localStorage.setItem('theme', 'dark');
+      nbSetThemeIcons(false);
+    } else {
+      // → switch to LIGHT
+      body.classList.add('light');
+      if (!NB_IS_MAIN) {
+        body.style.backgroundColor = NB_LIGHT_BG_COLOR;
+        body.style.backgroundImage = NB_LIGHT_BG_IMAGE;
+        body.style.color = '#1a1a2e';
+      }
+      localStorage.setItem('theme', 'light');
+      nbSetThemeIcons(true);
+    }
+  };
+
+  // ── Apply saved theme on page load ──
+  (function(){
+    var theme = localStorage.getItem('theme') || 'light'; // default = light
+    if (theme === 'light') {
+      document.body.classList.add('light');
+      if (!NB_IS_MAIN) {
+        document.body.style.backgroundColor = NB_LIGHT_BG_COLOR;
+        document.body.style.backgroundImage = NB_LIGHT_BG_IMAGE;
+        document.body.style.color = '#1a1a2e';
+      }
+    } else {
+      if (!NB_IS_MAIN) {
+        document.body.style.backgroundColor = NB_DARK_BG_COLOR;
+        document.body.style.backgroundImage = NB_DARK_BG_IMAGE;
+        document.body.style.color = '#e8eaf6';
+      }
+    }
+    // Sync button icon after DOM ready
+    document.addEventListener('DOMContentLoaded', function(){ nbSetThemeIcons(theme === 'light'); });
+  })();
+  // ── Restore RTL direction on page load ──
+  (function(){ var d = localStorage.getItem('nb_dir'); if(d) document.documentElement.dir = d; })();
+
+  // ── SEARCH ──
+  window.nbOpenSearch = function() {
+    var panel = document.getElementById('navSearchPanel');
+    if(!panel) return;
+    if(panel.classList.contains('open')){ nbCloseSearch(); return; }
+    panel.classList.add('open');
+    setTimeout(function(){ var inp=document.getElementById('navSearchInput'); if(inp)inp.focus(); }, 450);
+  };
+  window.nbCloseSearch = function() {
+    var panel = document.getElementById('navSearchPanel');
+    if(panel) panel.classList.remove('open');
+    var inp = document.getElementById('navSearchInput');
+    if(inp) inp.value = '';
+  };
+  window.nbDoSearch = function() {
+    var q = document.getElementById('navSearchInput').value.trim();
+    if(q) window.location = 'pitch_deck_folder_section.html?q=' + encodeURIComponent(q);
+    else window.location = 'pitch_deck_folder_section.html';
+  };
+
+  // ── VOICE MIC ──
+  var nbRecognition = null;
+  window.nbToggleMic = function() {
+    var btn = document.getElementById('micBtn');
+    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { alert('Voice search not supported. Try Chrome.'); return; }
+    if(nbRecognition){ nbRecognition.stop(); nbRecognition=null; if(btn)btn.classList.remove('listening'); return; }
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    nbRecognition = new SR();
+    nbRecognition.lang = 'en-US'; nbRecognition.interimResults = false;
+    if(btn) btn.classList.add('listening');
+    nbRecognition.onresult = function(e){ var t=e.results[0][0].transcript; var inp=document.getElementById('navSearchInput'); if(inp)inp.value=t; nbRecognition=null; if(btn)btn.classList.remove('listening'); nbDoSearch(); };
+    nbRecognition.onerror = function(){ nbRecognition=null; if(btn)btn.classList.remove('listening'); };
+    nbRecognition.start();
+  };
+
+  // ── CLICK OUTSIDE SEARCH ──
+  document.addEventListener('click', function(e) {
+    var panel = document.getElementById('navSearchPanel');
+    var searchBtn = document.getElementById('navSearchBtn');
+    if(panel && panel.classList.contains('open') && !panel.contains(e.target) && !searchBtn.contains(e.target)) nbCloseSearch();
+  });
+
+  // ── VOICE ASSISTANT ──
+  var vaRecognition = null;
+  var vaListening = false;
+  var vaGender = 'female';
+
+  function vaSpeak(text) {
+    if (!text) return;
+    var u = new SpeechSynthesisUtterance(text);
+    var voices = window.speechSynthesis.getVoices();
+    if (voices.length) {
+      u.voice = vaGender === 'male'
+        ? (voices.find(function(v){ return v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('mark') || v.name.toLowerCase().includes('male'); }) || voices[0])
+        : (voices.find(function(v){ return v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female'); }) || voices[0]);
+    }
+    window.speechSynthesis.speak(u);
+  }
+
+  function vaShowBubble(text) {
+    var bubble = document.getElementById('vaBubble');
+    var msg = document.getElementById('vaBubbleMsg');
+    if (!bubble || !msg) return;
+    msg.textContent = text;
+    bubble.style.opacity = '1';
+    bubble.style.transform = 'translateX(0)';
+  }
+
+  function vaHandleCommand(transcript) {
+    var commands = window.vaDictionary || [];
+    var lower = transcript.toLowerCase();
+    var best = null;
+    var bestLen = 0;
+    for (var i = 0; i < commands.length; i++) {
+      var cmd = commands[i];
+      var phrases = cmd.phrases || [];
+      for (var j = 0; j < phrases.length; j++) {
+        if (lower.includes(phrases[j].toLowerCase()) && phrases[j].length > bestLen) {
+          best = cmd;
+          bestLen = phrases[j].length;
+        }
+      }
+    }
+    vaShowBubble(transcript);
+    if (best) {
+      vaSpeak(best.reply || 'Done');
+      if (best.action === 'navigate' && best.target) {
+        setTimeout(function(){ window.location.href = best.target; }, 1200);
+      }
+    } else {
+      vaSpeak('Sorry, I did not understand that.');
+    }
+  }
+
+  window.toggleVoiceAssistant = function() {
+    var btn = document.getElementById('vaBtn');
+    if (!vaListening) {
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { alert('Voice not supported. Use Chrome.'); return; }
+      vaRecognition = new SR();
+      vaRecognition.continuous = true;
+      vaRecognition.interimResults = false;
+      vaRecognition.lang = 'en-US';
+      vaRecognition.onresult = function(e) {
+        var t = e.results[e.results.length - 1][0].transcript.trim();
+        vaHandleCommand(t);
+      };
+      vaRecognition.onerror = function(e) {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          vaListening = false;
+          if (btn) btn.classList.remove('va-listening');
+          vaShowBubble('Mic access denied');
+        }
+        // other errors (network, no-speech) — let onend handle restart
+      };
+      vaRecognition.onend = function() {
+        // Auto-restart if still supposed to be listening (Chrome stops after silence)
+        if (vaListening) {
+          try { vaRecognition.start(); } catch(ex) {}
+        }
+      };
+      vaRecognition.start();
+      vaListening = true;
+      if (btn) btn.classList.add('va-listening');
+      vaSpeak('Voice assistant on');
+    } else {
+      vaRecognition.stop();
+      vaListening = false;
+      if (btn) btn.classList.remove('va-listening');
+      vaSpeak('Voice assistant off');
+    }
+  };
+
+  window.vaToggleGender = function() {
+    var btn = document.getElementById('vaGenderBtn');
+    vaGender = vaGender === 'female' ? 'male' : 'female';
+    if (btn) btn.textContent = vaGender === 'female' ? '♀ Female' : '♂ Male';
+    vaSpeak('Voice changed to ' + vaGender);
+  };
+
+})();
