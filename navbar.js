@@ -598,9 +598,46 @@
       s.textContent='h1,h2,h3,h4,h5,h6,p,.hero-tag,.stat-num,.stat-label,.section-title,.btn-primary,.btn-secondary,.btn-green,.hero a,.hero-sub,.platform-card-name,.platform-card-desc{color:'+hex+'!important;}';
     }
 
+    // ── UNIVERSAL THEME COLOUR — works on every page, no per-page code needed ──
+    function nbApplyThemeColour(r,g,b){
+      var s=document.getElementById('nbThemeColorStyle');
+      if(!s){s=document.createElement('style');s.id='nbThemeColorStyle';document.head.appendChild(s);}
+      var hex='#'+[r,g,b].map(function(v){return('0'+v.toString(16)).slice(-2);}).join('');
+      var exact='rgb('+r+','+g+','+b+')';
+      // Luminance-based text colour: dark bg → white text, light bg → dark text
+      var lum=0.299*r+0.587*g+0.114*b;
+      var tc=lum<=160?'#ffffff':'#0d0d1a';
+      // Light-mode body tint
+      var lr=Math.min(255,220+Math.round(r*0.14)),lg=Math.min(255,215+Math.round(g*0.14)),lb=Math.min(255,210+Math.round(b*0.14));
+      var lbg='rgb('+lr+','+lg+','+lb+')';
+      s.textContent=
+        // CSS variables — for pages that use them (main.html hero gradients etc.)
+        ':root{--bg-body:'+exact+';--bg-hero-dark-1:'+exact+';--bg-hero-dark-2:'+exact+
+        ';--bg-body-light:'+lbg+';--bg-hero-light-1:'+lbg+';--bg-hero-light-2:'+lbg+
+        ';--bg-stats:'+exact+';--bg-stats-light:'+lbg+';--accent:'+hex+';--bg:'+exact+';}'+
+        // Body backgrounds (dark & light mode)
+        'body:not(.light){background:'+exact+'!important;}body.light{background:'+lbg+'!important;}'+
+        // Hero section backgrounds — all page variants
+        '.hero-section,.navbar-below-strip,.page-hero,.hero-area,.hero-banner{background:'+exact+'!important;}'+
+        // Stats section background
+        '.stats{background:'+exact+'!important;}'+
+        // Hero & section headings / text
+        '.hero h1,.hero h2,.hero p,.hero-sub,.hero-tag,'+
+        '.hero-section h1,.hero-section h2,.hero-section p,'+
+        '.navbar-below-strip h1,.navbar-below-strip h2,'+
+        '.hero-title,.section-title{color:'+tc+'!important;}'+
+        // Stats text
+        '.stat-num,.stat-label{color:'+tc+'!important;}'+
+        // Hero grid buttons text
+        '.hero .btn-primary,.hero .btn-secondary,.hero .btn-green,'+
+        '.hero-grid a,.hero-grid .btn-primary,.hero-grid .btn-secondary,.hero-grid .btn-green{color:'+tc+'!important;}'+
+        // Platform card names (Figma, Canva etc.)
+        '.platform-card-name,.platform-card-desc{color:'+tc+'!important;}';
+    }
+
     function cpApplyColour(r,g,b){
       if(cpTab==='theme'){
-        if(typeof window.applyBgColour==='function') window.applyBgColour(r,g,b);
+        nbApplyThemeColour(r,g,b);
       } else {
         nbApplyFontColour(r,g,b);
       }
@@ -645,17 +682,22 @@
     window.nbCpEyedrop=function(){if(window.EyeDropper){new EyeDropper().open().then(function(r){document.getElementById('nbCpHex').value=r.sRGBHex.toUpperCase();window.nbCpHexIn(r.sRGBHex);}).catch(function(){});}else{alert('Eyedropper works in Chrome / Edge only.');}};
     window.nbCpReset=function(){
       if(cpTab==='theme'){
-        // Call page-level reset if available (restores both dark navy + cream)
-        if(typeof window.resetColour==='function'){
-          window.resetColour();
-        } else {
-          // Generic fallback: remove all inline CSS variable overrides so stylesheet defaults take over
-          var root=document.documentElement;
-          ['--bg-body','--bg-hero-dark-1','--bg-hero-dark-2','--bg-body-light',
-           '--bg-hero-light-1','--bg-hero-light-2','--bg-stats','--bg-stats-light'].forEach(function(v){
-            root.style.removeProperty(v);
-          });
-        }
+        // Universal reset — just clear the injected style tag, works on ALL pages
+        var ts=document.getElementById('nbThemeColorStyle');
+        if(ts) ts.textContent='';
+        // Also clear any inline CSS variable overrides that may have been set by older page-level code
+        var root=document.documentElement;
+        ['--bg-body','--bg-hero-dark-1','--bg-hero-dark-2','--bg-body-light',
+         '--bg-hero-light-1','--bg-hero-light-2','--bg-stats','--bg-stats-light','--accent','--bg'].forEach(function(v){
+          root.style.removeProperty(v);
+        });
+        // Clear any inline element colour overrides (for backward compat with main.html's old applyBgColour)
+        document.body.style.color='';
+        document.querySelectorAll(
+          '.hero h1,.hero p,.hero-sub,.hero-tag,.stat-num,.stat-label,.section-title,'+
+          '.hero-grid a,.hero-grid .btn-primary,.hero-grid .btn-secondary,.hero-grid .btn-green,'+
+          '.platform-card-name,.platform-card-desc'
+        ).forEach(function(el){el.style.color='';});
       } else {
         // Fonts tab — clear injected font colour
         var fs=document.getElementById('nbFontColorStyle');
