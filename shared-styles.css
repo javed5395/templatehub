@@ -70,24 +70,27 @@ body.has-download #sharedNav .nb-links{margin-right:110px;}
 /* Pro / Features / Edit buttons */
 .nb-pro{background:none;border:none;cursor:pointer;font-size:14px;color:#444;font-family:'Poppins',sans-serif;padding:6px 4px;border-radius:6px;transition:color 0.2s;font-weight:500;}
 .nb-pro:hover{color:#111;}
-.nb-features{background:#fff;color:#16a34a;border:1.5px solid #16a34a;padding:7px 18px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;margin-right:6px;}
+.nb-features{background:#fff;color:#16a34a;border:1.5px solid #16a34a;padding:7px 18px;border-radius:0;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;margin-right:6px;}
 .nb-features:hover{background:#16a34a;color:#fff;}
 .nb-feat-wrap{position:relative;display:inline-block;}
-.nb-feat-dropdown{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(-8px);background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:14px;padding:14px 18px;display:flex;flex-direction:row;align-items:flex-start;gap:18px;opacity:0;pointer-events:none;transition:opacity 0.22s,transform 0.22s;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.13);white-space:nowrap;}
+.nb-feat-dropdown{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(-8px);background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:0;padding:14px 18px;display:flex;flex-direction:row;align-items:flex-start;gap:18px;opacity:0;pointer-events:none;transition:opacity 0.22s,transform 0.22s;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.13);white-space:nowrap;}
 .nb-feat-wrap.nb-feat-hover .nb-feat-dropdown,
 .nb-feat-wrap.nb-feat-open .nb-feat-dropdown{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0);}
 .nb-features.nb-feat-locked{background:#16a34a;color:#fff;}
 .nb-fd-item{display:flex;flex-direction:column;align-items:center;gap:5px;}
 .nb-fd-label{font-size:10px;font-weight:600;color:#555;font-family:'Poppins',sans-serif;letter-spacing:0.3px;}
-.nb-feat-dropdown .nb-sb-btn{border-radius:8px!important;width:40px;height:40px;}
-.nb-seller{background:transparent;color:#a0005a;border:1.5px solid #a0005a;padding:7px 18px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;}
+.nb-feat-dropdown .nb-sb-btn{border-radius:4px!important;width:40px;height:40px;}
+.nb-seller{background:transparent;color:#a0005a;border:1.5px solid #a0005a;padding:7px 18px;border-radius:0;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;}
 .nb-seller:hover{background:#a0005a;color:#fff;}
 
 /* Sign In / Sign Up */
-#sharedNav .nb-signin{color:#333;background:none;border:none;padding:8px 4px;font-size:14px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:500;cursor:pointer;transition:all 0.2s;}
+#sharedNav .nb-signin{color:#333;background:none;border:none;padding:8px 4px;font-size:14px;border-radius:0;font-family:'Poppins',sans-serif;font-weight:500;cursor:pointer;transition:all 0.2s;}
 #sharedNav .nb-signin:hover{color:#e03030;}
-#sharedNav .nb-signup{background:#fff;color:#e03030;border:1.5px solid #e03030;padding:7px 18px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;}
+#sharedNav .nb-signup{background:#fff;color:#e03030;border:1.5px solid #e03030;padding:7px 18px;border-radius:0;font-weight:600;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;}
 #sharedNav .nb-signup:hover{background:#e03030;color:#fff;}
+
+/* ── GLOBAL: all CTA buttons sharp corners ── */
+.btn-primary,.btn-secondary,.btn-green{border-radius:0!important;}
 
 /* Theme toggle */
 .nb-theme-nb{width:38px;height:38px;border-radius:50%;background:#0f1030;border:1.5px solid rgba(212,175,55,0.4);color:#d4af37;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s;flex-shrink:0;margin-left:6px;}
@@ -104,7 +107,7 @@ body.light #sharedNav .nb-theme{background:#fff;border-color:rgba(212,175,55,0.5
 #nbRightSidebar::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.3);border-radius:4px;}
 body.light #nbRightSidebar{background:#ffffff;border-color:rgba(212,175,55,0.3);box-shadow:-4px 0 20px rgba(0,0,0,0.1);}
 .nb-sb-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
-.nb-sb-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.25s;border:none;flex-shrink:0;}
+.nb-sb-btn{width:36px;height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.25s;border:none;flex-shrink:0;}
 .nb-sb-btn:hover{transform:scale(1.12);}
 .nb-sb-label{font-size:9px;font-weight:600;color:#8899aa;font-family:'Poppins',sans-serif;letter-spacing:0.3px;}
 body.light .nb-sb-label{color:#999;}
@@ -236,6 +239,4 @@ body:not(.light) .nav-search-close:hover{color:#fff;background:rgba(255,255,255,
   /* Search bar — fixed 120px side padding left almost no room on phones */
   .nav-search-panel-inner{padding:16px 20px!important;}
 
-  /* Help-chat bubble panel — fixed 320px width could overflow very small phones */
-  .helpbot-panel{width:calc(100vw - 32px);max-width:320px;right:16px;}
-}
+  /* Help-chat bubble panel — fixed 320px 

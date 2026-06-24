@@ -5,10 +5,10 @@
   css.rel = 'stylesheet'; css.href = 'shared-styles.css';
   document.head.insertBefore(css, document.head.firstChild);
 
-  // ── LOAD NUNITO FONT ──
+  // ── LOAD ALL PANEL FONTS IN ONE REQUEST ──
   var nunLink = document.createElement('link');
   nunLink.rel = 'stylesheet';
-  nunLink.href = 'https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap';
+  nunLink.href = 'https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Inter:wght@400;700&family=Montserrat:wght@400;700&family=Raleway:wght@400;700&family=DM+Sans:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=Space+Grotesk:wght@400;700&family=Outfit:wght@400;700&family=Josefin+Sans:wght@400;700&family=Quicksand:wght@400;700&family=Urbanist:wght@400;700&family=Sora:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=Pacifico&family=Bebas+Neue&family=Dancing+Script:wght@700&family=Oswald:wght@400;700&family=Roboto+Slab:wght@400;700&family=IBM+Plex+Mono:wght@400;700&family=Cinzel:wght@400;700&family=Righteous&family=Abril+Fatface&family=Lobster&display=swap';
   document.head.appendChild(nunLink);
 
   // ── INJECT AUTH MODAL + FIREBASE ──
@@ -209,11 +209,51 @@
     <div class="nb-lang-item" onclick="nbSetLang('zh-TW','繁体中文')">${nbGlobe()} 繁体中文</div>
     <div class="nb-lang-item" onclick="nbSetLang('fa','فارسی')">${nbFlag('ir')} فارسی</div>
     <div class="nb-lang-item" onclick="nbSetLang('ko','한국어')">${nbFlag('kr')} 한국어</div>
+    <div class="nb-lang-item" id="nbMoreBtn" onclick="nbToggleMoreLangs(this)" style="font-weight:800;color:#2255dd;font-size:14px;display:flex;align-items:center;justify-content:center;">more</div>
+  </div>
+  <div id="nbMoreLangs" style="max-height:0;overflow:hidden;opacity:0;transition:max-height 0.25s ease,opacity 0.2s ease;">
+    <div class="nb-lang-grid" style="margin-top:4px;border-top:1px solid rgba(0,0,0,0.08);padding-top:4px;">
+      <div class="nb-lang-item" onclick="nbSetLang('hi','हिन्दी')">${nbFlag('in')} हिन्दी</div>
+      <div class="nb-lang-item" onclick="nbSetLang('tr','Türkçe')">${nbFlag('tr')} Türkçe</div>
+      <div class="nb-lang-item" onclick="nbSetLang('pl','Polski')">${nbFlag('pl')} Polski</div>
+      <div class="nb-lang-item" onclick="nbSetLang('ru','Русский')">${nbFlag('ru')} Русский</div>
+      <div class="nb-lang-item" onclick="nbSetLang('uk','Українська')">${nbFlag('ua')} Українська</div>
+      <div class="nb-lang-item" onclick="nbSetLang('it','Italiano')">${nbFlag('it')} Italiano</div>
+      <div class="nb-lang-item" onclick="nbSetLang('zh-CN','简体中文')">${nbFlag('cn')} 简体中文</div>
+      <div class="nb-lang-item" onclick="nbSetLang('ur','اردو')">${nbFlag('pk')} اردو</div>
+      <div class="nb-lang-item" onclick="nbSetLang('bn','বাংলা')">${nbFlag('bd')} বাংলা</div>
+      <div class="nb-lang-item" onclick="nbSetLang('ms','Bahasa Melayu')">${nbFlag('my')} Bahasa Melayu</div>
+      <div class="nb-lang-item" onclick="nbSetLang('sw','Kiswahili')">${nbFlag('ke')} Kiswahili</div>
+      <div class="nb-lang-item" onclick="nbSetLang('tl','Filipino')">${nbFlag('ph')} Filipino</div>
+      <div class="nb-lang-item" onclick="nbSetLang('el','Ελληνικά')">${nbFlag('gr')} Ελληνικά</div>
+      <div class="nb-lang-item" onclick="nbSetLang('cs','Čeština')">${nbFlag('cz')} Čeština</div>
+      <div class="nb-lang-item" onclick="nbSetLang('ro','Română')">${nbFlag('ro')} Română</div>
+      <div class="nb-lang-item" onclick="nbSetLang('hu','Magyar')">${nbFlag('hu')} Magyar</div>
+      <div class="nb-lang-item" onclick="nbSetLang('sv','Svenska')">${nbFlag('se')} Svenska</div>
+      <div class="nb-lang-item" onclick="nbSetLang('no','Norsk')">${nbFlag('no')} Norsk</div>
+      <div class="nb-lang-item" onclick="nbSetLang('da','Dansk')">${nbFlag('dk')} Dansk</div>
+    </div>
   </div>
 </div>`;
   document.body.insertAdjacentHTML('beforeend', langHTML);
 
   var nbLangTimer = null;
+  var nbLangLocked = false;
+  window.nbToggleMoreLangs = function(btn) {
+    var more = document.getElementById('nbMoreLangs');
+    if (!more) return;
+    if (more._open) {
+      more.style.maxHeight = '0';
+      more.style.opacity = '0';
+      more._open = false;
+      btn.textContent = 'more';
+    } else {
+      more.style.maxHeight = '500px';
+      more.style.opacity = '1';
+      more._open = true;
+      btn.textContent = 'less';
+    }
+  };
   window.nbShowLang = function() {
     clearTimeout(nbLangTimer);
     var btn = document.getElementById('nbLangBtn');
@@ -223,9 +263,26 @@
     panel.style.right = (window.innerWidth - rect.right - 20) + 'px';
     panel.classList.add('open');
   };
-  window.nbLangLeaveBtn = function() { nbLangTimer = setTimeout(function(){ document.getElementById('nbLangPanel').classList.remove('open'); }, 200); };
+  window.nbLangLeaveBtn = function() {
+    if (nbLangLocked) return;
+    nbLangTimer = setTimeout(function(){ var p=document.getElementById('nbLangPanel'); if(!nbLangLocked&&p)p.classList.remove('open'); }, 200);
+  };
   window.nbLangEnterPanel = function() { clearTimeout(nbLangTimer); };
-  window.nbLangLeavePanel = function() { document.getElementById('nbLangPanel').classList.remove('open'); };
+  window.nbLangLeavePanel = function() { if (!nbLangLocked) document.getElementById('nbLangPanel').classList.remove('open'); };
+  // Click inside panel → freeze open; click outside → close and unfreeze
+  document.addEventListener('click', function(e) {
+    var panel = document.getElementById('nbLangPanel');
+    var langBtn = document.getElementById('nbLangBtn');
+    if (!panel) return;
+    if (panel.contains(e.target)) {
+      nbLangLocked = true;
+    } else if (langBtn && langBtn.contains(e.target)) {
+      // clicking the toggle button — leave lock state unchanged
+    } else {
+      nbLangLocked = false;
+      panel.classList.remove('open');
+    }
+  });
   window.nbSetLang = function(code, label) {
     var el = event.currentTarget;
     document.querySelectorAll('.nb-lang-item').forEach(function(e){ e.classList.remove('active'); });
@@ -334,48 +391,100 @@
   // ── THEME TOGGLE ──
   // ── UNIVERSAL FONT PANEL (works on all pages) ──
   (function(){
-    // Inject font panel if page doesn't already have one
     if (!document.getElementById('fontPanel')) {
+
+      // Inject fixed-height item CSS so panel never jerks on hover
+      var fpStyle = document.createElement('style');
+      fpStyle.textContent =
+        '#fontPanel .nb-font-item{' +
+          'height:40px;line-height:40px;padding:0 10px;box-sizing:border-box;' +
+          'overflow:hidden;white-space:nowrap;cursor:pointer;' +
+          'font-size:15px;border-radius:0;' +
+          'transition:background 0.12s,color 0.12s;' +
+          'color:rgba(255,255,255,0.82);' +
+        '}' +
+        '#fontPanel .nb-font-item:hover{background:rgba(102,126,234,0.18);color:#fff;}';
+      document.head.appendChild(fpStyle);
+
       var fonts = [
-        ["'Poppins', sans-serif","Poppins"],["'Inter', sans-serif","Inter"],
-        ["'Montserrat', sans-serif","Montserrat"],["'Raleway', sans-serif","Raleway"],
-        ["'Nunito', sans-serif","Nunito"],["'DM Sans', sans-serif","DM Sans"],
-        ["'Playfair Display', serif","Playfair Display"],["'Lora', serif","Lora"],
-        ["'Space Grotesk', sans-serif","Space Grotesk"],["'Outfit', sans-serif","Outfit"],
-        ["'Josefin Sans', sans-serif","Josefin Sans"],["'Quicksand', sans-serif","Quicksand"],
-        ["'Urbanist', sans-serif","Urbanist"],["'Sora', sans-serif","Sora"],
-        ["'Plus Jakarta Sans', sans-serif","Plus Jakarta Sans"]
+        // ── Clean modern sans ──
+        ["'Poppins', sans-serif",       "Poppins"],
+        ["'Inter', sans-serif",         "Inter"],
+        ["'Montserrat', sans-serif",    "Montserrat"],
+        ["'DM Sans', sans-serif",       "DM Sans"],
+        ["'Outfit', sans-serif",        "Outfit"],
+        ["'Urbanist', sans-serif",      "Urbanist"],
+        ["'Plus Jakarta Sans', sans-serif", "Plus Jakarta Sans"],
+        // ── Elegant / geometric ──
+        ["'Raleway', sans-serif",       "Raleway"],
+        ["'Josefin Sans', sans-serif",  "Josefin Sans"],
+        ["'Cinzel', serif",             "Cinzel  (Classical)"],
+        // ── Rounded & friendly ──
+        ["'Nunito', sans-serif",        "Nunito"],
+        ["'Quicksand', sans-serif",     "Quicksand"],
+        // ── Technical / grotesk ──
+        ["'Space Grotesk', sans-serif", "Space Grotesk"],
+        ["'Sora', sans-serif",          "Sora"],
+        ["'Oswald', sans-serif",        "Oswald  (Condensed)"],
+        // ── Classic serif ──
+        ["'Playfair Display', serif",   "Playfair Display"],
+        ["'Lora', serif",               "Lora  (Serif)"],
+        ["'Roboto Slab', serif",        "Roboto Slab"],
+        // ── Display / decorative ──
+        ["'Bebas Neue', cursive",       "BEBAS NEUE"],
+        ["'Abril Fatface', cursive",    "Abril Fatface"],
+        ["'Righteous', cursive",        "Righteous"],
+        // ── Script / handwritten ──
+        ["'Pacifico', cursive",         "Pacifico"],
+        ["'Dancing Script', cursive",   "Dancing Script"],
+        ["'Lobster', cursive",          "Lobster"],
+        // ── Monospace ──
+        ["'IBM Plex Mono', monospace",  "IBM Plex Mono"]
       ];
+
       var items = fonts.map(function(f){
         return '<div class="nb-font-item" style="font-family:'+f[0]+'" data-font="'+f[0]+'" '+
-          'onmouseenter="nbPreviewFont(this)" onmouseleave="nbRevertFont()" onclick="nbLockFont(this)">'+f[1]+'</div>';
+          'onmouseenter="nbPreviewFont(this)" onclick="nbLockFont(this)">'+f[1]+'</div>';
       }).join('');
-      var html = '<div id="fontPanel" style="display:none;position:fixed;top:70px;right:80px;'+
-        'background:rgba(10,10,30,0.97);border:1px solid rgba(255,255,255,0.12);border-radius:16px;'+
-        'padding:14px;z-index:10000;box-shadow:0 20px 60px rgba(0,0,0,0.7);min-width:220px;max-height:360px;overflow:hidden;">'+
-        '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:Poppins,sans-serif;">🔤 Pick Font</div>'+
-        '<div style="display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto;padding-right:4px;">'+items+'</div>'+
-        '<div style="margin-top:10px;display:flex;justify-content:flex-end;">'+
-          '<button onclick="nbResetFont()" style="font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;font-family:Poppins,sans-serif;">Reset</button>'+
-        '</div></div>';
+
+      var html =
+        '<div id="fontPanel" style="display:none;position:fixed;z-index:10000;'+
+        'background:#1e1e2f;border:1px solid rgba(255,255,255,0.12);border-radius:0;'+
+        'padding:14px 14px 10px;box-shadow:0 20px 60px rgba(0,0,0,0.7);min-width:230px;">'+
+          '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-family:Poppins,sans-serif;">🔤 Pick Font</div>'+
+          '<div id="nbFontList" style="display:flex;flex-direction:column;max-height:320px;overflow-y:auto;overflow-x:hidden;" onmouseleave="nbRevertFont()">'+items+'</div>'+
+          '<div style="margin-top:10px;display:flex;justify-content:flex-end;">'+
+            '<button onclick="nbResetFont()" style="font-size:11px;color:rgba(255,255,255,0.45);cursor:pointer;padding:4px 12px;border-radius:0;border:1px solid rgba(255,255,255,0.15);background:transparent;font-family:Poppins,sans-serif;">Reset</button>'+
+          '</div>'+
+        '</div>';
       document.body.insertAdjacentHTML('beforeend', html);
 
       var nbCommittedFont = null;
       var nbDefaultFont = "'Poppins', sans-serif";
+
+      // Single CSS injection — one browser paint instead of thousands of inline style changes
+      var nbFontStyle = document.createElement('style');
+      nbFontStyle.id = 'nbFontApplyStyle';
+      document.head.appendChild(nbFontStyle);
       window.nbApplyFont = function(font) {
-        document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,button,span,div,input,li').forEach(function(el){ el.style.fontFamily = font; });
+        nbFontStyle.textContent =
+          'body,h1,h2,h3,h4,h5,h6,p,a,button,input,li,span{font-family:'+font+'!important;}' +
+          '#fontPanel,#fontPanel *{font-family:Poppins,sans-serif!important;}';
       };
       window.nbPreviewFont = function(el) { nbApplyFont(el.getAttribute('data-font')); };
       window.nbRevertFont  = function()   { nbApplyFont(nbCommittedFont || nbDefaultFont); };
       window.nbLockFont    = function(el) {
         nbCommittedFont = el.getAttribute('data-font');
         nbApplyFont(nbCommittedFont);
-        document.querySelectorAll('.nb-font-item').forEach(function(i){ i.style.background=''; i.style.color=''; });
-        el.style.background = 'rgba(102,126,234,0.25)'; el.style.color = '#fff';
+        document.querySelectorAll('.nb-font-item').forEach(function(i){ i.style.background=''; });
+        el.style.background = 'rgba(102,126,234,0.3)';
       };
-      window.nbResetFont   = function()   { nbCommittedFont = null; nbApplyFont(nbDefaultFont); document.querySelectorAll('.nb-font-item').forEach(function(i){ i.style.background=''; i.style.color=''; }); };
+      window.nbResetFont = function() {
+        nbCommittedFont = null;
+        nbFontStyle.textContent = '';
+        document.querySelectorAll('.nb-font-item').forEach(function(i){ i.style.background=''; });
+      };
 
-      // Close on outside click
       document.addEventListener('click', function(e) {
         var panel = document.getElementById('fontPanel');
         var btn   = document.getElementById('fontBtn');
@@ -391,9 +500,8 @@
         panel.style.display = open ? 'block' : 'none';
         if (open && btn) {
           var r = btn.getBoundingClientRect();
-          panel.style.position = 'fixed';
-          panel.style.top   = (r.bottom + 8) + 'px';
-          panel.style.left  = r.left + 'px';
+          panel.style.top  = (r.bottom + 8) + 'px';
+          panel.style.left = r.left + 'px';
           panel.style.right = 'auto';
         }
       };
@@ -415,246 +523,92 @@
     }, 10);
   };
 
-  // Trigger colour panel and position it directly below the Colour button
-  window.nbTriggerColourPanel = function() {
-    if (typeof toggleColourPanel === 'function') toggleColourPanel();
-    setTimeout(function() {
-      var panel = document.getElementById('colourPanel');
-      var btn   = document.getElementById('colourBtn');
-      if (!panel || !btn) return;
-      var open = panel.classList.contains('open') || panel.style.display === 'block';
-      if (open) {
-        var r = btn.getBoundingClientRect();
-        panel.style.cssText += ';position:fixed!important;top:'+(r.bottom+8)+'px!important;left:'+r.left+'px!important;right:auto!important;';
-      }
-    }, 10);
-  };
-
-  // ── FEATURES DROPDOWN: hover + click-lock ──
-  window.nbFeatHover = function(entering) {
-    var wrap = document.getElementById('nbFeatWrap');
-    if (!wrap) return;
-    if (entering) wrap.classList.add('nb-feat-hover');
-    else wrap.classList.remove('nb-feat-hover');
-  };
-  window.nbFeatLockToggle = function() {
-    var wrap = document.getElementById('nbFeatWrap');
-    var btn  = document.getElementById('nbFeatBtn');
-    if (!wrap) return;
-    var locked = wrap.classList.toggle('nb-feat-open');
-    if (btn) btn.classList.toggle('nb-feat-locked', locked);
-  };
-  // Close locked dropdown when clicking anywhere outside
-  document.addEventListener('click', function(e) {
-    var wrap = document.getElementById('nbFeatWrap');
-    if (wrap && !wrap.contains(e.target)) {
-      wrap.classList.remove('nb-feat-open');
-      var btn = document.getElementById('nbFeatBtn');
-      if (btn) btn.classList.remove('nb-feat-locked');
-    }
-  });
-
-  var NB_LIGHT_BG_COLOR = '#f8f8f8';
-  var NB_LIGHT_BG_IMAGE = 'repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px)';
-  var NB_DARK_BG_COLOR  = '#0d0d28';
-  var NB_DARK_BG_IMAGE  = '';
-  // main.html uses CSS vars for theming — skip inline bg override there
-  var NB_IS_MAIN = document.body.getAttribute('data-page') === 'main';
-
-  function nbSetThemeIcons(isLight) {
-    var btn = document.getElementById('themeBtn');
-    if (!btn) return;
-    btn.innerHTML = isLight
-      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
-      : '<svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg>';
-  }
-
-  window.nbToggleTheme = function() {
-    var body = document.body;
-    if (body.classList.contains('light')) {
-      // → switch to DARK
-      body.classList.remove('light');
-      if (!NB_IS_MAIN) {
-        body.style.backgroundColor = NB_DARK_BG_COLOR;
-        body.style.backgroundImage = NB_DARK_BG_IMAGE;
-        body.style.color = '#e8eaf6';
-      }
-      localStorage.setItem('theme', 'dark');
-      nbSetThemeIcons(false);
-    } else {
-      // → switch to LIGHT
-      body.classList.add('light');
-      if (!NB_IS_MAIN) {
-        body.style.backgroundColor = NB_LIGHT_BG_COLOR;
-        body.style.backgroundImage = NB_LIGHT_BG_IMAGE;
-        body.style.color = '#1a1a2e';
-      }
-      localStorage.setItem('theme', 'light');
-      nbSetThemeIcons(true);
-    }
-  };
-
-  // ── Apply saved theme on page load ──
+  // ── NEW COLOUR PICKER — injected by navbar.js, works on every page ──
   (function(){
-    var theme = localStorage.getItem('theme') || 'light'; // default = light
-    if (theme === 'light') {
-      document.body.classList.add('light');
-      if (!NB_IS_MAIN) {
-        document.body.style.backgroundColor = NB_LIGHT_BG_COLOR;
-        document.body.style.backgroundImage = NB_LIGHT_BG_IMAGE;
-        document.body.style.color = '#1a1a2e';
-      }
-    } else {
-      if (!NB_IS_MAIN) {
-        document.body.style.backgroundColor = NB_DARK_BG_COLOR;
-        document.body.style.backgroundImage = NB_DARK_BG_IMAGE;
-        document.body.style.color = '#e8eaf6';
-      }
+    var cpStyle = document.createElement('style');
+    cpStyle.textContent =
+      '#nbCPicker{display:none;position:fixed;z-index:99999;background:#1e1e2f;border:1px solid #3a3a55;padding:12px;width:242px;box-shadow:0 8px 32px rgba(0,0,0,0.5);}' +
+      '#nbCPicker.open{display:block;}' +
+      '#nbCpGradBox{width:100%;height:140px;position:relative;cursor:crosshair;user-select:none;margin-bottom:8px;}' +
+      '#nbCpGradFill{position:absolute;inset:0;background:linear-gradient(to right,#fff,hsl(45,100%,50%));}' +
+      '#nbCpGradDark{position:absolute;inset:0;background:linear-gradient(to bottom,transparent,#000);}' +
+      '#nbCpCursor{position:absolute;width:13px;height:13px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,0.6);transform:translate(-50%,-50%);pointer-events:none;}' +
+      '#nbCpHueWrap{position:relative;height:10px;margin-bottom:10px;}' +
+      '#nbCpHueBg{height:10px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);}' +
+      '#nbCpHueSlider{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;margin:0;}' +
+      '#nbCpHueThumb{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,0.5);transform:translate(-50%,-50%);pointer-events:none;}' +
+      '#nbCpColorBar{height:22px;border:1px solid #444;margin-bottom:10px;}' +
+      '.nbCpRow{display:flex;align-items:center;gap:7px;margin-bottom:8px;}' +
+      '#nbCpSwatch{width:26px;height:26px;border-radius:50%;border:1px solid #555;flex-shrink:0;}' +
+      '#nbCpEyedrop{width:26px;height:26px;background:#2a2a3f;border:1px solid #555;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
+      '#nbCpHex{flex:1;background:#1a1a26;border:1px solid #444;color:#fff;font-size:12px;padding:5px 7px;font-family:monospace;border-radius:0;}' +
+      '.nbCpCh{flex:1;text-align:center;}' +
+      '.nbCpCh input{width:100%;background:#1a1a26;border:1px solid #444;color:#fff;font-size:12px;padding:4px 2px;text-align:center;border-radius:0;box-sizing:border-box;}' +
+      '.nbCpCh label{display:block;font-size:10px;color:#888;margin-top:2px;text-align:center;}' +
+      '#nbCpModeBtn{display:flex;flex-direction:column;cursor:pointer;padding:0 3px;line-height:1;gap:2px;align-self:center;}' +
+      '#nbCpModeBtn span{font-size:9px;color:#aaa;}' +
+      '.nbCpBtns{display:flex;gap:7px;margin-top:6px;}' +
+      '.nbCpBtns button{flex:1;padding:6px;font-size:12px;cursor:pointer;border:1px solid #444;background:#2a2a3f;color:#fff;font-family:Poppins,sans-serif;border-radius:0;}' +
+      '#nbCpApply{background:#3344bb!important;border-color:#3344bb!important;}';
+    document.head.appendChild(cpStyle);
+
+    // add tab CSS
+    cpStyle.textContent +=
+      '.nbCpTabs{display:flex;gap:0;margin-bottom:10px;}' +
+      '.nbCpTab{flex:1;padding:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #444;background:#2a2a3f;color:#888;font-family:Poppins,sans-serif;border-radius:0;text-align:center;}' +
+      '.nbCpTab.active{background:#3344bb;color:#fff;border-color:#3344bb;}';
+
+    var cpDiv = document.createElement('div');
+    cpDiv.id = 'nbCPicker';
+    cpDiv.innerHTML =
+      '<div class="nbCpTabs"><button class="nbCpTab active" id="nbCpTabTheme" onclick="nbCpSetTab(\'theme\')">Theme</button><button class="nbCpTab" id="nbCpTabFonts" onclick="nbCpSetTab(\'fonts\')">Fonts</button></div>' +
+      '<div id="nbCpColorBar"></div>' +
+      '<div id="nbCpGradBox"><div id="nbCpGradFill"></div><div id="nbCpGradDark"></div><div id="nbCpCursor" style="top:30%;left:60%;"></div></div>' +
+      '<div id="nbCpHueWrap"><div id="nbCpHueBg"></div><input id="nbCpHueSlider" type="range" min="0" max="360" value="45" step="1"><div id="nbCpHueThumb" style="left:12.5%;background:hsl(45,100%,50%);"></div></div>' +
+      '<div class="nbCpRow"><div id="nbCpSwatch" style="background:#d4af37;"></div><div id="nbCpEyedrop" title="Pick colour from screen" onclick="nbCpEyedrop()">&#128449;</div><input id="nbCpHex" type="text" value="#D4AF37" oninput="nbCpHexIn(this.value)"></div>' +
+      '<div class="nbCpRow" style="align-items:flex-start;">' +
+        '<div class="nbCpCh"><input id="nbCpC1" type="number" min="0" max="255" value="212" oninput="nbCpChIn()"><label id="nbCpL1">R</label></div>' +
+        '<div class="nbCpCh"><input id="nbCpC2" type="number" min="0" max="255" value="175" oninput="nbCpChIn()"><label id="nbCpL2">G</label></div>' +
+        '<div class="nbCpCh"><input id="nbCpC3" type="number" min="0" max="255" value="55" oninput="nbCpChIn()"><label id="nbCpL3">B</label></div>' +
+        '<div id="nbCpModeBtn" onclick="nbCpMode()" title="Switch RGB / HSL"><span>&#9650;</span><span>&#9660;</span></div>' +
+      '</div>' +
+      '<div class="nbCpBtns"><button onclick="nbCpReset()">Reset</button><button id="nbCpApply" onclick="nbCpApply()">Apply</button></div>';
+    document.body.appendChild(cpDiv);
+
+    var cpH=45,cpSx=0.6,cpSy=0.3,cpModeStr='rgb',cpDrag=false,cpDefault='#D4AF37',cpTab='theme';
+    function cl(v,a,b){return Math.max(a,Math.min(b,v));}
+    function th(n){return Math.round(cl(n,0,255)).toString(16).padStart(2,'0');}
+    function hsvRgb(h,s,v){var r,g,b,i=Math.floor(h/60),f=h/60-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-s+s*f);switch(i%6){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;case 5:r=v;g=p;b=q;break;}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}
+    function rgbHsl(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),h,s,l=(mx+mn)/2;if(mx===mn){h=s=0;}else{var d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);if(mx===r)h=((g-b)/d+(g<b?6:0))/6;else if(mx===g)h=((b-r)/d+2)/6;else h=((r-g)/d+4)/6;}return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];}
+
+    // Apply chosen colour to fonts via injected style tag
+    function nbApplyFontColour(r,g,b){
+      var hex='#'+th(r)+th(g)+th(b);
+      var s=document.getElementById('nbFontColorStyle');
+      if(!s){s=document.createElement('style');s.id='nbFontColorStyle';document.head.appendChild(s);}
+      s.textContent='h1,h2,h3,h4,h5,h6,p,.hero-tag,.stat-num,.stat-label,.section-title,.btn-primary,.btn-secondary,.btn-green,.hero a,.hero-sub,.platform-card-name,.platform-card-desc{color:'+hex+'!important;}';
     }
-    // Sync button icon after DOM ready
-    document.addEventListener('DOMContentLoaded', function(){ nbSetThemeIcons(theme === 'light'); });
-  })();
-  // ── Restore RTL direction on page load ──
-  (function(){ var d = localStorage.getItem('nb_dir'); if(d) document.documentElement.dir = d; })();
 
-  // ── SEARCH ──
-  window.nbOpenSearch = function() {
-    var panel = document.getElementById('navSearchPanel');
-    if(!panel) return;
-    if(panel.classList.contains('open')){ nbCloseSearch(); return; }
-    panel.classList.add('open');
-    setTimeout(function(){ var inp=document.getElementById('navSearchInput'); if(inp)inp.focus(); }, 450);
-  };
-  window.nbCloseSearch = function() {
-    var panel = document.getElementById('navSearchPanel');
-    if(panel) panel.classList.remove('open');
-    var inp = document.getElementById('navSearchInput');
-    if(inp) inp.value = '';
-  };
-  window.nbDoSearch = function() {
-    var q = document.getElementById('navSearchInput').value.trim();
-    if(q) window.location = 'pitch_deck_folder_section.html?q=' + encodeURIComponent(q);
-    else window.location = 'pitch_deck_folder_section.html';
-  };
-
-  // ── VOICE MIC ──
-  var nbRecognition = null;
-  window.nbToggleMic = function() {
-    var btn = document.getElementById('micBtn');
-    if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { alert('Voice search not supported. Try Chrome.'); return; }
-    if(nbRecognition){ nbRecognition.stop(); nbRecognition=null; if(btn)btn.classList.remove('listening'); return; }
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    nbRecognition = new SR();
-    nbRecognition.lang = 'en-US'; nbRecognition.interimResults = false;
-    if(btn) btn.classList.add('listening');
-    nbRecognition.onresult = function(e){ var t=e.results[0][0].transcript; var inp=document.getElementById('navSearchInput'); if(inp)inp.value=t; nbRecognition=null; if(btn)btn.classList.remove('listening'); nbDoSearch(); };
-    nbRecognition.onerror = function(){ nbRecognition=null; if(btn)btn.classList.remove('listening'); };
-    nbRecognition.start();
-  };
-
-  // ── CLICK OUTSIDE SEARCH ──
-  document.addEventListener('click', function(e) {
-    var panel = document.getElementById('navSearchPanel');
-    var searchBtn = document.getElementById('navSearchBtn');
-    if(panel && panel.classList.contains('open') && !panel.contains(e.target) && !searchBtn.contains(e.target)) nbCloseSearch();
-  });
-
-  // ── VOICE ASSISTANT ──
-  var vaRecognition = null;
-  var vaListening = false;
-  var vaGender = 'female';
-
-  function vaSpeak(text) {
-    if (!text) return;
-    var u = new SpeechSynthesisUtterance(text);
-    var voices = window.speechSynthesis.getVoices();
-    if (voices.length) {
-      u.voice = vaGender === 'male'
-        ? (voices.find(function(v){ return v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('mark') || v.name.toLowerCase().includes('male'); }) || voices[0])
-        : (voices.find(function(v){ return v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('female'); }) || voices[0]);
-    }
-    window.speechSynthesis.speak(u);
-  }
-
-  function vaShowBubble(text) {
-    var bubble = document.getElementById('vaBubble');
-    var msg = document.getElementById('vaBubbleMsg');
-    if (!bubble || !msg) return;
-    msg.textContent = text;
-    bubble.style.opacity = '1';
-    bubble.style.transform = 'translateX(0)';
-  }
-
-  function vaHandleCommand(transcript) {
-    var commands = window.vaDictionary || [];
-    var lower = transcript.toLowerCase();
-    var best = null;
-    var bestLen = 0;
-    for (var i = 0; i < commands.length; i++) {
-      var cmd = commands[i];
-      var phrases = cmd.phrases || [];
-      for (var j = 0; j < phrases.length; j++) {
-        if (lower.includes(phrases[j].toLowerCase()) && phrases[j].length > bestLen) {
-          best = cmd;
-          bestLen = phrases[j].length;
-        }
+    function cpApplyColour(r,g,b){
+      if(cpTab==='theme'){
+        if(typeof window.applyBgColour==='function') window.applyBgColour(r,g,b);
+      } else {
+        nbApplyFontColour(r,g,b);
       }
     }
-    vaShowBubble(transcript);
-    if (best) {
-      vaSpeak(best.reply || 'Done');
-      if (best.action === 'navigate' && best.target) {
-        setTimeout(function(){ window.location.href = best.target; }, 1200);
-      }
-    } else {
-      vaSpeak('Sorry, I did not understand that.');
-    }
-  }
 
-  window.toggleVoiceAssistant = function() {
-    var btn = document.getElementById('vaBtn');
-    if (!vaListening) {
-      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) { alert('Voice not supported. Use Chrome.'); return; }
-      vaRecognition = new SR();
-      vaRecognition.continuous = true;
-      vaRecognition.interimResults = false;
-      vaRecognition.lang = 'en-US';
-      vaRecognition.onresult = function(e) {
-        var t = e.results[e.results.length - 1][0].transcript.trim();
-        vaHandleCommand(t);
-      };
-      vaRecognition.onerror = function(e) {
-        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-          vaListening = false;
-          if (btn) btn.classList.remove('va-listening');
-          vaShowBubble('Mic access denied');
-        }
-        // other errors (network, no-speech) — let onend handle restart
-      };
-      vaRecognition.onend = function() {
-        // Auto-restart if still supposed to be listening (Chrome stops after silence)
-        if (vaListening) {
-          try { vaRecognition.start(); } catch(ex) {}
-        }
-      };
-      vaRecognition.start();
-      vaListening = true;
-      if (btn) btn.classList.add('va-listening');
-      vaSpeak('Voice assistant on');
-    } else {
-      vaRecognition.stop();
-      vaListening = false;
-      if (btn) btn.classList.remove('va-listening');
-      vaSpeak('Voice assistant off');
-    }
-  };
-
-  window.vaToggleGender = function() {
-    var btn = document.getElementById('vaGenderBtn');
-    vaGender = vaGender === 'female' ? 'male' : 'female';
-    if (btn) btn.textContent = vaGender === 'female' ? '♀ Female' : '♂ Male';
-    vaSpeak('Voice changed to ' + vaGender);
-  };
-
-})();
+    // Update picker UI only — no colour applied to page
+    function cpUpdUI(){
+      var rgb=hsvRgb(cpH,cpSx,1-cpSy);
+      var hex='#'+th(rgb[0])+th(rgb[1])+th(rgb[2]);
+      document.getElementById('nbCpColorBar').style.background=hex;
+      document.getElementById('nbCpSwatch').style.background=hex;
+      document.getElementById('nbCpHex').value=hex.toUpperCase();
+      document.getElementById('nbCpCursor').style.left=(cpSx*100)+'%';
+      document.getElementById('nbCpCursor').style.top=(cpSy*100)+'%';
+      document.getElementById('nbCpGradFill').style.background='linear-gradient(to right,#fff,hsl('+cpH+',100%,50%))';
+      document.getElementById('nbCpHueThumb').style.left=(cpH/360*100)+'%';
+      document.getElementById('nbCpHueThumb').style.background='hsl('+cpH+',100%,50%)';
+      document.getElementById('nbCpHueSlider').value=cpH;
+      if(cpModeStr==='rgb'){document.getElementById('nbCpC1').value=rgb[0];document.getElementById('nbCpC2').value=rgb[1];document.getElementById('nbCpC3').value=rgb[2];}
+      else{var hsl=rgbHsl(rgb[0],rgb[1],rgb[2]);document.getEle
