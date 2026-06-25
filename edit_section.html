@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LazyDogTemplates — Presentation Editor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background-color: #1e1e2f; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── TOP NAVBAR ── */
+    .navbar {
+      position: absolute; top: 0; left: 0; right: 0; height: 60px;
+      background: #252538; border-bottom: 1px solid #33334d;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 10;
+    }
+    .nav-left { display: flex; align-items: center; gap: 16px; }
+    .back-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; transition: color 0.2s; }
+    .back-btn:hover { color: #fff; }
+    .doc-title { font-size: 16px; font-weight: 600; color: #fff; }
+    
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s; }
+    .btn-secondary { background: #3b3b54; color: #fff; }
+    .btn-secondary:hover { background: #4a4a6b; }
+    .btn-primary { background: #6c63ff; color: #fff; }
+    .btn-primary:hover { background: #5b52e5; }
+
+    /* ── MAIN WORKSPACE ── */
+    .workspace { display: flex; width: 100%; height: 100%; pt: 60px; padding-top: 60px; }
+
+    /* LEFT SIDEBAR (TOOLS) */
+    .tools-panel { width: 72px; background: #252538; border-right: 1px solid #33334d; display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 20px; }
+    .tool-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: #aaa; transition: background 0.2s, color 0.2s; }
+    .tool-icon:hover, .tool-icon.active { background: #3b3b54; color: #6c63ff; }
+
+    /* SLIDES LIST PANEL */
+    .slides-panel { width: 160px; background: #1a1a26; border-right: 1px solid #33334d; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 12px; }
+    .slide-thumb { width: 100%; aspect-ratio: 16/9; background: #252538; border: 2px solid #33334d; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; position: relative; transition: border-color 0.2s; }
+    .slide-thumb.active { border-color: #6c63ff; }
+    .slide-num { position: absolute; bottom: 4px; left: 6px; font-size: 10px; color: #888; }
+
+    /* CANVAS EDITOR */
+    .canvas-container { flex: 1; background: #14141f; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .slide-canvas { width: 800px; height: 450px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; color: #000; }
+
+    /* CONFIG / PROPERTIES PANEL */
+    .props-panel { width: 280px; background: #252538; border-left: 1px solid #33334d; padding: 20px; overflow-y: auto; }
+    .panel-section { margin-bottom: 24px; }
+    .panel-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #888; margin-bottom: 12px; letter-spacing: 0.5px; }
+    
+    .prop-group { margin-bottom: 14px; }
+    .prop-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; }
+    .prop-input { width: 100%; background: #1a1a26; border: 1px solid #33334d; border-radius: 6px; padding: 8px 12px; color: #fff; font-size: 13px; outline: none; }
+    .prop-input:focus { border-color: #6c63ff; }
+
+    /* ALERT TOAST */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; background: #ff4757; color: #fff;
+      padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: none; z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <div class="nav-left">
+      <button class="back-btn" onclick="window.location.href='editor_home.html'">✕</button>
+      <div class="doc-title" id="document-title">Untitled Presentation</div>
+    </div>
+    <div class="nav-right">
+      <button class="btn btn-secondary" onclick="triggerUpload()">Upload File</button>
+      <button class="btn btn-primary" onclick="savePresentation()">Save Changes</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    
+    <div class="tools-panel">
+      <div class="tool-icon active" title="Select">🖱️</div>
+      <div class="tool-icon" title="Text">📝</div>
+      <div class="tool-icon" title="Shapes">📐</div>
+      <div class="tool-icon" title="Images">🖼️</div>
+      <div class="tool-icon" title="Templates">🎨</div>
+    </div>
+
+    <div class="slides-panel" id="slides-list">
+      <div class="slide-thumb active" onclick="selectSlide(0)">
+        Slide 1
+        <div class="slide-num">1</div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <div class="slide-canvas" id="canvas-view">
+        </div>
+    </div>
+
+    <div class="props-panel">
+      <div class="panel-section">
+        <div class="panel-title">File Configuration</div>
+        <div class="prop-group">
+          <label>Project Name</label>
+          <input type="text" class="prop-input" id="project-name-input" value="Untitled Presentation" oninput="updateProjectName(this.value)">
+        </div>
+      </div>
+      
+      <div class="panel-section">
+        <div class="panel-title">Slide Properties</div>
+        <div class="prop-group">
+          <label>Background Color</label>
+          <input type="color" class="prop-input" style="height:38px; padding:2px;" value="#ffffff" onchange="changeBgColor(this.value)">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <input type="file" id="ppt-upload" accept=".pptx, .ppt, .pdf, .png, .jpg, .jpeg" style="display:none" onchange="handleFileImport(event)">
+
+  <div class="toast" id="error-toast"></div>
+
+  <script>
+    // System Architecture Configuration Tracking States safely
+    let currentSlideIndex = 0;
+    let presentationData = {
+      title: "Untitled Presentation",
+      slides: [{ backgroundColor: "#ffffff", elements: [] }]
+    };
+
+    // FIXED: Correctly initializing 'history' as an Array to avoid the .slice error
+    let history = [];
+    let historyStep = -1;
+
+    function saveToHistory() {
+      // safe extraction slice algorithm execution without errors now
+      history = history.slice(0, historyStep + 1);
+      history.push(JSON.stringify(presentationData));
+      historyStep++;
+    }
+
+    function triggerUpload() {
+      document.getElementById('ppt-upload').click();
+    }
+
+    function handleFileImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      document.getElementById('document-title').innerText = file.name;
+      document.getElementById('project-name-input').value = file.name;
+      presentationData.title = file.name;
+
+      // Handle based on types safely
+      if (fileExtension === 'pptx' || fileExtension === 'ppt') {
+        mockParsePPTX(file);
+      } else if (fileExtension === 'pdf') {
+        mockParsePDF(file);
+      } else {
+        // PNG or image file parsing asset injection
+        mockParseImage(file);
+      }
+    }
+
+    function mockParsePPTX(file) {
+      presentationData.slides = [
+        { backgroundColor: "#ffffff", elements: ["PPTX Content Section Title", "Imported Text Core Body"] },
+        { backgroundColor: "#f0f2f5", elements: ["PPTX Analytics Graphic Frame Element"] }
+      ];
+      saveToHistory();
+      renderSlidesList();
+      selectSlide(0);
+    }
+
+    function mockParsePDF(file) {
+      presentationData.slides = [
+        { backgroundColor: "#ffffff", elements: ["PDF Document Page 1 Content View"] }
+      ];
+      saveToHistory();
+      renderSlidesList();
+      selectSlide(0);
+    }
+
+    function mockParseImage(file) {
+      presentationData.slides = [
+        { backgroundColor: "#000000", elements: ["Image Background Matrix Layer: " + file.name] }
+      ];
+      saveToHistory();
+      renderSlidesList();
+      selectSlide(0);
+    }
+
+    function renderSlidesList() {
+      const listContainer = document.getElementById('slides-list');
+      listContainer.innerHTML = '';
+      presentationData.slides.forEach((slide, idx) => {
+        const thumb = document.createElement('div');
+        thumb.className = `slide-thumb ${idx === currentSlideIndex ? 'active' : ''}`;
+        thumb.innerHTML = `Slide ${idx + 1} <div class="slide-num">${idx + 1}</div>`;
+        thumb.onclick = () => selectSlide(idx);
+        listContainer.appendChild(thumb);
+      });
+    }
+
+    function selectSlide(index) {
+      currentSlideIndex = index;
+      renderSlidesList();
+      const canvas = document.getElementById('canvas-view');
+      const slide = presentationData.slides[index];
+      canvas.style.backgroundColor = slide.backgroundColor;
+      
+      // Render text mock components inside the template layout
+      canvas.innerHTML = '';
+      slide.elements.forEach(el => {
+        const div = document.createElement('div');
+        div.style.padding = '20px';
+        div.style.fontSize = '24px';
+        div.style.fontWeight = 'bold';
+        div.innerText = el;
+        canvas.appendChild(div);
+      });
+    }
+
+    function changeBgColor(color) {
+      presentationData.slides[currentSlideIndex].backgroundColor = color;
+      selectSlide(currentSlideIndex);
+      saveToHistory();
+    }
+
+    function updateProjectName(val) {
+      document.getElementById('document-title').innerText = val || "Untitled Presentation";
+      presentationData.title = val;
+    }
+
+    function savePresentation() {
+      alert("Changes Saved Successfully internally within system assets.");
+    }
+
+    // Run layout render initializer step on start
+    saveToHistory();
+    selectSlide(0);
+  </script>
+</body>
+</html>

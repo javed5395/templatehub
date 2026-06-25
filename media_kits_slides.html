@@ -1217,42 +1217,11 @@ function lbDownload(){openModal('png');}
 function lbPrint(){var src=document.getElementById('lbImg').src;var w=window.open('about:blank');w.document.write('<html><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh"><img src="'+src+'" style="max-width:100%;max-height:100vh;object-fit:contain"><\/body><\/html>');w.document.close();w.onload=function(){w.focus();w.print();};}
 document.addEventListener('keydown',function(e){var lb=document.getElementById('lbOverlay');if(!lb||!lb.classList.contains('open'))return;if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')lbPrev();if(e.key==='ArrowRight')lbNext();});
 
-// THEME TOGGLE
-function toggleTheme(){
-  var b=document.body,btn=document.getElementById('themeBtn');
-  if(b.classList.contains('light')){
-    b.classList.remove('light');
-    b.style.background='#0a0a1e';
-    btn.textContent='🌙';
-  }else{
-    b.classList.add('light');
-    b.style.background='#faf8f4';
-    btn.textContent='☀️';
-  }
-}
-(function(){if(localStorage.getItem('theme')==='light'){document.body.classList.add('light');document.body.style.background='#faf8f4';var b=document.getElementById('themeBtn');if(b)b.textContent='☀️';}})();
+// THEME TOGGLE — centralised in navbar.js (nbToggleTheme + saved-theme restore on load)
 
-// COLOUR PICKER
-var cpOpen=false,cpR=null,cpG=null,cpB=null;
-function toggleColourPanel(){cpOpen=!cpOpen;var p=document.getElementById('colourPanel');if(cpOpen){p.classList.add('open');drawSpectrum();}else{p.classList.remove('open');}}
-document.addEventListener('click',function(e){var p=document.getElementById('colourPanel'),b=document.getElementById('colourBtn');if(cpOpen&&p&&!p.contains(e.target)&&e.target!==b){p.classList.remove('open');cpOpen=false;}});
-function drawSpectrum(){var c=document.getElementById('colourCanvas');if(!c)return;var ctx=c.getContext('2d'),w=c.width,h=c.height;var hg=ctx.createLinearGradient(0,0,w,0);hg.addColorStop(0,'hsl(0,100%,50%)');hg.addColorStop(0.17,'hsl(60,100%,50%)');hg.addColorStop(0.33,'hsl(120,100%,50%)');hg.addColorStop(0.5,'hsl(180,100%,50%)');hg.addColorStop(0.67,'hsl(240,100%,50%)');hg.addColorStop(0.83,'hsl(300,100%,50%)');hg.addColorStop(1,'hsl(360,100%,50%)');ctx.fillStyle=hg;ctx.fillRect(0,0,w,h);var vg=ctx.createLinearGradient(0,0,0,h);vg.addColorStop(0,'rgba(255,255,255,0.85)');vg.addColorStop(0.45,'rgba(255,255,255,0)');vg.addColorStop(0.55,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.85)');ctx.fillStyle=vg;ctx.fillRect(0,0,w,h);}
-window.addEventListener('load',function(){var cv=document.getElementById('colourCanvas');if(!cv)return;cv.addEventListener('mousemove',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpApply(px[0],px[1],px[2]);});cv.addEventListener('mouseleave',function(){if(cpR!==null)cpApply(cpR,cpG,cpB);else resetColour();});cv.addEventListener('click',function(e){var r=cv.getBoundingClientRect(),x=Math.max(0,Math.min(e.clientX-r.left,cv.width-1)),y=Math.max(0,Math.min(e.clientY-r.top,cv.height-1)),px=cv.getContext('2d').getImageData(x,y,1,1).data;cpR=px[0];cpG=px[1];cpB=px[2];cpApply(cpR,cpG,cpB);});});
-function cpApply(r,g,b){var hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
-  // Exact colour on page background — navbar stays static
-  document.body.style.background='rgb('+r+','+g+','+b+')';
-  var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background=hex;if(hx)hx.textContent=hex.toUpperCase();}
-function resetColour(){cpR=null;cpG=null;cpB=null;document.body.style.background='';var sw=document.getElementById('colourSwatch'),hx=document.getElementById('colourHex');if(sw)sw.style.background='#d4af37';if(hx)hx.textContent='#D4AF37';}
+// COLOUR PICKER — centralised in navbar.js (#nbCPicker: Theme + Fonts tabs, hero-scoped)
 
-// FONT PICKER
-var fontPanelOpen=false,committedFont=null,defaultFont="'Poppins',sans-serif";
-function toggleFontPanel(){fontPanelOpen=!fontPanelOpen;document.getElementById('fontPanel').classList.toggle('open',fontPanelOpen);}
-document.addEventListener('click',function(e){var p=document.getElementById('fontPanel'),b=document.getElementById('fontBtn');if(fontPanelOpen&&p&&!p.contains(e.target)&&e.target!==b){p.classList.remove('open');fontPanelOpen=false;}});
-function applyFont(f){document.body.style.fontFamily=f;document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,button,span,div,input,li').forEach(function(el){el.style.fontFamily=f;});}
-function previewFont(el){applyFont(el.getAttribute('data-font'));}
-function revertFont(){applyFont(committedFont||defaultFont);}
-function lockFont(el){committedFont=el.getAttribute('data-font');applyFont(committedFont);document.querySelectorAll('.font-item').forEach(function(i){i.classList.remove('active');});el.classList.add('active');}
-function resetFont(){committedFont=null;applyFont(defaultFont);document.querySelectorAll('.font-item').forEach(function(i){i.classList.remove('active');});}
+// FONT PICKER — centralised in navbar.js (injects its own #fontPanel + nbApplyFont)
 
 function toggleAccordion(header){
   var acc=header.parentElement;
@@ -1287,42 +1256,9 @@ function toggleLearnMore(btn){
 .font-reset{font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;}
 </style>
 
-<div class="colour-panel" id="colourPanel">
-  <div class="colour-panel-label">Pick Theme Colour</div>
-  <canvas id="colourCanvas" width="220" height="150"></canvas>
-  <div class="colour-panel-preview">
-    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
-    <span class="colour-hex" id="colourHex">#D4AF37</span>
-    <button class="colour-reset" onclick="resetColour()">Reset</button>
-  </div>
-</div>
+<!-- Colour panel removed — handled centrally by navbar.js (#nbCPicker) -->
 
-<div class="font-panel" id="fontPanel">
-  <div class="font-panel-label">🔤 Pick Font</div>
-  <div class="font-list">
-    <div class="font-item" style="font-family:'Poppins',sans-serif;" data-font="'Poppins',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Poppins</div>
-    <div class="font-item" style="font-family:'Inter',sans-serif;" data-font="'Inter',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Inter</div>
-    <div class="font-item" style="font-family:'Montserrat',sans-serif;" data-font="'Montserrat',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Montserrat</div>
-    <div class="font-item" style="font-family:'Raleway',sans-serif;" data-font="'Raleway',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Raleway</div>
-    <div class="font-item" style="font-family:'Nunito',sans-serif;" data-font="'Nunito',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Nunito</div>
-    <div class="font-item" style="font-family:'DM Sans',sans-serif;" data-font="'DM Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">DM Sans</div>
-    <div class="font-item" style="font-family:'Playfair Display',serif;" data-font="'Playfair Display',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Playfair Display</div>
-    <div class="font-item" style="font-family:'Lora',serif;" data-font="'Lora',serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lora</div>
-    <div class="font-item" style="font-family:'Space Grotesk',sans-serif;" data-font="'Space Grotesk',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Space Grotesk</div>
-    <div class="font-item" style="font-family:'Outfit',sans-serif;" data-font="'Outfit',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Outfit</div>
-    <div class="font-item" style="font-family:'Josefin Sans',sans-serif;" data-font="'Josefin Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Josefin Sans</div>
-    <div class="font-item" style="font-family:'Quicksand',sans-serif;" data-font="'Quicksand',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Quicksand</div>
-    <div class="font-item" style="font-family:'Urbanist',sans-serif;" data-font="'Urbanist',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Urbanist</div>
-    <div class="font-item" style="font-family:'Sora',sans-serif;" data-font="'Sora',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Sora</div>
-    <div class="font-item" style="font-family:'Plus Jakarta Sans',sans-serif;" data-font="'Plus Jakarta Sans',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Plus Jakarta Sans</div>
-    <div class="font-item" style="font-family:'Jost',sans-serif;" data-font="'Jost',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Jost</div>
-    <div class="font-item" style="font-family:'Figtree',sans-serif;" data-font="'Figtree',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Figtree</div>
-    <div class="font-item" style="font-family:'Lexend',sans-serif;" data-font="'Lexend',sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lexend</div>
-  </div>
-  <div class="font-reset-row">
-    <button class="font-reset" onclick="resetFont()">Reset</button>
-  </div>
-</div>
+<!-- Font panel removed — navbar.js injects and controls its own #fontPanel -->
 
 <div id="lbOverlay">
   <div class="lb-container">

@@ -146,16 +146,7 @@
 <!-- NAVBAR injected by navbar.js -->
 <style>.nb-seller{display:none!important;}</style>
 
-<!-- COLOUR PICKER PANEL -->
-<div class="colour-panel" id="colourPanel">
-  <div class="colour-panel-label">🎨 Pick Theme Colour</div>
-  <canvas id="colourCanvas" width="220" height="150"></canvas>
-  <div class="colour-panel-preview">
-    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
-    <span class="colour-hex" id="colourHex">#D4AF37</span>
-    <button class="colour-reset" onclick="resetColour()">Reset</button>
-  </div>
-</div>
+<!-- Colour panel removed — handled centrally by navbar.js (#nbCPicker) -->
 
 <div class="container">
   <h1>Seller Portal</h1>
@@ -1909,62 +1900,7 @@ window.removeExtraFormat = function(n) {
   if (el) el.remove();
 };
 
-// ── COLOUR PANEL ──
-var panelOpen = false;
-function toggleColourPanel() {
-  panelOpen = !panelOpen;
-  var panel = document.getElementById('colourPanel');
-  if (panelOpen) { panel.classList.add('open'); drawSpectrum(); }
-  else { panel.classList.remove('open'); }
-}
-window.toggleColourPanel = toggleColourPanel;
-document.addEventListener('click', function(e) {
-  var panel = document.getElementById('colourPanel');
-  var btn = document.getElementById('colourBtn');
-  if (panelOpen && !panel.contains(e.target) && e.target !== btn) { panel.classList.remove('open'); panelOpen = false; }
-});
-function drawSpectrum() {
-  var canvas = document.getElementById('colourCanvas');
-  var ctx = canvas.getContext('2d');
-  var w = canvas.width, h = canvas.height;
-  var hueGrad = ctx.createLinearGradient(0,0,w,0);
-  hueGrad.addColorStop(0,'hsl(0,100%,50%)'); hueGrad.addColorStop(0.17,'hsl(60,100%,50%)');
-  hueGrad.addColorStop(0.33,'hsl(120,100%,50%)'); hueGrad.addColorStop(0.5,'hsl(180,100%,50%)');
-  hueGrad.addColorStop(0.67,'hsl(240,100%,50%)'); hueGrad.addColorStop(0.83,'hsl(300,100%,50%)');
-  hueGrad.addColorStop(1,'hsl(360,100%,50%)');
-  ctx.fillStyle = hueGrad; ctx.fillRect(0,0,w,h);
-  var vGrad = ctx.createLinearGradient(0,0,0,h);
-  vGrad.addColorStop(0,'rgba(255,255,255,0.85)'); vGrad.addColorStop(0.45,'rgba(255,255,255,0)');
-  vGrad.addColorStop(0.55,'rgba(0,0,0,0)'); vGrad.addColorStop(1,'rgba(0,0,0,0.85)');
-  ctx.fillStyle = vGrad; ctx.fillRect(0,0,w,h);
-}
-var committedR = null, committedG = null, committedB = null;
-document.getElementById('colourCanvas').addEventListener('mousemove', function(e) {
-  var c = document.getElementById('colourCanvas'), r = c.getBoundingClientRect();
-  var x = Math.max(0,Math.min(e.clientX-r.left,c.width-1)), y = Math.max(0,Math.min(e.clientY-r.top,c.height-1));
-  var p = c.getContext('2d').getImageData(x,y,1,1).data; applyBgColour(p[0],p[1],p[2]);
-});
-document.getElementById('colourCanvas').addEventListener('mouseleave', function() {
-  if (committedR !== null) applyBgColour(committedR,committedG,committedB); else resetColour();
-});
-document.getElementById('colourCanvas').addEventListener('click', function(e) {
-  var c = document.getElementById('colourCanvas'), r = c.getBoundingClientRect();
-  var x = Math.max(0,Math.min(e.clientX-r.left,c.width-1)), y = Math.max(0,Math.min(e.clientY-r.top,c.height-1));
-  var p = c.getContext('2d').getImageData(x,y,1,1).data;
-  committedR=p[0]; committedG=p[1]; committedB=p[2]; applyBgColour(p[0],p[1],p[2]);
-});
-function applyBgColour(r,g,b) {
-  var hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
-  document.body.style.backgroundColor = hex;
-  document.getElementById('colourSwatch').style.background = hex;
-  document.getElementById('colourHex').textContent = hex.toUpperCase();
-}
-function resetColour() {
-  committedR=null; committedG=null; committedB=null;
-  document.body.style.backgroundColor = '#070714';
-  document.getElementById('colourSwatch').style.background = '#d4af37';
-  document.getElementById('colourHex').textContent = '#D4AF37';
-}
+// COLOUR PANEL — centralised in navbar.js (#nbCPicker)
 </script>
 <!-- ── FILE VALIDATION POPUP ──────────────────────────────────────────────── -->
 <div id="fileValidationPopup" style="

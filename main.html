@@ -319,19 +319,19 @@
     .hero p { font-family:'Poppins',sans-serif; font-size: 18px; font-weight:400; color: #6b7280; max-width: 520px; margin: 0 0 32px; line-height: 1.6; }
     .hero-btns { display: flex; gap: 16px; justify-content: flex-start; flex-wrap: nowrap; margin-bottom: 0; }
 
-    .btn-primary { position: relative; overflow: hidden; background: linear-gradient(160deg, #7b94ff 0%, #5b7fff 40%, #7a3fff 100%); color: #ffffff; padding: 16px 34px; border-radius: 0; font-size: 16px; font-weight: 600; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; border: none; cursor: pointer; box-shadow: 0 6px 22px rgba(91,127,255,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.20); transform: perspective(600px) rotateX(10deg) rotateY(-4deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
+    .btn-primary { position: relative; overflow: hidden; background: linear-gradient(160deg, #7b94ff 0%, #5b7fff 40%, #7a3fff 100%); color: #ffffff; padding: 16px 34px; border-radius: 0; font-size: 16px; font-weight: 600; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; border: none; cursor: pointer; box-shadow: 0 6px 22px rgba(91,127,255,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.20); transform: perspective(600px) rotateX(0deg) rotateY(0deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
     .btn-primary::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 52%; background: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 70%, transparent 100%); border-radius: 0; pointer-events: none; z-index: 0; }
     /* SVG icon must sit above the ::before gloss overlay */
     .btn-primary svg, .btn-secondary svg, .btn-green svg { position: relative; z-index: 1; }
     .btn-primary:hover { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-4px); box-shadow: 0 14px 36px rgba(91,127,255,0.55), inset 0 1px 0 rgba(255,255,255,0.50), inset 0 -1px 0 rgba(0,0,0,0.20); }
     .btn-primary:active { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-1px); }
 
-    .btn-secondary { position: relative; overflow: hidden; background: linear-gradient(160deg, #f5d060 0%, #e8b830 40%, #c88020 100%); border: none; color: #3a1e00; padding: 16px 34px; border-radius: 0; font-size: 16px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; cursor: pointer; box-shadow: 0 6px 22px rgba(201,151,47,0.40), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.15); transform: perspective(600px) rotateX(10deg) rotateY(-4deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
+    .btn-secondary { position: relative; overflow: hidden; background: linear-gradient(160deg, #f5d060 0%, #e8b830 40%, #c88020 100%); border: none; color: #3a1e00; padding: 16px 34px; border-radius: 0; font-size: 16px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; cursor: pointer; box-shadow: 0 6px 22px rgba(201,151,47,0.40), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.15); transform: perspective(600px) rotateX(0deg) rotateY(0deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
     .btn-secondary::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 52%; background: linear-gradient(180deg, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.10) 70%, transparent 100%); border-radius: 0; pointer-events: none; }
     .btn-secondary:hover { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-4px); box-shadow: 0 14px 36px rgba(201,151,47,0.58), inset 0 1px 0 rgba(255,255,255,0.60), inset 0 -1px 0 rgba(0,0,0,0.15); }
     .btn-secondary:active { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-1px); }
 
-    .btn-green { position: relative; overflow: hidden; background: linear-gradient(160deg, #6eeaaa 0%, #2ecc82 40%, #00996a 100%); border: none; color: #003a22; padding: 16px 34px; border-radius: 0; font-size: 16px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; cursor: pointer; box-shadow: 0 6px 22px rgba(46,204,130,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.15); transform: perspective(600px) rotateX(10deg) rotateY(-4deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
+    .btn-green { position: relative; overflow: hidden; background: linear-gradient(160deg, #6eeaaa 0%, #2ecc82 40%, #00996a 100%); border: none; color: #003a22; padding: 16px 34px; border-radius: 0; font-size: 16px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; cursor: pointer; box-shadow: 0 6px 22px rgba(46,204,130,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.15); transform: perspective(600px) rotateX(0deg) rotateY(0deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
     .btn-green::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 52%; background: linear-gradient(180deg, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.10) 70%, transparent 100%); border-radius: 0; pointer-events: none; }
     .btn-green:hover { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-4px); box-shadow: 0 14px 36px rgba(46,204,130,0.58), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.15); }
     .btn-green:active { transform: perspective(600px) rotateX(0deg) rotateY(0deg) translateY(-1px); }
@@ -366,17 +366,17 @@
     .hero-icon .icon-lbl { font-size:10px; font-weight:700; color:#555; letter-spacing:1px; font-family:'Poppins',sans-serif; text-transform:uppercase; }
 
     /* ── PLATFORM CARDS ── */
-    .platform-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:0; }
-    .platform-card { display:flex; align-items:center; gap:16px; padding:18px 18px; border-radius:0; background:linear-gradient(110deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 35%, rgba(255,255,255,0.02) 100%); border:1px solid rgba(255,255,255,0.10); border-left-color:rgba(255,255,255,0.22); transition:all 0.22s ease; cursor:default; }
+    .platform-row { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin:0; }
+    .platform-card { display:flex; align-items:center; gap:16px; padding:18px 18px; border-radius:0; background:linear-gradient(110deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 35%, rgba(255,255,255,0.02) 100%); border:1px solid rgba(255,255,255,0.10); border-left-color:rgba(255,255,255,0.22); transition:all 0.22s ease; cursor:pointer; text-decoration:none; }
     .platform-card:hover { background:linear-gradient(110deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.06) 35%, rgba(255,255,255,0.03) 100%); border-color:rgba(255,255,255,0.16); border-left-color:rgba(255,255,255,0.32); transform:translateY(-3px); box-shadow:0 10px 28px rgba(0,0,0,0.35); }
-    body.light .platform-card { background:linear-gradient(110deg,#ffffff 0%,#f8f9fb 100%); border-color:rgba(0,0,0,0.08); border-left-color:rgba(0,0,0,0.16); box-shadow:0 2px 10px rgba(0,0,0,0.06); }
-    body.light .platform-card:hover { box-shadow:0 6px 22px rgba(0,0,0,0.11); border-left-color:rgba(0,0,0,0.22); }
+    body.light .platform-card { background:linear-gradient(110deg,#15163a 0%,#0d0d28 100%); border-color:rgba(255,255,255,0.10); border-left-color:rgba(212,175,55,0.55); box-shadow:0 4px 16px rgba(0,0,0,0.22); }
+    body.light .platform-card:hover { box-shadow:0 10px 28px rgba(0,0,0,0.30); border-left-color:#d4af37; transform:translateY(-3px); }
     .platform-icon-box { width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .platform-card-text { display:flex; flex-direction:column; gap:3px; }
     .platform-card-name { font-size:13px; font-weight:700; color:#e8edf2; font-family:'Poppins',sans-serif; line-height:1.2; }
     .platform-card-desc { font-size:11px; color:rgba(255,255,255,0.42); font-family:'Poppins',sans-serif; line-height:1.4; }
-    body.light .platform-card-name { color:#1a1a2e; }
-    body.light .platform-card-desc { color:#888; }
+    body.light .platform-card-name { color:#ffffff; }
+    body.light .platform-card-desc { color:rgba(255,255,255,0.6); }
 
     .stats { padding: 28px 70px 60px; background: var(--bg-stats-light); transition: background 0.45s ease; max-width: 100%; }
     .stats-label { font-size: 22px; font-weight: 800; color: #1a1a2e; font-family:'Poppins',sans-serif; margin-bottom: 20px; max-width: 1200px; margin-left: auto; margin-right: auto; }
@@ -767,54 +767,18 @@
 </div>
 </div>
 
-<!-- COLOUR PICKER PANEL -->
-<div class="colour-panel" id="colourPanel">
-  <div class="colour-panel-label">🎨 Pick Theme Colour</div>
-  <canvas id="colourCanvas" width="220" height="150"></canvas>
-  <div class="colour-panel-preview">
-    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
-    <span class="colour-hex" id="colourHex">#D4AF37</span>
-    <button class="colour-reset" onclick="resetColour()">Reset</button>
-  </div>
-</div>
+<!-- Colour panel removed — handled centrally by navbar.js (#nbCPicker) -->
 
-<!-- FONT PICKER PANEL -->
-<div class="font-panel" id="fontPanel">
-  <div class="font-panel-label">🔤 Pick Font</div>
-  <div class="font-list" id="fontList">
-    <div class="font-item" style="font-family:'Poppins',sans-serif;" data-font="'Poppins', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Poppins</div>
-    <div class="font-item" style="font-family:'Inter',sans-serif;" data-font="'Inter', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Inter</div>
-    <div class="font-item" style="font-family:'Montserrat',sans-serif;" data-font="'Montserrat', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Montserrat</div>
-    <div class="font-item" style="font-family:'Raleway',sans-serif;" data-font="'Raleway', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Raleway</div>
-    <div class="font-item" style="font-family:'Nunito',sans-serif;" data-font="'Nunito', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Nunito</div>
-    <div class="font-item" style="font-family:'DM Sans',sans-serif;" data-font="'DM Sans', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">DM Sans</div>
-    <div class="font-item" style="font-family:'Playfair Display',serif;" data-font="'Playfair Display', serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Playfair Display</div>
-    <div class="font-item" style="font-family:'Lora',serif;" data-font="'Lora', serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lora</div>
-    <div class="font-item" style="font-family:'Space Grotesk',sans-serif;" data-font="'Space Grotesk', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Space Grotesk</div>
-    <div class="font-item" style="font-family:'Outfit',sans-serif;" data-font="'Outfit', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Outfit</div>
-    <div class="font-item" style="font-family:'Josefin Sans',sans-serif;" data-font="'Josefin Sans', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Josefin Sans</div>
-    <div class="font-item" style="font-family:'Quicksand',sans-serif;" data-font="'Quicksand', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Quicksand</div>
-    <div class="font-item" style="font-family:'Urbanist',sans-serif;" data-font="'Urbanist', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Urbanist</div>
-    <div class="font-item" style="font-family:'Sora',sans-serif;" data-font="'Sora', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Sora</div>
-    <div class="font-item" style="font-family:'Plus Jakarta Sans',sans-serif;" data-font="'Plus Jakarta Sans', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Plus Jakarta Sans</div>
-    <div class="font-item" style="font-family:'Cormorant Garamond',serif;" data-font="'Cormorant Garamond', serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Cormorant Garamond</div>
-    <div class="font-item" style="font-family:'Libre Baskerville',serif;" data-font="'Libre Baskerville', serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Libre Baskerville</div>
-    <div class="font-item" style="font-family:'Jost',sans-serif;" data-font="'Jost', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Jost</div>
-    <div class="font-item" style="font-family:'Figtree',sans-serif;" data-font="'Figtree', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Figtree</div>
-    <div class="font-item" style="font-family:'Lexend',sans-serif;" data-font="'Lexend', sans-serif" onmouseenter="previewFont(this)" onmouseleave="revertFont()" onclick="lockFont(this)">Lexend</div>
-  </div>
-  <div class="font-reset-row">
-    <button class="font-reset" onclick="resetFont()">Reset</button>
-  </div>
-</div>
+<!-- Font panel removed — navbar.js injects and controls its own #fontPanel -->
 
 <!-- HERO -->
 <section class="hero">
   <div class="hero-inner">
     <div class="hero-left">
-      <div class="hero-tag">✦ Professional Templates — Pitch Decks · Media Kits · Invoices · Resume & CV Templates · Social Media Kits · Website UI Kits</div>
-      <h1>Premium Templates That<br/>Make You <span>Stand Out</span></h1>
-      <p>Investor-ready pitch decks, brand media kits,Resume & CV Templates and premium templates for every industry. Crafted by design experts, ready to download in minutes.</p>
+      <div class="hero-tag">✦ AI-Powered Creation • Editing • Customization • Instant Downloads</div>
+      <h1>Create Media Kits,<br/>Pitch Decks, Resumes<br/><span>&amp; More in Minutes</span></h1>
+      <p class="hero-subline" style="font-size:15px;font-weight:600;margin:0 0 14px;opacity:0.85;">Free Invoice Generator Included</p>
+      <p>Choose your preferred design, upload your content, and let our intelligent system create, edit and customize your work instantly.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px;">
 
         <!-- Row 1 -->
@@ -858,7 +822,7 @@
     <div class="platform-row">
 
       <!-- Figma -->
-      <div class="platform-card">
+      <div class="platform-card" onclick="window.open('https://www.figma.com','_blank')">
         <div class="platform-icon-box" style="background:rgba(255,255,255,0.08);">
           <svg width="26" height="38" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M9.5 47.5C9.5 52.19 13.31 56 18 56C22.69 56 26.5 52.19 26.5 47.5V39H18C13.31 39 9.5 42.81 9.5 47.5Z" fill="#0ACF83"/>
@@ -875,7 +839,7 @@
       </div>
 
       <!-- Canva -->
-      <div class="platform-card">
+      <div class="platform-card" onclick="window.open('https://www.canva.com','_blank')">
         <div class="platform-icon-box" style="background:transparent;">
           <svg width="44" height="44" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -895,7 +859,7 @@
       </div>
 
       <!-- Google Slides -->
-      <div class="platform-card">
+      <div class="platform-card" onclick="window.open('https://docs.google.com/presentation/','_blank')">
         <div class="platform-icon-box" style="background:rgba(246,183,4,0.18);">
           <svg width="30" height="34" viewBox="0 0 46 56" xmlns="http://www.w3.org/2000/svg">
             <path d="M28 0H5C2.24 0 0 2.24 0 5V51C0 53.76 2.24 56 5 56H41C43.76 56 46 53.76 46 51V18L28 0Z" fill="#F6B704"/>
@@ -912,7 +876,7 @@
       </div>
 
       <!-- PowerPoint -->
-      <div class="platform-card">
+      <div class="platform-card" onclick="window.open('https://www.office.com/launch/powerpoint','_blank')">
         <div class="platform-icon-box" style="background:rgba(196,62,28,0.18);">
           <svg width="30" height="34" viewBox="0 0 46 56" xmlns="http://www.w3.org/2000/svg">
             <path d="M28 0H5C2.24 0 0 2.24 0 5V51C0 53.76 2.24 56 5 56H41C43.76 56 46 53.76 46 51V18L28 0Z" fill="#C43E1C"/>
@@ -924,6 +888,23 @@
         <div class="platform-card-text">
           <span class="platform-card-name">PowerPoint</span>
           <span class="platform-card-desc">Professional slide decks</span>
+        </div>
+      </div>
+
+      <!-- Keynote -->
+      <div class="platform-card" onclick="window.open('https://www.icloud.com/keynote','_blank')">
+        <div class="platform-icon-box" style="background:rgba(45,127,249,0.18);">
+          <svg width="44" height="44" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="keynoteGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#5bb8ff"/><stop offset="100%" stop-color="#1a73e8"/></linearGradient></defs>
+            <rect x="0" y="0" width="100" height="100" rx="22" fill="url(#keynoteGrad)"/>
+            <rect x="22" y="26" width="56" height="36" rx="4" fill="#ffffff"/>
+            <rect x="46" y="62" width="8" height="9" fill="#ffffff"/>
+            <rect x="34" y="71" width="32" height="6" rx="3" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div class="platform-card-text">
+          <span class="platform-card-name">Keynote</span>
+          <span class="platform-card-desc">Apple presentation app</span>
         </div>
       </div>
 
@@ -957,228 +938,7 @@
 <script src="footerbar.js"></script>
 
 
-<script>
-// ── THEME TOGGLE ──
-function toggleTheme() {
-  var body = document.body;
-  var btn = document.getElementById('themeBtn');
-  if (body.classList.contains('light')) {
-    body.classList.remove('light');
-    btn.textContent = '🌙';
-    btn.title = 'Switch to Light Mode';
-    localStorage.setItem('theme', 'dark');
-  } else {
-    body.classList.add('light');
-    btn.textContent = '☀️';
-    btn.title = 'Switch to Dark Mode';
-    localStorage.setItem('theme', 'light');
-  }
-}
-(function() {
-  if (localStorage.getItem('theme') === 'light') {
-    document.body.classList.add('light');
-    var btn = document.getElementById('themeBtn');
-    if (btn) btn.textContent = '☀️';
-  }
-})();
-
-// ── FONT PICKER ──
-var fontPanelOpen = false;
-var committedFont = null;
-var defaultFont = "'Poppins', sans-serif";
-
-function toggleFontPanel() {
-  fontPanelOpen = !fontPanelOpen;
-  var panel = document.getElementById('fontPanel');
-  panel.classList.toggle('open', fontPanelOpen);
-}
-
-document.addEventListener('click', function(e) {
-  var panel = document.getElementById('fontPanel');
-  var btn = document.getElementById('fontBtn');
-  if (fontPanelOpen && !panel.contains(e.target) && e.target !== btn) {
-    panel.classList.remove('open');
-    fontPanelOpen = false;
-  }
-});
-
-function applyFont(font) {
-  document.documentElement.style.setProperty('--site-font', font);
-  document.body.style.fontFamily = font;
-  // apply to all text elements
-  document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,button,span,div,input,li').forEach(function(el) {
-    el.style.fontFamily = font;
-  });
-}
-
-function previewFont(el) {
-  applyFont(el.getAttribute('data-font'));
-}
-
-function revertFont() {
-  applyFont(committedFont || defaultFont);
-}
-
-function lockFont(el) {
-  committedFont = el.getAttribute('data-font');
-  applyFont(committedFont);
-  document.querySelectorAll('.font-item').forEach(function(i){ i.classList.remove('active'); });
-  el.classList.add('active');
-}
-
-function resetFont() {
-  committedFont = null;
-  applyFont(defaultFont);
-  document.querySelectorAll('.font-item').forEach(function(i){ i.classList.remove('active'); });
-}
-
-// ── COLOUR PICKER ──
-var panelOpen = false;
-
-function toggleColourPanel() {
-  panelOpen = !panelOpen;
-  var panel = document.getElementById('colourPanel');
-  if (panelOpen) {
-    panel.classList.add('open');
-    drawSpectrum();
-  } else {
-    panel.classList.remove('open');
-  }
-}
-
-document.addEventListener('click', function(e) {
-  var panel = document.getElementById('colourPanel');
-  var btn = document.getElementById('colourBtn');
-  if (panelOpen && !panel.contains(e.target) && e.target !== btn) {
-    panel.classList.remove('open');
-    panelOpen = false;
-  }
-});
-
-function drawSpectrum() {
-  var canvas = document.getElementById('colourCanvas');
-  var ctx = canvas.getContext('2d');
-  var w = canvas.width, h = canvas.height;
-  var hueGrad = ctx.createLinearGradient(0, 0, w, 0);
-  hueGrad.addColorStop(0,    'hsl(0,100%,50%)');
-  hueGrad.addColorStop(0.17, 'hsl(60,100%,50%)');
-  hueGrad.addColorStop(0.33, 'hsl(120,100%,50%)');
-  hueGrad.addColorStop(0.5,  'hsl(180,100%,50%)');
-  hueGrad.addColorStop(0.67, 'hsl(240,100%,50%)');
-  hueGrad.addColorStop(0.83, 'hsl(300,100%,50%)');
-  hueGrad.addColorStop(1,    'hsl(360,100%,50%)');
-  ctx.fillStyle = hueGrad;
-  ctx.fillRect(0, 0, w, h);
-  var vGrad = ctx.createLinearGradient(0, 0, 0, h);
-  vGrad.addColorStop(0,    'rgba(255,255,255,0.85)');
-  vGrad.addColorStop(0.45, 'rgba(255,255,255,0)');
-  vGrad.addColorStop(0.55, 'rgba(0,0,0,0)');
-  vGrad.addColorStop(1,    'rgba(0,0,0,0.85)');
-  ctx.fillStyle = vGrad;
-  ctx.fillRect(0, 0, w, h);
-}
-
-// ── HOVER = preview, CLICK = commit/lock ──
-var committedR = null, committedG = null, committedB = null;
-
-document.getElementById('colourCanvas').addEventListener('mousemove', pickColour);
-
-document.getElementById('colourCanvas').addEventListener('mouseleave', function() {
-  // revert to last committed colour on mouse out
-  if (committedR !== null) {
-    applyBgColour(committedR, committedG, committedB);
-  } else {
-    resetColour();
-  }
-});
-
-document.getElementById('colourCanvas').addEventListener('click', function(e) {
-  // commit the colour on click
-  var canvas = document.getElementById('colourCanvas');
-  var rect = canvas.getBoundingClientRect();
-  var x = Math.max(0, Math.min(e.clientX - rect.left, canvas.width - 1));
-  var y = Math.max(0, Math.min(e.clientY - rect.top, canvas.height - 1));
-  var pixel = canvas.getContext('2d').getImageData(x, y, 1, 1).data;
-  committedR = pixel[0]; committedG = pixel[1]; committedB = pixel[2];
-  applyBgColour(committedR, committedG, committedB);
-});
-
-function pickColour(e) {
-  var canvas = document.getElementById('colourCanvas');
-  var rect = canvas.getBoundingClientRect();
-  var x = Math.max(0, Math.min(e.clientX - rect.left, canvas.width - 1));
-  var y = Math.max(0, Math.min(e.clientY - rect.top, canvas.height - 1));
-  var pixel = canvas.getContext('2d').getImageData(x, y, 1, 1).data;
-  applyBgColour(pixel[0], pixel[1], pixel[2]);
-}
-
-// ── ONLY HERO/BODY BACKGROUNDS CHANGE — navbar stays static ──
-function applyBgColour(r, g, b) {
-  var hex = '#' + [r,g,b].map(function(v){ return v.toString(16).padStart(2,'0'); }).join('');
-  var exact = 'rgb('+r+','+g+','+b+')';
-
-  var root = document.documentElement;
-  // Exact colour on hero + body + stats — nav and footer stay static
-  root.style.setProperty('--bg-body',         exact);
-  root.style.setProperty('--bg-hero-dark-1',  exact);
-  root.style.setProperty('--bg-hero-dark-2',  exact);
-  root.style.setProperty('--bg-body-light',   exact);
-  root.style.setProperty('--bg-hero-light-1', exact);
-  root.style.setProperty('--bg-hero-light-2', exact);
-  root.style.setProperty('--bg-stats',        exact);
-  root.style.setProperty('--bg-stats-light',  exact);
-
-  document.getElementById('colourSwatch').style.background = hex;
-  document.getElementById('colourHex').textContent = hex.toUpperCase();
-
-  // Auto-adapt text colour based on luminance of picked background
-  var luminance = 0.299*r + 0.587*g + 0.114*b;
-  var isDark = luminance <= 160;
-  var textColour = isDark ? '#ffffff' : '#0d0d1a';
-  document.body.style.color = textColour;
-  // Hero h1 has its own hardcoded colour rule — must override it directly
-  document.querySelectorAll('.hero h1, .hero p, .hero-sub, .hero-tag, .stat-num, .stat-label, .section-title').forEach(function(el) {
-    el.style.color = textColour;
-  });
-  // Hero grid buttons — adapt text colour so it stays readable on any theme
-  document.querySelectorAll('.hero-grid a, .hero-grid .btn-primary, .hero-grid .btn-secondary, .hero-grid .btn-green').forEach(function(el) {
-    el.style.color = textColour;
-  });
-  // Platform cards (Figma, Canva, Google Slides, PowerPoint…)
-  document.querySelectorAll('.platform-card-name, .platform-card-desc').forEach(function(el) {
-    el.style.color = textColour;
-  });
-}
-
-function resetColour() {
-  committedR = null; committedG = null; committedB = null;
-  document.body.style.color = '';
-  document.querySelectorAll('.hero h1, .hero p, .hero-sub, .hero-tag, .stat-num, .stat-label, .section-title').forEach(function(el) {
-    el.style.color = '';
-  });
-  // Reset hero grid button colours too
-  document.querySelectorAll('.hero-grid a, .hero-grid .btn-primary, .hero-grid .btn-secondary, .hero-grid .btn-green').forEach(function(el) {
-    el.style.color = '';
-  });
-  // Reset platform card text
-  document.querySelectorAll('.platform-card-name, .platform-card-desc').forEach(function(el) {
-    el.style.color = '';
-  });
-  var root = document.documentElement;
-  root.style.setProperty('--bg-body',         '#070714');
-  root.style.setProperty('--bg-nav',          '#0a0a20');
-  root.style.setProperty('--bg-stats',        '#0a0a20');
-  root.style.setProperty('--bg-footer',       '#0a0a20');
-  root.style.setProperty('--bg-hero-dark-1',  '#1a1a4a');
-  root.style.setProperty('--bg-hero-dark-2',  '#070714');
-  root.style.setProperty('--bg-body-light',   '#faf8f4');
-  root.style.setProperty('--bg-nav-light',    '#ffffff');
-  root.style.setProperty('--bg-stats-light',  '#f0ece3');
-  root.style.setProperty('--bg-hero-light-2', '#f0ece3');
-  document.getElementById('colourSwatch').style.background = '#d4af37';
-  document.getElementById('colourHex').textContent = '#D4AF37';
-}
-</script>
+<!-- Theme / Font / Colour are now centralised in navbar.js (nbToggleTheme, injected #fontPanel, #nbCPicker). Page-local hor-bar code removed. -->
 
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>

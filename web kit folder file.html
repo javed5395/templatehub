@@ -469,65 +469,14 @@
 
 </div><!-- /section-body -->
 
-<!-- ══ COLOUR PICKER PANEL — required by navbar.js Features button ══ -->
-<div class="colour-panel" id="colourPanel">
-  <div class="colour-panel-label">🎨 Pick Theme Colour</div>
-  <canvas id="colourCanvas" width="220" height="150"></canvas>
-  <div class="colour-panel-preview">
-    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
-    <span class="colour-hex" id="colourHex">#D4AF37</span>
-    <button class="colour-reset" onclick="resetColour()">Reset</button>
-  </div>
-</div>
+<!-- Colour panel removed — handled centrally by navbar.js (#nbCPicker) -->
 
 <!-- ══ FOOTER — centrally controlled by footerbar.js. One edit here updates ALL pages ══ -->
 <script src="footerbar.js"></script>
 <!-- ══ VOICE ASSISTANT DICTIONARY ══ -->
 <script src="va_dictionary.js"></script>
 
-<script>
-// ── COLOUR PICKER ──
-(function(){
-  var canvas = document.getElementById('colourCanvas');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  function drawWheel() {
-    var g1 = ctx.createLinearGradient(0,0,canvas.width,0);
-    ['#ff0000','#ffff00','#00ff00','#00ffff','#0000ff','#ff00ff','#ff0000'].forEach(function(c,i){ g1.addColorStop(i/6,c); });
-    ctx.fillStyle=g1; ctx.fillRect(0,0,canvas.width,canvas.height);
-    var g2 = ctx.createLinearGradient(0,0,0,canvas.height);
-    g2.addColorStop(0,'rgba(255,255,255,1)'); g2.addColorStop(0.5,'rgba(255,255,255,0)');
-    g2.addColorStop(0.5,'rgba(0,0,0,0)');     g2.addColorStop(1,'rgba(0,0,0,1)');
-    ctx.fillStyle=g2; ctx.fillRect(0,0,canvas.width,canvas.height);
-  }
-  drawWheel();
-  function pickColour(e) {
-    var r=canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
-    var d=ctx.getImageData(x,y,1,1).data;
-    var hex='#'+[d[0],d[1],d[2]].map(function(v){return v.toString(16).padStart(2,'0');}).join('').toUpperCase();
-    document.getElementById('colourSwatch').style.background=hex;
-    document.getElementById('colourHex').textContent=hex;
-    document.documentElement.style.setProperty('--accent',hex);
-  }
-  canvas.addEventListener('click',pickColour);
-  canvas.addEventListener('mousemove',function(e){if(e.buttons===1)pickColour(e);});
-  window.resetColour=function(){
-    document.documentElement.style.setProperty('--accent','#d4af37');
-    document.getElementById('colourSwatch').style.background='#d4af37';
-    document.getElementById('colourHex').textContent='#D4AF37';
-  };
-  window.toggleColourPanel=function(){
-    var p=document.getElementById('colourPanel'), btn=document.getElementById('colourBtn');
-    var open=!p.classList.contains('open');
-    p.classList.toggle('open',open);
-    if(open&&btn){var r=btn.getBoundingClientRect();p.style.cssText+='position:fixed!important;top:'+(r.bottom+8)+'px!important;left:'+r.left+'px!important;right:auto!important;';}
-  };
-  document.addEventListener('click',function(e){
-    var p=document.getElementById('colourPanel'),btn=document.getElementById('colourBtn');
-    if(p&&p.classList.contains('open')&&!p.contains(e.target)&&e.target!==btn)p.classList.remove('open');
-  });
-})();
-</script>
+<!-- Page-local colour-picker script removed — colour handled centrally by navbar.js (#nbCPicker) -->
 
 <script>
 // ── TAB SWITCHER ──

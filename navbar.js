@@ -185,6 +185,28 @@
 
   document.body.insertAdjacentHTML('afterbegin', navHTML);
 
+  // ── PER-PAGE BUTTON VISIBILITY (controlled centrally, from this one map) ──
+  // HOW IT WORKS: add a button to the navbar above (so it appears on every page), then list
+  // here which page(s) it may show on. It is hidden on every other page automatically.
+  // • One line per button. To show a button everywhere, simply DON'T list it here.
+  // • Keys are CSS selectors (id ".#nbDownloadBtn", class ".nb-download", etc).
+  // • Values are the page filenames the button is allowed on (case-insensitive).
+  //
+  // EXAMPLE — a Download button that only appears on the slide (final) pages:
+  //   '#nbDownloadBtn': ['pitch_deck_slides.html', 'web kit slides.html', 'media_kits_slides.html'],
+  var NB_PAGE_BUTTONS = {
+    // (no per-page buttons configured yet — add lines here as needed)
+  };
+  (function(){
+    var page = decodeURIComponent((location.pathname.split('/').pop() || 'index.html')).toLowerCase();
+    Object.keys(NB_PAGE_BUTTONS).forEach(function(sel){
+      var allowed = (NB_PAGE_BUTTONS[sel] || []).map(function(p){ return String(p).toLowerCase(); });
+      if (allowed.indexOf(page) === -1) {
+        document.querySelectorAll(sel).forEach(function(el){ el.style.display = 'none'; });
+      }
+    });
+  })();
+
   // ── INJECT RIGHT SIDEBAR ──
   var sidebarHTML = `
 <div id="vaBubble"><span id="vaBubbleMsg">Ready</span><br/><button id="vaGenderBtn" onclick="vaToggleGender()" style="margin-top:6px;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);color:#d4af37;border-radius:8px;padding:3px 10px;font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;">♀ Female</button></div>`;
@@ -595,7 +617,15 @@
       var hex='#'+th(r)+th(g)+th(b);
       var s=document.getElementById('nbFontColorStyle');
       if(!s){s=document.createElement('style');s.id='nbFontColorStyle';document.head.appendChild(s);}
-      s.textContent='h1,h2,h3,h4,h5,h6,p,.hero-tag,.stat-num,.stat-label,.section-title,.btn-primary,.btn-secondary,.btn-green,.hero a,.hero-sub,.platform-card-name,.platform-card-desc{color:'+hex+'!important;}';
+      // Font colour — scoped to the HERO only, and each selector carries an extra "body "
+      // so it always outranks the Theme rule (Fonts wins over Theme, and persists until Reset).
+      // ENTIRE hero (container + everything inside it), every page variant. The "body "
+      // prefix makes each selector one notch more specific than the Theme rule, so Fonts
+      // always wins over Theme and persists until Reset.
+      s.textContent=
+        'body .hero,body .hero *,body .hero-section,body .hero-section *,'+
+        'body .page-hero,body .page-hero *,body .navbar-below-strip,body .navbar-below-strip *'+
+        '{color:'+hex+'!important;}';
     }
 
     // ── UNIVERSAL THEME COLOUR — works on every page, no per-page code needed ──
@@ -613,26 +643,21 @@
       s.textContent=
         // CSS variables — for pages that use them (main.html hero gradients etc.)
         ':root{--bg-body:'+exact+';--bg-hero-dark-1:'+exact+';--bg-hero-dark-2:'+exact+
-        ';--bg-body-light:'+lbg+';--bg-hero-light-1:'+lbg+';--bg-hero-light-2:'+lbg+
-        ';--bg-stats:'+exact+';--bg-stats-light:'+lbg+';--accent:'+hex+';--bg:'+exact+';}'+
-        // Body backgrounds (dark & light mode)
-        'body:not(.light){background:'+exact+'!important;}body.light{background:'+lbg+'!important;}'+
-        // Hero section backgrounds — all page variants
-        '.hero-section,.navbar-below-strip,.page-hero,.hero-area,.hero-banner{background:'+exact+'!important;}'+
+        ';--bg-body-light:'+exact+';--bg-hero-light-1:'+exact+';--bg-hero-light-2:'+exact+
+        ';--bg-stats:'+exact+';--bg-stats-light:'+exact+';--accent:'+hex+';--bg:'+exact+';}'+
+        // Body backgrounds — EXACT colour in BOTH modes (day mode picks the full colour, not a tint)
+        'body:not(.light){background:'+exact+'!important;}body.light{background:'+exact+'!important;}'+
+        // Hero section backgrounds — all page variants (.deck-grid-section = the cards area
+        // on folder pages, which sits under the strip; theming it unifies the whole hero region)
+        '.hero-section,.navbar-below-strip,.page-hero,.hero-area,.hero-banner,.deck-grid-section{background:'+exact+'!important;}'+
         // Stats section background
         '.stats{background:'+exact+'!important;}'+
-        // Hero & section headings / text
-        '.hero h1,.hero h2,.hero p,.hero-sub,.hero-tag,'+
-        '.hero-section h1,.hero-section h2,.hero-section p,'+
-        '.navbar-below-strip h1,.navbar-below-strip h2,'+
-        '.hero-title,.section-title{color:'+tc+'!important;}'+
-        // Stats text
-        '.stat-num,.stat-label{color:'+tc+'!important;}'+
-        // Hero grid buttons text
-        '.hero .btn-primary,.hero .btn-secondary,.hero .btn-green,'+
-        '.hero-grid a,.hero-grid .btn-primary,.hero-grid .btn-secondary,.hero-grid .btn-green{color:'+tc+'!important;}'+
-        // Platform card names (Figma, Canva etc.)
-        '.platform-card-name,.platform-card-desc{color:'+tc+'!important;}';
+        // Hero text — luminance-based on the picked colour. Both modes now show the EXACT
+        // colour, so the same readable text colour applies in day and night mode.
+        // (The Fonts rule "body .hero *" is one notch more specific, so Fonts still wins.)
+        '.hero,.hero *,.hero-section,.hero-section *,'+
+        '.page-hero,.page-hero *,.navbar-below-strip,.navbar-below-strip *'+
+        '{color:'+tc+'!important;}';
     }
 
     function cpApplyColour(r,g,b){
@@ -681,28 +706,23 @@
     window.nbCpMode=function(){cpModeStr=cpModeStr==='rgb'?'hsl':'rgb';document.getElementById('nbCpL1').textContent=cpModeStr==='rgb'?'R':'H';document.getElementById('nbCpL2').textContent=cpModeStr==='rgb'?'G':'S';document.getElementById('nbCpL3').textContent=cpModeStr==='rgb'?'B':'L';document.getElementById('nbCpC1').max=cpModeStr==='rgb'?255:360;document.getElementById('nbCpC2').max=cpModeStr==='rgb'?255:100;document.getElementById('nbCpC3').max=cpModeStr==='rgb'?255:100;cpUpd();};
     window.nbCpEyedrop=function(){if(window.EyeDropper){new EyeDropper().open().then(function(r){document.getElementById('nbCpHex').value=r.sRGBHex.toUpperCase();window.nbCpHexIn(r.sRGBHex);}).catch(function(){});}else{alert('Eyedropper works in Chrome / Edge only.');}};
     window.nbCpReset=function(){
-      if(cpTab==='theme'){
-        // Universal reset — just clear the injected style tag, works on ALL pages
-        var ts=document.getElementById('nbThemeColorStyle');
-        if(ts) ts.textContent='';
-        // Also clear any inline CSS variable overrides that may have been set by older page-level code
-        var root=document.documentElement;
-        ['--bg-body','--bg-hero-dark-1','--bg-hero-dark-2','--bg-body-light',
-         '--bg-hero-light-1','--bg-hero-light-2','--bg-stats','--bg-stats-light','--accent','--bg'].forEach(function(v){
-          root.style.removeProperty(v);
-        });
-        // Clear any inline element colour overrides (for backward compat with main.html's old applyBgColour)
-        document.body.style.color='';
-        document.querySelectorAll(
-          '.hero h1,.hero p,.hero-sub,.hero-tag,.stat-num,.stat-label,.section-title,'+
-          '.hero-grid a,.hero-grid .btn-primary,.hero-grid .btn-secondary,.hero-grid .btn-green,'+
-          '.platform-card-name,.platform-card-desc'
-        ).forEach(function(el){el.style.color='';});
-      } else {
-        // Fonts tab — clear injected font colour
-        var fs=document.getElementById('nbFontColorStyle');
-        if(fs) fs.textContent='';
-      }
+      // FULL reset to the page's default look (cream in day mode, dark in night mode).
+      // Clears BOTH the theme colour and the font colour, on every page.
+      var ts=document.getElementById('nbThemeColorStyle'); if(ts) ts.textContent='';
+      var fs=document.getElementById('nbFontColorStyle');  if(fs) fs.textContent='';
+      // Remove any inline CSS-variable overrides so each page falls back to its own defaults
+      var root=document.documentElement;
+      ['--bg-body','--bg-hero-dark-1','--bg-hero-dark-2','--bg-body-light',
+       '--bg-hero-light-1','--bg-hero-light-2','--bg-stats','--bg-stats-light','--accent','--bg'].forEach(function(v){
+        root.style.removeProperty(v);
+      });
+      // Clear any inline element colour overrides (backward compat with old per-page applyBgColour)
+      document.body.style.color='';
+      document.querySelectorAll(
+        '.hero h1,.hero p,.hero-sub,.hero-tag,.stat-num,.stat-label,.section-title,'+
+        '.hero-grid a,.hero-grid .btn-primary,.hero-grid .btn-secondary,.hero-grid .btn-green,'+
+        '.platform-card-name,.platform-card-desc'
+      ).forEach(function(el){el.style.color='';});
       // Refresh picker UI to reflect reset state, but do NOT re-apply colour
       cpUpdUI();
     };
@@ -743,12 +763,19 @@
     }
   });
 
-  var NB_LIGHT_BG_COLOR = '#f8f8f8';
-  var NB_LIGHT_BG_IMAGE = 'repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px)';
-  var NB_DARK_BG_COLOR  = '#0d0d28';
-  var NB_DARK_BG_IMAGE  = '';
-  // main.html uses CSS vars for theming — skip inline bg override there
-  var NB_IS_MAIN = document.body.getAttribute('data-page') === 'main';
+  // ── UNIFORM BODY THEMING — identical on every page (matches main) ──
+  // navbar.js owns the body background + base text colour in both modes, so the toggle
+  // behaves the same everywhere. Uses the same variables the Colour engine writes
+  // (--bg-body / --bg-body-light), falling back to each page's own --bg, then a neutral
+  // default. This also gives the slide/invoice pages a proper dark background.
+  (function(){
+    var s = document.createElement('style');
+    s.id = 'nbBodyTheme';
+    s.textContent =
+      'body:not(.light){background:var(--bg-body, var(--bg, #0d0d28)) !important; color:#e8eaf6 !important;}' +
+      'body.light{background:var(--bg-body-light, var(--bg-light, #faf8f4)) !important; color:#1a1a2e !important;}';
+    document.head.appendChild(s);
+  })();
 
   function nbSetThemeIcons(isLight) {
     var btn = document.getElementById('themeBtn');
@@ -758,49 +785,18 @@
       : '<svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg>';
   }
 
+  // ── THEME TOGGLE — identical on every page: flip .light, persist, swap icon.
+  //    No per-page inline overrides; background/colour come from the CSS above + Colour engine. ──
   window.nbToggleTheme = function() {
-    var body = document.body;
-    if (body.classList.contains('light')) {
-      // → switch to DARK
-      body.classList.remove('light');
-      if (!NB_IS_MAIN) {
-        body.style.backgroundColor = NB_DARK_BG_COLOR;
-        body.style.backgroundImage = NB_DARK_BG_IMAGE;
-        body.style.color = '#e8eaf6';
-      }
-      localStorage.setItem('theme', 'dark');
-      nbSetThemeIcons(false);
-    } else {
-      // → switch to LIGHT
-      body.classList.add('light');
-      if (!NB_IS_MAIN) {
-        body.style.backgroundColor = NB_LIGHT_BG_COLOR;
-        body.style.backgroundImage = NB_LIGHT_BG_IMAGE;
-        body.style.color = '#1a1a2e';
-      }
-      localStorage.setItem('theme', 'light');
-      nbSetThemeIcons(true);
-    }
+    var isLight = document.body.classList.toggle('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    nbSetThemeIcons(isLight);
   };
 
   // ── Apply saved theme on page load ──
   (function(){
     var theme = localStorage.getItem('theme') || 'light'; // default = light
-    if (theme === 'light') {
-      document.body.classList.add('light');
-      if (!NB_IS_MAIN) {
-        document.body.style.backgroundColor = NB_LIGHT_BG_COLOR;
-        document.body.style.backgroundImage = NB_LIGHT_BG_IMAGE;
-        document.body.style.color = '#1a1a2e';
-      }
-    } else {
-      if (!NB_IS_MAIN) {
-        document.body.style.backgroundColor = NB_DARK_BG_COLOR;
-        document.body.style.backgroundImage = NB_DARK_BG_IMAGE;
-        document.body.style.color = '#e8eaf6';
-      }
-    }
-    // Sync button icon after DOM ready
+    if (theme === 'light') document.body.classList.add('light');
     document.addEventListener('DOMContentLoaded', function(){ nbSetThemeIcons(theme === 'light'); });
   })();
   // ── Restore RTL direction on page load ──

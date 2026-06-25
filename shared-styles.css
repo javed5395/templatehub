@@ -239,4 +239,6 @@ body:not(.light) .nav-search-close:hover{color:#fff;background:rgba(255,255,255,
   /* Search bar — fixed 120px side padding left almost no room on phones */
   .nav-search-panel-inner{padding:16px 20px!important;}
 
-  /* Help-chat bubble panel — fixed 320px 
+  /* Help-chat bubble panel — fixed 320px width could overflow very small phones */
+  .helpbot-panel{width:calc(100vw - 32px);max-width:320px;right:16px;}
+}
