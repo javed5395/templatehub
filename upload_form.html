@@ -18,7 +18,7 @@
     .colour-swatch { width:32px; height:32px; border-radius:50%; border:2px solid rgba(255,255,255,0.3); flex-shrink:0; }
     .colour-hex { font-size:13px; font-weight:700; color:#fff; font-family:'Poppins',sans-serif; }
     .colour-reset { margin-left:auto; font-size:11px; color:rgba(255,255,255,0.4); cursor:pointer; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:transparent; font-family:'Poppins',sans-serif; }
-    .container { max-width: 700px; margin: 0 auto; }
+    .container { max-width: 1064px; margin: 0 auto; }
     .logo { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
     h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
     .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
@@ -39,6 +39,7 @@
     textarea { resize: vertical; min-height: 90px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media(max-width:600px) { .row { grid-template-columns: 1fr; } }
+    @media(max-width:900px) { #twoColGrid { grid-template-columns: 1fr !important; } }
     .required { color: var(--accent); }
 
     /* ── UPLOAD BOX ── */
@@ -308,101 +309,15 @@
   </div>
 
   <!-- ══ SECTION 3: UPLOAD FORM ══ -->
+
+
   <div id="formSection" style="display:none">
 
-    <!-- Seller identity bar -->
-    <div class="seller-bar" id="sellerBar">
-      <div class="seller-bar-info">
-        <strong id="barName">—</strong>
-        <span id="barEmail">—</span>
-      </div>
-      <div class="seller-bar-actions">
-        <button class="link-btn" onclick="showSubmissions()">My Submissions</button>
-        <button class="link-btn" onclick="doSwitchAccount()">Switch Account</button>
-        <button class="link-btn" onclick="doSignOut()">Sign Out</button>
-      </div>
-    </div>
+    <!-- TWO COLUMN GRID -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;">
 
-    <!-- My Submissions panel (hidden by default) -->
-    <div id="submissionsPanel" style="display:none">
-      <div class="section">
-        <h2>📦 My Submissions</h2>
-        <div id="submissionsList"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
-        <button class="btn btn-outline" style="margin-top:16px" onclick="hideSubmissions()">Close</button>
-      </div>
-    </div>
-
-    <!-- ══ PAYOUT DETAILS ══ -->
-    <div class="section" id="payoutSection">
-      <div class="payout-section-toggle" onclick="togglePayoutPanel()">
-        <h2 style="margin-bottom:0;">💳 Payout Details</h2>
-        <span class="payout-toggle-arrow open" id="payoutArrow">∨</span>
-      </div>
-      <div id="payoutBody" style="margin-top:18px;">
-        <!-- Status banner -->
-        <div class="payout-status payout-status-warn" id="payoutStatus">
-          ⚠️ No payout method set up yet — required only when withdrawing earnings. You can add it now or any time later.
-        </div>
-
-        <!-- Method tabs -->
-        <div class="payout-tabs">
-          <button class="payout-tab active" id="ptabPaypal" onclick="switchPayoutMethod('paypal')">💸 PayPal</button>
-          <button class="payout-tab" id="ptabBank"   onclick="switchPayoutMethod('bank')">🏦 Bank Transfer</button>
-          <button class="payout-tab" id="ptabStripe" onclick="switchPayoutMethod('stripe')">⚡ Stripe</button>
-        </div>
-
-        <!-- PayPal panel -->
-        <div id="payoutPaypal">
-          <div class="field">
-            <label>PayPal Email Address</label>
-            <input type="email" id="paypalEmail" placeholder="your@paypal.com" autocomplete="email"/>
-          </div>
-        </div>
-
-        <!-- Bank Transfer panel -->
-        <div id="payoutBank" style="display:none;">
-          <div class="row">
-            <div class="field">
-              <label>Account Holder Name</label>
-              <input type="text" id="bankHolderName" placeholder="Full name on account"/>
-            </div>
-            <div class="field">
-              <label>Bank Name</label>
-              <input type="text" id="bankName" placeholder="e.g. Standard Chartered"/>
-            </div>
-          </div>
-          <div class="row">
-            <div class="field">
-              <label>Account Number / IBAN</label>
-              <input type="text" id="bankAccount" placeholder="Account number or IBAN"/>
-            </div>
-            <div class="field">
-              <label>SWIFT / BIC Code</label>
-              <input type="text" id="bankSwift" placeholder="e.g. SCBLPKKA"/>
-            </div>
-          </div>
-          <div class="field">
-            <label>Country</label>
-            <input type="text" id="bankCountry" placeholder="e.g. Pakistan"/>
-          </div>
-        </div>
-
-        <!-- Stripe panel -->
-        <div id="payoutStripe" style="display:none;">
-          <div class="field">
-            <label>Stripe Account Email</label>
-            <input type="email" id="stripeEmail" placeholder="your@stripe.com" autocomplete="email"/>
-          </div>
-        </div>
-
-        <div class="payout-actions">
-          <button class="btn" onclick="savePayoutDetails()" style="margin-top:0;">💾 Save Payout Details</button>
-          <button class="payout-skip" onclick="togglePayoutPanel()">Do this later ↑</button>
-        </div>
-        <div class="auth-error"   id="payoutError"   style="margin-top:10px;"></div>
-        <div class="auth-success" id="payoutSuccess" style="margin-top:10px;"></div>
-      </div>
-    </div>
+    <!-- LEFT: Main form -->
+    <div>
 
     <!-- TEMPLATE DETAILS -->
     <div class="section">
@@ -602,6 +517,80 @@
     </div>
 
     <button class="btn" id="submitBtn" onclick="submitForm()">🚀 Submit Template for Review</button>
+
+    </div><!-- end left column -->
+
+    <!-- RIGHT: Sticky sidebar -->
+    <div style="position:sticky;top:20px;">
+
+      <!-- Seller identity bar -->
+      <div class="seller-bar" id="sellerBar" style="flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:0;">
+        <div class="seller-bar-info">
+          <strong id="barName">—</strong>
+          <span id="barEmail">—</span>
+        </div>
+        <div class="seller-bar-actions" style="flex-wrap:wrap;">
+          <button class="link-btn" onclick="showSubmissions()">My Submissions</button>
+          <button class="link-btn" onclick="doSwitchAccount()">Switch Account</button>
+          <button class="link-btn" onclick="doSignOut()">Sign Out</button>
+        </div>
+      </div>
+
+      <!-- ══ PAYOUT DETAILS ══ -->
+      <div class="section" id="payoutSection" style="margin-top:16px;">
+        <div class="payout-section-toggle" onclick="togglePayoutPanel()">
+          <h2 style="margin-bottom:0;font-size:15px;">💳 Payout Details</h2>
+          <span class="payout-toggle-arrow open" id="payoutArrow">∨</span>
+        </div>
+        <div id="payoutBody" style="margin-top:14px;">
+          <div class="payout-status payout-status-warn" id="payoutStatus">
+            ⚠️ No payout method set up yet — required only when withdrawing earnings. You can add it now or any time later.
+          </div>
+          <div class="payout-tabs">
+            <button class="payout-tab active" id="ptabPaypal" onclick="switchPayoutMethod('paypal')">💸 PayPal</button>
+            <button class="payout-tab" id="ptabBank"   onclick="switchPayoutMethod('bank')">🏦 Bank</button>
+            <button class="payout-tab" id="ptabStripe" onclick="switchPayoutMethod('stripe')">⚡ Stripe</button>
+          </div>
+          <div id="payoutPaypal">
+            <div class="field">
+              <label>PayPal Email Address</label>
+              <input type="email" id="paypalEmail" placeholder="your@paypal.com" autocomplete="email"/>
+            </div>
+          </div>
+          <div id="payoutBank" style="display:none;">
+            <div class="field"><label>Account Holder Name</label><input type="text" id="bankHolderName" placeholder="Full name on account"/></div>
+            <div class="field"><label>Bank Name</label><input type="text" id="bankName" placeholder="e.g. Standard Chartered"/></div>
+            <div class="field"><label>Account Number / IBAN</label><input type="text" id="bankAccount" placeholder="Account number or IBAN"/></div>
+            <div class="field"><label>SWIFT / BIC Code</label><input type="text" id="bankSwift" placeholder="e.g. SCBLPKKA"/></div>
+            <div class="field"><label>Country</label><input type="text" id="bankCountry" placeholder="e.g. Pakistan"/></div>
+          </div>
+          <div id="payoutStripe" style="display:none;">
+            <div class="field">
+              <label>Stripe Account Email</label>
+              <input type="email" id="stripeEmail" placeholder="your@stripe.com" autocomplete="email"/>
+            </div>
+          </div>
+          <div class="payout-actions">
+            <button class="btn" onclick="savePayoutDetails()" style="margin-top:0;font-size:13px;padding:10px 16px;">💾 Save Payout Details</button>
+            <button class="payout-skip" onclick="togglePayoutPanel()">Do this later ↑</button>
+          </div>
+          <div class="auth-error"   id="payoutError"   style="margin-top:10px;"></div>
+          <div class="auth-success" id="payoutSuccess" style="margin-top:10px;"></div>
+        </div>
+      </div>
+
+      <!-- My Submissions panel -->
+      <div id="submissionsPanel" style="display:none;margin-top:16px;">
+        <div class="section">
+          <h2 style="font-size:15px;">📦 My Submissions</h2>
+          <div id="submissionsList"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+          <button class="btn btn-outline" style="margin-top:16px;font-size:13px;" onclick="hideSubmissions()">Close</button>
+        </div>
+      </div>
+
+    </div><!-- end right sidebar -->
+
+    </div><!-- end two column grid -->
   </div>
 
   <!-- ══ SECTION 4: SUCCESS ══ -->
