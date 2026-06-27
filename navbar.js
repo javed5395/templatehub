@@ -943,3 +943,59 @@
   };
 
 })();
+  // ── CUSTOM CURSOR ──
+  (function initCursor() {
+    if (!window.matchMedia('(pointer:fine)').matches) return;
+
+    var style = document.createElement('style');
+    style.textContent = [
+      'body { cursor: none !important; }',
+      '.ld-cursor-dot, .ld-cursor-ring {',
+      '  position: fixed; top: 0; left: 0;',
+      '  pointer-events: none; z-index: 999999;',
+      '  border-radius: 50%;',
+      '  transform: translate(-50%, -50%);',
+      '}',
+      '.ld-cursor-dot { width: 5px; height: 5px; background: #F2EEE5; }',
+      '.ld-cursor-ring {',
+      '  width: 32px; height: 32px;',
+      '  border: 1px solid rgba(242,238,229,0.4);',
+      '  transition: width .5s, height .5s, border-color .3s;',
+      '}',
+      '.ld-cursor-ring.is-hover { width: 60px; height: 60px; border-color: #B8553A; }'
+    ].join('');
+    document.head.appendChild(style);
+
+    var dot = document.createElement('div');
+    dot.className = 'ld-cursor-dot';
+    var ring = document.createElement('div');
+    ring.className = 'ld-cursor-ring';
+    document.body.appendChild(dot);
+    document.body.appendChild(ring);
+
+    var mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+    var ringX = mouseX, ringY = mouseY;
+
+    document.addEventListener('mousemove', function(e) {
+      mouseX = e.clientX; mouseY = e.clientY;
+      dot.style.left = mouseX + 'px';
+      dot.style.top  = mouseY + 'px';
+    });
+
+    function animateRing() {
+      ringX += (mouseX - ringX) * 0.15;
+      ringY += (mouseY - ringY) * 0.15;
+      ring.style.left = ringX + 'px';
+      ring.style.top  = ringY + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    document.addEventListener('mouseover', function(e) {
+      if (e.target.closest('a,button,[onclick],input,select,textarea')) {
+        ring.classList.add('is-hover');
+      } else {
+        ring.classList.remove('is-hover');
+      }
+    });
+  })();
