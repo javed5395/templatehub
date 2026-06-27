@@ -5,6 +5,15 @@
   css.rel = 'stylesheet'; css.href = 'shared-styles.css';
   document.head.insertBefore(css, document.head.firstChild);
 
+  // ── LAZYDOG STUDIOS — hover lift + glow so users know it's clickable ──
+  var studioStyle = document.createElement('style');
+  studioStyle.textContent =
+    '.nb-logo-studios{transition:transform 0.22s ease,filter 0.22s ease,opacity 0.22s ease;display:inline-flex;align-items:center;}' +
+    '.nb-logo-studios:hover{transform:translateY(-2px);filter:drop-shadow(0 4px 10px rgba(34,197,94,0.45));opacity:0.92;}' +
+    '.nb-logo-studios:active{transform:translateY(0);}' +
+    '.nb-logo-sep{color:rgba(180,180,200,0.35);font-size:1.15em;font-weight:200;margin:0 10px;user-select:none;pointer-events:none;line-height:1;}';
+  document.head.insertBefore(studioStyle, document.head.firstChild);
+
   // ── LOAD ALL PANEL FONTS IN ONE REQUEST ──
   var nunLink = document.createElement('link');
   nunLink.rel = 'stylesheet';
@@ -129,9 +138,7 @@
   // ── INJECT NAVBAR HTML ──
   var navHTML = `
 <nav id="sharedNav">
-  <a href="main.html" class="nb-logo notranslate" translate="no">LazyDog<span>Templates</span></a>
-  <span style="color:rgba(255,255,255,0.3);font-size:18px;margin:0 10px;font-weight:300;user-select:none;">|</span>
-  <a href="lazydog studio.html" class="nb-studio-link notranslate" translate="no" style="font-family:inherit;font-size:15px;font-weight:500;color:rgba(255,255,255,0.55);text-decoration:none;letter-spacing:0.01em;transition:color 0.3s,opacity 0.3s;" onmouseover="this.style.color='#B8553A';this.style.opacity='1'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.opacity='1'">LazyDog <span style="font-style:italic;color:#B8553A;">Studios</span></a>
+  <div style="display:inline-flex;align-items:center;gap:0;"><a href="main.html" class="nb-logo notranslate" translate="no">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="studios.html" class="nb-logo nb-logo-studios notranslate" translate="no" title="LazyDog Studios">LazyDog<span style="color:#22c55e!important;">Studios</span></a></div>
   <button class="nb-hamburger" id="nbHamburgerBtn" onclick="nbToggleMobileMenu()" title="Menu" aria-label="Menu">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
@@ -948,6 +955,7 @@
   // ── CUSTOM CURSOR ──
   (function initCursor() {
     if (!window.matchMedia('(pointer:fine)').matches) return;
+
     var style = document.createElement('style');
     style.textContent = [
       'body { cursor: none !important; }',
@@ -966,19 +974,23 @@
       '.ld-cursor-ring.is-hover { width: 60px; height: 60px; border-color: #B8553A; }'
     ].join('');
     document.head.appendChild(style);
+
     var dot = document.createElement('div');
     dot.className = 'ld-cursor-dot';
     var ring = document.createElement('div');
     ring.className = 'ld-cursor-ring';
     document.body.appendChild(dot);
     document.body.appendChild(ring);
+
     var mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
     var ringX = mouseX, ringY = mouseY;
+
     document.addEventListener('mousemove', function(e) {
       mouseX = e.clientX; mouseY = e.clientY;
       dot.style.left = mouseX + 'px';
       dot.style.top  = mouseY + 'px';
     });
+
     function animateRing() {
       ringX += (mouseX - ringX) * 0.15;
       ringY += (mouseY - ringY) * 0.15;
@@ -987,6 +999,7 @@
       requestAnimationFrame(animateRing);
     }
     animateRing();
+
     document.addEventListener('mouseover', function(e) {
       if (e.target.closest('a,button,[onclick],input,select,textarea')) {
         ring.classList.add('is-hover');
