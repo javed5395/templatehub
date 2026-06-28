@@ -1,246 +1,1374 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LazyDogTemplates — Presentation Editor</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit — LazyDogTemplates</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background-color: #1e1e2f; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+    body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background-color: #f8f8f8; background-image: repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px); }
 
-    /* ── TOP NAVBAR ── */
-    .navbar {
-      position: absolute; top: 0; left: 0; right: 0; height: 60px;
-      background: #252538; border-bottom: 1px solid #33334d;
-      display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 10;
+    /* ── TOP BAR ── */
+    #topbar {
+      height: 52px; flex-shrink: 0;
+      background: linear-gradient(90deg, #00c4cc, #4a90d9, #7b5ea7);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; gap: 12px;
     }
-    .nav-left { display: flex; align-items: center; gap: 16px; }
-    .back-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; transition: color 0.2s; }
-    .back-btn:hover { color: #fff; }
-    .doc-title { font-size: 16px; font-weight: 600; color: #fff; }
-    
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-    .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s; }
-    .btn-secondary { background: #3b3b54; color: #fff; }
-    .btn-secondary:hover { background: #4a4a6b; }
-    .btn-primary { background: #6c63ff; color: #fff; }
-    .btn-primary:hover { background: #5b52e5; }
-
-    /* ── MAIN WORKSPACE ── */
-    .workspace { display: flex; width: 100%; height: 100%; pt: 60px; padding-top: 60px; }
-
-    /* LEFT SIDEBAR (TOOLS) */
-    .tools-panel { width: 72px; background: #252538; border-right: 1px solid #33334d; display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 20px; }
-    .tool-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: #aaa; transition: background 0.2s, color 0.2s; }
-    .tool-icon:hover, .tool-icon.active { background: #3b3b54; color: #6c63ff; }
-
-    /* SLIDES LIST PANEL */
-    .slides-panel { width: 160px; background: #1a1a26; border-right: 1px solid #33334d; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 12px; }
-    .slide-thumb { width: 100%; aspect-ratio: 16/9; background: #252538; border: 2px solid #33334d; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; position: relative; transition: border-color 0.2s; }
-    .slide-thumb.active { border-color: #6c63ff; }
-    .slide-num { position: absolute; bottom: 4px; left: 6px; font-size: 10px; color: #888; }
-
-    /* CANVAS EDITOR */
-    .canvas-container { flex: 1; background: #14141f; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-    .slide-canvas { width: 800px; height: 450px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; color: #000; }
-
-    /* CONFIG / PROPERTIES PANEL */
-    .props-panel { width: 280px; background: #252538; border-left: 1px solid #33334d; padding: 20px; overflow-y: auto; }
-    .panel-section { margin-bottom: 24px; }
-    .panel-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #888; margin-bottom: 12px; letter-spacing: 0.5px; }
-    
-    .prop-group { margin-bottom: 14px; }
-    .prop-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; }
-    .prop-input { width: 100%; background: #1a1a26; border: 1px solid #33334d; border-radius: 6px; padding: 8px 12px; color: #fff; font-size: 13px; outline: none; }
-    .prop-input:focus { border-color: #6c63ff; }
-
-    /* ALERT TOAST */
-    .toast {
-      position: fixed; bottom: 24px; right: 24px; background: #ff4757; color: #fff;
-      padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: none; z-index: 100;
+    .tb-left { display: flex; align-items: center; gap: 18px; }
+    .tb-left span {
+      font-size: 13px; font-weight: 500; color: #fff;
+      cursor: pointer; opacity: 0.9; transition: opacity 0.2s;
     }
+    .tb-left span:hover { opacity: 1; }
+    .tb-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.3); }
+    .tb-icon { font-size: 18px; color: #fff; cursor: pointer; opacity: 0.85; transition: opacity 0.2s; }
+    .tb-icon:hover { opacity: 1; }
+
+    /* ── DROPDOWN ── */
+    .tb-dropdown { position: relative; }
+    .dropdown-menu {
+      display: none; position: absolute; top: 36px; left: 0;
+      background: #fff; border: 1px solid #e0e0e8;
+      border-radius: 10px; padding: 6px 0; min-width: 180px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 999;
+    }
+    .dropdown-menu.open { display: block; }
+    .dropdown-item {
+      padding: 9px 16px; font-size: 13px; color: #333;
+      cursor: pointer; display: flex; align-items: center; gap: 10px;
+      transition: background 0.15s;
+    }
+    .dropdown-item:hover { background: #f0f0fa; color: #6c63ff; }
+    .dropdown-divider { height: 1px; background: #e8eaf0; margin: 4px 0; }
+
+    .tb-center {
+      font-size: 13px; font-weight: 500; color: #fff;
+      position: absolute; left: 50%; transform: translateX(-50%);
+    }
+
+    .tb-right { display: flex; align-items: center; gap: 10px; }
+    .tb-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #2d6a4f; display: flex; align-items: center;
+      justify-content: center; font-size: 12px; font-weight: 700; color: #fff;
+    }
+    .btn-present {
+      background: rgba(255,255,255,0.15); color: #fff;
+      border: 1px solid rgba(255,255,255,0.35); padding: 6px 16px;
+      border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-present:hover { background: rgba(255,255,255,0.25); }
+    .btn-share {
+      background: #fff; color: #333; border: none;
+      padding: 6px 18px; border-radius: 6px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-share:hover { opacity: 0.88; }
+
+    /* ── BODY ── */
+    #body { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── LEFT SIDEBAR ── */
+    #sidebar {
+      width: 76px; background: #fff;
+      border-right: 1px solid #e0e0e8;
+      display: flex; flex-direction: column;
+      align-items: center; padding: 10px 0;
+      gap: 4px; overflow-y: auto; flex-shrink: 0;
+    }
+    #sidebar::-webkit-scrollbar { display: none; }
+
+    .tool {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 8px 6px; border-radius: 10px;
+      cursor: pointer; width: 68px;
+      transition: background 0.18s;
+    }
+    .tool:hover { background: #f0f0fa; }
+    .tool.active { background: #ede9fe; }
+    .tool i { font-size: 22px; color: #555; }
+    .tool:hover i, .tool.active i { color: #6c63ff; }
+    .tool span { font-size: 10px; color: #666; text-align: center; line-height: 1.2; }
+    .tool:hover span, .tool.active span { color: #6c63ff; }
+
+    /* ── CANVAS AREA ── */
+    #canvasArea {
+      flex: 1; background: #e8eaf0;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    #canvasWrapper {
+      box-shadow: 0 4px 30px rgba(0,0,0,0.14);
+      background: #fff; transition: width 0.1s, height 0.1s;
+    }
+    #canvas { display: block; }
+
+    /* ── BOTTOM STRIP ── */
+    #bottom {
+      height: 86px; background: #fff;
+      border-top: 1px solid #e0e0e8;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 20px; flex-shrink: 0;
+    }
+    .bottom-left { display: flex; align-items: center; gap: 16px; }
+    .bottom-left span { font-size: 12px; color: #888; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .bottom-left span:hover { color: #444; }
+
+    .slides-center { display: flex; align-items: center; gap: 8px; position: absolute; left: 50%; transform: translateX(-50%); }
+    .slide-thumb {
+      width: 90px; height: 58px; background: #fff;
+      border: 2px solid #6c63ff; border-radius: 5px;
+      display: flex; align-items: flex-end; justify-content: flex-start;
+      padding: 3px 5px; font-size: 10px; color: #888;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10); cursor: pointer;
+    }
+    .slide-add {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1.5px solid #ccc; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: #888; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .slide-add:hover { border-color: #6c63ff; color: #6c63ff; }
+
+    .bottom-right { display: flex; align-items: center; gap: 8px; }
+    .zoom-slider { width: 80px; accent-color: #6c63ff; cursor: pointer; }
+    .zoom-label { font-size: 12px; color: #555; min-width: 34px; font-weight: 500; }
+    .pages-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 6px;
+      background: #e8e8f0; border: none; cursor: pointer;
+      font-size: 12px; font-weight: 600; color: #333;
+      transition: background 0.2s;
+    }
+    .pages-btn:hover { background: #d8d8ee; }
+    .pages-btn i { font-size: 14px; }
+    .page-count { font-size: 12px; color: #555; font-weight: 500; }
+    .br-icon { font-size: 16px; color: #888; cursor: pointer; transition: color 0.2s; }
+    .br-icon:hover { color: #444; }
+
+    /* ── GRID VIEW OVERLAY ── */
+    #gridOverlay {
+      display: none; position: fixed; inset: 0;
+      background: #e8eaf0; z-index: 500;
+      flex-direction: column; align-items: center;
+      padding: 30px 40px; overflow-y: auto;
+    }
+    #gridOverlay.open { display: flex; }
+    .grid-toolbar {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 28px; background: #fff;
+      padding: 8px 16px; border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .grid-toolbar span {
+      font-size: 13px; color: #555; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 10px; border-radius: 6px; transition: background 0.15s;
+    }
+    .grid-toolbar span:hover { background: #f0f0fa; color: #6c63ff; }
+    .grid-slides {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px; width: 100%; max-width: 1100px;
+    }
+    .grid-card {
+      background: #fff; border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+      cursor: pointer; overflow: hidden;
+      border: 2px solid transparent; transition: border-color 0.2s;
+    }
+    .grid-card:hover { border-color: #6c63ff; }
+    .grid-card.selected { border-color: #6c63ff; }
+    .grid-card-thumb { height: 100px; background: #f0f0f8; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #aaa; }
+    .grid-card-label { font-size: 11px; color: #888; padding: 5px 8px; text-align: center; }
+    .grid-card-add { background: #f5f5ff; border: 2px dashed #c0c0e0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 130px; border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
+    .grid-card-add:hover { border-color: #6c63ff; }
+    .grid-card-add i { font-size: 28px; color: #aaa; }
+    .grid-close {
+      position: fixed; top: 20px; right: 30px;
+      background: #fff; border: none; border-radius: 50%;
+      width: 36px; height: 36px; font-size: 18px;
+      cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+      display: flex; align-items: center; justify-content: center; color: #555;
+    }
+
+    /* ── HELP PANEL ── */
+    #helpPanel {
+      display: none; position: fixed; bottom: 90px; right: 20px;
+      background: #fff; border: 1px solid #e0e0e8; border-radius: 12px;
+      padding: 16px; width: 220px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 999;
+    }
+    #helpPanel.open { display: block; }
+    .help-title { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; }
+    .help-item { font-size: 12px; color: #555; padding: 6px 0; border-bottom: 1px solid #f0f0f0; display: flex; gap: 8px; align-items: center; }
+    .help-item:last-child { border: none; }
+    .help-item i { font-size: 14px; color: #6c63ff; }
+
+    /* ── DOWNLOAD PANEL ── */
+    #downloadPanel {
+      display: none; position: fixed; top: 52px; right: 0;
+      width: 300px; height: calc(100vh - 52px);
+      background: #fff; border-left: 1px solid #e0e0e8;
+      z-index: 800; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.10);
+      animation: slideIn 0.22s ease;
+    }
+    #downloadPanel.open { display: flex; }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    .dp-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 18px; border-bottom: 1px solid #e8eaf0;
+    }
+    .dp-header i { font-size: 18px; color: #555; cursor: pointer; }
+    .dp-header span { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+    .dp-body { padding: 18px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+    .dp-label { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .dp-type-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; border-radius: 10px; border: 1.5px solid #e0e0e8;
+      cursor: pointer; transition: all 0.18s; background: #fff;
+      font-size: 13px; color: #333; font-family: 'Segoe UI', sans-serif;
+      width: 100%; text-align: left;
+    }
+    .dp-type-btn:hover { border-color: #6c63ff; color: #6c63ff; }
+    .dp-type-btn.active { border-color: #6c63ff; background: #f0f0ff; color: #6c63ff; font-weight: 700; }
+    .dp-type-btn i { font-size: 18px; }
+    .dp-type-btn .suggested {
+      margin-left: auto; font-size: 10px; background: #6c63ff;
+      color: #fff; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+    }
+    .dp-check { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #444; cursor: pointer; }
+    .dp-check input { accent-color: #6c63ff; width: 15px; height: 15px; cursor: pointer; }
+    .dp-select {
+      width: 100%; padding: 10px 12px; border-radius: 8px;
+      border: 1.5px solid #e0e0e8; font-size: 13px; color: #333;
+      outline: none; cursor: pointer; font-family: 'Segoe UI', sans-serif;
+    }
+    .dp-select:focus { border-color: #6c63ff; }
+    .dp-download-btn {
+      margin: 0 18px 18px; padding: 13px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #6c63ff, #48cae4);
+      color: #fff; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .dp-download-btn:hover { opacity: 0.88; }
+
+    /* ── RIGHT CLICK CONTEXT MENU ── */
+    #ctxMenu {
+      display: none; position: fixed; z-index: 9000;
+      background: #fff; border: 1px solid #e0e0e8;
+      border-radius: 12px; padding: 6px 0; min-width: 220px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.14);
+    }
+    #ctxMenu.open { display: block; }
+    .ctx-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 16px; font-size: 13px; color: #333;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .ctx-item:hover { background: #f0f0fa; color: #6c63ff; }
+    .ctx-item-left { display: flex; align-items: center; gap: 10px; }
+    .ctx-item-left i { font-size: 16px; color: #666; }
+    .ctx-item:hover .ctx-item-left i { color: #6c63ff; }
+    .ctx-shortcut { font-size: 11px; color: #aaa; }
+    .ctx-divider { height: 1px; background: #e8eaf0; margin: 4px 0; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+      background: #1a1a2e; color: #fff; padding: 10px 22px;
+      border-radius: 20px; font-size: 13px; font-weight: 500;
+      opacity: 0; transition: opacity 0.3s; z-index: 9999;
+      pointer-events: none;
+    }
+
+    /* ── TOOL PANEL ── */
+    #toolPanel {
+      width: 0; overflow: hidden;
+      background: #fff; border-right: 1px solid #e0e0e8;
+      transition: width 0.22s ease;
+      display: flex; flex-direction: column;
+      flex-shrink: 0;
+    }
+    #toolPanel.open { width: 260px; }
+    .panel-inner { width: 260px; padding: 16px 14px; }
+    .panel-title { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 14px; }
+    .panel-item {
+      padding: 9px 12px; border-radius: 8px; font-size: 13px;
+      color: #444; cursor: pointer; transition: background 0.15s;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .panel-item:hover { background: #f0f0fa; color: #6c63ff; }
+    .panel-item i { font-size: 16px; }
   </style>
 </head>
 <body>
 
-  <div class="navbar">
-    <div class="nav-left">
-      <button class="back-btn" onclick="window.location.href='editor_home.html'">✕</button>
-      <div class="doc-title" id="document-title">Untitled Presentation</div>
+  <div id="toast"></div>
+  <input type="file" id="uploadImgInput" accept="image/*" style="display:none" onchange="handleUploadImg(this)"/>
+  <input type="file" id="uploadPPTXInput" accept=".pptx" style="display:none" onchange="handlePPTXUpload(this)"/>
+
+  <!-- RIGHT CLICK CONTEXT MENU -->
+  <div id="ctxMenu">
+    <div class="ctx-item" onclick="ctxCopy()"><div class="ctx-item-left"><i class="ti ti-copy"></i>Copy</div><span class="ctx-shortcut">Ctrl+C</span></div>
+    <div class="ctx-item" onclick="ctxPaste()"><div class="ctx-item-left"><i class="ti ti-clipboard"></i>Paste</div><span class="ctx-shortcut">Ctrl+V</span></div>
+    <div class="ctx-item" onclick="ctxDuplicate()"><div class="ctx-item-left"><i class="ti ti-copy-plus"></i>Duplicate</div><span class="ctx-shortcut">Ctrl+D</span></div>
+    <div class="ctx-item" onclick="ctxDelete()"><div class="ctx-item-left"><i class="ti ti-trash"></i>Delete</div><span class="ctx-shortcut">DELETE</span></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" onclick="ctxAlign()"><div class="ctx-item-left"><i class="ti ti-layout-align-center"></i>Align to page</div><span class="ctx-shortcut">›</span></div>
+    <div class="ctx-item" onclick="ctxComment()"><div class="ctx-item-left"><i class="ti ti-components"></i>Create component</div><span class="ctx-shortcut">Ctrl+Alt+K</span></div>
+    <div class="ctx-item" onclick="ctxComment()"><div class="ctx-item-left"><i class="ti ti-message-circle"></i>Comment</div><span class="ctx-shortcut">Ctrl+Alt+N</span></div>
+    <div class="ctx-item" onclick="ctxLock()"><div class="ctx-item-left"><i class="ti ti-lock"></i>Lock</div><span class="ctx-shortcut">›</span></div>
+    <div class="ctx-item" onclick="ctxLink()"><div class="ctx-item-left"><i class="ti ti-link"></i>Link</div><span class="ctx-shortcut">Ctrl+K</span></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" onclick="ctxTimings()"><div class="ctx-item-left"><i class="ti ti-clock"></i>Show element timings</div></div>
+    <div class="ctx-item" onclick="ctxAltText()"><div class="ctx-item-left"><i class="ti ti-accessible"></i>Alternative text</div></div>
+    <div class="ctx-item" onclick="ctxSetBg()"><div class="ctx-item-left"><i class="ti ti-photo"></i>Set image as background</div></div>
+    <div class="ctx-item" onclick="ctxApplyColor()"><div class="ctx-item-left"><i class="ti ti-palette"></i>Apply colours to page</div></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" onclick="ctxInfo()"><div class="ctx-item-left"><i class="ti ti-info-circle"></i>Info</div></div>
+  </div>
+
+  <!-- DOWNLOAD PANEL -->
+  <div id="downloadPanel">
+    <div class="dp-header">
+      <i class="ti ti-arrow-left" onclick="toggleDownloadPanel()"></i>
+      <span>Download</span>
     </div>
-    <div class="nav-right">
-      <button class="btn btn-secondary" onclick="triggerUpload()">Upload File</button>
-      <button class="btn btn-primary" onclick="savePresentation()">Save Changes</button>
+    <div class="dp-body">
+
+      <div>
+        <div class="dp-label">File Type</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="dp-type-btn active" onclick="selectType(this)"><i class="ti ti-file-type-pdf"></i> PDF Standard <span class="suggested">Suggested</span></button>
+          <button class="dp-type-btn" onclick="selectType(this)"><i class="ti ti-file-type-png"></i> PNG Image</button>
+          <button class="dp-type-btn" onclick="selectType(this)"><i class="ti ti-file-type-jpg"></i> JPG Image</button>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <label class="dp-check"><input type="checkbox"/> Compress file</label>
+        <label class="dp-check"><input type="checkbox"/> Include all pages</label>
+        <label class="dp-check"><input type="checkbox"/> Transparent background (PNG only)</label>
+      </div>
+
+      <div>
+        <div class="dp-label">Select Pages</div>
+        <select class="dp-select" id="dpPageSelect">
+          <option>All Pages</option>
+          <option>Current Page Only</option>
+        </select>
+      </div>
+
+    </div>
+    <button class="dp-download-btn" onclick="doDownload()">⬇ Download</button>
+  </div>
+
+  <!-- GRID VIEW OVERLAY -->
+  <div id="gridOverlay">
+    <button class="grid-close" onclick="toggleGridView()"><i class="ti ti-x"></i></button>
+    <div class="grid-toolbar">
+      <span><i class="ti ti-checks"></i> Select all</span>
+      <span><i class="ti ti-copy"></i> Duplicate</span>
+      <span><i class="ti ti-trash"></i> Delete</span>
+      <span><i class="ti ti-eye-off"></i> Hide</span>
+    </div>
+    <div class="grid-slides" id="gridSlides"></div>
+  </div>
+
+  <!-- HELP PANEL -->
+  <div id="helpPanel">
+    <div class="help-title">⌨️ Keyboard Shortcuts</div>
+    <div class="help-item"><i class="ti ti-arrow-back-up"></i> Ctrl+Z — Undo</div>
+    <div class="help-item"><i class="ti ti-arrow-forward-up"></i> Ctrl+Y — Redo</div>
+    <div class="help-item"><i class="ti ti-zoom-in"></i> + / − — Zoom</div>
+    <div class="help-item"><i class="ti ti-letter-t"></i> T — Text tool</div>
+    <div class="help-item"><i class="ti ti-trash"></i> Del — Delete element</div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="tb-left">
+      <div class="tb-dropdown">
+        <span onclick="toggleDropdown('fileMenu')">File ▾</span>
+        <div class="dropdown-menu" id="fileMenu">
+          <div class="dropdown-item" onclick="fileNewDesign()"><i class="ti ti-file-plus"></i> New Design</div>
+          <div class="dropdown-item" onclick="fileOpen()"><i class="ti ti-upload"></i> Open</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" onclick="toggleDownloadPanel()"><i class="ti ti-download"></i> Download</div>
+          <div class="dropdown-item" onclick="filePrint()"><i class="ti ti-printer"></i> Print</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" onclick="fileDelete()" style="color:#e05;"><i class="ti ti-trash"></i> Delete</div>
+        </div>
+      </div>
+      <div class="tb-dropdown">
+        <span onclick="toggleDropdown('resizeMenu')">Resize ▾</span>
+        <div class="dropdown-menu" id="resizeMenu">
+          <div class="dropdown-item" onclick="resizeCanvas(1920,1080)"><i class="ti ti-device-desktop"></i> 1920 × 1080</div>
+          <div class="dropdown-item" onclick="resizeCanvas(1280,720)"><i class="ti ti-device-tablet"></i> 1280 × 720</div>
+          <div class="dropdown-item" onclick="resizeCanvas(794,1123)"><i class="ti ti-file"></i> A4 Portrait</div>
+          <div class="dropdown-item" onclick="resizeCanvas(1080,1080)"><i class="ti ti-square"></i> Square 1080px</div>
+          <div class="dropdown-item" onclick="document.getElementById('customSizeRow').style.display='flex'"><i class="ti ti-ruler"></i> Custom Size</div>
+          <div id="customSizeRow" style="display:none;align-items:center;gap:6px;padding:8px 14px;">
+            <input id="customW" type="number" placeholder="W" style="width:60px;padding:5px;border:1px solid #ddd;border-radius:6px;font-size:12px;"/>
+            <span style="font-size:12px;color:#888;">×</span>
+            <input id="customH" type="number" placeholder="H" style="width:60px;padding:5px;border:1px solid #ddd;border-radius:6px;font-size:12px;"/>
+            <button onclick="resizeCanvas(parseInt(document.getElementById('customW').value)||1920, parseInt(document.getElementById('customH').value)||1080)" style="padding:5px 10px;background:#6c63ff;color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;">OK</button>
+          </div>
+        </div>
+      </div>
+      <div class="tb-dropdown">
+        <span onclick="toggleDropdown('editMenu')"><i class="ti ti-pencil" style="font-size:13px;vertical-align:-1px;"></i> Editing ▾</span>
+        <div class="dropdown-menu" id="editMenu">
+          <div class="dropdown-item" onclick="setEditMode('view')"><i class="ti ti-eye"></i> View Only</div>
+          <div class="dropdown-item" onclick="setEditMode('edit')"><i class="ti ti-pencil"></i> Editing</div>
+          <div class="dropdown-item" onclick="setEditMode('comment')"><i class="ti ti-message"></i> Commenting</div>
+        </div>
+      </div>
+      <div class="tb-divider"></div>
+      <i class="ti ti-arrow-back-up tb-icon" id="undoBtn" onclick="doUndo()" title="Undo" style="opacity:0.4;"></i>
+      <i class="ti ti-arrow-forward-up tb-icon" id="redoBtn" onclick="doRedo()" title="Redo" style="opacity:0.4;"></i>
+      <i class="ti ti-cloud-check tb-icon"></i>
+    </div>
+    <div class="tb-center">Untitled Design</div>
+    <div class="tb-right">
+      <div class="tb-avatar">T</div>
+      <i class="ti ti-chart-bar tb-icon"></i>
+      <i class="ti ti-message tb-icon"></i>
+      <button class="btn-share" onclick="toggleDownloadPanel()">⬇ Download</button>
     </div>
   </div>
 
-  <div class="workspace">
-    
-    <div class="tools-panel">
-      <div class="tool-icon active" title="Select">🖱️</div>
-      <div class="tool-icon" title="Text">📝</div>
-      <div class="tool-icon" title="Shapes">📐</div>
-      <div class="tool-icon" title="Images">🖼️</div>
-      <div class="tool-icon" title="Templates">🎨</div>
-    </div>
+  <!-- BODY -->
+  <div id="body">
 
-    <div class="slides-panel" id="slides-list">
-      <div class="slide-thumb active" onclick="selectSlide(0)">
-        Slide 1
-        <div class="slide-num">1</div>
+    <!-- LEFT SIDEBAR -->
+    <div id="sidebar">
+      <div class="tool active">
+        <i class="ti ti-layout-grid"></i>
+        <span>Templates</span>
+      </div>
+      <div class="tool">
+        <i class="ti ti-shapes"></i>
+        <span>Elements</span>
+      </div>
+      <div class="tool">
+        <i class="ti ti-text-size"></i>
+        <span>Text</span>
+      </div>
+      <div class="tool">
+        <i class="ti ti-upload"></i>
+        <span>Uploads</span>
+      </div>
+      <div class="tool">
+        <i class="ti ti-photo"></i>
+        <span>Photos</span>
+      </div>
+      <div class="tool">
+        <i class="ti ti-music"></i>
+        <span>Audio</span>
+      </div>
+      <div class="tool">
+        <i class="ti ti-apps"></i>
+        <span>Apps</span>
+      </div>
+      <div class="tool">
+        <i class="ti ti-folder"></i>
+        <span>Projects</span>
+      </div>
+      <div class="tool">
+        <i class="ti ti-tool"></i>
+        <span>Tools</span>
       </div>
     </div>
 
-    <div class="canvas-container">
-      <div class="slide-canvas" id="canvas-view">
-        </div>
+    <!-- TOOL PANEL -->
+    <div id="toolPanel">
+      <div class="panel-inner" id="panelContent"></div>
     </div>
 
-    <div class="props-panel">
-      <div class="panel-section">
-        <div class="panel-title">File Configuration</div>
-        <div class="prop-group">
-          <label>Project Name</label>
-          <input type="text" class="prop-input" id="project-name-input" value="Untitled Presentation" oninput="updateProjectName(this.value)">
-        </div>
-      </div>
-      
-      <div class="panel-section">
-        <div class="panel-title">Slide Properties</div>
-        <div class="prop-group">
-          <label>Background Color</label>
-          <input type="color" class="prop-input" style="height:38px; padding:2px;" value="#ffffff" onchange="changeBgColor(this.value)">
-        </div>
+    <!-- CANVAS -->
+    <div id="canvasArea">
+      <div id="canvasWrapper">
+        <canvas id="canvas"></canvas>
       </div>
     </div>
 
   </div>
 
-  <input type="file" id="ppt-upload" accept=".pptx, .ppt, .pdf, .png, .jpg, .jpeg" style="display:none" onchange="handleFileImport(event)">
+  <!-- BOTTOM STRIP -->
+  <div id="bottom">
+    <div class="bottom-left">
+      <span><i class="ti ti-notes" style="font-size:14px;"></i> Notes</span>
+      <span><i class="ti ti-clock" style="font-size:14px;"></i> Timer</span>
+    </div>
 
-  <div class="toast" id="error-toast"></div>
+    <div class="slides-center" id="slideStrip">
+      <div class="slide-thumb" onclick="selectSlide(this)">1</div>
+      <div class="slide-add" id="slideAddBtn" onclick="addSlide()">+</div>
+      <i class="ti ti-chevron-down" style="font-size:16px;color:#888;cursor:pointer;"></i>
+    </div>
+
+    <div class="bottom-right">
+      <input type="range" class="zoom-slider" min="20" max="200" value="61" id="zoomSlider" oninput="doZoom(this.value)"/>
+      <span class="zoom-label" id="zoomLabel">61%</span>
+      <button class="pages-btn"><i class="ti ti-layout-bottombar"></i> Pages</button>
+      <span class="page-count" id="slideCounter">1 / 1</span>
+      <i class="ti ti-layout-grid br-icon" title="Grid view" onclick="toggleGridView()"></i>
+      <i class="ti ti-arrows-maximize br-icon" title="Fullscreen" onclick="document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()"></i>
+      <i class="ti ti-headphones br-icon" title="Accessibility" onclick="toggleHelp()"></i>
+    </div>
+  </div>
 
   <script>
-    // System Architecture Configuration Tracking States safely
-    let currentSlideIndex = 0;
-    let presentationData = {
-      title: "Untitled Presentation",
-      slides: [{ backgroundColor: "#ffffff", elements: [] }]
+    /* ── FABRIC CANVAS INIT ── */
+    var fc, _clip = null;
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var a = document.getElementById('canvasArea');
+        var W = a.clientWidth - 40, H = Math.round(W * 9/16);
+        fc = new fabric.Canvas('canvas', { width: W, height: H, backgroundColor: '#fff' });
+        fc.on('object:modified', function(){ saveState(); });
+        fc.on('object:added', function(){ saveState(); });
+        fc._baseWidth = W;
+        fc._baseHeight = H;
+        doZoom(61);
+
+        /* ── LOAD TEMPLATE FROM LOCALSTORAGE ── */
+        var editSlides = JSON.parse(localStorage.getItem('editSlides')||'[]');
+        var editMode   = localStorage.getItem('editMode')||'single';
+        // keep in localStorage so refresh restores slides
+        if (editSlides.length) {
+          if (editMode === 'deck') {
+            var strip = document.getElementById('slideStrip');
+            strip.innerHTML = '';
+            editSlides.forEach(function(src, i) {
+              var thumb = document.createElement('div');
+              thumb.className = 'slide-thumb';
+              thumb.style.cssText += 'padding:0;overflow:hidden;position:relative;';
+              var img = document.createElement('img');
+              img.src = src;
+              img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+              var num = document.createElement('span');
+              num.textContent = i+1;
+              num.style.cssText = 'position:absolute;bottom:2px;left:4px;font-size:9px;color:#fff;background:rgba(0,0,0,0.5);padding:1px 4px;border-radius:3px;';
+              thumb.appendChild(img);
+              thumb.appendChild(num);
+              thumb.onclick = (function(s,t){ return function(){ loadSlideOnCanvas(s); selectSlide(t); }; })(src, thumb);
+              strip.appendChild(thumb);
+            });
+            var addBtn = document.createElement('div');
+            addBtn.className = 'slide-add'; addBtn.id = 'slideAddBtn';
+            addBtn.textContent = '+'; addBtn.onclick = addSlide;
+            strip.appendChild(addBtn);
+            document.getElementById('slideCounter').textContent = '1 / '+editSlides.length;
+          }
+          loadSlideOnCanvas(editSlides[0]);
+        }
+
+        function loadSlideOnCanvas(src) {
+          fabric.Image.fromURL(src, function(img) {
+            fc.getObjects().forEach(function(o){ if(o.isBg) fc.remove(o); });
+            var W = fc._baseWidth  || fc.getWidth();
+            var H = fc._baseHeight || fc.getHeight();
+            img.set({ left:0, top:0, scaleX: W/img.width, scaleY: H/img.height, selectable:true, evented:true, isBg:true, lockMovementX:true, lockMovementY:true });
+            fc.add(img); fc.sendToBack(img); fc.renderAll();
+          });
+        }
+      }, 100);
+    });
+
+    /* ── PASTE IMAGE (Ctrl+V) ── */
+    document.addEventListener('paste', function(e) {
+      var item = Array.from(e.clipboardData.items).find(function(i){ return i.type.includes('image'); });
+      if (!item || !fc) return;
+      fabric.Image.fromURL(URL.createObjectURL(item.getAsFile()), function(img) {
+        img.scaleToWidth(fc.getWidth() * 0.5).set({ left:80, top:80 });
+        fc.add(img).setActiveObject(img).renderAll();
+        showToast('Image pasted');
+      });
+    });
+
+    /* ── RIGHT CLICK MENU ── */
+    document.getElementById('canvasArea').addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      var m = document.getElementById('ctxMenu');
+      m.style.cssText += 'left:'+e.clientX+'px;top:'+e.clientY+'px;';
+      m.classList.add('open');
+    });
+    document.addEventListener('click', function(){ document.getElementById('ctxMenu').classList.remove('open'); });
+    function ctxCopy()      { fc && fc.getActiveObject() && fc.getActiveObject().clone(function(c){ _clip=c; showToast('Copied'); }); }
+    function ctxPaste()     { _clip && _clip.clone(function(c){ c.set({left:c.left+20,top:c.top+20}); fc.add(c).setActiveObject(c).renderAll(); }); }
+    function ctxDuplicate() { var o=fc&&fc.getActiveObject(); if(o){ o.clone(function(c){ c.set({left:o.left+20,top:o.top+20}); fc.add(c).setActiveObject(c).renderAll(); }); } }
+    function ctxDelete()    { var o=fc&&fc.getActiveObject(); if(o) fc.remove(o).renderAll(); }
+    function ctxAlign()     { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} o.set({left:(fc.getWidth()-o.getScaledWidth())/2, top:(fc.getHeight()-o.getScaledHeight())/2}); fc.renderAll(); showToast('Aligned to center'); }
+    function ctxLock()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var lock=!o.lockMovementX; o.set({lockMovementX:lock,lockMovementY:lock,hasControls:!lock,selectable:!lock}); fc.renderAll(); showToast(lock?'Element locked':'Element unlocked'); }
+    function ctxSetBg()     { var o=fc&&fc.getActiveObject(); if(!o||o.type!=='image'){showToast('Select an image first');return;} fc.setBackgroundImage(o,fc.renderAll.bind(fc),{scaleX:fc.width/o.width,scaleY:fc.height/o.height}); fc.remove(o); fc.renderAll(); showToast('Set as background'); }
+    function ctxInfo()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} showToast('Type: '+o.type+' | W:'+Math.round(o.getScaledWidth())+'px | H:'+Math.round(o.getScaledHeight())+'px | X:'+Math.round(o.left)+' Y:'+Math.round(o.top)); }
+    function ctxComment()   { var t=prompt('Add comment:'); if(t) showToast('Comment: '+t); }
+    function ctxLink()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var url=prompt('Enter URL:','https://'); if(url){ o.set('data',{link:url}); showToast('Link added: '+url); } }
+    function ctxAltText()   { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var t=prompt('Enter alternative text:',o.altText||''); if(t!==null){ o.altText=t; showToast('Alt text set: '+t); } }
+    function ctxTimings()   { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} showToast('Element added at: '+new Date().toLocaleTimeString()); }
+    function ctxApplyColor(){ var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var c=o.fill||o.stroke||'#6c63ff'; fc.setBackgroundColor(c,fc.renderAll.bind(fc)); showToast('Page colour applied'); }
+
+    /* ── KEYBOARD SHORTCUTS ── */
+    document.addEventListener('keydown', function(e) {
+      var ctrl = e.ctrlKey||e.metaKey;
+      if (ctrl&&e.key==='c') ctxCopy();
+      if (ctrl&&e.key==='v') ctxPaste();
+      if (ctrl&&e.key==='d') { e.preventDefault(); ctxDuplicate(); }
+      if (ctrl&&e.altKey&&e.key==='k') { e.preventDefault(); showToast('Component created'); }
+      if (ctrl&&e.altKey&&e.key==='n') { e.preventDefault(); showToast('Comment added'); }
+      if (e.key==='Delete'||e.key==='Backspace') ctxDelete();
+    });
+
+    /* ── PANEL ITEM FUNCTIONS ── */
+
+    // TEXT
+    function addText(type) {
+      if (!fc) return;
+      var props = {
+        heading:    { text:'Heading',    fontSize:48, fontWeight:'bold',   fill:'#1a1a2e' },
+        subheading: { text:'Subheading', fontSize:28, fontWeight:'600',    fill:'#444444' },
+        body:       { text:'Body text',  fontSize:16, fontWeight:'normal', fill:'#666666' }
+      }[type];
+      var t = new fabric.IText(props.text, {
+        left:80, top:80, fontFamily:'Poppins, sans-serif',
+        fontSize:props.fontSize, fontWeight:props.fontWeight, fill:props.fill, editable:true
+      });
+      fc.add(t).setActiveObject(t).renderAll();
+      saveState(fc.toJSON(['isBg']));
+    }
+
+    // ELEMENTS / SHAPES
+    function addShape(type) {
+      if (!fc) return;
+      var defaults = { left:100, top:100, fill:'#6c63ff', opacity:0.85 };
+      var s;
+      if (type==='rect')     s = new fabric.Rect({ ...defaults, width:160, height:100, rx:6 });
+      if (type==='circle')   s = new fabric.Circle({ ...defaults, radius:70 });
+      if (type==='triangle') s = new fabric.Triangle({ ...defaults, width:140, height:120 });
+      if (type==='line')     s = new fabric.Line([50,50,300,50], { stroke:'#6c63ff', strokeWidth:3, left:100, top:150 });
+      if (s) fc.add(s).setActiveObject(s).renderAll();
+      saveState(fc.toJSON(['isBg']));
+    }
+
+    // UPLOADS
+    function handleUploadImg(input) {
+      if (!input.files||!input.files[0]) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        fabric.Image.fromURL(e.target.result, function(img) {
+          img.scaleToWidth(Math.min(img.width, fc.getWidth()*0.5));
+          img.set({ left:80, top:80 });
+          fc.add(img).setActiveObject(img).renderAll();
+          saveState(fc.toJSON(['isBg']));
+        });
+      };
+      reader.readAsDataURL(input.files[0]);
+      input.value='';
+    }
+
+    // TOOLS
+    function toolCrop() {
+      var o = fc&&fc.getActiveObject();
+      if (!o) { showToast('Select an image first'); return; }
+      showToast('Crop: resize handles active — drag corners to crop');
+    }
+    function toolAdjust() {
+      var o = fc&&fc.getActiveObject();
+      if (!o) { showToast('Select an element first'); return; }
+      var op = Math.round((o.opacity||1)*100);
+      var val = prompt('Opacity (0-100):', op);
+      if (val!==null) { o.set('opacity', parseInt(val)/100); fc.renderAll(); }
+    }
+
+    /* ── SIDEBAR TOOL PANELS ── */
+    var panelContents = {
+      'Templates': '<div class="panel-title">Templates</div><div class="panel-item" onclick="window.open(\'pitch_deck_folder_section.html\',\'_blank\')"><i class="ti ti-layout"></i>Pitch Deck</div><div class="panel-item" onclick="window.open(\'media_kits_folder_section.html\',\'_blank\')"><i class="ti ti-id-badge"></i>Media Kit</div><div class="panel-item" onclick="window.open(\'invoice.html\',\'_blank\')"><i class="ti ti-file-invoice"></i>Invoice</div><div class="panel-item" onclick="showToast(\'Poster templates coming soon\')"><i class="ti ti-presentation"></i>Poster</div>',
+      'Elements':  '<div class="panel-title">Elements</div><div class="panel-item" onclick="addShape(\'rect\')"><i class="ti ti-square"></i>Rectangle</div><div class="panel-item" onclick="addShape(\'circle\')"><i class="ti ti-circle"></i>Circle</div><div class="panel-item" onclick="addShape(\'triangle\')"><i class="ti ti-triangle"></i>Triangle</div><div class="panel-item" onclick="addShape(\'line\')"><i class="ti ti-minus"></i>Line</div>',
+      'Text':      '<div class="panel-title">Text</div><div class="panel-item" onclick="addText(\'heading\')"><i class="ti ti-letter-t"></i>Heading</div><div class="panel-item" onclick="addText(\'subheading\')"><i class="ti ti-text-size"></i>Subheading</div><div class="panel-item" onclick="addText(\'body\')"><i class="ti ti-align-left"></i>Body Text</div>',
+      'Uploads':   '<div class="panel-title">Uploads</div><div class="panel-item" onclick="document.getElementById(\'uploadImgInput\').click()"><i class="ti ti-upload"></i>Upload Image</div><div class="panel-item" onclick="document.getElementById(\'uploadPPTXInput\').click()"><i class="ti ti-presentation"></i>Upload PPTX</div>',
+      'Photos':    '<div class="panel-title">Photos</div><div class="panel-item" onclick="showToast(\'Browse photos coming soon\')"><i class="ti ti-photo"></i>Browse Photos</div><div class="panel-item" onclick="showToast(\'Search photos coming soon\')"><i class="ti ti-search"></i>Search Photos</div>',
+      'Audio':     '<div class="panel-title">Audio</div><div class="panel-item" onclick="showToast(\'Audio coming soon\')"><i class="ti ti-music"></i>Browse Audio</div>',
+      'Apps':      '<div class="panel-title">Apps</div><div class="panel-item" onclick="showToast(\'Apps coming soon\')"><i class="ti ti-apps"></i>Browse Apps</div>',
+      'Projects':  '<div class="panel-title">Projects</div><div class="panel-item" onclick="window.open(\'editor_home.html\',\'_blank\')"><i class="ti ti-folder"></i>My Projects</div>',
+      'Tools':     '<div class="panel-title">Tools</div><div class="panel-item" onclick="toolCrop()"><i class="ti ti-crop"></i>Crop</div><div class="panel-item" onclick="toolAdjust()"><i class="ti ti-adjustments"></i>Adjust</div>'
     };
+    var lastTool = null;
+    document.querySelectorAll('.tool').forEach(function(t){
+      t.addEventListener('click', function(){
+        var name = t.querySelector('span').textContent.trim();
+        var panel = document.getElementById('toolPanel');
+        if (lastTool === name && panel.classList.contains('open')) {
+          panel.classList.remove('open');
+          t.classList.remove('active');
+          lastTool = null;
+        } else {
+          document.querySelectorAll('.tool').forEach(function(x){ x.classList.remove('active'); });
+          t.classList.add('active');
+          document.getElementById('panelContent').innerHTML = panelContents[name] || '<div class="panel-title">'+name+'</div>';
+          panel.classList.add('open');
+          lastTool = name;
+        }
+      });
+    });
 
-    // FIXED: Correctly initializing 'history' as an Array to avoid the .slice error
-    let history = [];
-    let historyStep = -1;
-
-    function saveToHistory() {
-      // safe extraction slice algorithm execution without errors now
-      history = history.slice(0, historyStep + 1);
-      history.push(JSON.stringify(presentationData));
-      historyStep++;
+    /* ── DOWNLOAD PANEL ── */
+    function toggleDownloadPanel() {
+      document.getElementById('downloadPanel').classList.toggle('open');
+    }
+    function selectType(btn) {
+      document.querySelectorAll('.dp-type-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+    function doDownload() {
+      var type = document.querySelector('.dp-type-btn.active').textContent.trim();
+      showToast('Downloading as ' + type.split(' ')[0] + '...');
+      toggleDownloadPanel();
     }
 
-    function triggerUpload() {
-      document.getElementById('ppt-upload').click();
+    /* ── DOWNLOAD ── */
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.opacity = '1';
+      setTimeout(function(){ t.style.opacity = '0'; }, 2500);
+    }
+    document.addEventListener('DOMContentLoaded', function(){
+      var items = document.querySelectorAll('#downloadMenu .dropdown-item');
+      items[0].onclick = function(){ showToast('Downloading PNG...'); };
+      items[1].onclick = function(){ showToast('Downloading PDF...'); };
+      items[2].onclick = function(){ showToast('Downloading JPG...'); };
+      items[3].onclick = function(){
+        navigator.clipboard && navigator.clipboard.writeText(window.location.href);
+        showToast('Link copied!');
+      };
+    });
+
+    /* ── FILE MENU FUNCTIONS ── */
+    function fileNewDesign() { if(confirm('Start a new design? Current work will be lost.')) { fc.clear(); fc.setBackgroundColor('#fff',fc.renderAll.bind(fc)); localStorage.removeItem('editSlides'); localStorage.removeItem('editMode'); showToast('New design started'); } }
+    function fileOpen() {
+      var choice = confirm('Open a PPTX file?\n\nOK = PPTX file\nCancel = Image file');
+      if (choice) document.getElementById('uploadPPTXInput').click();
+      else document.getElementById('uploadImgInput').click();
+    }
+    function filePrint() { window.print(); }
+    function fileDelete() { if(confirm('Delete everything on this canvas?')) { fc.clear(); fc.setBackgroundColor('#fff',fc.renderAll.bind(fc)); showToast('Canvas cleared'); } }
+
+    /* ── RESIZE CANVAS FUNCTIONS ── */
+    function resizeCanvas(w, h) {
+      fc._baseWidth=w; fc._baseHeight=h;
+      fc.setWidth(w * (document.getElementById('zoomSlider').value/100));
+      fc.setHeight(h * (document.getElementById('zoomSlider').value/100));
+      fc.setZoom(document.getElementById('zoomSlider').value/100);
+      fc.renderAll();
+      showToast('Canvas resized to '+w+' × '+h);
     }
 
-    function handleFileImport(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+    /* ── EDITING MODE FUNCTIONS ── */
+    function setEditMode(mode) {
+      if (mode==='view')    { fc.selection=false; fc.getObjects().forEach(function(o){o.selectable=false;}); showToast('View Only mode'); }
+      if (mode==='edit')    { fc.selection=true;  fc.getObjects().forEach(function(o){if(!o.isBg)o.selectable=true;}); showToast('Editing mode'); }
+      if (mode==='comment') { fc.selection=false; showToast('Commenting mode'); }
+    }
 
-      const fileExtension = file.name.split('.').pop().toLowerCase();
-      document.getElementById('document-title').innerText = file.name;
-      document.getElementById('project-name-input').value = file.name;
-      presentationData.title = file.name;
+    /* ── FILE / RESIZE / EDITING DROPDOWNS ── */
+    function toggleDropdown(id) {
+      var menu = document.getElementById(id);
+      var isOpen = menu.classList.contains('open');
+      document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.remove('open'); });
+      if (!isOpen) menu.classList.add('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.tb-dropdown')) {
+        document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.remove('open'); });
+      }
+    });
 
-      // Handle based on types safely
-      if (fileExtension === 'pptx' || fileExtension === 'ppt') {
-        mockParsePPTX(file);
-      } else if (fileExtension === 'pdf') {
-        mockParsePDF(file);
-      } else {
-        // PNG or image file parsing asset injection
-        mockParseImage(file);
+    /* ── UNDO / REDO ── */
+    var editHistory = [];
+    var historyIndex = -1;
+    var _restoring = false;
+    function saveState() {
+      if (!fc || _restoring || window._bulkLoad) return;
+      var json = JSON.stringify(fc.toJSON(['isBg']));
+      editHistory = editHistory.slice(0, historyIndex + 1);
+      editHistory.push(json);
+      if (editHistory.length > 60) editHistory.shift();
+      historyIndex = editHistory.length - 1;
+      updateUndoRedo();
+    }
+    function doUndo() {
+      if (historyIndex <= 0) return;
+      historyIndex--;
+      restoreState();
+    }
+    function doRedo() {
+      if (historyIndex >= editHistory.length - 1) return;
+      historyIndex++;
+      restoreState();
+    }
+    function restoreState() {
+      if (!editHistory[historyIndex]) return;
+      _restoring = true;
+      fc.loadFromJSON(editHistory[historyIndex], function() {
+        fc.getObjects().forEach(function(o){ if(o.isBg){ o.selectable=true; o.evented=true; } });
+        fc.renderAll();
+        _restoring = false;
+        updateUndoRedo();
+      });
+    }
+    function updateUndoRedo() {
+      var u = document.getElementById('undoBtn'), r = document.getElementById('redoBtn');
+      if (u) u.style.opacity = historyIndex > 0 ? '1' : '0.4';
+      if (r) r.style.opacity = historyIndex < editHistory.length - 1 ? '1' : '0.4';
+    }
+
+    /* ── MATCH CANVAS ASPECT TO SLIDE (used by the PPTX importer) ── */
+    function setSlideAspect(emuW, emuH) {
+      if (!fc || !emuW || !emuH) return;
+      var baseW = fc._baseWidth || fc.getWidth();
+      var baseH = Math.round(baseW * (emuH / emuW));
+      fc._baseWidth = baseW;
+      fc._baseHeight = baseH;
+      BASE_W = baseW; BASE_H = baseH;
+      var z = (parseInt(document.getElementById('zoomSlider').value) || 61) / 100;
+      fc.setWidth(baseW * z);
+      fc.setHeight(baseH * z);
+      fc.setZoom(z);
+      fc.renderAll();
+    }
+
+    /* ── ADD SLIDE ── */
+    var slideCount = 1;
+    function addSlide() {
+      slideCount++;
+      var strip = document.getElementById('slideStrip');
+      var thumb = document.createElement('div');
+      thumb.className = 'slide-thumb';
+      thumb.textContent = slideCount;
+      thumb.onclick = function() { selectSlide(thumb); };
+      strip.insertBefore(thumb, document.getElementById('slideAddBtn'));
+      selectSlide(thumb);
+      document.getElementById('slideCounter').textContent = slideCount + ' / ' + slideCount;
+    }
+    function selectSlide(el) {
+      document.querySelectorAll('.slide-thumb').forEach(function(t){ t.style.borderColor = '#ccc'; });
+      el.style.borderColor = '#6c63ff';
+    }
+
+    /* ── GRID VIEW ── */
+    function toggleGridView() {
+      var overlay = document.getElementById('gridOverlay');
+      overlay.classList.toggle('open');
+      if (overlay.classList.contains('open')) buildGridView();
+    }
+    function buildGridView() {
+      var container = document.getElementById('gridSlides');
+      var thumbs = document.querySelectorAll('.slide-thumb');
+      container.innerHTML = '';
+      thumbs.forEach(function(t, i) {
+        var card = document.createElement('div');
+        card.className = 'grid-card' + (i === 0 ? ' selected' : '');
+        card.innerHTML = '<div class="grid-card-thumb">Slide '+(i+1)+'</div><div class="grid-card-label">'+(i+1)+'</div>';
+        card.onclick = function() {
+          document.querySelectorAll('.grid-card').forEach(function(c){ c.classList.remove('selected'); });
+          card.classList.add('selected');
+          toggleGridView();
+        };
+        container.appendChild(card);
+      });
+      var addCard = document.createElement('div');
+      addCard.className = 'grid-card-add';
+      addCard.innerHTML = '<i class="ti ti-plus"></i><span style="font-size:11px;color:#aaa;margin-top:4px;">New page</span>';
+      addCard.onclick = function(){ addSlide(); toggleGridView(); };
+      container.appendChild(addCard);
+    }
+
+    /* ── HELP PANEL ── */
+    function toggleHelp() {
+      document.getElementById('helpPanel').classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#helpPanel') && !e.target.closest('.ti-headphones')) {
+        document.getElementById('helpPanel').classList.remove('open');
+      }
+
+    });
+
+    /* ══════════════════════════════════════════════
+       PPTX PARSER — JSZip + XML → Fabric.js objects
+    ══════════════════════════════════════════════ */
+
+    window._pptxSlides = [];
+    window._pptxCurrentSlide = 0;
+
+    function byLocal(parent, localName) {
+      var result = [];
+      var all = parent.getElementsByTagName('*');
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].localName === localName) result.push(all[i]);
+      }
+      return result;
+    }
+
+    function childLocal(parent, localName) {
+      if (!parent) return null;
+      for (var i = 0; i < parent.children.length; i++) {
+        if (parent.children[i].localName === localName) return parent.children[i];
+      }
+      return null;
+    }
+
+    function attrLocal(el, localName) {
+      if (!el) return null;
+      for (var i = 0; i < el.attributes.length; i++) {
+        if (el.attributes[i].localName === localName) return el.attributes[i].value;
+      }
+      return null;
+    }
+
+    async function handlePPTXUpload(input) {
+      if (!input.files || !input.files[0]) { showToast('No file selected'); return; }
+      if (!fc) { alert('Editor not ready — please wait a moment and try again.'); return; }
+      if (typeof JSZip === 'undefined') { alert('JSZip library failed to load. Check internet connection and reload.'); return; }
+      var file = input.files[0];
+      input.value = '';
+      showToast('Parsing PPTX…');
+
+      try {
+        var zip = await JSZip.loadAsync(file);
+
+        // ── Read the REAL slide size from presentation.xml ──
+        window._pptxSlideSize = { w: 12192000, h: 6858000 };
+        try {
+          var presFile = zip.file('ppt/presentation.xml');
+          if (presFile) {
+            var presXML = await presFile.async('string');
+            var pDoc = new DOMParser().parseFromString(presXML, 'application/xml');
+            var sldSz = byLocal(pDoc, 'sldSz')[0];
+            if (sldSz) {
+              window._pptxSlideSize = {
+                w: parseInt(sldSz.getAttribute('cx')) || 12192000,
+                h: parseInt(sldSz.getAttribute('cy')) || 6858000
+              };
+            }
+          }
+        } catch (e) { console.warn('slide-size read failed', e); }
+
+        // ── Read the theme colour scheme from theme1.xml ──
+        window._pptxTheme = {};
+        try {
+          var themeFile = zip.file('ppt/theme/theme1.xml') || zip.file('ppt/theme/theme2.xml');
+          if (themeFile) {
+            var themeXML = await themeFile.async('string');
+            var tDoc = new DOMParser().parseFromString(themeXML, 'application/xml');
+            var clrScheme = byLocal(tDoc, 'clrScheme')[0];
+            if (clrScheme) {
+              for (var ti = 0; ti < clrScheme.children.length; ti++) {
+                var cNode = clrScheme.children[ti];
+                var nm = cNode.localName;
+                var srgb = byLocal(cNode, 'srgbClr')[0];
+                var sys  = byLocal(cNode, 'sysClr')[0];
+                var hex = srgb ? srgb.getAttribute('val')
+                        : sys ? (sys.getAttribute('lastClr') || '000000')
+                        : null;
+                if (hex) window._pptxTheme[nm] = '#' + hex;
+              }
+            }
+          }
+        } catch (e) { console.warn('theme read failed', e); }
+
+        window._pptxSlides = [];
+        for (var i = 1; i <= 500; i++) {
+          var sf = zip.file('ppt/slides/slide' + i + '.xml');
+          if (!sf) break;
+          var slideXML = await sf.async('string');
+
+          var imageData = {};
+          var relsFile = zip.file('ppt/slides/_rels/slide' + i + '.xml.rels');
+          if (relsFile) {
+            var relsXML = await relsFile.async('string');
+            var rDoc = new DOMParser().parseFromString(relsXML, 'application/xml');
+            var rels = rDoc.querySelectorAll('Relationship');
+            for (var r = 0; r < rels.length; r++) {
+              var rel = rels[r];
+              var type = rel.getAttribute('Type') || '';
+              if (!type.includes('image')) continue;
+              var rId = rel.getAttribute('Id');
+              var target = rel.getAttribute('Target') || '';
+              if (target.startsWith('../')) target = 'ppt/' + target.slice(3);
+              else target = 'ppt/slides/' + target;
+              var imgFile = zip.file(target);
+              if (imgFile) {
+                var b64 = await imgFile.async('base64');
+                var ext = target.split('.').pop().toLowerCase();
+                var mime = (ext === 'jpg' || ext === 'jpeg') ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : 'image/png';
+                imageData[rId] = 'data:' + mime + ';base64,' + b64;
+              }
+            }
+          }
+          window._pptxSlides.push({ xml: slideXML, images: imageData, index: i });
+        }
+
+        if (!window._pptxSlides.length) { showToast('No slides found in PPTX'); return; }
+
+        buildPPTXStrip(window._pptxSlides.length);
+        await renderPPTXSlide(0);
+        showToast('Loaded ' + window._pptxSlides.length + ' slide(s) ✓');
+
+      } catch (e) {
+        console.error(e);
+        alert('PPTX error: ' + e.message);
       }
     }
 
-    function mockParsePPTX(file) {
-      presentationData.slides = [
-        { backgroundColor: "#ffffff", elements: ["PPTX Content Section Title", "Imported Text Core Body"] },
-        { backgroundColor: "#f0f2f5", elements: ["PPTX Analytics Graphic Frame Element"] }
-      ];
-      saveToHistory();
-      renderSlidesList();
-      selectSlide(0);
+    function buildPPTXStrip(count) {
+      slideCount = count;
+      var strip = document.getElementById('slideStrip');
+      strip.innerHTML = '';
+      for (var i = 0; i < count; i++) {
+        (function(idx) {
+          var thumb = document.createElement('div');
+          thumb.className = 'slide-thumb';
+          thumb.style.cssText += 'padding:2px 5px;font-size:10px;color:#888;';
+          thumb.textContent = idx + 1;
+          thumb.onclick = function() { renderPPTXSlide(idx); selectSlide(thumb); };
+          strip.appendChild(thumb);
+        })(i);
+      }
+      var addBtn = document.createElement('div');
+      addBtn.className = 'slide-add'; addBtn.id = 'slideAddBtn';
+      addBtn.textContent = '+'; addBtn.onclick = addSlide;
+      strip.appendChild(addBtn);
+      if (strip.firstChild) selectSlide(strip.firstChild);
     }
 
-    function mockParsePDF(file) {
-      presentationData.slides = [
-        { backgroundColor: "#ffffff", elements: ["PDF Document Page 1 Content View"] }
-      ];
-      saveToHistory();
-      renderSlidesList();
-      selectSlide(0);
+    async function renderPPTXSlide(slideIndex) {
+      var slideData = window._pptxSlides[slideIndex];
+      if (!slideData || !fc) return;
+      window._pptxCurrentSlide = slideIndex;
+
+      var doc = new DOMParser().parseFromString(slideData.xml, 'application/xml');
+      var images = slideData.images;
+      var SLIDE = window._pptxSlideSize || { w: 12192000, h: 6858000 };
+      var EMU_W = SLIDE.w || 12192000, EMU_H = SLIDE.h || 6858000;
+
+      // Match the canvas aspect ratio to the actual slide so nothing distorts
+      setSlideAspect(EMU_W, EMU_H);
+
+      var cw = fc._baseWidth  || fc.getWidth();
+      var ch = fc._baseHeight || fc.getHeight();
+      var sx = cw / EMU_W;
+      var sy = ch / EMU_H;
+
+      function toX(emu) { return parseFloat(emu || 0) * sx; }
+      function toY(emu) { return parseFloat(emu || 0) * sy; }
+      function toFont(sz) { return Math.max(8, Math.round((parseFloat(sz || 1800) / 100) * 12700 * sx)); }
+
+      // ── Theme-aware colour resolution ──
+      var THEME = window._pptxTheme || {};
+      function schemeToHex(name) {
+        var alias = { tx1:'dk1', bg1:'lt1', tx2:'dk2', bg2:'lt2' };
+        var key = alias[name] || name;
+        if (THEME[key]) return THEME[key];
+        var fb = { dk1:'#000000', lt1:'#ffffff', dk2:'#1a1a2e', lt2:'#f5f5f5', accent1:'#6c63ff', accent2:'#e03030', accent3:'#2d6a4f', accent4:'#fca311', accent5:'#0096c7', accent6:'#f77f00' };
+        return fb[key] || null;
+      }
+      function resolveColorEl(clrEl) {
+        if (!clrEl) return null;
+        if (clrEl.localName === 'srgbClr')  return '#' + (clrEl.getAttribute('val') || '000000');
+        if (clrEl.localName === 'sysClr')   return '#' + (clrEl.getAttribute('lastClr') || '000000');
+        if (clrEl.localName === 'schemeClr') return schemeToHex(clrEl.getAttribute('val') || '');
+        return null;
+      }
+
+      window._bulkLoad = true;
+      fc.clear();
+
+      var bgColor = '#ffffff';
+      var bgEl = byLocal(doc, 'bg')[0];
+      if (bgEl) {
+        var bgFill = byLocal(bgEl, 'solidFill')[0];
+        if (bgFill && bgFill.children[0]) {
+          var bc = resolveColorEl(bgFill.children[0]);
+          if (bc) bgColor = bc;
+        } else {
+          var bgGrad = byLocal(bgEl, 'gradFill')[0];
+          if (bgGrad) {
+            var gstop = byLocal(bgGrad, 'gs')[0];
+            if (gstop && gstop.children[0]) { var gc = resolveColorEl(gstop.children[0]); if (gc) bgColor = gc; }
+          }
+        }
+      }
+      fc.setBackgroundColor(bgColor, fc.renderAll.bind(fc));
+
+      var spTree = byLocal(doc, 'spTree')[0];
+      if (!spTree) { fc.renderAll(); return; }
+
+      var imagePromises = [];
+
+      function readXfrm(spPr) {
+        var res = { x:0, y:0, w:200, h:100, rot:0 };
+        if (!spPr) return res;
+        var xfrm = byLocal(spPr, 'xfrm')[0];
+        if (!xfrm) return res;
+        var off = childLocal(xfrm, 'off');
+        var ext = childLocal(xfrm, 'ext');
+        if (off) { res.x = toX(off.getAttribute('x')); res.y = toY(off.getAttribute('y')); }
+        if (ext) { res.w = toX(ext.getAttribute('cx')); res.h = toY(ext.getAttribute('cy')); }
+        var rotVal = xfrm.getAttribute('rot');
+        if (rotVal) res.rot = parseFloat(rotVal) / 60000;
+        return res;
+      }
+
+      function readFill(el) {
+        if (!el) return null;
+        var sf = byLocal(el, 'solidFill')[0];
+        if (sf && sf.children[0]) { var c = resolveColorEl(sf.children[0]); if (c) return c; }
+        var gf = byLocal(el, 'gradFill')[0];
+        if (gf) { var gs = byLocal(gf, 'gs')[0]; if (gs && gs.children[0]) { var gc = resolveColorEl(gs.children[0]); if (gc) return gc; } }
+        return null;
+      }
+
+      function readXfrmEMU(spPr) {
+        var res = { x:0, y:0, w:0, h:0, rot:0, flipH:false, flipV:false };
+        if (!spPr) return res;
+        var xfrm = byLocal(spPr, 'xfrm')[0];
+        if (!xfrm) return res;
+        var off = childLocal(xfrm, 'off'), ext = childLocal(xfrm, 'ext');
+        if (off) { res.x = parseFloat(off.getAttribute('x') || 0); res.y = parseFloat(off.getAttribute('y') || 0); }
+        if (ext) { res.w = parseFloat(ext.getAttribute('cx') || 0); res.h = parseFloat(ext.getAttribute('cy') || 0); }
+        var rotVal = xfrm.getAttribute('rot'); if (rotVal) res.rot = parseFloat(rotVal) / 60000;
+        if (xfrm.getAttribute('flipH') === '1') res.flipH = true;
+        if (xfrm.getAttribute('flipV') === '1') res.flipV = true;
+        return res;
+      }
+
+      // Apply an (EMU-space) group transform, then convert to canvas px
+      function emuPos(spPr, T) {
+        var r = readXfrmEMU(spPr);
+        var X = r.x * T.sx + T.tx, Y = r.y * T.sy + T.ty;
+        return { x: toX(X), y: toY(Y), w: toX(r.w * T.sx), h: toY(r.h * T.sy), rot: r.rot, flipH: r.flipH, flipV: r.flipV };
+      }
+
+      function makeShape(prst, p, fill) {
+        var common = { left:p.x, top:p.y, fill:fill, angle:p.rot, originX:'left', originY:'top' };
+        var w = Math.abs(p.w), h = Math.abs(p.h);
+        if (prst === 'ellipse' || prst === 'circle') return new fabric.Ellipse(Object.assign(common, { rx:w/2, ry:h/2 }));
+        if (prst === 'triangle')  return new fabric.Triangle(Object.assign(common, { width:w, height:h }));
+        if (prst === 'roundRect')  return new fabric.Rect(Object.assign(common, { width:w, height:h, rx:Math.min(w,h)*0.08, ry:Math.min(w,h)*0.08 }));
+        return new fabric.Rect(Object.assign(common, { width:w, height:h }));
+      }
+
+      function buildText(txBody, p) {
+        var paragraphs = byLocal(txBody, 'p');
+        var lines = [], fontPx = 18, isBold = false, isItalic = false, textFill = null, align = 'left', gotRun = false;
+        for (var pi = 0; pi < paragraphs.length; pi++) {
+          var para = paragraphs[pi];
+          var pPr = childLocal(para, 'pPr');
+          var lvl = 0, bullet = '';
+          if (pPr) {
+            var algn = pPr.getAttribute('algn');
+            if (algn === 'ctr') align = 'center';
+            else if (algn === 'r') align = 'right';
+            else if (algn === 'just') align = 'justify';
+            lvl = parseInt(pPr.getAttribute('lvl') || '0') || 0;
+            if (!childLocal(pPr, 'buNone')) {
+              var buChar = childLocal(pPr, 'buChar');
+              if (buChar) bullet = (buChar.getAttribute('char') || '•') + ' ';
+              else if (childLocal(pPr, 'buAutoNum')) bullet = (pi + 1) + '. ';
+            }
+          }
+          var runs = byLocal(para, 'r');
+          var lineText = '';
+          for (var ri = 0; ri < runs.length; ri++) {
+            var run = runs[ri];
+            var rPr = childLocal(run, 'rPr');
+            var tEl = childLocal(run, 't');
+            if (tEl) lineText += tEl.textContent;
+            if (rPr && !gotRun) {
+              var sz = rPr.getAttribute('sz'); if (sz) fontPx = toFont(sz);
+              if (rPr.getAttribute('b') === '1') isBold = true;
+              if (rPr.getAttribute('i') === '1') isItalic = true;
+              var tc = readFill(rPr); if (tc) textFill = tc;
+              if (tEl && tEl.textContent) gotRun = true;
+            }
+          }
+          var indent = lvl > 0 ? Array(lvl + 1).join('    ') : '';
+          lines.push(indent + bullet + lineText);
+        }
+        var fullText = lines.join('\n').replace(/\s+$/, '');
+        if (!fullText.trim()) return null;
+        return new fabric.Textbox(fullText, {
+          left: p.x, top: p.y,
+          width: Math.max(40, Math.abs(p.w) || 200),
+          fontSize: Math.max(8, fontPx),
+          fontWeight: isBold ? 'bold' : 'normal',
+          fontStyle: isItalic ? 'italic' : 'normal',
+          fill: textFill || '#1a1a2e',
+          textAlign: align,
+          fontFamily: 'Segoe UI, sans-serif',
+          angle: p.rot, editable: true
+        });
+      }
+
+      function renderSp(node, T) {
+        var spPr = childLocal(node, 'spPr');
+        var txBody = childLocal(node, 'txBody');
+        var pos = emuPos(spPr, T);
+        var shapeFill = readFill(spPr);
+        var geom = byLocal(spPr, 'prstGeom')[0];
+        var prst = geom ? geom.getAttribute('prst') : 'rect';
+        var hasText = false;
+        if (txBody) {
+          if (shapeFill && Math.abs(pos.w) > 0 && Math.abs(pos.h) > 0) fc.add(makeShape(prst, pos, shapeFill));
+          var tb = buildText(txBody, pos);
+          if (tb) { fc.add(tb); hasText = true; }
+          else if (shapeFill) hasText = true;
+        }
+        if (!hasText && shapeFill && Math.abs(pos.w) > 0 && Math.abs(pos.h) > 0) {
+          fc.add(makeShape(prst, pos, shapeFill));
+        }
+      }
+
+      function renderPic(node, T) {
+        var picSpPr = childLocal(node, 'spPr');
+        var blipFill = childLocal(node, 'blipFill');
+        var p = emuPos(picSpPr, T);
+        if (!blipFill) return;
+        var blip = byLocal(blipFill, 'blip')[0];
+        if (!blip) return;
+        var rId = attrLocal(blip, 'embed');
+        if (!rId || !images[rId]) return;
+        (function(src, pp) {
+          imagePromises.push(new Promise(function(resolve) {
+            fabric.Image.fromURL(src, function(img) {
+              if (Math.abs(pp.w) > 0 && Math.abs(pp.h) > 0) img.set({ left:pp.x, top:pp.y, scaleX:pp.w/img.width, scaleY:pp.h/img.height, angle:pp.rot });
+              else img.set({ left:pp.x, top:pp.y, angle:pp.rot });
+              if (pp.flipH) img.set('flipX', true);
+              if (pp.flipV) img.set('flipY', true);
+              fc.add(img);
+              resolve();
+            }, { crossOrigin:'anonymous' });
+          }));
+        })(images[rId], p);
+      }
+
+      function renderCxn(node, T) {
+        var spPr = childLocal(node, 'spPr');
+        var p = emuPos(spPr, T);
+        var ln = byLocal(spPr, 'ln')[0];
+        var col = ln ? readFill(ln) : null;
+        var sw = 2;
+        if (ln) { var w = ln.getAttribute('w'); if (w) sw = Math.max(1, toX(parseFloat(w) * T.sx)); }
+        var x1 = p.x, y1 = p.y, x2 = p.x + p.w, y2 = p.y + p.h;
+        if (p.flipH) { var txp = x1; x1 = x2; x2 = txp; }
+        if (p.flipV) { var typ = y1; y1 = y2; y2 = typ; }
+        fc.add(new fabric.Line([x1, y1, x2, y2], { stroke: col || '#555555', strokeWidth: sw }));
+      }
+
+      function renderGraphicFrame(node, T) {
+        var tbl = byLocal(node, 'tbl')[0];
+        if (!tbl) return;
+        var xfrm = byLocal(node, 'xfrm')[0];
+        var base = { x:0, y:0, w:0, h:0 };
+        if (xfrm) {
+          var off = childLocal(xfrm, 'off'), ext = childLocal(xfrm, 'ext');
+          var ex = off ? parseFloat(off.getAttribute('x') || 0) : 0, ey = off ? parseFloat(off.getAttribute('y') || 0) : 0;
+          var ew = ext ? parseFloat(ext.getAttribute('cx') || 0) : 0, eh = ext ? parseFloat(ext.getAttribute('cy') || 0) : 0;
+          base = { x: toX(ex * T.sx + T.tx), y: toY(ey * T.sy + T.ty), w: toX(ew * T.sx), h: toY(eh * T.sy) };
+        }
+        var gridCols = byLocal(tbl, 'gridCol');
+        var colW = [];
+        for (var g = 0; g < gridCols.length; g++) colW.push(parseFloat(gridCols[g].getAttribute('w') || 0));
+        var totalW = colW.reduce(function(a, b){ return a + b; }, 0) || 1;
+        var rows = byLocal(tbl, 'tr');
+        var yCur = base.y;
+        for (var r = 0; r < rows.length; r++) {
+          var rowH = toY(parseFloat(rows[r].getAttribute('h') || 0) * T.sy);
+          var cells = byLocal(rows[r], 'tc');
+          var xCur = base.x;
+          for (var c = 0; c < cells.length; c++) {
+            var cwpx = base.w * (colW[c] || 0) / totalW;
+            var cell = cells[c];
+            var cellFill = readFill(childLocal(cell, 'tcPr'));
+            fc.add(new fabric.Rect({ left:xCur, top:yCur, width:cwpx, height:rowH, fill: cellFill || 'rgba(0,0,0,0)', stroke:'#cccccc', strokeWidth:1 }));
+            var cbody = childLocal(cell, 'txBody');
+            if (cbody) {
+              var ctb = buildText(cbody, { x:xCur + 4, y:yCur + 4, w:cwpx - 8, h:rowH, rot:0 });
+              if (ctb) { ctb.set({ fontSize: Math.min(ctb.fontSize, 16) }); fc.add(ctb); }
+            }
+            xCur += cwpx;
+          }
+          yCur += rowH;
+        }
+      }
+
+      function renderGroup(node, T) {
+        var gPr = childLocal(node, 'grpSpPr');
+        var xfrm = gPr ? byLocal(gPr, 'xfrm')[0] : null;
+        var nT = { sx:T.sx, tx:T.tx, sy:T.sy, ty:T.ty };
+        if (xfrm) {
+          var off = childLocal(xfrm, 'off'), ext = childLocal(xfrm, 'ext');
+          var chOff = childLocal(xfrm, 'chOff'), chExt = childLocal(xfrm, 'chExt');
+          if (off && ext && chOff && chExt) {
+            var ox = parseFloat(off.getAttribute('x') || 0), oy = parseFloat(off.getAttribute('y') || 0);
+            var ecx = parseFloat(ext.getAttribute('cx') || 1), ecy = parseFloat(ext.getAttribute('cy') || 1);
+            var cox = parseFloat(chOff.getAttribute('x') || 0), coy = parseFloat(chOff.getAttribute('y') || 0);
+            var ccx = parseFloat(chExt.getAttribute('cx') || 1) || 1, ccy = parseFloat(chExt.getAttribute('cy') || 1) || 1;
+            var lsx = ecx / ccx, lsy = ecy / ccy;
+            var ltx = ox - cox * lsx, lty = oy - coy * lsy;
+            nT = { sx: T.sx * lsx, tx: T.sx * ltx + T.tx, sy: T.sy * lsy, ty: T.sy * lty + T.ty };
+          }
+        }
+        walkTree(node, nT);
+      }
+
+      function walkTree(parent, T) {
+        for (var ci = 0; ci < parent.children.length; ci++) {
+          var node = parent.children[ci];
+          switch (node.localName) {
+            case 'sp':           renderSp(node, T); break;
+            case 'pic':          renderPic(node, T); break;
+            case 'cxnSp':        renderCxn(node, T); break;
+            case 'graphicFrame': renderGraphicFrame(node, T); break;
+            case 'grpSp':        renderGroup(node, T); break;
+          }
+        }
+      }
+
+      walkTree(spTree, { sx:1, tx:0, sy:1, ty:0 });
+
+      await Promise.all(imagePromises);
+      fc.renderAll();
+      window._bulkLoad = false;
+      try { if (typeof saveState === 'function') saveState(); } catch(e) { console.warn('saveState skipped', e); }
+      document.getElementById('slideCounter').textContent = (slideIndex + 1) + ' / ' + window._pptxSlides.length;
     }
 
-    function mockParseImage(file) {
-      presentationData.slides = [
-        { backgroundColor: "#000000", elements: ["Image Background Matrix Layer: " + file.name] }
-      ];
-      saveToHistory();
-      renderSlidesList();
-      selectSlide(0);
+    /* ── ZOOM ── */
+    var BASE_W = 0, BASE_H = 0;
+    function doZoom(val) {
+      if (!fc) return;
+      if (!BASE_W) { BASE_W = fc.getWidth(); BASE_H = fc.getHeight(); }
+      var z = val / 100;
+      fc.setZoom(z);
+      fc.setWidth(BASE_W * z);
+      fc.setHeight(BASE_H * z);
+      document.getElementById('zoomLabel').textContent = val + '%';
     }
-
-    function renderSlidesList() {
-      const listContainer = document.getElementById('slides-list');
-      listContainer.innerHTML = '';
-      presentationData.slides.forEach((slide, idx) => {
-        const thumb = document.createElement('div');
-        thumb.className = `slide-thumb ${idx === currentSlideIndex ? 'active' : ''}`;
-        thumb.innerHTML = `Slide ${idx + 1} <div class="slide-num">${idx + 1}</div>`;
-        thumb.onclick = () => selectSlide(idx);
-        listContainer.appendChild(thumb);
-      });
-    }
-
-    function selectSlide(index) {
-      currentSlideIndex = index;
-      renderSlidesList();
-      const canvas = document.getElementById('canvas-view');
-      const slide = presentationData.slides[index];
-      canvas.style.backgroundColor = slide.backgroundColor;
-      
-      // Render text mock components inside the template layout
-      canvas.innerHTML = '';
-      slide.elements.forEach(el => {
-        const div = document.createElement('div');
-        div.style.padding = '20px';
-        div.style.fontSize = '24px';
-        div.style.fontWeight = 'bold';
-        div.innerText = el;
-        canvas.appendChild(div);
-      });
-    }
-
-    function changeBgColor(color) {
-      presentationData.slides[currentSlideIndex].backgroundColor = color;
-      selectSlide(currentSlideIndex);
-      saveToHistory();
-    }
-
-    function updateProjectName(val) {
-      document.getElementById('document-title').innerText = val || "Untitled Presentation";
-      presentationData.title = val;
-    }
-
-    function savePresentation() {
-      alert("Changes Saved Successfully internally within system assets.");
-    }
-
-    // Run layout render initializer step on start
-    saveToHistory();
-    selectSlide(0);
   </script>
+
 </body>
 </html>

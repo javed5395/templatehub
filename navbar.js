@@ -11,7 +11,11 @@
     '.nb-logo-studios{transition:transform 0.22s ease,filter 0.22s ease,opacity 0.22s ease;display:inline-flex;align-items:center;}' +
     '.nb-logo-studios:hover{transform:translateY(-2px);filter:drop-shadow(0 4px 10px rgba(34,197,94,0.45));opacity:0.92;}' +
     '.nb-logo-studios:active{transform:translateY(0);}' +
-    '.nb-logo-sep{color:rgba(180,180,200,0.35);font-size:1.15em;font-weight:200;margin:0 10px;user-select:none;pointer-events:none;line-height:1;}';
+    '.nb-logo-sep{color:rgba(180,180,200,0.35);font-size:1.15em;font-weight:200;margin:0 10px;user-select:none;pointer-events:none;line-height:1;}' +
+    '.nb-logo-studios span{color:#22c55e!important;}' +
+    'nav#sharedNav .nb-logo-studios span{color:#22c55e!important;}' +
+    'a.nb-logo-studios span,a.nb-logo-studios span:visited,a.nb-logo-studios span:hover{color:#22c55e!important;}' +
+    '.ld-studios-word{color:#22c55e!important;}';
   document.head.insertBefore(studioStyle, document.head.firstChild);
 
   // ── LOAD ALL PANEL FONTS IN ONE REQUEST ──
@@ -138,7 +142,7 @@
   // ── INJECT NAVBAR HTML ──
   var navHTML = `
 <nav id="sharedNav">
-  <div style="display:inline-flex;align-items:center;gap:0;"><a href="main.html" class="nb-logo notranslate" translate="no">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="studios.html" class="nb-logo nb-logo-studios notranslate" translate="no" title="LazyDog Studios">LazyDog<span style="color:#22c55e!important;">Studios</span></a></div>
+  <div style="display:inline-flex;align-items:center;gap:0;"><a href="main.html" class="nb-logo notranslate" translate="no">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="lazydog studio.html" class="nb-logo-studios notranslate" translate="no" title="LazyDog Studios" style="font-family:inherit;font-size:inherit;font-weight:800;color:#0d0d0d;text-decoration:none;letter-spacing:-0.3px;cursor:pointer;">LazyDog<span style="color:#22c55e;font-weight:800;">Studios</span></a></div>
   <button class="nb-hamburger" id="nbHamburgerBtn" onclick="nbToggleMobileMenu()" title="Menu" aria-label="Menu">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
@@ -193,6 +197,39 @@
 </div>`;
 
   document.body.insertAdjacentHTML('afterbegin', navHTML);
+
+  // ── FORCE Studios span green via JS — beats any CSS including shared-styles.css ──
+  (function forceStudiosGreen() {
+    function applyGreen() {
+      var el = document.querySelector('.nb-logo-studios span, .ld-studios-word');
+      if (el) { el.style.setProperty('color', '#22c55e', 'important'); }
+    }
+    applyGreen();
+    document.addEventListener('DOMContentLoaded', applyGreen);
+    window.addEventListener('load', applyGreen);
+  })();
+
+  // ── MATCH STUDIOS SIZE/FONT TO TEMPLATES LOGO ──
+  (function matchStudiosToTemplates() {
+    function sync() {
+      var src = document.querySelector('.nb-logo');
+      var dst = document.querySelector('.nb-logo-studios');
+      if (!src || !dst) return;
+      var cs = window.getComputedStyle(src);
+      ['font-family','font-size','font-weight','font-style','letter-spacing','line-height','text-transform'].forEach(function(p){
+        dst.style.setProperty(p, cs.getPropertyValue(p), 'important');
+      });
+      var span = dst.querySelector('span');
+      if (span) {
+        span.style.setProperty('color', '#22c55e', 'important');
+        span.style.setProperty('font-weight', cs.getPropertyValue('font-weight'), 'important');
+      }
+    }
+    sync();
+    document.addEventListener('DOMContentLoaded', sync);
+    window.addEventListener('load', sync);
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(sync); }
+  })();
 
   // ── PER-PAGE BUTTON VISIBILITY (controlled centrally, from this one map) ──
   // HOW IT WORKS: add a button to the navbar above (so it appears on every page), then list
@@ -952,43 +989,62 @@
   };
 
 })();
-  // ── CUSTOM CURSOR ──
+  // ── CUSTOM CURSOR (ported from lazydog studio.html — black "ink" cursor) ──
+  // Same action as the studio page: black dot + ring, smooth follow, hover
+  // expansion, and data-cursor-label support. Studio CSS vars are hardcoded here
+  // (--ink #16130F, --oxblood #7A2E1F, --bone #F2EEE5) so it works on every page.
   (function initCursor() {
     if (!window.matchMedia('(pointer:fine)').matches) return;
+    // If a page already ships its own cursor (e.g. the studio page), don't double up.
+    if (document.querySelector('.cursor-dot, .ld-cursor-dot')) return;
 
+    var EASE = 'cubic-bezier(0.65,0,0.35,1)';
+    var EASE_OUT = 'cubic-bezier(0.16,1,0.3,1)';
     var style = document.createElement('style');
     style.textContent = [
-      'body { cursor: none !important; }',
+      'body, body * { cursor: none !important; }',
       '.ld-cursor-dot, .ld-cursor-ring {',
       '  position: fixed; top: 0; left: 0;',
       '  pointer-events: none; z-index: 999999;',
       '  border-radius: 50%;',
       '  transform: translate(-50%, -50%);',
       '}',
-      '.ld-cursor-dot { width: 5px; height: 5px; background: #F2EEE5; }',
+      '.ld-cursor-dot { width: 6px; height: 6px; background: #16130F;',
+      '  transition: width .3s ' + EASE + ', height .3s ' + EASE + ', opacity .3s; }',
       '.ld-cursor-ring {',
       '  width: 32px; height: 32px;',
-      '  border: 1px solid rgba(242,238,229,0.4);',
-      '  transition: width .5s, height .5s, border-color .3s;',
+      '  border: 1px solid #16130F;',
+      '  transition: width .5s ' + EASE_OUT + ', height .5s ' + EASE_OUT + ', border-color .3s, background .3s, border-width .3s;',
       '}',
-      '.ld-cursor-ring.is-hover { width: 60px; height: 60px; border-color: #B8553A; }'
+      '.ld-cursor-ring.is-hover { width: 56px; height: 56px; border-width: 1.5px; }',
+      '.ld-cursor-ring.is-label { width: 96px; height: 96px; background: #7A2E1F; border-color: #7A2E1F; }',
+      '.ld-cursor-label {',
+      '  position: fixed; top: 0; left: 0;',
+      '  pointer-events: none; z-index: 999999;',
+      '  transform: translate(-50%, -50%);',
+      "  font-family: 'JetBrains Mono', monospace;",
+      '  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;',
+      '  color: #F2EEE5; opacity: 0; transition: opacity .3s;',
+      '  text-align: center; white-space: nowrap; font-weight: 500;',
+      '}',
+      '.ld-cursor-label.is-visible { opacity: 1; }'
     ].join('');
     document.head.appendChild(style);
 
-    var dot = document.createElement('div');
-    dot.className = 'ld-cursor-dot';
-    var ring = document.createElement('div');
-    ring.className = 'ld-cursor-ring';
+    var dot = document.createElement('div');   dot.className   = 'ld-cursor-dot';
+    var ring = document.createElement('div');  ring.className  = 'ld-cursor-ring';
+    var label = document.createElement('div'); label.className = 'ld-cursor-label';
     document.body.appendChild(dot);
     document.body.appendChild(ring);
+    document.body.appendChild(label);
 
     var mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
     var ringX = mouseX, ringY = mouseY;
 
     document.addEventListener('mousemove', function(e) {
       mouseX = e.clientX; mouseY = e.clientY;
-      dot.style.left = mouseX + 'px';
-      dot.style.top  = mouseY + 'px';
+      dot.style.left = mouseX + 'px';  dot.style.top  = mouseY + 'px';
+      label.style.left = mouseX + 'px'; label.style.top = mouseY + 'px';
     });
 
     function animateRing() {
@@ -1001,10 +1057,19 @@
     animateRing();
 
     document.addEventListener('mouseover', function(e) {
-      if (e.target.closest('a,button,[onclick],input,select,textarea')) {
-        ring.classList.add('is-hover');
+      var el = e.target.closest('a,button,[data-cursor-label],[onclick],input,select,textarea');
+      if (el) {
+        var labelText = el.getAttribute('data-cursor-label');
+        if (labelText) {
+          ring.classList.add('is-label');
+          label.textContent = labelText;
+          label.classList.add('is-visible');
+        } else {
+          ring.classList.add('is-hover');
+        }
       } else {
-        ring.classList.remove('is-hover');
+        ring.classList.remove('is-hover', 'is-label');
+        label.classList.remove('is-visible');
       }
     });
   })();
