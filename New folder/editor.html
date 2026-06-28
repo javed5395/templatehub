@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bridge Editor</title>
+
+  <!-- libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- engine (do not edit for UI work) -->
+  <script src="bridge-core.js"></script>   <!-- THE BRAIN: parsing / colour / conversion / edit logic -->
+  <script src="renderer.js"></script>      <!-- THE RENDERER: draws a slide onto the canvas -->
+
+  <!-- ============================================================
+       DESIGN LIVES HERE. Style the layout & buttons freely below.
+       The engine and renderer are in their own JS files and are
+       never touched by changes in this file.
+       ============================================================ -->
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',sans-serif; background:#f0f1f5; height:100vh; display:flex; flex-direction:column; }
+
+    /* ── top bar ── */
+    #bar { height:54px; background:#fff; border-bottom:1px solid #e0e0e8; display:flex; align-items:center; gap:12px; padding:0 18px; flex-shrink:0; }
+    #bar button { font:inherit; font-size:13px; padding:8px 14px; border-radius:8px; border:1px solid #d0d0dc; background:#fff; cursor:pointer; }
+    #bar button.primary { background:#6c63ff; color:#fff; border-color:#6c63ff; font-weight:600; }
+    #bar button.save { background:#10b981; color:#fff; border-color:#10b981; font-weight:600; }
+    #bar button:disabled { opacity:.4; cursor:default; }
+    #counter { font-size:13px; color:#555; min-width:64px; text-align:center; }
+    #status { font-size:12px; color:#888; margin-left:auto; }
+
+    /* ── stage / canvas ── */
+    #stage { flex:1; display:flex; align-items:center; justify-content:center; overflow:auto; padding:24px; }
+    #wrap { box-shadow:0 4px 30px rgba(0,0,0,.16); background:#fff; }
+    canvas { display:block; }
+  </style>
+</head>
+<body>
+
+  <!-- ─────────────── LAYOUT (design this) ─────────────── -->
+  <div id="bar">
+    <button class="primary" onclick="document.getElementById('file').click()">⬆ Upload PPTX</button>
+    <button id="prev" onclick="go(-1)" disabled>‹ Prev</button>
+    <span id="counter">— / —</span>
+    <button id="next" onclick="go(1)" disabled>Next ›</button>
+    <button id="save" class="save" onclick="saveDeck()" disabled>💾 Save PPTX</button>
+    <span id="status">No file loaded</span>
+    <input type="file" id="file" accept=".pptx" style="display:none" onchange="onUpload(this)"/>
+  </div>
+
+  <div id="stage">
+    <div id="wrap"><canvas id="c"></canvas></div>
+  </div>
+
+  <!-- ─────────────── THIN WIRING (state + glue only) ─────────────── -->
+  <script>
+  /* State shared with renderer.js (globals). The heavy logic lives in
+     bridge-core.js (brain) and renderer.js (drawing). This file only
+     wires the buttons to those. */
+  var BASE_W = 960;
+  var fc = new fabric.Canvas('c', { width: BASE_W, height: Math.round(BASE_W*9/16), backgroundColor:'#fff' });
+  var slides = [];                 // [{doc:Document, images:{rId:{url,ext}}}]
+  var slideSize = { w:12192000, h:6858000 };
+  var zipRef = null;               // original JSZip (kept for re-zip on save)
+  var cur = 0;
+  // `theme` and `A_NS` come from bridge-core.js; `render()` comes from renderer.js
+
+  function setStatus(m){ document.getElementById('status').textContent = m; }
+
+  /* Upload → parse deck into kept DOMs, then render slide 1 */
+  async function onUpload(input){
+    if(!input.files||!input.files[0]) return;
+    var file=input.files[0]; input.value='';
+    setStatus('Parsing…');
+    try{
+      var zip=await JSZip.loadAsync(file);
+      zipRef=zip;
+
+      var pres=zip.file('ppt/presentation.xml');
+      if(pres){
+        var pDoc=new DOMParser().parseFromString(await pres.async('string'),'application/xml');
+        var sz=byLocal(pDoc,'sldSz')[0];
+        if(sz) slideSize={ w:parseInt(sz.getAttribute('cx'))||12192000, h:parseInt(sz.getAttribute('cy'))||6858000 };
+      }
+
+      theme={};
+      var th=zip.file('ppt/theme/theme1.xml');
+      if(th){
+        var tDoc=new DOMParser().parseFromString(await th.async('string'),'application/xml');
+        var cs=byLocal(tDoc,'clrScheme')[0];
+        if(cs) for(var i=0;i<cs.children.length;i++){
+          var node=cs.children[i], srgb=byLocal(node,'srgbClr')[0], sys=byLocal(node,'sysClr')[0];
+          var hex=srgb?srgb.getAttribute('val'):sys?(sys.getAttribute('lastClr')||'000000'):null;
+          if(hex) theme[node.localName]='#'+hex;
+        }
+      }
+
+      slides=[];
+      for(var n=1;n<=500;n++){
+        var sf=zip.file('ppt/slides/slide'+n+'.xml');
+        if(!sf) break;
+        var doc=new DOMParser().parseFromString(await sf.async('string'),'application/xml');
+        var imgs={};
+        var relsF=zip.file('ppt/slides/_rels/slide'+n+'.xml.rels');
+        if(relsF){
+          var rDoc=new DOMParser().parseFromString(await relsF.async('string'),'application/xml');
+          var rels=rDoc.getElementsByTagName('Relationship');
+          for(var r=0;r<rels.length;r++){
+            if((rels[r].getAttribute('Type')||'').indexOf('image')<0) continue;
+            var tgt=rels[r].getAttribute('Target')||'';
+            tgt= tgt.indexOf('../')===0 ? 'ppt/'+tgt.slice(3) : 'ppt/slides/'+tgt;
+            var f=zip.file(tgt);
+            if(f){
+              var ext=tgt.split('.').pop().toLowerCase();
+              var mime= ext==='svg'?'image/svg+xml': (ext==='jpg'||ext==='jpeg')?'image/jpeg': ext==='gif'?'image/gif':'image/png';
+              var id=rels[r].getAttribute('Id');
+              imgs[id]={ url:'data:'+mime+';base64,'+await f.async('base64'), ext:ext };
+              if(ext==='svg'){ try { imgs[id].text=await f.async('string'); } catch(e){} }
+            }
+          }
+        }
+        slides.push({ doc:doc, images:imgs });
+      }
+      if(!slides.length){ setStatus('No slides found'); return; }
+
+      fc.setWidth(BASE_W);
+      fc.setHeight(Math.round(BASE_W*(slideSize.h/slideSize.w)));
+
+      cur=0; await render(cur);            // render() from renderer.js
+      setStatus(slides.length+' slide(s) loaded — edit, then Save PPTX');
+      document.getElementById('save').disabled=false;
+      updateNav();
+    }catch(e){ console.error(e); setStatus('Error: '+e.message); alert('PPTX error: '+e.message); }
+  }
+
+  /* Edit write-back (uses brain primitives setXfrm / setText) */
+  function persist(o){
+    if(!o || !o._el) return;
+    var spPr=childLocal(o._el,'spPr');
+    var sx=fc.getWidth()/slideSize.w, sy=fc.getHeight()/slideSize.h;
+    var emuX=o.left/sx, emuY=o.top/sy;
+    var emuW=o.getScaledWidth()/sx, emuH=o.getScaledHeight()/sy;
+    if(spPr) setXfrm(spPr, emuX, emuY, emuW, emuH, o.angle||0);
+    if(o._kind==='text') setText(o._el, o.text||'', o.textAlign||'left');
+  }
+  fc.on('object:modified', function(e){ persist(e.target); });
+  fc.on('text:editing:exited', function(e){ persist(e.target); });
+
+  /* Save → edited .pptx */
+  async function saveDeck(){
+    if(!zipRef){ alert('Upload a deck first'); return; }
+    setStatus('Saving…');
+    fc.getObjects().forEach(persist);
+    var decl='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n';
+    for(var i=0;i<slides.length;i++){
+      var xml=new XMLSerializer().serializeToString(slides[i].doc);
+      if(xml.indexOf('<?xml')!==0) xml=decl+xml;
+      zipRef.file('ppt/slides/slide'+(i+1)+'.xml', xml);
+    }
+    var blob=await zipRef.generateAsync({ type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='edited.pptx';
+    document.body.appendChild(a); a.click(); a.remove();
+    setStatus('Saved ✓ — downloaded edited.pptx');
+  }
+
+  /* Slide navigation */
+  function go(d){ var n=cur+d; if(n<0||n>=slides.length) return; cur=n; render(cur); updateNav(); }
+  function updateNav(){
+    document.getElementById('counter').textContent=(cur+1)+' / '+slides.length;
+    document.getElementById('prev').disabled=cur<=0;
+    document.getElementById('next').disabled=cur>=slides.length-1;
+  }
+  </script>
+</body>
+</html>
