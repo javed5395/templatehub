@@ -598,11 +598,11 @@ body{
       <!-- Destination 1: Marketplace -->
       <article class="destination" data-dest="marketplace" data-cursor-label="Explore">
         <div class="dest-orb"><i class="fa-solid fa-store"></i></div>
-        <div class="dest-num">01 · Marketplace</div>
-        <h2 class="dest-title">The <em>Marketplace</em></h2>
+        <div class="dest-num">01 · Store</div>
+        <h2 class="dest-title">The <em>Store</em></h2>
         <p class="dest-desc">Browse premium WebKits, Media Kits, Pitch Decks, UI Kits, Resume Templates, Brand Assets, and creative resources designed for professionals, agencies, founders, and modern businesses.</p>
         <a class="dest-cta">
-          <span>Explore Marketplace</span>
+          <span>Explore Store</span>
           <div class="dest-cta-arrow"></div>
         </a>
         <div class="dest-tag">128 Artifacts</div>
@@ -633,7 +633,7 @@ body{
 <div class="transition" id="transition">
   <div class="transition__veil"></div>
   <div class="transition__sweep"></div>
-  <div class="transition__text" id="transitionText">Entering the Marketplace</div>
+  <div class="transition__text" id="transitionText">Entering the Store</div>
 </div>
 
 <script>
@@ -799,7 +799,7 @@ function triggerTransition(dest){
   
   // Set transition text
   if(dest==='marketplace'){
-    transitionText.textContent='Entering the Marketplace';
+    transitionText.textContent='Entering the Store';
   }else{
     transitionText.textContent='Entering LazyDog Studios';
   }
@@ -853,7 +853,7 @@ function showLanding(dest){
     font-size:clamp(48px,6vw,84px);font-weight:400;
     color:var(--bone);letter-spacing:-0.02em;text-align:center;
   `;
-  title.innerHTML=dest==='marketplace'?'The <em style="font-style:italic;color:var(--oxblood-3)">Marketplace</em>':'LazyDog <em style="font-style:italic;color:var(--oxblood-3)">Studios</em>';
+  title.innerHTML=dest==='marketplace'?'The <em style="font-style:italic;color:var(--oxblood-3)">Store</em>':'LazyDog <em style="font-style:italic;color:var(--oxblood-3)">Studios</em>';
   
   const note=document.createElement('p');
   note.style.cssText=`
