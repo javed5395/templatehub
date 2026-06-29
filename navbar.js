@@ -142,7 +142,7 @@
   // ── INJECT NAVBAR HTML ──
   var navHTML = `
 <nav id="sharedNav">
-  <div style="display:inline-flex;align-items:center;gap:0;"><a href="main.html" class="nb-logo notranslate" translate="no">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="lazydog studio.html" class="nb-logo-studios notranslate" translate="no" title="LazyDog Studios" style="font-family:inherit;font-size:inherit;font-weight:800;color:#0d0d0d;text-decoration:none;letter-spacing:-0.3px;cursor:pointer;">LazyDog<span style="color:#22c55e;font-weight:800;">Studios</span></a></div>
+  <div style="display:inline-flex;align-items:center;gap:0;"><a href="main.html" class="nb-logo notranslate" translate="no">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="lazydog_studio.html" class="nb-logo-studios notranslate" translate="no" title="LazyDog Studios" style="font-family:inherit;font-size:inherit;font-weight:800;color:#0d0d0d;text-decoration:none;letter-spacing:-0.3px;cursor:pointer;">LazyDog<span style="color:#22c55e;font-weight:800;">Studios</span></a></div>
   <button class="nb-hamburger" id="nbHamburgerBtn" onclick="nbToggleMobileMenu()" title="Menu" aria-label="Menu">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
