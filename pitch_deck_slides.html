@@ -517,19 +517,9 @@ document.addEventListener('click',function(e){
         <span class="etsy-stars">★★★★★</span>
       </div>
 
-      <!-- Format badges -->
-      <div class="format-badges">
-        <span class="format-badge">PPTX</span>
-        <span class="format-badge">PDF</span>
-        <span class="format-badge">PNG</span>
-        <span class="format-badge">JPG</span>
-        <span class="format-badge">SVG</span>
-        <span class="format-badge">⚡ Instant Download</span>
-      </div>
-
-      <!-- Buttons -->
-      <button class="etsy-btn-buy" onclick="buyNow()">🛒 Buy it now</button>
-      <button class="etsy-btn-filled" onclick="openModal(false)">⬇️ Free Preview</button>
+      <!-- Buttons (matched to media-kit layout: modern pills, logical actions) -->
+      <button class="etsy-btn-outline" onclick="buyItNow()">Buy it now</button>
+      <button class="etsy-btn-filled" onclick="addToBasket()">Add to basket</button>
       <button class="etsy-collection-link"><span class="heart">♥</span> Add to collection</button>
 
       <!-- Item details -->
@@ -614,7 +604,12 @@ buildCatPanel();
     var db = getFirestore(app);
     var docSnap = await getDoc(doc(db, 'templates', firebaseId));
     if (!docSnap.exists()) { window.location = 'pitch_deck_folder_section.html'; return; }
-    var t = (docSnap.data().template) || {};
+    var docData = docSnap.data() || {};
+    // Capture identifiers the finance folder (cart / ownership) needs. This is
+    // still the page's own product read — presentation stays fully independent.
+    window._ldtProductId = firebaseId;
+    window._ldtSellerId = docData.sellerId || (docData.template && docData.template.sellerId) || '';
+    var t = docData.template || {};
     // ── category / industry label mappings ──
     var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume:'Resume', report:'Report' };
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
@@ -787,17 +782,98 @@ function browseAllSlides() {
 }
 
 var _dlIsPdf = false;
-function openModal(isPdf){
-  var d = currentDeckData;
-  var isFree = !d || !d.price || d.price === 'free' || d.price === '0' || parseFloat(d.price) === 0;
-  if (!isFree) {
-    alert('\u{1F4B3} Payment coming soon! This is a paid template. Online checkout will be available shortly.');
-    return;
-  }
-  _dlIsPdf = isPdf;
-  document.getElementById('modalOverlay').style.display = 'flex';
+
+// ── Buy & Download are now controlled by the finance folder (Commerce) ──────
+// The buttons on this page stay exactly where they are; their behaviour is
+// delegated to the cart / ownership library. Presentation is untouched.
+
+// Build the current product in the shape the cart/ownership library expects.
+function ldtCurrentProduct(){
+  var d = currentDeckData || {};
+  var pid = window._ldtProductId || (new URLSearchParams(location.search)).get('firebase') || '';
+  return {
+    productId: String(pid), id: String(pid),
+    title: String(d.name || 'Template'),
+    price: d.price,
+    sellerId: String(window._ldtSellerId || '')
+  };
 }
-function closeModal(){ document.getElementById('modalOverlay').style.display='none'; }
+
+// Lightweight on-page feedback.
+function ldtToast(msg){
+  try {
+    var t = document.getElementById('ldtToast');
+    if (!t){
+      t = document.createElement('div'); t.id = 'ldtToast';
+      t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#16130F;color:#F2EEE5;padding:12px 20px;border-radius:10px;font-family:Poppins,sans-serif;font-size:14px;z-index:100000;box-shadow:0 6px 24px rgba(0,0,0,.3);opacity:0;transition:opacity .25s;max-width:90vw;text-align:center;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg; t.style.opacity = '1';
+    clearTimeout(window._ldtToastT); window._ldtToastT = setTimeout(function(){ t.style.opacity = '0'; }, 2600);
+  } catch(e){}
+}
+
+// Add the current product to the finance folder's cart (Commerce.cart).
+function ldtAddToCart(){
+  var p = ldtCurrentProduct();
+  if (!(window.Commerce && window.Commerce.cart && typeof window.Commerce.cart.addItem === 'function')) {
+    ldtToast('Cart is still loading — please try again in a moment.'); return false;
+  }
+  if (!p.sellerId) { ldtToast('This item is missing seller info and can’t be added yet.'); return false; }
+  var ok = window.Commerce.cart.addItem(p);
+  ldtToast(ok ? 'Added to cart' : 'Already in your cart');
+  return ok;
+}
+
+// ADD TO BASKET -> add to cart. BUY IT NOW -> direct single-item purchase (not
+// the cart; the basket button handles the cart). Same behaviour as media kit.
+window.addToBasket = function(){ ldtAddToCart(); };
+window.buyItNow = function(){
+  var p = ldtCurrentProduct();
+  if (window.Commerce && typeof window.Commerce.checkoutCart === 'function') {
+    Promise.resolve(window.Commerce.checkoutCart(
+      [{ productId: p.productId, title: p.title, price: p.price, sellerId: p.sellerId, quantity: 1 }],
+      { onLoginRequired: function(){ if (window.openAuth) openAuth('signin'); },
+        onConfigMissing: function(){ ldtToast('Buy-now checkout is coming soon — payments are being connected.'); },
+        onError: function(){ ldtToast('Buy-now checkout is coming soon.'); } }
+    )).catch(function(){ ldtToast('Buy-now checkout is coming soon.'); });
+  } else {
+    ldtToast('Buy-now checkout is coming soon — payments are being connected.');
+  }
+};
+window.buyNow = function(){ window.addToBasket(); };
+
+// DOWNLOAD -> ownership gate lives in Commerce. If the buyer owns this item,
+// deliver it; otherwise route to the cart. The ownership check activates once
+// the purchase library + real purchases exist; until then it safely routes to
+// the cart, so no one gets a paid file for free.
+function ldtRequestDownload(){
+  var p = ldtCurrentProduct();
+  // The Download button is LOCKED until the buyer has PAID for this item.
+  // It never adds to cart (that is the Buy button's job) and never hands over a
+  // paid file for free. It only delivers once Commerce confirms ownership.
+  var locked = function(){ ldtToast('Locked — buy this template first. Download unlocks after payment.'); };
+  if (window.Commerce && window.Commerce.library && typeof window.Commerce.library.ownsProduct === 'function'
+      && window.Commerce.auth && typeof window.Commerce.auth.getCurrentUser === 'function') {
+    var user = window.Commerce.auth.getCurrentUser();
+    if (user && user.uid) {
+      window.Commerce.library.ownsProduct(user.uid, p.productId).then(function(owns){
+        if (owns) { handleDownload(); } else { locked(); }
+      }).catch(function(){ locked(); });
+      return;
+    }
+  }
+  // Ownership can't be confirmed (not signed in / library not loaded) -> stay locked.
+  locked();
+}
+
+// The download buttons still call openModal(); it now delegates to the gate
+// instead of running the page's old free/paid decision.
+function openModal(isPdf){
+  _dlIsPdf = isPdf;
+  ldtRequestDownload();
+}
+function closeModal(){ var o=document.getElementById('modalOverlay'); if(o) o.style.display='none'; }
 function handleDownload(){
   closeModal();
   var d = currentDeckData;
@@ -961,6 +1037,7 @@ function toggleLearnMore(btn){
 <script src="watermark.js"></script>
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
+<script defer src="commerce-loader.js"></script>
 <script src="footerbar.js"></script>
 <nav>
   <a href="pitch_deck_folder_section.html">Back to Pitch Decks</a>

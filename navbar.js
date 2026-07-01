@@ -170,6 +170,7 @@
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
     <button class="nb-theme-nb" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode"><svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg></button>
+    <button class="nb-theme-nb" id="nbCartBtn" onclick="nbOpenCart()" title="Cart" style="position:relative;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span id="nbCartCount" style="position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;padding:0 4px;background:#e5533c;color:#fff;font-size:10px;font-weight:700;line-height:16px;border-radius:9px;text-align:center;display:none;font-family:Poppins,sans-serif;box-sizing:border-box;">0</span></button>
     <div class="nb-user-menu" id="nbUserMenu" style="display:none;">
       <div class="nb-user-avatar" id="nbUserAvatar" onclick="toggleNbUserDropdown()">J</div>
       <span class="nb-user-name" id="nbUserName"></span>
@@ -197,6 +198,113 @@
 </div>`;
 
   document.body.insertAdjacentHTML('afterbegin', navHTML);
+
+  // ── Cart wiring ───────────────────────────────────────────────────────────
+  // The navbar OWNS the basket icon (drawn above). The basket's CONTENTS and
+  // count are owned by the finance folder (Commerce.cart, from cart_core.js).
+  // navbar pulls that brain in once, site-wide, then just mirrors its count.
+  (function nbInitCart(){
+    // NOTE: navbar only DRAWS the cart icon and mirrors the count. The cart +
+    // full commerce/financial engine + FastSpring are loaded by the dedicated,
+    // isolated commerce-loader.js (included on every page), NOT here — finance
+    // must not depend on the navbar. This function is now pure UI.
+
+    // Mirror the basket count onto the badge.
+    window.nbUpdateCartBadge = function(){
+      try {
+        var el = document.getElementById('nbCartCount');
+        if (!el) return;
+        var n = 0;
+        if (window.Commerce && window.Commerce.cart && typeof window.Commerce.cart.getItems === 'function') {
+          var items = window.Commerce.cart.getItems() || [];
+          n = items.reduce(function(sum, it){ return sum + (it.quantity || 1); }, 0);
+        }
+        if (n > 0) { el.textContent = n > 99 ? '99+' : String(n); el.style.display = 'block'; }
+        else { el.style.display = 'none'; }
+      } catch (e) {}
+    };
+
+    // Keep the badge live and, if the cart panel is open, re-render it.
+    ['cart:updated','cart:item-added','cart:item-removed','cart:cleared'].forEach(function(ev){
+      window.addEventListener(ev, function(){ nbUpdateCartBadge(); if (window._nbCartOpen) nbRenderCart(); });
+    });
+
+    // ── Cart panel ────────────────────────────────────────────────────────────
+    // navbar DRAWS the panel; the basket contents and the remove/checkout
+    // ACTIONS are delegated to Commerce.cart (the finance folder).
+    function nbEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+    if (!document.getElementById('nbCartPanel')) {
+      var panel = document.createElement('div');
+      panel.id = 'nbCartPanel';
+      panel.style.cssText = 'position:fixed;top:66px;right:14px;width:340px;max-width:92vw;max-height:72vh;overflow:auto;background:#16130F;color:#F2EEE5;border:1px solid rgba(212,175,55,0.35);border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.5);z-index:100001;display:none;font-family:Poppins,sans-serif;';
+      panel.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.08);"><strong style="font-size:15px;">Your Cart</strong><button onclick="nbCloseCart()" title="Close" style="background:none;border:none;color:#F2EEE5;font-size:18px;cursor:pointer;line-height:1;">&times;</button></div><div id="nbCartBody" style="padding:6px 12px;"></div><div id="nbCartFoot" style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08);"></div>';
+      document.body.appendChild(panel);
+    }
+
+    window.nbRenderCart = function(){
+      var body = document.getElementById('nbCartBody');
+      var foot = document.getElementById('nbCartFoot');
+      if (!body || !foot) return;
+      var cart = (window.Commerce && window.Commerce.cart) ? window.Commerce.cart : null;
+      var items = (cart && cart.getItems) ? (cart.getItems() || []) : [];
+      if (!items.length) {
+        body.innerHTML = '<div style="padding:26px 8px;text-align:center;color:#b8b0a2;font-size:14px;">Your cart is empty.</div>';
+        foot.innerHTML = '';
+        return;
+      }
+      body.innerHTML = items.map(function(it){
+        var price = (it.price === 'free' || it.price === 0 || it.price == null) ? 'Free' : ('USD ' + Number(it.price).toFixed(2));
+        var q = (it.quantity > 1) ? (' &times;' + it.quantity) : '';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">'
+          + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + nbEsc(it.title) + q + '</div>'
+          + '<div style="font-size:12px;color:#d4af37;">' + price + '</div></div>'
+          + '<button title="Remove" onclick="nbCartRemove(&quot;' + nbEsc(it.productId) + '&quot;)" style="background:none;border:1px solid rgba(229,83,60,0.5);color:#e5533c;font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;cursor:pointer;font-family:Poppins,sans-serif;">Remove</button>'
+          + '</div>';
+      }).join('');
+      var total = (cart && cart.getTotal) ? cart.getTotal() : 0;
+      foot.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:14px;"><span>Total</span><strong>USD ' + Number(total).toFixed(2) + '</strong></div>'
+        + '<button onclick="nbCartCheckout()" style="width:100%;padding:11px;border:none;border-radius:10px;background:#d4af37;color:#16130F;font-weight:700;font-size:14px;cursor:pointer;font-family:Poppins,sans-serif;">Checkout</button>';
+    };
+
+    window.nbOpenCart = function(){
+      var p = document.getElementById('nbCartPanel');
+      if (!p) return;
+      if (p.style.display === 'block') { nbCloseCart(); return; }
+      nbRenderCart();
+      p.style.display = 'block';
+      window._nbCartOpen = true;
+    };
+    window.nbCloseCart = function(){
+      var p = document.getElementById('nbCartPanel');
+      if (p) p.style.display = 'none';
+      window._nbCartOpen = false;
+    };
+    window.nbCartRemove = function(pid){
+      if (window.Commerce && window.Commerce.cart && window.Commerce.cart.removeItem) {
+        window.Commerce.cart.removeItem(pid);
+        nbRenderCart();
+      }
+    };
+    window.nbCartCheckout = function(){
+      // Real checkout (one combined payment) activates when the payment provider
+      // and full engine are wired onto the pages. Until then, keep it clearly
+      // "coming soon" — the basket is saved either way.
+      alert('\u{1F4B3} Checkout is coming soon — we are connecting the payment provider. Your cart is saved.');
+    };
+
+    // Close the panel when clicking outside it (but not on the cart button).
+    document.addEventListener('click', function(e){
+      var p = document.getElementById('nbCartPanel');
+      var btn = document.getElementById('nbCartBtn');
+      if (!p || p.style.display !== 'block') return;
+      if (p.contains(e.target)) return;
+      if (btn && (btn === e.target || btn.contains(e.target))) return;
+      nbCloseCart();
+    });
+
+    nbUpdateCartBadge();
+  })();
 
   // ── FORCE Studios span green via JS — beats any CSS including shared-styles.css ──
   (function forceStudiosGreen() {

@@ -458,8 +458,8 @@ document.addEventListener('click',function(e){
         <span class="etsy-seller-name">LazyDogTemplates</span>
         <span class="etsy-stars">★★★★★</span>
       </div>
-      <button class="etsy-btn-outline" onclick="openModal(false)">Buy it now</button>
-      <button class="etsy-btn-filled" onclick="openModal(false)">Add to basket</button>
+      <button class="etsy-btn-outline" onclick="buyItNow()">Buy it now</button>
+      <button class="etsy-btn-filled" onclick="addToBasket()">Add to basket</button>
       <button class="etsy-collection-link"><span class="heart">♥</span> Add to collection</button>
       <div class="etsy-accordion open">
         <div class="etsy-accordion-header" onclick="toggleAccordion(this)">
@@ -1003,7 +1003,12 @@ function getMkUrl(k, n, transform) {
     var db = getFirestore(app);
     var docSnap = await getDoc(doc(db, 'templates', firebaseId));
     if (!docSnap.exists()) { window.location = 'media_kits_folder_section.html'; return; }
-    var t = (docSnap.data().template) || {};
+    var docData = docSnap.data() || {};
+    // Capture identifiers the finance folder (cart / ownership) needs. Still the
+    // page's own product read — presentation stays fully independent.
+    window._ldtProductId = firebaseId;
+    window._ldtSellerId = docData.sellerId || (docData.template && docData.template.sellerId) || '';
+    var t = docData.template || {};
     // ── category label mapping ──
     var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume:'Resume', report:'Report' };
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
@@ -1165,17 +1170,89 @@ function editCompleteDeck() {
 
 // MODAL / DOWNLOAD
 var _dlIsPdf = false;
-function openModal(t){
-  var k = currentKitData;
-  var isFree = !k || !k.price || k.price === 'free' || k.price === '0' || parseFloat(k.price) === 0;
-  if (!isFree) {
-    alert('💳 Payment coming soon! This is a paid template. Online checkout will be available shortly.');
-    return;
-  }
-  _dlIsPdf = (t === 'pdf');
-  document.getElementById('modalOverlay').style.display = 'flex';
+
+// ── Buy & Download are now controlled by the finance folder (Commerce) ──────
+// Buttons stay put; their behaviour is delegated to the cart / ownership
+// library. Presentation is untouched.
+function ldtCurrentProduct(){
+  var k = currentKitData || {};
+  var pid = window._ldtProductId || (new URLSearchParams(location.search)).get('firebase') || '';
+  return {
+    productId: String(pid), id: String(pid),
+    title: String(k.name || 'Media Kit'),
+    price: k.price,
+    sellerId: String(window._ldtSellerId || '')
+  };
 }
-function closeModal(){document.getElementById('modalOverlay').style.display='none';}
+function ldtToast(msg){
+  try {
+    var el = document.getElementById('ldtToast');
+    if (!el){
+      el = document.createElement('div'); el.id = 'ldtToast';
+      el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#16130F;color:#F2EEE5;padding:12px 20px;border-radius:10px;font-family:Poppins,sans-serif;font-size:14px;z-index:100000;box-shadow:0 6px 24px rgba(0,0,0,.3);opacity:0;transition:opacity .25s;max-width:90vw;text-align:center;';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg; el.style.opacity = '1';
+    clearTimeout(window._ldtToastT); window._ldtToastT = setTimeout(function(){ el.style.opacity = '0'; }, 2600);
+  } catch(e){}
+}
+function ldtAddToCart(){
+  var p = ldtCurrentProduct();
+  if (!(window.Commerce && window.Commerce.cart && typeof window.Commerce.cart.addItem === 'function')) {
+    ldtToast('Cart is still loading — please try again in a moment.'); return false;
+  }
+  if (!p.sellerId) { ldtToast('This item is missing seller info and can’t be added yet.'); return false; }
+  var ok = window.Commerce.cart.addItem(p);
+  ldtToast(ok ? 'Added to cart' : 'Already in your cart');
+  return ok;
+}
+// ADD TO BASKET -> add the item to the cart (finance-controlled).
+window.addToBasket = function(){ ldtAddToCart(); };
+// BUY IT NOW -> direct single-item purchase (NOT the cart; the basket button
+// already handles the cart). Routes to a one-item checkout; inert with a clear
+// "coming soon" until the payment provider is wired onto the page.
+window.buyItNow = function(){
+  var p = ldtCurrentProduct();
+  if (window.Commerce && typeof window.Commerce.checkoutCart === 'function') {
+    Promise.resolve(window.Commerce.checkoutCart(
+      [{ productId: p.productId, title: p.title, price: p.price, sellerId: p.sellerId, quantity: 1 }],
+      { onLoginRequired: function(){ if (window.openAuth) openAuth('signin'); },
+        onConfigMissing: function(){ ldtToast('Buy-now checkout is coming soon — payments are being connected.'); },
+        onError: function(){ ldtToast('Buy-now checkout is coming soon.'); } }
+    )).catch(function(){ ldtToast('Buy-now checkout is coming soon.'); });
+  } else {
+    ldtToast('Buy-now checkout is coming soon — payments are being connected.');
+  }
+};
+// Back-compat alias.
+window.buyNow = function(){ window.addToBasket(); };
+
+// DOWNLOAD is LOCKED until the buyer has PAID. It never adds to cart and never
+// delivers a paid file for free — it only delivers once Commerce confirms
+// ownership; otherwise it stays locked.
+function ldtRequestDownload(){
+  var p = ldtCurrentProduct();
+  var locked = function(){ ldtToast('Locked — buy this template first. Download unlocks after payment.'); };
+  if (window.Commerce && window.Commerce.library && typeof window.Commerce.library.ownsProduct === 'function'
+      && window.Commerce.auth && typeof window.Commerce.auth.getCurrentUser === 'function') {
+    var user = window.Commerce.auth.getCurrentUser();
+    if (user && user.uid) {
+      window.Commerce.library.ownsProduct(user.uid, p.productId).then(function(owns){
+        if (owns) { handleDownload(); } else { locked(); }
+      }).catch(function(){ locked(); });
+      return;
+    }
+  }
+  locked();
+}
+
+// The download buttons still call openModal(); it now delegates to the gate
+// (preserving the pdf-vs-pptx choice) instead of the old free/paid decision.
+function openModal(t){
+  _dlIsPdf = (t === 'pdf');
+  ldtRequestDownload();
+}
+function closeModal(){ var o=document.getElementById('modalOverlay'); if(o) o.style.display='none'; }
 // Convert any Google Drive link (/file/d/ID/view or ?id=ID) into a direct-download URL,
 // so big PPTX/PDF files download straight away instead of opening a Drive preview page.
 function toDirectDownload(url){
@@ -1322,6 +1399,7 @@ function toggleLearnMore(btn){
         onmouseover="this.style.background='#1a1a2e';this.style.color='#fff'" onmouseout="this.style.backgr
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
+<script defer src="commerce-loader.js"></script>
 <script src="footerbar.js"></script>
 <nav>
   <a href="media_kits_folder_section.html">Back to Media Kits</a>

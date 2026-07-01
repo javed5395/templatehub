@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales & Finance Center — LazyDog Studios</title>
+  <style>
+    /* ========================================================================
+       Root Design Architecture & Theme Token Variables
+       ======================================================================== */
+    :root {
+      --bg-main: #0a0b0d;
+      --bg-surface: #12141c;
+      --bg-surface-elevated: #1a1d29;
+      --border-color: #242936;
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-glow: #38bdf8;
+      --accent-success: #34d399;
+      --accent-warning: #fbbf24;
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-stack);
+      line-height: 1.5;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      gap: 2rem;
+    }
+
+    /* ========================================================================
+       Header Component Structure
+       ======================================================================== */
+    header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* ========================================================================
+       Dashboard Aggregation Summary Grid Cards
+       ======================================================================== */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .card-value {
+      font-size: 1.75rem;
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    /* ========================================================================
+       Unified Shared Split Layout Configuration
+       ======================================================================== */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+      .split-layout {
+        grid-template-columns: 320px 1fr;
+      }
+    }
+
+    /* ========================================================================
+       Global Control Filter Controls & Panels
+       ======================================================================== */
+    .filter-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      height: max-content;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      background-color: var(--bg-main);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.625rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      width: 100%;
+    }
+
+    .form-control:focus {
+      outline: 1px solid var(--accent-glow);
+    }
+
+    /* ========================================================================
+       Data Presentation Complex Components (Tables / Rows)
+       ======================================================================== */
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+
+    th {
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-muted);
+      font-weight: 500;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ========================================================================
+       Report Component Utility Anchors
+       ======================================================================== */
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .btn-action {
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.75rem;
+      border-radius: 6px;
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-action:hover {
+      background-color: var(--border-color);
+    }
+
+    /* ========================================================================
+       Notification Log Panel Layout
+       ======================================================================== */
+    .notification-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <header>
+      <div>
+        <h1>Sales & Finance Center</h1>
+        <p>Marketplace Transactional Ledger & Strategic Payout Framework</p>
+      </div>
+      <div>
+        <span id="system-status-indicator" data-status-state="initial"></span>
+      </div>
+    </header>
+
+    <section class="summary-grid" id="finance-cards-snapshot">
+      <div class="card">
+        <div class="card-title">Gross Revenue (GMV)</div>
+        <div class="card-value" id="metric-gross-revenue" data-metrics="gross-revenue"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Platform Net Commission</div>
+        <div class="card-value" id="metric-net-commission" data-metrics="net-commission"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Pending Liquidation Queue</div>
+        <div class="card-value" id="metric-pending-liquidation" data-metrics="pending-liquidation" style="color: var(--accent-warning);"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Total Disbursed Capital</div>
+        <div class="card-value" id="metric-total-disbursed" data-metrics="total-disbursed" style="color: var(--accent-success);"></div>
+      </div>
+    </section>
+
+    <main class="split-layout">
+
+      <aside class="filter-panel" id="sidebar-controls-container">
+        
+        <div class="card" id="global-finance-filters">
+          <h2 style="font-size: 1rem; margin-bottom: 1rem;">Data Ledger Filters</h2>
+          
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="filter-date-range">Temporal Boundary</label>
+            <select id="filter-date-range" class="form-control" data-filter="date-range">
+              <option value="all">Full Structural History</option>
+              <option value="24h">Past 24 Hours</option>
+              <option value="7d">Past 7 Days</option>
+              <option value="30d">Past 30 Days</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="filter-contributor-context">Contributor Context ID</label>
+            <input type="text" id="filter-contributor-context" class="form-control" data-filter="contributor-id">
+          </div>
+
+          <div class="form-group">
+            <label for="filter-transaction-status">Transaction State</label>
+            <select id="filter-transaction-status" class="form-control" data-filter="tx-status">
+              <option value="all">All States</option>
+              <option value="completed">Completed / Settled</option>
+              <option value="pending">Escrow / Pending</option>
+              <option value="reversed">Refunded / Charged Back</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card" id="finance-notifications-panel">
+          <h2 style="font-size: 1rem; margin-bottom: 1rem;">System Alerts & Logs</h2>
+          <div class="notification-area" id="data-target-notifications">
+            </div>
+        </div>
+
+      </aside>
+
+      <div class="content-area">
+
+        <section id="seller-performance-aggregation">
+          <h2 class="section-title">Contributor Matrix Performance</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Contributor ID</th>
+                  <th>Total Sold Units</th>
+                  <th>Gross Vol ($)</th>
+                  <th>Payable Balance ($)</th>
+                  <th>Last Sync Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="data-target-seller-performance">
+                </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="master-order-ledger">
+          <h2 class="section-title">Master Order Transactional Ledger</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Transaction ID / Order Reference</th>
+                  <th>Contributor Context</th>
+                  <th>Settlement Amount</th>
+                  <th>Platform Fee Split</th>
+                  <th>System State Tag</th>
+                </tr>
+              </thead>
+              <tbody id="data-target-order-ledger">
+                </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="payout-clearance-queue">
+          <h2 class="section-title">Escrow Disbursement Queue</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Batch / Queue Reference ID</th>
+                  <th>Target Contributor</th>
+                  <th>Disbursement Value</th>
+                  <th>Gate Allocation Target</th>
+                  <th>Queue Status</th>
+                </tr>
+              </thead>
+              <tbody id="data-target-payout-queue">
+                </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="finance-report-export-hub">
+          <h2 class="section-title">Financial Report Generation Hub</h2>
+          <div class="report-grid">
+            <button class="btn-action" id="action-export-csv" data-export="csv-ledger">Export Master Ledger (CSV)</button>
+            <button class="btn-action" id="action-export-json" data-export="payout-manifest">Download Settle Manifest (JSON)</button>
+            <button class="btn-action" id="action-export-tax" data-export="platform-tax-audit">Generate Platform Tax Extract</button>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</body>
+</html>

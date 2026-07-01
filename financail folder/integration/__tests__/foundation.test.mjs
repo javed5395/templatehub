@@ -1,0 +1,351 @@
+// ============================================================================
+// foundation.test.mjs _ headless verification of the integration foundation.
+//
+// Runs in plain Node (no browser, no real Firebase). It exercises:
+//   A. Pure canonical-schema adapters.
+//   B. The v8->v9 Firestore compat facade over an in-memory v9-API mock.
+//   C. The FULL Commerce->Financial pipeline using the REAL engine files
+//      (sales_records.js commission math + sales-records_1.js processTransaction),
+//      driven through the real bridge and foundation.
+//
+// Run:  node "integration/__tests__/foundation.test.mjs"   (from the financail folder)
+// ============================================================================
+
+import assert from "node:assert/strict";
+import { pathToFileURL } from "node:url";
+
+import { OrderSchema } from "../canonical-order-schema.js";
+import { createCompatDb, installFirebaseCompatGlobal } from "../firestore-compat.js";
+import { installFinancialGlobals } from "../financial-foundation.js";
+import { installBridge } from "../commerce-finance-bridge.js";
+import { installCatalog, normalizePrice } from "../commerce-catalog.js";
+
+let passed = 0, failed = 0;
+function test(name, fn) {
+  return Promise.resolve()
+    .then(fn)
+    .then(() => { passed++; console.log("  _ " + name); })
+    .catch((e) => { failed++; console.error("  _ " + name + "\n      " + (e && e.message)); });
+}
+
+// ---------------------------------------------------------------------------
+// In-memory v9-firestore API mock (only what the compat facade calls).
+// ---------------------------------------------------------------------------
+function makeV9Mock() {
+  const store = new Map(); // collName -> Map<id, data>
+  const coll = (name) => {
+    if (!store.has(name)) store.set(name, new Map());
+    return store.get(name);
+  };
+  let autoId = 0;
+
+  const api = {
+    collection: (_db, name) => ({ __coll: name }),
+    doc: (collRef, id) => ({ __coll: collRef.__coll, __id: id }),
+    async getDoc(ref) {
+      const m = coll(ref.__coll);
+      const has = m.has(ref.__id);
+      return { id: ref.__id, exists: () => has, data: () => (has ? { ...m.get(ref.__id) } : undefined) };
+    },
+    async setDoc(ref, data) { coll(ref.__coll).set(ref.__id, { ...data }); },
+    async updateDoc(ref, data) {
+      const m = coll(ref.__coll);
+      m.set(ref.__id, { ...(m.get(ref.__id) || {}), ...data });
+    },
+    async addDoc(collRef, data) {
+      const id = "auto_" + (++autoId);
+      coll(collRef.__coll).set(id, { ...data });
+      return { id };
+    },
+    query: (collRef, ...constraints) => ({ __coll: collRef.__coll, __constraints: constraints }),
+    where: (f, op, v) => ({ __type: "where", f, op, v }),
+    async getDocs(q) {
+      const m = coll(q.__coll);
+      const constraints = q.__constraints || [];
+      const docs = [];
+      for (const [id, data] of m.entries()) {
+        const ok = constraints.every((c) => {
+          if (c.__type !== "where") return true;
+          if (c.op === "==") return data[c.f] === c.v;
+          return true;
+        });
+        if (ok) docs.push({ id, exists: true, data: () => ({ ...data }) });
+      }
+      return { size: docs.length, empty: docs.length === 0, forEach: (cb) => docs.forEach(cb), docs };
+    },
+    serverTimestamp: () => ({ __serverTimestamp: true })
+  };
+  return { api, store };
+}
+
+// ---------------------------------------------------------------------------
+async function run() {
+  console.log("\nA. Canonical order schema (pure)");
+
+  await test("fromFastSpring builds a canonical order with enrichment", () => {
+    const order = OrderSchema.fromFastSpring(
+      { id: "FS1", reference: "R1", currency: "usd", items: [{ product: { path: "templates-abc" }, quantity: 2 }] },
+      { user: { uid: "buyer1", email: "b@x.com", provider: "google" },
+        productPrefix: "templates-",
+        catalog: { abc: { sellerId: "sellerX", productTitle: "Deck", commissionRate: null, unitAmount: 50 } } }
+    );
+    assert.equal(order.orderId, "FS1");
+    assert.equal(order.buyerId, "buyer1");
+    assert.equal(order.currency, "USD");
+    assert.equal(order.items[0].productId, "abc");
+    assert.equal(order.items[0].sellerId, "sellerX");
+    assert.equal(order.items[0].quantity, 2);
+    assert.equal(order.items[0].lineAmount, 100); // 50 * 2
+    assert.equal(order.grossAmount, 100);
+    assert.equal(order.financialStatus, "pending");
+  });
+
+  await test("toSalesRecords maps single-item order keyed by orderId", () => {
+    const order = OrderSchema.createCanonicalOrder({
+      orderId: "O2", buyerId: "b", currency: "USD",
+      items: [{ productId: "p1", sellerId: "s1", unitAmount: 20, quantity: 1 }]
+    });
+    const recs = OrderSchema.toSalesRecords(order);
+    assert.equal(recs.length, 1);
+    assert.equal(recs[0].saleId, "O2");
+    assert.equal(recs[0].sellerUid, "s1");
+    assert.equal(recs[0].templateId, "p1");
+    assert.equal(recs[0].grossAmount, 20);
+  });
+
+  await test("toSalesRecords splits multi-item order into per-line sale ids", () => {
+    const order = OrderSchema.createCanonicalOrder({
+      orderId: "O3", buyerId: "b", currency: "USD",
+      items: [
+        { productId: "p1", sellerId: "s1", unitAmount: 10, quantity: 1 },
+        { productId: "p2", sellerId: "s2", unitAmount: 30, quantity: 1 }
+      ]
+    });
+    const recs = OrderSchema.toSalesRecords(order);
+    assert.equal(recs.length, 2);
+    assert.equal(recs[0].saleId, "O3__0");
+    assert.equal(recs[1].saleId, "O3__1");
+    assert.equal(recs[1].sellerUid, "s2");
+  });
+
+  await test("toLibraryOrder produces exactly what cart_core.library.list reads", () => {
+    const order = OrderSchema.createCanonicalOrder({
+      orderId: "O4", buyerId: "buyer9", currency: "USD",
+      items: [{ productId: "p1", productTitle: "T", sellerId: "s1", unitAmount: 10, quantity: 1 }]
+    });
+    const lib = OrderSchema.toLibraryOrder(order);
+    assert.equal(lib.buyerId, "buyer9");
+    assert.equal(lib.orderId, "O4");
+    assert.ok("financialStatus" in lib && "orderStatus" in lib);
+    assert.equal(lib.items[0].productId, "p1");
+    assert.equal(lib.items[0].sellerId, "s1");
+  });
+
+  await test("validate rejects an order with no items", () => {
+    const r = OrderSchema.validate({ orderId: "x", currency: "USD", items: [] });
+    assert.equal(r.valid, false);
+  });
+
+  console.log("\nB. Firestore v8->v9 compat facade");
+
+  await test("v8 doc().set()/get() round-trips and exists is a boolean property", async () => {
+    const { api } = makeV9Mock();
+    const db = createCompatDb({}, api);
+    await db.collection("orders").doc("A").set({ foo: 1 });
+    const snap = await db.collection("orders").doc("A").get();
+    assert.equal(snap.exists, true);            // property, not method
+    assert.equal(snap.data().foo, 1);
+    const missing = await db.collection("orders").doc("ZZ").get();
+    assert.equal(missing.exists, false);
+  });
+
+  await test("v8 collection().where().get() filters and iterates via forEach", async () => {
+    const { api } = makeV9Mock();
+    const db = createCompatDb({}, api);
+    await db.collection("orders").doc("A").set({ buyerId: "b1" });
+    await db.collection("orders").doc("B").set({ buyerId: "b2" });
+    await db.collection("orders").doc("C").set({ buyerId: "b1" });
+    const qs = await db.collection("orders").where("buyerId", "==", "b1").get();
+    const ids = [];
+    qs.forEach((d) => ids.push(d.id));
+    assert.deepEqual(ids.sort(), ["A", "C"]);
+  });
+
+  await test("window.firebase.firestore.FieldValue.serverTimestamp() shim works", async () => {
+    const { api } = makeV9Mock();
+    const db = createCompatDb({}, api);
+    const scope = {};
+    installFirebaseCompatGlobal(db, api, scope);
+    assert.equal(typeof scope.firebase.firestore, "function");
+    assert.equal(scope.firebase.firestore(), db);
+    assert.ok(scope.firebase.firestore.FieldValue.serverTimestamp().__serverTimestamp);
+  });
+
+  console.log("\nC. End-to-end Commerce -> Financial pipeline (REAL engines)");
+
+  // Build an ISOLATED pipeline context. A fresh, cache-busted import of the
+  // engine files gives each test its own SalesRecords instance whose captured
+  // _ensureFirebase/recordSale bind to THIS context's db --- so state never
+  // leaks between tests. Mirrors what the bootstrap does once, per page load.
+  let _v = 0;
+  async function freshPipeline(resolveProduct, configDefaults) {
+    const bust = `?v=${++_v}`;
+    const { api, store } = makeV9Mock();
+    const scope = globalThis;
+    scope.window = scope;                 // sales-records_1.js reads window.*
+    const db = createCompatDb({}, api);
+    installFirebaseCompatGlobal(db, api, scope);
+    const ensureFirebase = async () => ({ db });
+
+    installFinancialGlobals({
+      ensureFirebase,
+      configDefaults: configDefaults || { basePlatformCommissionRate: 0.30, currency: "USD" }
+    }, scope);
+
+    const coreMod = await import(new URL("../../sales_records.js", import.meta.url).href + bust);
+    scope.SalesRecords = coreMod.default || coreMod.SalesRecords;
+    const contMod = await import(new URL("../../sales-records_1.js", import.meta.url).href + bust);
+    scope.SalesRecordsContinuation = contMod.default || contMod.SalesRecordsContinuation;
+
+    const cfg = { fastspringProductPrefix: "templates-", currency: "USD" };
+    const Commerce = {
+      config: { get: (k) => cfg[k], set: (k, v) => { cfg[k] = v; } },
+      auth: { getCurrentUser: () => ({ uid: "buyer1", email: "b@x.com", provider: "google" }) },
+      emit: () => {}
+    };
+    installBridge({
+      Commerce,
+      SalesRecords: scope.SalesRecords,
+      SalesRecordsContinuation: scope.SalesRecordsContinuation,
+      ensureFirebase,
+      resolveProduct
+    });
+    return { store, Commerce, SalesRecordsContinuation: scope.SalesRecordsContinuation };
+  }
+
+  await test("financial continuation links to core once loaded", async () => {
+    const { SalesRecordsContinuation } = await freshPipeline(async () => ({ sellerId: "s", unitAmount: 10 }));
+    assert.equal(SalesRecordsContinuation.verifyLinkage(), true);
+  });
+
+  await test("successful checkout writes order + salesRecord + settled transaction with correct split", async () => {
+    const { store, Commerce } = await freshPipeline(
+      async () => ({ sellerId: "sellerX", productTitle: "Pitch Deck Pro", commissionRate: null, unitAmount: 100 })
+    );
+    const fsPayload = { id: "ORD777", reference: "REF777", currency: "USD",
+      items: [{ product: { path: "templates-prodA" }, quantity: 1 }] };
+    const result = await Commerce.bridge.onCheckoutSuccess(fsPayload);
+
+    assert.equal(result.status, "bridged", "bridge should report success");
+    assert.equal(result.financialStatus, "settled", "order should end settled");
+
+    const orderDoc = store.get("orders").get("ORD777");
+    assert.ok(orderDoc, "canonical order persisted");
+    assert.equal(orderDoc.buyerId, "buyer1");
+    assert.equal(orderDoc.financialStatus, "settled");
+    assert.equal(orderDoc.items[0].sellerId, "sellerX");
+
+    const saleDoc = store.get("salesRecords").get("ORD777");
+    assert.ok(saleDoc, "sale fact recorded");
+    assert.equal(saleDoc.templateId, "prodA");
+    assert.equal(saleDoc.grossAmount, 100);
+
+    const txDoc = store.get("transactions").get("ORD777");
+    assert.ok(txDoc, "immutable transaction produced");
+    assert.equal(txDoc.grossAmount, 100);
+    assert.equal(txDoc.platformCommission, 30);  // 0.30 base
+    assert.equal(txDoc.sellerEarnings, 70);
+    assert.equal(txDoc.sellerUid, "sellerX");
+    assert.equal(txDoc.status, "settled");
+  });
+
+  await test("Commerce.finance.status reflects settlement (buyer-library access gate)", async () => {
+    const { store, Commerce } = await freshPipeline(async () => ({ sellerId: "s", unitAmount: 10 }));
+    store.set("transactions", new Map([["ORDX", { status: "settled" }]]));
+    const st = await Commerce.finance.status("ORDX");
+    assert.equal(st.financialStatus, "settled");
+    assert.equal(st.source, "transaction");
+  });
+
+  await test("idempotency: replaying the same checkout does not double-process", async () => {
+    const { store, Commerce } = await freshPipeline(async () => ({ sellerId: "s", unitAmount: 40 }));
+    const p = { id: "DUP1", currency: "USD", items: [{ product: { path: "templates-x" }, quantity: 1 }] };
+    const r1 = await Commerce.bridge.onCheckoutSuccess(p);
+    const r2 = await Commerce.bridge.onCheckoutSuccess(p);
+    assert.equal(r1.financialStatus, "settled");
+    assert.equal(r2.financialStatus, "settled");
+    assert.equal(r2.sales[0].record, "already_recorded");
+    assert.equal(r2.sales[0].process, "already_processed");
+    assert.equal(store.get("transactions").size, 1); // still exactly one tx
+  });
+
+  console.log("\nD. Live-collections catalog (templates/sellers)");
+
+  await test("normalizePrice maps free/pro/decimal strings", () => {
+    assert.equal(normalizePrice("free"), 0);
+    assert.equal(normalizePrice("pro"), 0);
+    assert.equal(normalizePrice("0"), 0);
+    assert.equal(normalizePrice("13.00"), 13);
+    assert.equal(normalizePrice(undefined), 0);
+  });
+
+  await test("catalog.resolveProduct reads real templates doc shape", async () => {
+    const { api, store } = makeV9Mock();
+    const db = createCompatDb({}, api);
+    store.set("templates", new Map([["tmplA", {
+      status: "approved", sellerId: "seller42",
+      template: { name: "Investor Pitch Deck", price: "25.00", slides: ["u1"] }
+    }]]));
+    const Commerce = {};
+    const cat = installCatalog({ Commerce, ensureFirebase: async () => ({ db }) });
+    const enrich = await cat.resolveProduct("tmplA");
+    assert.equal(enrich.sellerId, "seller42");
+    assert.equal(enrich.productTitle, "Investor Pitch Deck");
+    assert.equal(enrich.unitAmount, 25);
+    assert.equal(enrich.commissionRate, null);
+    assert.equal(Commerce.catalog.COLLECTIONS.TEMPLATES, "templates");
+  });
+
+  await test("pipeline uses catalog.resolveProduct to attribute a real template sale", async () => {
+    const bust = "?v=cat" + (++_v);
+    const { api, store } = makeV9Mock();
+    const scope = globalThis; scope.window = scope;
+    const db = createCompatDb({}, api);
+    installFirebaseCompatGlobal(db, api, scope);
+    const ensureFirebase = async () => ({ db });
+    installFinancialGlobals({ ensureFirebase }, scope);
+    const coreMod = await import(new URL("../../sales_records.js", import.meta.url).href + bust);
+    scope.SalesRecords = coreMod.default || coreMod.SalesRecords;
+    const contMod = await import(new URL("../../sales-records_1.js", import.meta.url).href + bust);
+    scope.SalesRecordsContinuation = contMod.default || contMod.SalesRecordsContinuation;
+
+    store.set("templates", new Map([["tmplZ", {
+      sellerId: "sellerZ", template: { name: "Brand Deck", price: "40.00" }
+    }]]));
+
+    const cfg = { fastspringProductPrefix: "templates-", currency: "USD" };
+    const Commerce = {
+      config: { get: (k) => cfg[k], set() {} },
+      auth: { getCurrentUser: () => ({ uid: "buyerZ", email: "z@x.com" }) },
+      emit() {}
+    };
+    const cat = installCatalog({ Commerce, ensureFirebase });
+    installBridge({ Commerce, SalesRecords: scope.SalesRecords, SalesRecordsContinuation: scope.SalesRecordsContinuation,
+      ensureFirebase, resolveProduct: cat.resolveProduct });
+
+    const r = await Commerce.bridge.onCheckoutSuccess({ id: "ORDZ", currency: "USD",
+      items: [{ product: { path: "templates-tmplZ" }, quantity: 1 }] });
+
+    assert.equal(r.financialStatus, "settled");
+    const tx = store.get("transactions").get("ORDZ");
+    assert.equal(tx.sellerUid, "sellerZ");
+    assert.equal(tx.grossAmount, 40);
+    assert.equal(tx.platformCommission, 12);
+    assert.equal(tx.sellerEarnings, 28);
+  });
+
+  console.log("\n" + passed + " passed, " + failed + " failed\n");
+  if (failed > 0) process.exit(1);
+}
+
+run();
