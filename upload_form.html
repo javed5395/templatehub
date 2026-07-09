@@ -410,7 +410,7 @@
           </div>
 
           <div class="field">
-            <label>PPTX File <span class="required">*</span></label>
+            <label>PPTX File <span style="color:var(--muted);font-weight:400;">(Optional)</span></label>
             <div class="upload-box">
               <input type="file" id="pptxFile" accept=".pptx,.ppt" onchange="showFiles('pptxFile','pptxList')"/>
               <div class="upload-icon">📊</div>
@@ -1403,7 +1403,6 @@ window.submitForm = async function() {
     alert('Please fill all required template fields!'); return;
   }
   if (pngFiles.length === 0) { alert('Please upload PNG slides!'); return; }
-  if (!pptxFile) { alert('Please upload the PPTX file!'); return; }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -1447,10 +1446,13 @@ window.submitForm = async function() {
       slidePublicIds.push(r.publicId);
     }
 
-    // 2. Upload PPTX to Google Drive
-    setProgress(65, 'Uploading PPTX to Google Drive...');
-    const pptxUrl    = await uploadPptxToDrive(pptxFile);
-    const pptxFileId = extractDriveFileId(pptxUrl);
+    // 2. Upload PPTX to Google Drive (optional — skipped if no PPTX provided)
+    let pptxUrl = null, pptxFileId = null;
+    if (pptxFile) {
+      setProgress(65, 'Uploading PPTX to Google Drive...');
+      pptxUrl    = await uploadPptxToDrive(pptxFile);
+      pptxFileId = extractDriveFileId(pptxUrl);
+    }
 
     // 3. Upload PDF (optional)
     // Section 11 metadata pages strip karo — phir clean PDF upload karo.
