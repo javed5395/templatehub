@@ -441,12 +441,12 @@
           </div>
 
           <div class="field">
-            <label>Preview Video <span style="color:var(--muted);font-weight:400;">(Optional — max 25 MB)</span></label>
+            <label>Preview Video <span style="color:var(--muted);font-weight:400;">(Optional — max 100 MB)</span></label>
             <div class="upload-box">
               <input type="file" id="videoFile" accept="video/*" onchange="handleVideoUpload(this)"/>
               <div class="upload-icon">🎬</div>
               <p><strong>Click to upload preview video</strong></p>
-              <p style="font-size:11px;">MP4, MOV, AVI, WEBM — max 25 MB</p>
+              <p style="font-size:11px;">MP4, MOV, AVI, WEBM — max 100 MB</p>
             </div>
             <div class="file-list" id="videoList"></div>
           </div>
@@ -640,7 +640,7 @@ const FILE_LIMITS = {
   keyFile:   { maxMB: 150, label: 'Keynote file'        },
   designDoc: { maxMB: 1,   label: 'Design brief doc'    },
   extraFile: { maxMB: 100, label: 'Extra format file'   },
-  videoFile: { maxMB: 25,  label: 'Preview video'       }
+  videoFile: { maxMB: 100, label: 'Preview video'       }
 };
 
 // ── BLOCKED DANGEROUS EXTENSIONS ─────────────────────────────────────────────
@@ -986,7 +986,7 @@ window.handleVideoUpload = function(input) {
 
   if (file.size > maxBytes) {
     list.innerHTML = `<div class="file-item" style="border-color:var(--red);color:var(--red);">
-      ❌ <strong>${file.name}</strong> is ${(file.size/1024/1024).toFixed(1)} MB — max allowed is 25 MB.
+      ❌ <strong>${file.name}</strong> is ${(file.size/1024/1024).toFixed(1)} MB — max allowed is ${FILE_LIMITS.videoFile.maxMB} MB.
     </div>`;
     input.value = '';
     return;
