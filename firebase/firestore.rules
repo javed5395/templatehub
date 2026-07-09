@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── kits collection ───────────────────────────────────────────────────
+    // Public can READ kit metadata (needed by search widget).
+    // Only Firebase Functions (Admin SDK) can WRITE.
+    match /kits/{kitId} {
+      allow read: if true;          // search widget reads this
+      allow write: if false;        // only Firebase Function writes via Admin SDK
+    }
+
+    // Block everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

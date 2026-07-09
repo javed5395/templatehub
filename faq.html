@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FAQ — LazyDogTemplates</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Frequently asked questions about LazyDogTemplates — learn about pricing, commercial use, file formats, career documents, and more." />
+  <meta name="keywords" content="LazyDogTemplates FAQ, pitch deck questions, media kit help, resume templates, commercial use templates" />
+  <meta name="author" content="LazyDogTemplates" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.lazydogtemplates.com/faq.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="FAQ — LazyDogTemplates" />
+  <meta property="og:description" content="Got questions? Find answers about downloads, licensing, formats, and more at LazyDogTemplates." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.lazydogtemplates.com/faq.html" />
+  <meta property="og:image" content="https://www.lazydogtemplates.com/og-faq.jpg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="FAQ — LazyDogTemplates" />
+  <meta name="twitter:description" content="Answers to common questions about LazyDogTemplates — pricing, formats, licensing, downloads and more." />
+  <meta name="twitter:image" content="https://www.lazydogtemplates.com/og-faq.jpg" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": []
+  }
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --accent: #d4af37;
+      --bg-body: #070714;
+      --bg-nav: #0a0a20;
+      --text: #e8eaf0;
+      --muted: #8899aa;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text); min-height: 100vh; }
+
+    /* NAV */
+    nav { background: var(--bg-nav); border-bottom: 1px solid rgba(212,175,55,0.15); padding: 0 60px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+    .nav-back { color: var(--muted); text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+    .nav-back:hover { color: var(--accent); }
+    .nav-back svg { width: 16px; height: 16px; }
+
+    /* HERO */
+    .page-hero { text-align: center; padding: 70px 40px 50px; }
+    .page-hero h1 { font-family: 'Poppins', sans-serif; font-size: clamp(28px, 5vw, 46px); font-weight: 900; margin-bottom: 14px; }
+    .page-hero h1 span { background: linear-gradient(90deg, var(--accent), #ff9f43); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .page-hero p { color: var(--muted); font-size: 16px; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+    /* FAQ GRID */
+    .faq-container { max-width: 860px; margin: 0 auto; padding: 0 40px 100px; }
+
+    .faq-item { border: 1px solid rgba(212,175,55,0.18); border-radius: 16px; background: rgba(255,255,255,0.03); margin-bottom: 14px; overflow: hidden; transition: border-color 0.25s, box-shadow 0.25s; }
+    .faq-item:hover { border-color: rgba(212,175,55,0.45); box-shadow: 0 4px 24px rgba(212,175,55,0.08); }
+
+    .faq-q { width: 100%; background: none; border: none; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 15.5px; font-weight: 600; text-align: left; padding: 22px 26px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; transition: color 0.2s; line-height: 1.4; }
+    .faq-q:hover { color: var(--accent); }
+    .faq-icon { font-size: 22px; font-weight: 300; color: var(--accent); flex-shrink: 0; transition: transform 0.3s ease; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid rgba(212,175,55,0.3); }
+    .faq-item.open .faq-icon { transform: rotate(45deg); background: rgba(212,175,55,0.1); }
+
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+    .faq-item.open .faq-a { max-height: 400px; }
+    .faq-a-inner { padding: 0 26px 24px; color: var(--muted); font-size: 14.5px; line-height: 1.8; border-top: 1px solid rgba(212,175,55,0.1); padding-top: 18px; margin: 0 26px 24px; }
+
+    /* CONTACT STRIP */
+    .faq-contact { text-align: center; padding: 60px 40px; border-top: 1px solid rgba(212,175,55,0.1); margin-top: 20px; }
+    .faq-contact h3 { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+    .faq-contact p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .faq-contact a.btn { display: inline-block; padding: 13px 32px; background: var(--accent); color: #070714; border-radius: 10px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; font-size: 14px; transition: opacity 0.2s; }
+    .faq-contact a.btn:hover { opacity: 0.85; }
+
+    /* FOOTER BAR */
+    .page-footer { background: #03030d; padding: 20px 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .page-footer-logo { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 900; background: linear-gradient(90deg,#64c8ff,#b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .page-footer p { color: #445566; font-size: 12px; }
+    .page-footer a { color: #556677; text-decoration: none; font-size: 12px; margin-left: 16px; transition: color 0.2s; }
+    .page-footer a:hover { color: var(--accent); }
+
+    @media (max-width: 600px) { nav { padding: 0 20px; } .faq-container { padding: 0 16px 60px; } .page-hero { padding: 50px 20px 36px; } .page-footer { flex-direction: column; gap: 8px; padding: 18px 20px; text-align: center; } }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="main.html" class="nav-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to Home
+  </a>
+  <a href="main.html" class="nav-logo">LazyDogTemplates</a>
+  <div style="width:100px;"></div>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <h1>Frequently Asked <span>Questions</span></h1>
+  <p>Everything you need to know about LazyDogTemplates — templates, downloads, licensing, and more.</p>
+</div>
+
+<!-- FAQ ITEMS -->
+<div class="faq-container">
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">What is LazyDog Templates? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">LazyDog Templates is an AI-assisted digital creation platform where businesses and professionals can create, customize, and download premium digital assets including websites, Digital Keynotes, Media Kits, Pitch Decks, ATS-ready resumes, UI Kits, Social Media Kits, invoices, and presentation systems. Every product is professionally designed, and many can be explored live through LazyDog Studios.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">What makes LazyDog different? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Unlike traditional template websites, LazyDog combines premium design, AI-assisted customization, live product demonstrations, and intelligent recommendations. Instead of simply downloading files, you can experience many of our products before deciding, so you can choose with complete confidence.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">What is LazyDog Studios? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">LazyDog Studios is our interactive showroom where visitors can explore live websites, Digital Keynotes, interface systems, and complete design experiences. Rather than showing screenshots, we let you interact with products exactly as they were built.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">What are Digital Keynotes? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Digital Keynotes are immersive web-based presentation experiences designed for product launches, investor presentations, corporate storytelling, exhibitions, executive meetings, premium marketing campaigns, and brand showcases. They combine animation, interaction, typography, and storytelling into a cinematic digital experience.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">What products can I create or download? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">LazyDog currently offers Digital Keynotes, Media Kits, Pitch Decks, Website UI Kits, Business Websites, ATS Resume Systems, Social Media Kits, Corporate Presentations, Brand Experience Systems, a Professional Invoice Generator, and Interactive Landing Pages — with new categories continuously being added.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Is the Invoice Generator really free? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Yes. Our Professional Invoice Generator is available free of charge. You can generate clean, business-ready invoices instantly without paying any subscription fee.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">What makes your Resume Builder different? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">We don't create ordinary CV templates. Our Resume System is designed around modern Applicant Tracking Systems (ATS). Instead of producing attractive but ineffective resumes, our platform focuses on professional layouts that improve ATS compatibility while maintaining excellent visual presentation.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Can AI create a resume based on a job description? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Yes. Simply provide the job description or role you're applying for, and our intelligent system can help generate a resume that aligns with the employer's requirements while following modern ATS best practices.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Can I customize every product? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Absolutely. Fonts, colors, layouts, branding, images, icons, animations, and content can all be customized. Many products can also be personalized through our AI-assisted editing tools.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Can I explore products before purchasing? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Yes. Many products include fully interactive demonstrations inside LazyDog Studios where you can test the design, navigation, animations, and overall user experience before making a purchase.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">How does the recommendation engine work? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Describe your project or use our intelligent filters — including industry, audience, presentation type, style, design language, color family, tone, and objectives. Our recommendation engine instantly ranks the products that best match your requirements.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">What industries do you support? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Our design systems cover a growing range of industries including Education, Artificial Intelligence, Healthcare, Finance, Security, Corporate Services, Architecture, Real Estate, Hospitality, Fashion, Legal, Technology, Manufacturing, Government, Startups, Creative Agencies, Luxury Brands, Non-profit Organizations, and many more.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Can I request a completely custom website or Digital Keynote? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Yes. Our studio regularly creates bespoke websites, Digital Keynotes, business portals, corporate presentation systems, and interactive digital experiences specifically designed for individual clients.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Can you redesign my existing website? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Certainly. We help organizations modernize outdated websites through improved user experience, stronger storytelling, premium interfaces, performance improvements, and complete digital transformation.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Can agencies and businesses use your products commercially? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Yes. Our products are built for agencies, startups, enterprises, educational institutions, healthcare organizations, consultants, and businesses that require professional digital assets for commercial use.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">What files will I receive? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Each product clearly lists its deliverables. Depending on the category, downloads may include HTML, CSS, JavaScript, presentation assets, editable files, documentation, media components, and supporting resources.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Will my purchases remain available? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Yes. Purchased products remain available in your personal library so you can download them again whenever needed according to your license.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Will products receive updates? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Whenever improvements are released, updated versions become available inside your account according to your license.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Can I request a new industry or design category? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Yes. If your business operates in a niche that isn't currently available, our design studio can build an entirely original solution specifically for your industry.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Are you a template marketplace? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">No. LazyDog is a digital experience platform and creative studio — not a traditional template marketplace. While we provide professionally designed assets, our mission goes far beyond downloads. We build interactive websites, AI-assisted design systems, Digital Keynotes, premium presentation experiences, and custom digital products that businesses can explore, customize, and deploy with confidence.</div></div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggle(this)">Why does LazyDog Studios exist? <span class="faq-icon">+</span></button>
+    <div class="faq-a"><div class="faq-a-inner">Because we believe exceptional design should be experienced before it's purchased. LazyDog Studios allows visitors to interact with live websites, Digital Keynotes, and design systems exactly as real users would, making every decision informed rather than imagined.</div></div>
+  </div>
+
+</div>
+
+<!-- CONTACT STRIP -->
+<div class="faq-contact">
+  <h3>Still have questions?</h3>
+  <p>Can't find the answer you're looking for? Our team is happy to help.</p>
+  <a href="mailto:support@lazydogtemplates.com" class="btn">Contact Us</a>
+</div>
+
+<!-- FOOTER BAR -->
+<div class="page-footer">
+  <div class="page-footer-logo">LazyDogTemplates</div>
+  <p>&#169; 2026 LazyDogTemplates. All rights reserved.</p>
+  <div>
+    <a href="terms.html">Terms</a>
+    <a href="terms.html#privacy">Privacy</a>
+    <a href="main.html">Home</a>
+  </div>
+</div>
+
+<script>
+function toggle(btn) {
+  var item = btn.closest('.faq-item');
+  var icon = btn.querySelector('.faq-icon');
+  var wasOpen = item.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-item.open').forEach(function(i) { i.classList.remove('open'); });
+  if (!wasOpen) item.classList.add('open');
+}
+</script>
+<script src="footerbar.js"></script>
+</body>
+</html>

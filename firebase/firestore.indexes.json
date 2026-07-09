@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "kits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "metadata.industry", "order": "ASCENDING" },
+        { "fieldPath": "metadata.style",    "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "kits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "metadata.content_type", "order": "ASCENDING" },
+        { "fieldPath": "metadata.color_family",  "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

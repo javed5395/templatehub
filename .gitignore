@@ -1,0 +1,19 @@
+# --- Keep these OFF the public website (GitHub Pages serves everything else) ---
+
+# Admin panel: contains the admin password + Cloudinary secret. Run it locally only.
+admin_panel.html
+
+# Backend source (Google Apps Script). Lives in the Apps Script editor, not the site.
+*.gs
+
+# Metadata codec — PRIVATE. Never expose field/value codes to public.
+# This file is the secret key to the LazyDog metadata encoding system.
+meta_codec.py
+firebase/functions/meta_codec.py
+
+# Common local-only / sensitive files
+*.bak
+*.tmp
+.env
+.DS_Store
+Thumbs.db

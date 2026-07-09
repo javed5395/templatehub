@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Free Invoice Generator — Create & Download Professional Invoices | LazyDogTemplates</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Use our free invoice generator to create and download professional invoices instantly. Fully customizable, no sign-up required — generate your free invoice in seconds with LazyDogTemplates." />
+  <meta name="keywords" content="free invoice generator, invoice generator, free invoice template, invoice maker online, generate invoice free, free invoice download, professional invoice template, create invoice online, LazyDogTemplates" />
+  <meta name="author" content="LazyDogTemplates" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.lazydogtemplates.com/invoice.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Free Invoice Generator — LazyDogTemplates" />
+  <meta property="og:description" content="Create and download professional invoices instantly. Simple, fast and fully customizable." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.lazydogtemplates.com/invoice.html" />
+  <meta property="og:image" content="https://www.lazydogtemplates.com/og-invoice.jpg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Free Invoice Generator — LazyDogTemplates" />
+  <meta name="twitter:description" content="Create and download professional invoices instantly. Free and fully customizable." />
+  <meta name="twitter:image" content="https://www.lazydogtemplates.com/og-invoice.jpg" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Free Invoice Generator — LazyDogTemplates",
+    "url": "https://www.lazydogtemplates.com/invoice.html",
+    "description": "Create and download professional invoices instantly. Free, fast and fully customizable.",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "LazyDogTemplates",
+      "url": "https://www.lazydogtemplates.com/"
+    }
+  }
+  </script>
+
+  <script src="watermark.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',sans-serif;background-color:#f8f8f8;background-image:repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px);color:#1a1a2e;}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:16px 60px;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,0.06);}
+    .logo{font-size:22px;font-weight:800;background:linear-gradient(90deg,#64c8ff,#b464ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+    .nav-back{color:#c8d2dc;text-decoration:none;font-size:13px;}
+    .hero{text-align:center;padding:50px 20px 24px;background:radial-gradient(ellipse at top,#1a1a4a 0%,#0a0a1e 70%);}
+    .hero h1{font-size:38px;font-weight:900;margin-bottom:8px;}
+    .hero h1 span{background:linear-gradient(90deg,#64c8ff,#b464ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .hero p{color:#8899aa;font-size:14px;}
+
+    /* STEPS */
+    .steps{display:flex;justify-content:center;margin:24px auto;max-width:700px;}
+    .step{flex:1;text-align:center;position:relative;}
+    .step-num{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;margin:0 auto 5px;border:2px solid #1e2a5a;background:#0d0d2b;color:#8899aa;transition:all 0.3s;}
+    .step-label{font-size:10px;color:#8899aa;font-weight:600;}
+    .step.active .step-num{background:linear-gradient(135deg,#64c8ff,#b464ff);border-color:transparent;color:#0a0a1e;}
+    .step.active .step-label{color:#64c8ff;}
+    .step.done .step-num{background:#64c8ff;border-color:transparent;color:#0a0a1e;}
+    .step::after{content:'';position:absolute;top:17px;left:50%;width:100%;height:2px;background:#1e2a5a;z-index:-1;}
+    .step:last-child::after{display:none;}
+
+    /* SECTIONS */
+    .section{display:none;padding:36px 60px;}
+    .section.active{display:block;}
+    .sec-title{font-size:20px;font-weight:800;text-align:center;margin-bottom:6px;}
+    .sec-sub{color:#8899aa;font-size:13px;text-align:center;margin-bottom:30px;}
+
+    /* TYPE CARDS */
+    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:700px;margin:0 auto;}
+    .type-card{background:#0d0d2b;border:2px solid #1e1e4a;border-radius:16px;padding:36px 30px;cursor:pointer;transition:all 0.25s;text-align:center;}
+    .type-card:hover{border-color:#64c8ff;transform:translateY(-3px);}
+    .type-icon{font-size:48px;margin-bottom:16px;}
+    .type-name{font-size:18px;font-weight:800;margin-bottom:8px;}
+    .type-desc{font-size:13px;color:#8899aa;line-height:1.6;}
+
+    /* INDUSTRY GRID */
+    .industry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1000px;margin:0 auto;}
+    .industry-card{background:#0d0d2b;border:2px solid #1e1e4a;border-radius:12px;padding:20px 16px;cursor:pointer;transition:all 0.25s;text-align:center;}
+    .industry-card:hover{border-color:#b464ff;transform:translateY(-3px);}
+    .industry-icon{font-size:32px;margin-bottom:10px;}
+    .industry-name{font-size:13px;font-weight:700;margin-bottom:4px;}
+    .industry-desc{font-size:11px;color:#8899aa;}
+
+    /* STYLE GRID */
+    .style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1100px;margin:0 auto;}
+    .style-card{background:#0d0d2b;border:2px solid #1e1e4a;border-radius:14px;cursor:pointer;transition:all 0.25s;overflow:hidden;}
+    .style-card:hover{border-color:#64c8ff;transform:translateY(-3px);}
+    .style-thumb{height:130px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;}
+    .style-thumb.blue{background:linear-gradient(135deg,#1a3a6b,#2a5aab);}
+    .style-thumb.dark{background:linear-gradient(135deg,#1a1a1a,#2a2a2a);}
+    .style-thumb.minimal{background:linear-gradient(135deg,#f0f0f0,#e0e0e0);}
+    .style-thumb.green{background:linear-gradient(135deg,#0d3b2e,#1a6b4a);}
+    .style-thumb.purple{background:linear-gradient(135deg,#2a1a4a,#5a2a9a);}
+    .style-thumb.red{background:linear-gradient(135deg,#3b1a1a,#8b2020);}
+    .style-thumb.orange{background:linear-gradient(135deg,#3b2a0a,#c47820);}
+    .style-thumb.teal{background:linear-gradient(135deg,#0a2a3b,#1a7a8b);}
+    .style-thumb.bw{background:linear-gradient(135deg,#fff,#e8e8e8);}
+    .style-thumb.beige{background:linear-gradient(135deg,#2a1f14,#8a6040);}
+    .style-thumb.bold{background:linear-gradient(135deg,#1a1a1a,#333);}
+    .style-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600;}
+    .style-info{padding:12px 14px;}
+    .style-name{font-size:13px;font-weight:700;margin-bottom:3px;}
+    .style-desc{font-size:10px;color:#8899aa;}
+    .btn-select{display:block;width:calc(100% - 28px);margin:0 14px 14px;background:linear-gradient(90deg,#64c8ff,#b464ff);color:#0a0a1e;border:none;padding:8px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;}
+
+    /* FORM */
+    .form-wrap{display:grid;grid-template-columns:1fr 360px;gap:36px;max-width:1100px;margin:0 auto;}
+    .form-panel{background:#0d0d2b;border:1px solid #1e1e4a;border-radius:16px;padding:28px;}
+    .form-panel h2{font-size:15px;font-weight:700;color:#64c8ff;margin-bottom:18px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+    .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+    .fg label{font-size:10px;color:#8899aa;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+    .fg input,.fg textarea,.fg select{background:#14193a;border:1px solid #1e2a5a;border-radius:8px;color:#fff;padding:8px 11px;font-size:13px;outline:none;transition:border 0.2s;}
+    .fg input:focus,.fg textarea:focus{border-color:#64c8ff;}
+    .fg textarea{resize:vertical;min-height:55px;}
+    .sec-label{font-size:10px;font-weight:700;color:#b464ff;text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px;display:flex;align-items:center;gap:8px;}
+    .sec-label::after{content:'';flex:1;height:1px;background:#1e1e4a;}
+    .items-hdr{display:grid;gap:5px;font-size:9px;color:#8899aa;font-weight:700;text-transform:uppercase;padding:0 0 5px;border-bottom:1px solid #1e1e4a;margin-bottom:6px;}
+    .item-row{display:grid;gap:5px;margin-bottom:5px;align-items:center;}
+    .item-row input{background:#14193a;border:1px solid #1e2a5a;border-radius:6px;color:#fff;padding:6px 8px;font-size:11px;outline:none;width:100%;}
+    .item-row input:focus{border-color:#64c8ff;}
+    .item-total-cell{font-size:11px;font-weight:700;color:#64c8ff;text-align:right;}
+    .btn-remove-item{background:none;border:none;color:#ff5566;font-size:14px;cursor:pointer;}
+    .btn-add-item{background:transparent;border:1px dashed #1e2a5a;color:#8899aa;padding:7px;border-radius:8px;width:100%;cursor:pointer;font-size:11px;margin-top:3px;transition:all 0.2s;}
+    .btn-add-item:hover{border-color:#64c8ff;color:#64c8ff;}
+    .totals-box{background:#14193a;border-radius:10px;padding:14px;margin-top:14px;}
+    .tot-row{display:flex;justify-content:space-between;font-size:12px;color:#8899aa;margin-bottom:7px;align-items:center;}
+    .tot-row input{width:55px;background:#0d0d2b;border:1px solid #1e2a5a;border-radius:6px;color:#fff;padding:3px 7px;font-size:11px;outline:none;}
+    .tot-row.grand{font-size:15px;font-weight:800;color:#fff;border-top:1px solid #1e2a5a;padding-top:9px;margin-top:3px;}
+    .tot-row.grand span:last-child{color:#64c8ff;}
+    .btn-generate{width:100%;background:linear-gradient(90deg,#64c8ff,#b464ff);color:#0a0a1e;padding:13px;border-radius:30px;border:none;font-size:14px;font-weight:800;cursor:pointer;margin-top:18px;}
+    .btn-back{background:transparent;border:1px solid #1e2a5a;color:#8899aa;padding:8px 20px;border-radius:16px;cursor:pointer;font-size:12px;margin-bottom:16px;transition:all 0.2s;}
+    .btn-back:hover{border-color:#64c8ff;color:#64c8ff;}
+    .mini-preview{position:sticky;top:80px;}
+    .mini-preview h3{font-size:13px;font-weight:700;color:#64c8ff;margin-bottom:10px;}
+    .dl-section{margin-top:10px;}
+    .btn-dl{background:linear-gradient(90deg,#64c8ff,#b464ff);color:#0a0a1e;padding:11px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;width:100%;}
+    .wm-note{font-size:10px;color:#8899aa;text-align:center;margin-top:5px;}
+
+    @media(max-width:900px){.style-grid,.industry-grid{grid-template-columns:repeat(2,1fr);}.type-grid{grid-template-columns:1fr;}.form-wrap{grid-template-columns:1fr;}.section{padding:24px 20px;}}
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR injected by navbar.js -->
+
+<div class="hero">
+  <h1>🧾 <span>Invoice Generator</span></h1>
+  <p>Choose your type → Pick industry → Select design → Fill & Download. 100% Free.</p>
+</div>
+
+<!-- STEPS BAR -->
+<div class="steps">
+  <div class="step active" id="step1"><div class="step-num">1</div><div class="step-label">Invoice Type</div></div>
+  <div class="step" id="step2"><div class="step-num">2</div><div class="step-label">Industry</div></div>
+  <div class="step" id="step3"><div class="step-num">3</div><div class="step-label">Design Style</div></div>
+  <div class="step" id="step4"><div class="step-num">4</div><div class="step-label">Fill & Download</div></div>
+</div>
+
+<!-- STEP 1: TYPE -->
+<div class="section active" id="sec1">
+  <div class="sec-title">What type of invoice do you need?</div>
+  <div class="sec-sub">Choose generic for full flexibility, or industry-specific for pre-labeled fields</div>
+  <div class="type-grid">
+    <div class="type-card" onclick="chooseType('generic')">
+      <div class="type-icon">📋</div>
+      <div class="type-name">Generic Invoice</div>
+      <div class="type-desc">Blank fields — you label them yourself. Works for any business, any purpose. Maximum flexibility.</div>
+    </div>
+    <div class="type-card" onclick="chooseType('specific')">
+      <div class="type-icon">🏥</div>
+      <div class="type-name">Industry-Specific</div>
+      <div class="type-desc">Pre-labeled fields for your industry — Medical, Freelancer, Restaurant, Construction, Legal & more.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: INDUSTRY (only for specific type) -->
+<div class="section" id="sec2">
+  <div class="sec-title">Choose Your Industry</div>
+  <div class="sec-sub">Fields will be pre-labeled to match your industry</div>
+  <button class="btn-back" onclick="goTo(1)" style="display:block;margin:0 auto 24px;">← Back</button>
+  <div class="industry-grid">
+    <div class="industry-card" onclick="chooseIndustry('freelancer')">
+      <div class="industry-icon">💻</div>
+      <div class="industry-name">Freelancer</div>
+      <div class="industry-desc">Project, Hours, Rate, Milestone</div>
+    </div>
+    <div class="industry-card" onclick="chooseIndustry('medical')">
+      <div class="industry-icon">🏥</div>
+      <div class="industry-name">Medical / Clinic</div>
+      <div class="industry-desc">Patient, Doctor, Treatment, Diagnosis</div>
+    </div>
+    <div class="industry-card" onclick="chooseIndustry('restaurant')">
+      <div class="industry-icon">🍽️</div>
+      <div class="industry-name">Restaurant</div>
+      <div class="industry-desc">Table, Waiter, Food Items, Tip</div>
+    </div>
+    <div class="industry-card" onclick="chooseIndustry('construction')">
+      <div class="industry-icon">🏗️</div>
+      <div class="industry-name">Construction</div>
+      <div class="industry-desc">Site, Materials, Labor, Equipment</div>
+    </div>
+    <div class="industry-card" onclick="chooseIndustry('legal')">
+      <div class="industry-icon">⚖️</div>
+      <div class="industry-name">Legal / Law Firm</div>
+      <div class="industry-desc">Case No., Billable Hours, Court Fees</div>
+    </div>
+    <div class="industry-card" onclick="chooseIndustry('realestate')">
+      <div class="industry-icon">🏠</div>
+      <div class="industry-name">Real Estate</div>
+      <div class="industry-desc">Property, Commission %, Sale Price</div>
+    </div>
+    <div class="industry-card" onclick="chooseIndustry('retail')">
+      <div class="industry-icon">🛍️</div>
+      <div class="industry-name">Retail / Shop</div>
+      <div class="industry-desc">Product, SKU, Discount, Qty</div>
+    </div>
+    <div class="industry-card" onclick="chooseIndustry('event')">
+      <div class="industry-icon">🎪</div>
+      <div class="industry-name">Events / Wedding</div>
+      <div class="industry-desc">Event Date, Venue, Services, Deposit</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3: STYLE -->
+<div class="section" id="sec3">
+  <div class="sec-title">Choose Your Design Style</div>
+  <div class="sec-sub">11 professional designs — all work with your selected fields</div>
+  <button class="btn-back" onclick="goBackFromStyle()" style="display:block;margin:0 auto 24px;">← Back</button>
+  <div class="style-grid">
+    <div class="style-card" onclick="selectStyle('blue')">
+      <div class="style-thumb blue"><span>📋</span><span class="style-badge">Corporate</span></div>
+      <div class="style-info"><div class="style-name">Corporate Blue</div><div class="style-desc">Navy header, formal layout.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('dark')">
+      <div class="style-thumb dark"><span>🌑</span><span class="style-badge">Premium</span></div>
+      <div class="style-info"><div class="style-name">Dark Executive</div><div class="style-desc">Black & gold, high-end look.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('minimal')">
+      <div class="style-thumb minimal"><span style="color:#111;">✦</span><span class="style-badge" style="background:rgba(0,0,0,0.12);color:#333;">Clean</span></div>
+      <div class="style-info"><div class="style-name">Minimal Clean</div><div class="style-desc">White, red accent, ultra-clean.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('green')">
+      <div class="style-thumb green"><span>🌿</span><span class="style-badge">Fresh</span></div>
+      <div class="style-info"><div class="style-name">Fresh Green</div><div class="style-desc">Dark green, eco & wellness.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('purple')">
+      <div class="style-thumb purple"><span>💜</span><span class="style-badge">Creative</span></div>
+      <div class="style-info"><div class="style-name">Creative Purple</div><div class="style-desc">Bold purple for designers.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('red')">
+      <div class="style-thumb red"><span>🔴</span><span class="style-badge">Bold</span></div>
+      <div class="style-info"><div class="style-name">Bold Red</div><div class="style-desc">Deep red, enterprise look.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('orange')">
+      <div class="style-thumb orange"><span>🔶</span><span class="style-badge">Warm</span></div>
+      <div class="style-info"><div class="style-name">Warm Orange</div><div class="style-desc">Gold-orange, retail & food.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('teal')">
+      <div class="style-thumb teal"><span>🔷</span><span class="style-badge">Tech</span></div>
+      <div class="style-info"><div class="style-name">Tech Teal</div><div class="style-desc">Teal & dark, SaaS & IT.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('bw')">
+      <div class="style-thumb bw"><span style="color:#111;font-size:22px;font-weight:900;">INV</span><span class="style-badge" style="background:rgba(0,0,0,0.12);color:#111;">Minimal</span></div>
+      <div class="style-info"><div class="style-name">Black & White</div><div class="style-desc">Pure typography, timeless.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('beige')">
+      <div class="style-thumb beige"><span>🤎</span><span class="style-badge">Warm</span></div>
+      <div class="style-info"><div class="style-name">Beige Warm</div><div class="style-desc">Brown & beige, luxury feel.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+    <div class="style-card" onclick="selectStyle('bold')">
+      <div class="style-thumb bold"><span style="font-size:18px;font-weight:900;color:#ddd;">INVOICE</span><span class="style-badge">Bold</span></div>
+      <div class="style-info"><div class="style-name">Bold Typography</div><div class="style-desc">Giant text background, creative.</div></div>
+      <button class="btn-select">Select →</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 4: FORM -->
+<div class="section" id="sec4">
+  <div class="form-wrap">
+    <div>
+      <button class="btn-back" onclick="goTo(3)">← Change Style</button>
+      <div class="form-panel">
+        <h2 id="formTitle">📝 Invoice Details</h2>
+        <div id="dynamicFields"></div>
+        <div class="sec-label">Invoice Info</div>
+        <div class="form-row">
+          <div class="fg"><label>Invoice Number</label><input id="invNum" type="text" value="INV-001" oninput="liveUpdate()"/></div>
+          <div class="fg"><label>Currency</label>
+            <select id="currency" onchange="liveUpdate()">
+              <option value="$">USD ($)</option><option value="€">EUR (€)</option>
+              <option value="£">GBP (£)</option><option value="PKR ">PKR</option><option value="AED ">AED</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg"><label>Invoice Date</label><input id="invDate" type="date" oninput="liveUpdate()"/></div>
+          <div class="fg"><label>Due Date</label><input id="dueDate" type="date" oninput="liveUpdate()"/></div>
+        </div>
+        <div class="sec-label">Items</div>
+        <div class="items-hdr" id="itemsHdr"></div>
+        <div id="itemsList"></div>
+        <button class="btn-add-item" onclick="addItem()">+ Add Item</button>
+        <div class="totals-box">
+          <div class="tot-row"><span>Subtotal</span><span id="subtotalDisp">$0.00</span></div>
+          <div class="tot-row"><span>Tax %</span><input id="taxRate" type="number" value="0" min="0" max="100" oninput="liveUpdate()"/><span id="taxDisp">$0.00</span></div>
+          <div class="tot-row grand"><span>TOTAL DUE</span><span id="grandDisp">$0.00</span></div>
+        </div>
+        <div class="fg" style="margin-top:14px;"><label>Notes</label><textarea id="notes" placeholder="Payment terms, bank details..." oninput="liveUpdate()"></textarea></div>
+        <button class="btn-generate" onclick="downloadInvoice()">⚡ Download Invoice — FREE</button>
+      </div>
+    </div>
+    <div class="mini-preview">
+      <h3>👁️ Live Preview</h3>
+      <div id="miniPreviewBox" style="background:#fff;border-radius:10px;padding:14px;min-height:280px;overflow:hidden;"></div>
+      <div class="dl-section" style="margin-top:10px;">
+        <p class="wm-note" id="wmNote"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── STATE ──
+  let invoiceType = 'generic';
+  let selectedIndustry = 'generic';
+  let selectedStyle = 'blue';
+  let items = [];
+  const today = new Date().toISOString().split('T')[0];
+  const due14 = new Date(); due14.setDate(due14.getDate()+14);
+
+  // ── INDUSTRY CONFIGS ──
+  const INDUSTRIES = {
+    generic: {
+      title:'📋 Invoice Details',
+      from:['Business / Your Name','Email','Phone','Address'],
+      to:['Client Name','Client Email','Client Address'],
+      cols:['Description','Qty','Rate'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    freelancer: {
+      title:'💻 Freelancer Invoice',
+      from:['Your Full Name / Company','Email','Phone','Portfolio / Website'],
+      to:['Client Name','Client Company','Client Email'],
+      cols:['Project / Task','Hours','Hourly Rate'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    medical: {
+      title:'🏥 Medical Invoice',
+      from:['Clinic / Hospital Name','Doctor Name','Email','Address'],
+      to:['Patient Name','Patient ID','Insurance Provider'],
+      cols:['Treatment / Service','Diagnosis Code','Fee'],
+      defaultItem:{c1:'',c2:'',c3:'0'}
+    },
+    restaurant: {
+      title:'🍽️ Restaurant Invoice',
+      from:['Restaurant Name','Email','Phone','Address'],
+      to:['Customer Name','Table No.','Waiter Name'],
+      cols:['Item / Dish','Qty','Price'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    construction: {
+      title:'🏗️ Construction Invoice',
+      from:['Company Name','Contractor Name','Email','License No.'],
+      to:['Client Name','Site Address','Project Name'],
+      cols:['Description (Materials/Labor)','Unit','Rate'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    legal: {
+      title:'⚖️ Legal Invoice',
+      from:['Law Firm Name','Attorney Name','Email','Bar No.'],
+      to:['Client Name','Case Number','Court / Jurisdiction'],
+      cols:['Service / Activity','Billable Hrs','Rate'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    realestate: {
+      title:'🏠 Real Estate Invoice',
+      from:['Agency Name','Agent Name','Email','License No.'],
+      to:['Client Name','Property Address','Transaction Type'],
+      cols:['Service','Sale Price / Value','Commission %'],
+      defaultItem:{c1:'',c2:'0',c3:'0'}
+    },
+    retail: {
+      title:'🛍️ Retail Invoice',
+      from:['Store Name','Email','Phone','Address'],
+      to:['Customer Name','Customer Email','Customer Phone'],
+      cols:['Product','SKU / Code','Unit Price'],
+      defaultItem:{c1:'',c2:'',c3:'0'}
+    },
+    event: {
+      title:'🎪 Event Invoice',
+      from:['Event Company Name','Contact Person','Email','Phone'],
+      to:['Client Name','Event Name','Event Date'],
+      cols:['Service / Package','Details','Fee'],
+      defaultItem:{c1:'',c2:'',c3:'0'}
+    }
+  };
+
+  // ── COLORS ──
+  const COLORS = {
+    blue:{bg:'#1a3a6b',accent:'#2a5aab',light:'#e8f0fb',bodyBg:'#fff',text:'#1a1a2e',th:'#1a3a6b',thText:'#fff',border:'#d0ddf0'},
+    dark:{bg:'#1a1a1a',accent:'#f0c040',light:'#222',bodyBg:'#1a1a1a',text:'#ccc',th:'#111',thText:'#f0c040',border:'#2a2a2a'},
+    minimal:{bg:'#111',accent:'#ff4757',light:'#f8f8f8',bodyBg:'#fff',text:'#111',th:'#111',thText:'#fff',border:'#eee'},
+    green:{bg:'#0d3b2e',accent:'#1a8b5a',light:'#e8f5ee',bodyBg:'#fff',text:'#1a2e1a',th:'#0d3b2e',thText:'#fff',border:'#c8e8d8'},
+    purple:{bg:'#2a1a4a',accent:'#7a2adc',light:'#f0e8ff',bodyBg:'#fff',text:'#1a1a2e',th:'#2a1a4a',thText:'#fff',border:'#d8c8f0'},
+    red:{bg:'#8b2020',accent:'#c83030',light:'#fde8e8',bodyBg:'#fff',text:'#1a1a1a',th:'#8b2020',thText:'#fff',border:'#f0c8c8'},
+    orange:{bg:'#c47820',accent:'#e09030',light:'#fff3e0',bodyBg:'#fff',text:'#1a1a1a',th:'#c47820',thText:'#fff',border:'#f0d8a8'},
+    teal:{bg:'#0a5a6b',accent:'#1a8a9b',light:'#e0f5f8',bodyBg:'#fff',text:'#1a2a2e',th:'#0a5a6b',thText:'#fff',border:'#b0dde8'},
+    bw:{bg:'#111',accent:'#111',light:'#f5f5f5',bodyBg:'#fff',text:'#111',th:'#111',thText:'#fff',border:'#eee'},
+    beige:{bg:'#2a1f14',accent:'#d4b896',light:'#f0e8d8',bodyBg:'#faf7f2',text:'#2a1f14',th:'#2a1f14',thText:'#d4b896',border:'#e0d4c0'},
+    bold:{bg:'#111',accent:'#555',light:'#f5f5f5',bodyBg:'#fff',text:'#111',th:'#111',thText:'#fff',border:'#eee'}
+  };
+
+  // ── NAVIGATION ──
+  function navBack(){
+    var active = document.querySelector('.section.active');
+    if(!active || active.id === 'sec1') { window.location.href='main.html'; return; }
+    var n = parseInt(active.id.replace('sec',''));
+    if(n === 2) goTo(1);
+    else if(n === 3) goBackFromStyle();
+    else if(n === 4) goTo(3);
+    else window.location.href='main.html';
+  }
+
+  function goTo(n, fromPopState){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec'+n).classList.add('active');
+    for(let i=1;i<=4;i++){
+      const s=document.getElementById('step'+i);
+      s.classList.remove('active','done');
+      if(i<n) s.classList.add('done');
+      if(i===n) s.classList.add('active');
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(!fromPopState) history.pushState({step:n}, '', '#step'+n);
+  }
+
+  window.addEventListener('popstate', function(e){
+    if(e.state && e.state.step) goTo(e.state.step, true);
+    else goTo(1, true);
+  });
+
+  function chooseType(type){
+    invoiceType = type;
+    if(type==='generic'){
+      selectedIndustry='generic';
+      goTo(3);
+    } else {
+      goTo(2);
+    }
+  }
+
+  function chooseIndustry(ind){
+    selectedIndustry = ind;
+    goTo(3);
+  }
+
+  function goBackFromStyle(){
+    if(invoiceType==='generic') goTo(1);
+    else goTo(2);
+  }
+
+  function selectStyle(style){
+    selectedStyle = style;
+    buildForm();
+    goTo(4);
+    document.getElementById('invDate').value = today;
+    document.getElementById('dueDate').value = due14.toISOString().split('T')[0];
+    liveUpdate();
+  }
+
+  // ── FORM BUILDER ──
+  function buildForm(){
+    const cfg = INDUSTRIES[selectedIndustry];
+    document.getElementById('formTitle').textContent = cfg.title;
+    // Dynamic from/to fields
+    let html = `<div class="sec-label">Your Details</div>`;
+    html += `<div class="form-row">`;
+    cfg.from.forEach((lbl,i)=>{
+      html+=`<div class="fg"><label>${lbl}</label><input id="from_${i}" type="text" placeholder="${lbl}" oninput="liveUpdate()"/></div>`;
+      if(i%2===1) html+=`</div><div class="form-row">`;
+    });
+    html+=`</div>`;
+    html+=`<div class="sec-label">Client Details</div><div class="form-row">`;
+    cfg.to.forEach((lbl,i)=>{
+      html+=`<div class="fg"><label>${lbl}</label><input id="to_${i}" type="text" placeholder="${lbl}" oninput="liveUpdate()"/></div>`;
+      if(i%2===1) html+=`</div><div class="form-row">`;
+    });
+    html+=`</div>`;
+    document.getElementById('dynamicFields').innerHTML=html;
+    // Items header
+    document.getElementById('itemsHdr').style.gridTemplateColumns=`2.5fr 1fr 1fr 1fr 28px`;
+    document.getElementById('itemsHdr').innerHTML=cfg.cols.map(c=>`<span>${c}</span>`).join('')+`<span>Total</span><span></span>`;
+    // Reset items
+    items=[{...cfg.defaultItem,qty:1,rate:0}];
+    renderItems();
+  }
+
+  function getFromTo(){
+    const cfg=INDUSTRIES[selectedIndustry];
+    const from=cfg.from.map((_,i)=>document.getElementById('from_'+i)?.value||'').filter(Boolean);
+    const to=cfg.to.map((_,i)=>document.getElementById('to_'+i)?.value||'').filter(Boolean);
+    return {from,to};
+  }
+
+  function addItem(){
+    const cfg=INDUSTRIES[selectedIndustry];
+    items.push({...cfg.defaultItem,qty:1,rate:0});
+    renderItems(); liveUpdate();
+  }
+  function removeItem(i){ if(items.length>1){items.splice(i,1);renderItems();liveUpdate();} }
+
+  function renderItems(){
+    const cur=document.getElementById('currency')?.value||'$';
+    const el=document.getElementById('itemsList'); if(!el)return;
+    el.innerHTML='';
+    items.forEach((item,i)=>{
+      const t=((parseFloat(item.qty)||0)*(parseFloat(item.rate)||0)).toFixed(2);
+      const row=document.createElement('div');
+      row.className='item-row';
+      row.style.gridTemplateColumns='2.5fr 1fr 1fr 1fr 28px';
+      row.innerHTML=`<input type="text" placeholder="Description" value="${item.c1||''}" oninput="items[${i}].c1=this.value;liveUpdate()"/>
+        <input type="text" placeholder="${INDUSTRIES[selectedIndustry].cols[1]}" value="${item.c2||''}" oninput="items[${i}].c2=this.value;liveUpdate()"/>
+        <input type="number" placeholder="0.00" value="${item.rate||0}" min="0" step="0.01" oninput="items[${i}].rate=this.value;liveUpdate()"/>
+        <div class="item-total-cell">${cur}${t}</div>
+        <button class="btn-remove-item" onclick="removeItem(${i})">✕</button>`;
+      el.appendChild(row);
+    });
+  }
+
+  function getValues(){
+    const cur=document.getElementById('currency')?.value||'$';
+    const sub=items.reduce((s,it)=>s+(parseFloat(it.c2)||parseFloat(it.qty)||0)*(parseFloat(it.rate)||0),0);
+    // For non-qty industries, use c2 as qty where numeric, else 1
+    const realSub=items.reduce((s,it)=>{
+      const q=parseFloat(it.c2)||1;
+      const r=parseFloat(it.rate)||0;
+      return s+q*r;
+    },0);
+    const tax=realSub*(parseFloat(document.getElementById('taxRate')?.value)||0)/100;
+    const ft=getFromTo();
+    return {cur,sub:realSub,tax,grand:realSub+tax,
+      fromName:ft.from[0]||'Your Business',fromDetails:ft.from.slice(1).join(' | '),
+      toName:ft.to[0]||'Client',toDetails:ft.to.slice(1).join(' | '),
+      invNum:document.getElementById('invNum')?.value||'INV-001',
+      invDate:document.getElementById('invDate')?.value||today,
+      dueDate:document.getElementById('dueDate')?.value||'',
+      notes:document.getElementById('notes')?.value||''
+    };
+  }
+
+  function liveUpdate(){
+    const v=getValues();
+    if(document.getElementById('subtotalDisp')) document.getElementById('subtotalDisp').textContent=v.cur+v.sub.toFixed(2);
+    if(document.getElementById('taxDisp')) document.getElementById('taxDisp').textContent=v.cur+v.tax.toFixed(2);
+    if(document.getElementById('grandDisp')) document.getElementById('grandDisp').textContent=v.cur+v.grand.toFixed(2);
+    renderItems();
+    updateMiniPreview(v);
+  }
+
+  function updateMiniPreview(v){
+    const el=document.getElementById('miniPreviewBox'); if(!el)return;
+    const c=COLORS[selectedStyle]||COLORS.blue;
+    const rows=items.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:3px 5px;font-size:8px;border-bottom:1px solid #eee;">${it.c1||'—'}</td><td style="padding:3px 5px;font-size:8px;text-align:center;">${it.c2||1}</td><td style="padding:3px 5px;font-size:8px;text-align:right;">${v.cur}${r.toFixed(2)}</td><td style="padding:3px 5px;font-size:8px;text-align:right;font-weight:700;">${v.cur}${t}</td></tr>`;}).join('');
+    const wm=((typeof WATERMARK_ON!=='undefined')&&WATERMARK_ON)?`<div style="text-align:center;font-size:7px;color:#ccc;margin-top:5px;opacity:0.5;">LazyDogTemplates.com</div>`:'';
+    el.innerHTML=`
+      <div style="background:${c.bg};color:#fff;padding:8px 12px;display:flex;justify-content:space-between;margin:-14px -14px 8px;border-radius:10px 10px 0 0;">
+        <div style="font-size:10px;font-weight:800;">${v.fromName}</div>
+        <div style="font-size:11px;font-weight:900;letter-spacing:1px;">INVOICE</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:8px;color:#333;">
+        <div><b>From:</b> ${v.fromName}</div>
+        <div style="text-align:right;"><b>To:</b> ${v.toName}<br/>${v.invNum}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:5px;">
+        <thead><tr style="background:${c.th};"><th style="padding:3px 5px;font-size:7px;color:${c.thText};text-align:left;">Item</th><th style="padding:3px 5px;font-size:7px;color:${c.thText};text-align:center;">Qty</th><th style="padding:3px 5px;font-size:7px;color:${c.thText};text-align:right;">Rate</th><th style="padding:3px 5px;font-size:7px;color:${c.thText};text-align:right;">Total</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="text-align:right;font-size:8px;"><b>Total: <span style="color:${c.accent};font-size:10px;">${v.cur}${v.grand.toFixed(2)}</span></b></div>
+      ${wm}`;
+  }
+
+  function buildInvoiceHTML(v){
+    const c=COLORS[selectedStyle]||COLORS.blue;
+    const showWM=(typeof WATERMARK_ON!=='undefined')?WATERMARK_ON:true;
+    const wm=showWM?`<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:80px;font-weight:900;color:rgba(100,100,100,0.06);white-space:nowrap;pointer-events:none;">LazyDogTemplates</div>`:'';
+    const footer=`<div style="background:${c.bg};color:rgba(255,255,255,0.5);text-align:center;padding:12px;font-size:11px;">LazyDogTemplates.com — Free Invoice Generator</div>`;
+    const cfg=INDUSTRIES[selectedIndustry];
+    const itemRows=items.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:11px 14px;border-bottom:1px solid ${c.border};font-size:13px;">${it.c1||''}</td><td style="padding:11px 14px;border-bottom:1px solid ${c.border};font-size:13px;text-align:center;">${it.c2||1}</td><td style="padding:11px 14px;border-bottom:1px solid ${c.border};font-size:13px;text-align:center;">${v.cur}${r.toFixed(2)}</td><td style="padding:11px 14px;border-bottom:1px solid ${c.border};font-size:13px;text-align:right;font-weight:700;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Invoice ${v.invNum}</title></head>
+<body style="margin:0;padding:0;font-family:'Segoe UI',sans-serif;background:#f0f4f8;">
+${wm}
+<div style="max-width:800px;margin:30px auto;background:${c.bodyBg};box-shadow:0 4px 30px rgba(0,0,0,0.12);">
+  <div style="background:${c.bg};color:#fff;padding:36px 50px;display:flex;justify-content:space-between;align-items:center;">
+    <div><div style="font-size:22px;font-weight:900;">${v.fromName}</div><div style="font-size:11px;opacity:0.7;margin-top:4px;">${v.fromDetails}</div></div>
+    <div style="text-align:right;"><div style="font-size:28px;font-weight:900;letter-spacing:3px;">INVOICE</div><div style="font-size:12px;opacity:0.7;margin-top:4px;">${v.invNum}</div></div>
+  </div>
+  <div style="background:${c.light};padding:14px 50px;display:flex;justify-content:space-between;border-bottom:2px solid ${c.bg};">
+    <div><div style="font-size:10px;font-weight:700;color:${c.accent};text-transform:uppercase;">Date</div><div style="font-size:13px;font-weight:700;margin-top:2px;">${v.invDate}</div></div>
+    <div><div style="font-size:10px;font-weight:700;color:${c.accent};text-transform:uppercase;">Due Date</div><div style="font-size:13px;font-weight:700;margin-top:2px;">${v.dueDate}</div></div>
+    <div><div style="font-size:10px;font-weight:700;color:${c.accent};text-transform:uppercase;">Invoice #</div><div style="font-size:13px;font-weight:700;margin-top:2px;">${v.invNum}</div></div>
+  </div>
+  <div style="padding:34px 50px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-bottom:32px;">
+      <div><div style="font-size:10px;font-weight:700;color:${c.accent};text-transform:uppercase;border-bottom:2px solid ${c.bg};padding-bottom:5px;margin-bottom:8px;">${cfg.from[0]||'From'}</div><div style="font-size:13px;line-height:1.8;"><strong>${v.fromName}</strong><br/>${v.fromDetails}</div></div>
+      <div><div style="font-size:10px;font-weight:700;color:${c.accent};text-transform:uppercase;border-bottom:2px solid ${c.bg};padding-bottom:5px;margin-bottom:8px;">${cfg.to[0]||'Bill To'}</div><div style="font-size:13px;line-height:1.8;"><strong>${v.toName}</strong><br/>${v.toDetails}</div></div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
+      <thead><tr style="background:${c.th};">${cfg.cols.map(col=>`<th style="padding:10px 14px;font-size:10px;color:${c.thText};text-transform:uppercase;text-align:left;">${col}</th>`).join('')}<th style="padding:10px 14px;font-size:10px;color:${c.thText};text-transform:uppercase;text-align:right;">Total</th></tr></thead>
+      <tbody>${itemRows}</tbody>
+    </table>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:26px;">
+      <div style="width:230px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid ${c.border};"><span>Subtotal</span><span>${v.cur}${v.sub.toFixed(2)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid ${c.border};"><span>Tax</span><span>${v.cur}${v.tax.toFixed(2)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;padding:11px 14px;background:${c.bg};color:#fff;margin-top:2px;"><span>Total Due</span><span>${v.cur}${v.grand.toFixed(2)}</span></div>
+      </div>
+    </div>
+    ${v.notes?`<div style="background:${c.light};border-left:4px solid ${c.accent};padding:12px 16px;font-size:12px;line-height:1.7;">${v.notes}</div>`:''}
+  </div>
+  ${footer}
+</div></body></html>`;
+  }
+
+  function downloadInvoice(){
+    const v=getValues();
+    const html=buildInvoiceHTML(v);
+    const w=window.open('','_blank');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(()=>w.print(),800);
+  }
+
+  // Set watermark note
+  window.addEventListener('load',()=>{
+    const n=document.getElementById('wmNote');
+    if(n) n.textContent=(typeof WATERMARK_ON!=='undefined'&&WATERMARK_ON)?'* Includes LazyDogTemplates branding':'✅ Clean download — no watermark';
+  });
+</script>
+<!-- ══ COLOUR PICKER ══ -->
+<style>
+.colour-panel{display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:100000;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);}
+.colour-panel.open{display:block!important;}
+.colour-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Segoe UI',sans-serif;}
+.colour-panel canvas{display:block;border-radius:10px;cursor:crosshair;border:1px solid rgba(255,255,255,0.1);}
+.colour-panel-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.colour-swatch{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);flex-shrink:0;}
+.colour-hex{font-size:13px;font-weight:700;color:#fff;font-family:'Segoe UI',sans-serif;}
+.colour-reset{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;transition:all 0.2s;}
+</style>
+<!-- Colour panel removed — handled centrally by navbar.js (#nbCPicker) -->
+<!-- Page-local colour-picker script removed — colour handled centrally by navbar.js (#nbCPicker) -->
+
+<nav>
+  <a href="index.html">Home</a>
+  <a href="main.html">Marketplace Hub</a>
+  <a href="pitch_deck_folder_section.html">Pitch Decks</a>
+  <a href="media_kits_folder_section.html">Media Kits</a>
+  <a href="web_kit_folder_file.html">Website Kits</a>
+  <a href="social_kits.html">Social Kits</a>
+</nav>
+</body>
+</html>

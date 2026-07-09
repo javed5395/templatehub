@@ -1,0 +1,12 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── PRIVATE bucket (lazydog-studio-private) ───────────────────────────
+    // Only Firebase Functions (server-side) can read/write here.
+    // No browser or user can access this bucket directly.
+    match /{allPaths=**} {
+      allow read, write: if false;  // all access via Firebase Admin SDK only
+    }
+  }
+}
