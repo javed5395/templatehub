@@ -6,15 +6,15 @@
   <title>Free & Premium Website Kit Templates — Download Instantly | LazyDogTemplates</title>
 
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Browse free & premium media kit templates for influencers, brands, podcasters & creators. Professionally designed, fully editable — download your media kit template instantly." />
-  <meta name="keywords" content="media kit templates, influencer media kit, brand media kit, press kit template, download media kit, podcaster media kit, freelancer media kit, LazyDogTemplates" />
+  <meta name="description" content="Browse free & premium website UI kit templates for startups, SaaS, agencies & businesses. Professionally designed, fully editable — download your website kit instantly." />
+  <meta name="keywords" content="website kit templates, website UI kit, landing page template, SaaS website template, startup website kit, HTML template, download website kit, LazyDogTemplates" />
   <meta name="author" content="LazyDogTemplates" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.lazydogtemplates.com/web_kit_slides.html" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="Website Kit Templates — LazyDogTemplates" />
-  <meta property="og:description" content="Download free media kit templates for influencers, brands and creators. Showcase your brand and attract collaborations." />
+  <meta property="og:description" content="Download premium website UI kit templates for startups, SaaS and agencies. Launch faster with editable, professional website kits." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.lazydogtemplates.com/web_kit_slides.html" />
   <meta property="og:image" content="https://www.lazydogtemplates.com/og-media-kits.jpg" />
@@ -22,7 +22,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Website Kit Templates — LazyDogTemplates" />
-  <meta name="twitter:description" content="Free media kit templates for influencers and brands. Download and customize instantly." />
+  <meta name="twitter:description" content="Premium website UI kit templates for startups and businesses. Download and customize instantly." />
   <meta name="twitter:image" content="https://www.lazydogtemplates.com/og-media-kits.jpg" />
 
   <!-- JSON-LD Structured Data -->
@@ -32,7 +32,7 @@
     "@type": "CollectionPage",
     "name": "Website Kit Templates — LazyDogTemplates",
     "url": "https://www.lazydogtemplates.com/web_kit_slides.html",
-    "description": "Browse professional media kit templates for creators, influencers, brands and businesses.",
+    "description": "Browse professional website UI kit templates for startups, SaaS, agencies and businesses.",
     "isPartOf": {
       "@type": "WebSite",
       "name": "LazyDogTemplates",
@@ -302,7 +302,7 @@ function buildMkCatPanel() {
 
   var allRow = document.createElement('div');
   allRow.className = 'cat-item';
-  allRow.innerHTML = '<span class="ci-icon">🗂️</span><span class="ci-name">All Media Kits</span>';
+  allRow.innerHTML = '<span class="ci-icon">🗂️</span><span class="ci-name">All Website Kits</span>';
   allRow.addEventListener('click', function() { window.location = 'web_kit_folder_file.html'; });
   allRow.addEventListener('mouseenter', function() { hideSub(); });
   panel.appendChild(allRow);
@@ -479,7 +479,7 @@ document.addEventListener('click',function(e){
           <div class="etsy-item-row"><span class="ei-icon">🎨</span><span><strong>Style:</strong> <span class="ei-val" id="specStyle"></span></span></div>
           <div class="etsy-item-row" id="industryRow" style="display:none;"><span class="ei-icon">🏢</span><span><strong>Industry:</strong> <span class="ei-val" id="specIndustry"></span></span></div>
           <div class="etsy-item-row" id="designDocRow" style="display:none;"><span class="ei-icon">📋</span><span><strong>Design Description:</strong> <a id="designDocLink" href="#" target="_blank" style="color:#d4af37;text-decoration:none;font-weight:400;">📥 Download Design Brief</a></span></div>
-          <div class="etsy-sparkle-line" id="etsySparkle">✦ Professional media kit — fully editable ✦</div>
+          <div class="etsy-sparkle-line" id="etsySparkle">✦ Professional website kit — fully editable ✦</div>
           <div class="etsy-desc-text" id="etsyDescText"></div>
           <button class="etsy-learn-more" onclick="toggleLearnMore(this)">Learn more about this item</button>
         </div>
@@ -501,7 +501,7 @@ document.addEventListener('click',function(e){
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div style="font-size:48px;margin-bottom:16px;">📥</div>
-    <h2>Get Your Free Media Kit</h2>
+    <h2>Get Your Free Website Kit</h2>
     <p id="modalDesc">Enter your email to download instantly. No spam. No subscription.</p>
     <div class="email-wrap">
       <input type="email" id="emailInput" placeholder="your@email.com" autocomplete="off"/>
@@ -1014,13 +1014,13 @@ function getMkUrl(k, n, transform) {
     window._ldtSellerId = docData.sellerId || (docData.template && docData.template.sellerId) || '';
     var t = docData.template || {};
     // ── category label mapping ──
-    var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume:'Resume', report:'Report' };
+    var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', web_kit:'Website Kit', social_media_kit:'Social Media Kit', resume_cv:'Resume / CV', digital_keynotes:'Digital Keynote', presentation:'Presentation', resume:'Resume', report:'Report' };
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKitData = {
       name:         t.name || 'Untitled Website Kit',
       titleHTML:    (t.name || 'Untitled Website Kit') + '<br/><span>Website Kit</span>',
-      desc:         t.designNotes || t.description || 'A professional media kit template.',
-      type:         catLabels[t.category] || t.type || 'Media Kit',
+      desc:         t.designNotes || t.description || 'A professional website kit template.',
+      type:         catLabels[t.category] || t.type || 'Website Kit',
       style:        industryLabels[t.industry] || t.style || 'Professional',
       pageCount:    t.slideCount || (t.slides ? t.slides.length : 0),
       slides:       t.slides || [],
@@ -1125,7 +1125,7 @@ function loadKit(k) {
   var sparkleEl = document.getElementById('etsySparkle');
   if (sparkleEl) {
     var pricePart = (k.price && k.price !== 'free' && k.price !== '0') ? 'Premium' : 'Free';
-    sparkleEl.textContent = '✦ ' + pricePart + ' ' + (k.type || 'Media Kit') + ' — instant digital download ✦';
+    sparkleEl.textContent = '✦ ' + pricePart + ' ' + (k.type || 'Website Kit') + ' — instant digital download ✦';
   }
 
   // Keywords row
@@ -1197,7 +1197,7 @@ function ldtCurrentProduct(){
   var pid = window._ldtProductId || (new URLSearchParams(location.search)).get('firebase') || '';
   return {
     productId: String(pid), id: String(pid),
-    title: String(k.name || 'Media Kit'),
+    title: String(k.name || 'Website Kit'),
     price: k.price,
     sellerId: String(window._ldtSellerId || '')
   };
