@@ -446,6 +446,10 @@ document.addEventListener('click',function(e){
       <div class="slide-counter" id="slideCounter">Page 1 of 6</div>
     </div>
     <div class="thumbnails" id="thumbRow"></div>
+    <div id="previewVideoBlock" style="display:none;margin-top:16px;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#8899aa;margin-bottom:8px;">▶ Preview Video</div>
+      <video id="previewVideo" controls preload="metadata" playsinline style="width:100%;border-radius:8px;background:#0a0a1e;"></video>
+    </div>
   </div>
 
   <div class="info-panel">
@@ -1020,6 +1024,7 @@ function getMkUrl(k, n, transform) {
       style:        industryLabels[t.industry] || t.style || 'Professional',
       pageCount:    t.slideCount || (t.slides ? t.slides.length : 0),
       slides:       t.slides || [],
+      videoUrl:     t.videoUrl || docData.videoUrl || null,
       pageTitles:   t.slideTitles || [],
       pptxUrl:      t.pptxUrl || null,
       pdfUrl:       t.pdfUrl || null,
@@ -1088,6 +1093,19 @@ function loadKit(k) {
       industryRowEl.style.display = 'flex';
     } else {
       industryRowEl.style.display = 'none';
+    }
+  }
+
+  // Preview video (shown only when the seller uploaded one)
+  var pvBlock = document.getElementById('previewVideoBlock');
+  var pvVideo = document.getElementById('previewVideo');
+  if (pvBlock && pvVideo) {
+    if (k.videoUrl) {
+      pvVideo.src = k.videoUrl;
+      pvBlock.style.display = 'block';
+    } else {
+      pvVideo.removeAttribute('src');
+      pvBlock.style.display = 'none';
     }
   }
 
