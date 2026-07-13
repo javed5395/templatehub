@@ -17,3 +17,13 @@ firebase/functions/meta_codec.py
 .env
 .DS_Store
 Thumbs.db
+
+# --- Buyer autofill system — PRIVATE brain/heart, never expose on the public site ---
+fit_engine.js
+buyer_flow_test.html
+editor_opus.html
+content_fitter.py
+
+# AI cascade — private, deploy to Firebase but never GitHub
+ai_fill.py
+firebase/functions/ai_fill.py
