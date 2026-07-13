@@ -57,7 +57,7 @@
        (width: min(82vw, 1000px)) instead of the too-narrow 420px cap that
        forced the two-column layout to collapse into a single stacked strip. */
     /* Results (LEFT) sit PARALLEL to the card (RIGHT) in one row, instead of below it. */
-    #metaSearchRow { display:flex; align-items:flex-start; gap:28px; padding:0 40px; position:relative; z-index:5; }
+    #metaSearchRow { display:flex; flex-wrap:wrap; align-items:flex-start; gap:28px; padding:0 40px; position:relative; z-index:5; }
     #metaSearchCardWrap { flex:0 0 auto; margin-left:auto; margin-top:-70px; pointer-events:none; }
     #metaSearchCardWrap #searchWidget { pointer-events:auto; }
     #searchWidget { width:min(82vw,1000px); background:#ffffff; overflow:hidden; max-height:260px; transition:max-height 0.45s cubic-bezier(0.4,0,0.2,1); cursor:default; border-radius:28px; box-shadow:0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06); font-family:'Inter','Segoe UI',sans-serif; }
@@ -98,12 +98,11 @@
     #searchWidget .sw-field select, #searchWidget .sw-field input { background:#fff; color:#1a1a2e; border:1px solid #d8dce6; border-radius:10px; padding:6px 8px; font-size:12px; }
     #searchWidget .sw-field select[multiple] { height:56px; }
     #searchWidget #clearFiltersBtn { margin-top:10px; background:transparent; border:1px solid #e0a0a0; color:#b23a3a; border-radius:10px; padding:5px 12px; cursor:pointer; font-size:11px; }
-    #metaSearchResultsArea { background:transparent; padding:16px 0 6px; margin-top:-120px; font-family:'Inter',sans-serif; flex:1 1 auto; min-width:0; }
+    #metaSearchResultsArea { background:transparent; padding:16px 40px 10px; margin-top:0; font-family:'Inter',sans-serif; flex:0 0 100%; order:-1; min-width:0; }
     /* BARS TEMPORARILY HIDDEN — delete just this one line to bring the ranked bars back. */
-    #metaSearchResultsArea { display:none; }
     #metaSearchResultsArea .sw-rankHead { font-size:12.5px; font-weight:600; color:#6b7280; margin-bottom:12px; }
     /* two columns of up to 10 (fills top-to-bottom): ranks 1-10 left, 11-20 right — each card half width */
-    #metaSearchResultsArea .sw-rankList { display:grid; grid-auto-flow:column; grid-template-rows:repeat(10, auto); grid-template-columns:repeat(2, 1fr); gap:8px 16px; max-width:820px; }
+    #metaSearchResultsArea .sw-rankList { display:grid; grid-auto-flow:column; grid-template-rows:repeat(5, auto); grid-template-columns:repeat(2, 1fr); gap:8px 16px; max-width:100%; }
     #metaSearchResultsArea .sw-rankCard { display:flex; align-items:flex-start; gap:16px; background:#ffffff; border:1px solid #e5e8f0; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.05); padding:11px 16px; color:#1a1a2e; }
     /* left gauge column: horizontal match bar + % sits at the TOP, aligned with the deck name (width = closeness to the best match) */
     #metaSearchResultsArea .sw-rankGauge { flex:0 0 92px; display:flex; flex-direction:column; gap:5px; margin-top:3px; }
@@ -114,7 +113,7 @@
     #metaSearchResultsArea .sw-rankBody strong { color:#1a1a2e; font-size:13px; display:block; }
     #metaSearchResultsArea .sw-deck-meta { font-size:11.5px; color:#6b7280; line-height:1.5; margin-top:4px; }
     #metaSearchEmptyState { color:#8899aa; font-size:13px; padding:16px 0; }
-    #swResultsSection { display:none; padding:20px 40px 24px; }
+    #swResultsSection { padding:20px 40px 24px; }
     .sw-results-head { font-size:13px; color:#aaaaaa; margin-bottom:14px; }
     .sw-results-head strong { color:#ffffff; }
     #swResultsGrid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; }
