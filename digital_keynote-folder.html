@@ -921,5 +921,12 @@ body.light .pd-card-rating { color: #556677 !important; }
   <a href="social_kits.html">Social Kits</a>
   <a href="media_kits_folder_section.html">Media Kits</a>
 </nav>
+
+<!-- LazyDog: Fill-your-content buyer flow -->
+<script src="buyer_flow.js"></script>
+<script type="module" src="prepare_deck.js"></script>
+<button id="lazydogFillBtn" onclick="LazyDogPrepare(window.__kitSlug||'', document.title||'deck', window.__kitSlides||0)"
+  style="position:fixed;bottom:24px;right:24px;z-index:99999;padding:14px 24px;background:#d4af37;color:#0a0a1e;border:none;border-radius:30px;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,0.28);font-family:Poppins,sans-serif;">✨ Fill your content</button>
+
 </body>
 </html>

@@ -10,6 +10,15 @@ service cloud.firestore {
       allow write: if false;        // only Firebase Function writes via Admin SDK
     }
 
+    // ── kit_slots collection (PRIVATE) ────────────────────────────────────
+    // The full per-slide capacity map. Read ONLY by the fit_content callable
+    // via the Admin SDK (which bypasses these rules). Never readable by the
+    // client — this keeps the matching/capacity logic off the browser.
+    match /kit_slots/{kitId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
     // Block everything else
     match /{document=**} {
       allow read, write: if false;
