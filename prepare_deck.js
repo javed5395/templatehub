@@ -3,7 +3,7 @@
    Usage on a page:  <button onclick="LazyDogPrepare('kit-slug','Kit Name',16)">Fill your content</button> */
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-functions.js";
 
-const EDITOR_URL = "/studio-k7f3a9x2q1.html";   // editor face on THIS site (same origin → handoff works)
+const EDITOR_URL = "/editor.html";   // editor face on THIS site (same origin → handoff works)
 let _fns, _callFit;
 function _ensure() {
   if (!_fns) { _fns = getFunctions(); _callFit = httpsCallable(_fns, 'fit_content'); }
