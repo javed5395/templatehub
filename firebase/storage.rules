@@ -2,11 +2,20 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // ── PRIVATE bucket (lazydog-studio-private) ───────────────────────────
-    // Only Firebase Functions (server-side) can read/write here.
-    // No browser or user can access this bucket directly.
+    // ── Admin upload area ─────────────────────────────────────────────────
+    // The admin (logged in as lazydogtemplates@gmail.com) may upload the
+    // _SYSTEM.pdf + .slots.json into kits/. The Cloud Function (Admin SDK)
+    // still does all the processing; this only lets the admin's own browser
+    // drop the file in. Nobody else can write here.
+    match /kits/{allPaths=**} {
+      allow write: if request.auth != null
+                   && request.auth.token.email == 'lazydogtemplates@gmail.com';
+      allow read: if false;
+    }
+
+    // ── Everything else: server-side (Admin SDK) only ─────────────────────
     match /{allPaths=**} {
-      allow read, write: if false;  // all access via Firebase Admin SDK only
+      allow read, write: if false;
     }
   }
 }
