@@ -219,6 +219,13 @@
     '</div>' +
     '<div id="swResultsSection"><div class="sw-results-head" id="swResultsHead"></div><div id="swResultsGrid"></div></div>';
 
+  // TEMP DIAGNOSTIC — confirm the bars/results elements are in the DOM
+  console.log('[LazyDog] mount built →',
+    'resultsList:', document.getElementById('metaSearchResultsList'),
+    '| resultsArea:', document.getElementById('metaSearchResultsArea'),
+    '| resultsSection:', document.getElementById('swResultsSection'),
+    '| row:', document.getElementById('metaSearchRow'));
+
   // ---------------------------------------------------------
   // DATA — loaded from Firestore `templates` collection.
   // realDecks is removed — allDecks is the single source of truth.
