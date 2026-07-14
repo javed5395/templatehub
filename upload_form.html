@@ -339,8 +339,8 @@
             <option value="digital_keynotes">Digital Keynotes</option>
           </select>
         </div>
-        <div class="field">
-          <label>Number of Slides <span class="required">*</span></label>
+        <div class="field" id="slideCountField">
+          <label id="slideCountLabel">Number of Slides <span class="required">*</span></label>
           <input type="number" id="slideCount" placeholder="e.g. 12" min="1" max="50"/>
         </div>
       </div>
@@ -398,8 +398,8 @@
           <p style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">File Uploads</p>
 
           <!-- REQUIRED -->
-          <div class="field">
-            <label>PNG Slides <span class="required">*</span></label>
+          <div class="field" id="pngField">
+            <label id="pngLabel">PNG Slides <span class="required">*</span></label>
             <div class="upload-box">
               <input type="file" id="pngFiles" accept=".png,.jpg,.jpeg" multiple onchange="showFiles('pngFiles','pngList')"/>
               <div class="upload-icon">🖼️</div>
@@ -420,7 +420,7 @@
           </div>
 
           <div class="field">
-            <label>PDF <span style="color:var(--muted);font-weight:400;">(Optional)</span></label>
+            <label id="pdfLabel">PDF <span style="color:var(--muted);font-weight:400;">(Optional)</span></label>
             <div class="upload-box">
               <input type="file" id="pdfFile" accept=".pdf" onchange="showFiles('pdfFile','pdfList'); readPdfMetadata(this)"/>
               <div class="upload-icon">📄</div>
@@ -1399,10 +1399,17 @@ window.submitForm = async function() {
   // Collect editable apps checkboxes
   const editableApps = Array.from(document.querySelectorAll('input[name="editableApps"]:checked')).map(cb => cb.value);
 
-  if (!templateName || !category || !slideCount || !industry) {
-    alert('Please fill all required template fields!'); return;
+  if (category === 'resume_cv') {
+    if (!templateName || !category || !industry) {
+      alert('Please fill all required template fields!'); return;
+    }
+    if (!pdfFile) { alert('Please upload the resume PDF!'); return; }
+  } else {
+    if (!templateName || !category || !slideCount || !industry) {
+      alert('Please fill all required template fields!'); return;
+    }
+    if (pngFiles.length === 0) { alert('Please upload PNG slides!'); return; }
   }
-  if (pngFiles.length === 0) { alert('Please upload PNG slides!'); return; }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -1833,6 +1840,29 @@ window.updateSubCategories = function() {
   });
   var showSub = cat !== '' && cat !== null;
   row.style.display = showSub ? '' : 'none';
+  applyCategoryRequirements(cat);
+};
+
+// ── CATEGORY-BASED REQUIRED FIELDS ─────────────────────────────────────────
+// Resume/CV only needs the PDF; PNG slides + slide count don't apply to a resume.
+window.applyCategoryRequirements = function(cat) {
+  var isResume = cat === 'resume_cv';
+
+  var pngLabel   = document.getElementById('pngLabel');
+  var pdfLabel   = document.getElementById('pdfLabel');
+  var slideField = document.getElementById('slideCountField');
+  var slideInput = document.getElementById('slideCount');
+
+  if (isResume) {
+    pngLabel.innerHTML = 'PNG Slides <span style="color:var(--muted);font-weight:400;">(Optional)</span>';
+    pdfLabel.innerHTML = 'PDF <span class="required">*</span>';
+    slideField.style.display = 'none';
+    slideInput.removeAttribute('required');
+  } else {
+    pngLabel.innerHTML = 'PNG Slides <span class="required">*</span>';
+    pdfLabel.innerHTML = 'PDF <span style="color:var(--muted);font-weight:400;">(Optional)</span>';
+    slideField.style.display = '';
+  }
 };
 
 // ── RESET ─────────────────────────────────────────────────────────────────────
@@ -1841,6 +1871,7 @@ window.resetForm = function() {
   document.getElementById('category').value     = '';
   document.getElementById('subCategory').value  = '';
   document.getElementById('subCategoryRow').style.display = 'none';
+  applyCategoryRequirements('');
   document.getElementById('slideCount').value   = '';
   document.getElementById('industry').value     = '';
   document.getElementById('price').value        = 'free';
