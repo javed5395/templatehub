@@ -150,7 +150,7 @@
               '<div class="sw-field" id="f_contentTypeWrap"><label>Content Type</label>' +
                 '<select id="f_contentType"><option value="">Any</option><option value="pitch-deck">Pitch Deck</option>' +
                 '<option value="media-kit">Media Kit</option><option value="web-kit">Web Kit</option>' +
-                '<option value="resume-cv">Resume / CV</option><option value="social-media-kit">Social Media Kit</option>' +
+                '<option value="resume-cv">Resume / CV</option>' +
                 '<option value="digital-keynotes">Digital Keynotes</option></select></div>' +
               '<div class="sw-field"><label>No. of Slides</label><input type="number" id="f_slides" placeholder="e.g. 15"/></div>' +
               '<div class="sw-field"><label>Aspect Ratio</label><select id="f_aspectRatio"><option value="">Any</option>' +

@@ -335,7 +335,6 @@
             <option value="media_kit">Media Kit</option>
             <option value="web_kit">Website Kit</option>
             <option value="resume_cv">Resume / CV</option>
-            <option value="social_media_kit">Social Media Kit</option>
             <option value="digital_keynotes">Digital Keynotes</option>
           </select>
         </div>
@@ -369,7 +368,7 @@
       </div>
       <div class="row">
         <div class="field">
-          <label>Industry <span class="required">*</span></label>
+          <label id="industryLabel">Industry <span class="required">*</span></label>
           <select id="industry">
             <option value="">Select industry</option>
             <option value="tech">Tech & AI</option>
@@ -1415,7 +1414,7 @@ window.submitForm = async function() {
   const editableApps = Array.from(document.querySelectorAll('input[name="editableApps"]:checked')).map(cb => cb.value);
 
   if (category === 'resume_cv') {
-    if (!templateName || !category || !industry) {
+    if (!templateName || !category) {
       alert('Please fill all required template fields!'); return;
     }
     if (!docType) { alert('Please select the Document Type (Resume, CV, Cover Letter, etc.)!'); return; }
@@ -1836,10 +1835,6 @@ window.updateSubCategories = function() {
     opts = { '':'Select sub-category', business_site:'Business Site', portfolio_site:'Portfolio Site',
               ecommerce:'E-commerce', landing_page:'Landing Page', blog:'Blog',
               agency:'Agency', saas_startup:'SaaS / Startup', personal:'Personal Site', other:'Other' };
-  } else if (cat === 'social_media_kit') {
-    opts = { '':'Select sub-category', instagram:'Instagram', tiktok:'TikTok',
-              linkedin:'LinkedIn', youtube:'YouTube', twitter_x:'Twitter / X',
-              facebook:'Facebook', multi_platform:'Multi Platform', other:'Other' };
   } else if (cat === 'digital_keynotes') {
     opts = { '':'Select sub-category',
               company_profile:'Company Profile', business_proposal:'Business Proposal',
@@ -1872,15 +1867,20 @@ window.applyCategoryRequirements = function(cat) {
   var pdfLabel   = document.getElementById('pdfLabel');
   var slideField = document.getElementById('slideCountField');
   var slideInput = document.getElementById('slideCount');
+  var indLabel   = document.getElementById('industryLabel');
+  var indInput   = document.getElementById('industry');
 
   if (isResume) {
     pngLabel.innerHTML = 'PNG Slides <span style="color:var(--muted);font-weight:400;">(Optional)</span>';
     pdfLabel.innerHTML = 'PDF <span class="required">*</span>';
+    if (indLabel) indLabel.innerHTML = 'Industry <span style="color:var(--muted);font-weight:400;">(Optional)</span>';
+    if (indInput) indInput.removeAttribute('required');
     slideField.style.display = 'none';
     slideInput.removeAttribute('required');
   } else {
     pngLabel.innerHTML = 'PNG Slides <span class="required">*</span>';
     pdfLabel.innerHTML = 'PDF <span style="color:var(--muted);font-weight:400;">(Optional)</span>';
+    if (indLabel) indLabel.innerHTML = 'Industry <span class="required">*</span>';
     slideField.style.display = '';
   }
 };

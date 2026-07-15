@@ -52,7 +52,6 @@
       <a href="digital_keynote-folder.html">Digital Keynotes</a>
       <a href="invoice.html">Invoices</a>
       <a href="career_docs_folder_section.html">Career Documents</a>
-      <a href="social_kits.html">Social Media Kits</a>
       <a href="web_kit_folder_file.html">Website UI Kits</a>
       <a href="pitch_deck_folder_section.html">Browse All</a>
       <a href="main.html#pro">Pro Plans</a>
