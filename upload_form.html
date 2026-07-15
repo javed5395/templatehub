@@ -1566,6 +1566,7 @@ window.submitForm = async function() {
 
       // ── SELLER INFO ─────────────────────────────────────────
       sellerId:    currentUser.uid,
+      uploaderUid: currentUser.uid,        // used by on_seller_submission to detect trusted owner
       sellerName:  sellerProfile.shopName || sellerProfile.name || '',
       sellerEmail: sellerProfile.email    || currentUser.email  || '',
       sellerPhone: sellerProfile.phone    || '',
