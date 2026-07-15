@@ -1259,32 +1259,57 @@
       return card;
     }
 
+    // ── sort/filter state + helpers (All / New / Popular / Free buttons) ──
+    const buckets = {};
+    TYPES.forEach(t => buckets[t] = []);
+    const timeOf   = d => { const u = d.data().uploadedAt; return u && u.toDate ? u.toDate().getTime() : 0; };
+    const popOf    = d => { const x = d.data(); return x.sales || x.downloads || x.purchases || 0; };
+    const priceNum = d => { const p = d.data().price; return (p==null||p===''||p==='free') ? 0 : (parseFloat(p)||0); };
+
+    function activeMode(type){
+      const panel = document.getElementById('panel-'+type);
+      const on = panel && panel.querySelector('.cat-panel-sort .sort-btn.active');
+      return on ? on.textContent.trim().toLowerCase() : 'all';
+    }
+
+    function renderBucket(type){
+      const sec = sectionFor(type);
+      if (!sec) return;
+      const grid = sec.querySelector('.live-grid');
+      const mode = activeMode(type);
+      let arr = (buckets[type] || []).slice();
+      if (mode === 'free')    arr = arr.filter(d => priceNum(d) === 0);
+      if (mode === 'popular') arr.sort((a,b) => popOf(b) - popOf(a));
+      else                    arr.sort((a,b) => timeOf(b) - timeOf(a)); // all + new => newest first
+      grid.innerHTML = '';
+      arr.forEach(d => grid.appendChild(cardFor(d, type)));
+      sec.style.display = arr.length ? '' : 'none';
+    }
+
+    // wire each panel's All/New/Popular/Free buttons to sort its live uploads
+    TYPES.forEach(type => {
+      const panel = document.getElementById('panel-'+type);
+      if (!panel) return;
+      panel.querySelectorAll('.cat-panel-sort .sort-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const grp = btn.closest('.cat-panel-sort');
+          if (grp) grp.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderBucket(type);
+        });
+      });
+    });
+
     const q = query(collection(db,'templates'), where('status','==','approved'), where('template.category','==','resume_cv'));
     onSnapshot(q, snap => {
-      const docs = [];
-      snap.forEach(d => docs.push(d));
-      docs.sort((a,b) => {
-        const ta = a.data().uploadedAt && a.data().uploadedAt.toDate ? a.data().uploadedAt.toDate().getTime() : 0;
-        const tb = b.data().uploadedAt && b.data().uploadedAt.toDate ? b.data().uploadedAt.toDate().getTime() : 0;
-        return tb - ta;
-      });
-      // bucket by document type; legacy uploads with no docType default to Resume
-      const buckets = {};
       TYPES.forEach(t => buckets[t] = []);
-      docs.forEach(d => {
+      snap.forEach(d => {
         const data = d.data(); const t = data.template || {};
         let type = String(data.docType || t.docType || '').toLowerCase();
         if (!TYPES.includes(type)) type = 'resume';
         buckets[type].push(d);
       });
-      TYPES.forEach(type => {
-        const sec = sectionFor(type);
-        if (!sec) return;
-        const grid = sec.querySelector('.live-grid');
-        grid.innerHTML = '';
-        buckets[type].forEach(d => grid.appendChild(cardFor(d, type)));
-        sec.style.display = buckets[type].length ? '' : 'none';
-      });
+      TYPES.forEach(type => renderBucket(type));
     }, err => console.error('Career uploads failed to load:', err));
   } catch(e){ console.error('Career loader init failed:', e); }
 })();
@@ -1296,7 +1321,6 @@
   <a href="pitch_deck_folder_section.html">Pitch Decks</a>
   <a href="media_kits_folder_section.html">Media Kits</a>
   <a href="web_kit_folder_file.html">Website UI Kits</a>
-  <a href="social_kits.html">Social Kits</a>
 </nav>
 </body>
 </html>
