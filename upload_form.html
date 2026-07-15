@@ -813,12 +813,16 @@ function showErr(el, msg) { el.textContent = msg; el.style.display = 'block'; }
 function friendlyAuthError(code) {
   const map = {
     'auth/user-not-found':      'No account found with this email.',
-    'auth/wrong-password':      'Incorrect password.',
+    'auth/wrong-password':      'Incorrect password. Please try again.',
+    'auth/invalid-credential':  'Incorrect email or password. Please try again.',
+    'auth/invalid-password':    'Incorrect password. Please try again.',
     'auth/email-already-in-use':'An account already exists with this email.',
     'auth/invalid-email':       'Please enter a valid email address.',
-    'auth/too-many-requests':   'Too many attempts. Please try again later.'
+    'auth/too-many-requests':   'Too many attempts. Please try again later.',
+    'auth/user-disabled':       'This account has been disabled.',
+    'auth/network-request-failed': 'Network error. Check your connection.',
   };
-  return map[code] || 'Something went wrong. Please try again.';
+  return map[code] || ('Error: ' + code);  // show actual code if unmapped
 }
 
 // ── MY SUBMISSIONS ───────────────────────────────────────────────────────────
