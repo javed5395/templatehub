@@ -926,8 +926,7 @@ window.readPdfMetadata = async function(input) {
     // Section 11 block nikalo
     const sec11Match = fullText.match(/SECTION\s+11\s*[—\-–]*\s*SYSTEM METADATA([\s\S]*?)(?=◆\s*SECTION\s+\d+|$)/i);
     if (!sec11Match) {
-      statusEl.style.color = 'orange';
-      statusEl.textContent = '⚠️ Section 11 nahi mila — metadata manually bharo.';
+      statusEl.textContent = '';
       return;
     }
 
