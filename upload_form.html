@@ -351,6 +351,21 @@
             <option value="">Select sub-category</option>
           </select>
         </div>
+        <div class="field" id="docTypeField" style="max-width:340px;display:none;">
+          <label>Document Type <span class="required">*</span></label>
+          <select id="docType">
+            <option value="">Select document type</option>
+            <option value="resume">Resume</option>
+            <option value="cv">CV</option>
+            <option value="cover-letter">Cover Letter</option>
+            <option value="reference">Reference Page</option>
+            <option value="resignation">Resignation Letter</option>
+            <option value="recommendation">Recommendation Letter</option>
+            <option value="thankyou">Thank You Letter</option>
+            <option value="linkedin">LinkedIn Template</option>
+            <option value="portfolio">Portfolio</option>
+          </select>
+        </div>
       </div>
       <div class="row">
         <div class="field">
@@ -1376,6 +1391,7 @@ window.submitForm = async function() {
   const templateName  = document.getElementById('templateName').value.trim();
   const category      = document.getElementById('category').value;
   const subCategory   = document.getElementById('subCategory').value || '';
+  const docType       = (document.getElementById('docType') && document.getElementById('docType').value) || '';
   const slideCount    = document.getElementById('slideCount').value;
   const industry      = document.getElementById('industry').value;
   const priceRaw     = parseFloat(document.getElementById('price').value) || 0;
@@ -1402,6 +1418,7 @@ window.submitForm = async function() {
     if (!templateName || !category || !industry) {
       alert('Please fill all required template fields!'); return;
     }
+    if (!docType) { alert('Please select the Document Type (Resume, CV, Cover Letter, etc.)!'); return; }
     if (!pdfFile) { alert('Please upload the resume PDF!'); return; }
   } else {
     if (!templateName || !category || !slideCount || !industry) {
@@ -1561,6 +1578,7 @@ window.submitForm = async function() {
       category:     category,
       contentType:  pdfMeta.contentType || category,
       subCategory:  subCategory         || '',
+      docType:      docType             || '',
       slides:       pdfMeta.slides      || parseInt(slideCount) || 0,
       price:        price,
       aspectRatio:  pdfMeta.aspectRatio || '',
@@ -1615,6 +1633,7 @@ window.submitForm = async function() {
         name:        templateName,
         category,
         subCategory,
+        docType,
         slideCount:  parseInt(slideCount),
         industry,
         price,
@@ -1839,6 +1858,8 @@ window.updateSubCategories = function() {
   });
   var showSub = cat !== '' && cat !== null;
   row.style.display = showSub ? '' : 'none';
+  var dtf = document.getElementById('docTypeField');
+  if (dtf) dtf.style.display = (cat === 'resume_cv') ? '' : 'none';
   applyCategoryRequirements(cat);
 };
 

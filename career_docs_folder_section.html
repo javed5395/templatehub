@@ -611,16 +611,6 @@
       </div>
     </div>
 
-    <!-- ── LIVE UPLOADS (approved resume_cv from Firestore) — filled by loader before </body> ── -->
-    <div class="subcat-section" id="liveResumeSection" style="display:none;">
-      <div class="subcat-label">
-        <span class="subcat-tag" style="background:#22c55e;color:#04210f;">NEW</span>
-        <h3>Latest Uploads</h3>
-        <div class="subcat-divider"></div>
-      </div>
-      <div class="template-grid" id="liveResumeGrid"></div>
-    </div>
-
     <!-- ATS-Friendly -->
     <div class="subcat-section">
       <div class="subcat-label">
@@ -1200,10 +1190,11 @@
   });
 </script>
 
-<!-- ── CAREER PAGE FIX: load approved resume_cv uploads live from Firestore into the Resume tab.
-     PDF-only friendly (resumes have no slides). Links to career_docs_slides.html?firebase=<id>. ── -->
+<!-- ── CAREER PAGE: load approved resume_cv uploads live from Firestore, bucketed by
+     document type into all 9 tabs (Resume, CV, Cover Letter, ...). PDF-only friendly.
+     Links to career_docs_slides.html?firebase=<id>. ── -->
 <script type="module">
-(async function loadResumeUploads(){
+(async function loadCareerUploads(){
   try {
     const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
     const { getFirestore, collection, onSnapshot, query, where } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
@@ -1218,15 +1209,58 @@
     const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    const SUBCAT = { fresher:'Fresher / Entry Level', experienced:'Experienced', executive:'Executive / C-Level', creative:'Creative', tech:'Tech / Developer', ats_optimized:'ATS Optimized', academic:'Academic', other:'Other' };
+    // document-type key -> tab panel id (panel-<key>) and display label
+    const TYPES = ['resume','cv','cover-letter','reference','resignation','recommendation','thankyou','linkedin','portfolio'];
+    const TYPE_LABEL = { resume:'Resume', cv:'CV', 'cover-letter':'Cover Letter', reference:'Reference', resignation:'Resignation', recommendation:'Recommendation', thankyou:'Thank You', linkedin:'LinkedIn', portfolio:'Portfolio' };
     const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const priceLabel = p => (p==null||p===''||p==='free'||p==0) ? 'Free' : (isNaN(parseFloat(p)) ? esc(p) : '$'+parseFloat(p).toFixed(2));
 
+    // Ensure a "Latest Uploads" section (with a grid) exists at the top of a panel; returns the section.
+    function sectionFor(type){
+      const panel = document.getElementById('panel-'+type);
+      if (!panel) return null;
+      let sec = panel.querySelector('.live-uploads');
+      if (!sec){
+        sec = document.createElement('div');
+        sec.className = 'subcat-section live-uploads';
+        sec.style.display = 'none';
+        sec.innerHTML = '<div class="subcat-label"><span class="subcat-tag" style="background:#22c55e;color:#04210f;">NEW</span><h3>Latest Uploads</h3><div class="subcat-divider"></div></div><div class="template-grid live-grid"></div>';
+        panel.insertBefore(sec, panel.children[1] || null); // right after the panel header
+      }
+      return sec;
+    }
+
+    function cardFor(d, type){
+      const data = d.data();
+      const t = data.template || {};
+      const title = t.name || data.title || 'Untitled';
+      const cover = data.pngUrl || (Array.isArray(data.slideImages) && data.slideImages[0]) || (Array.isArray(t.slides) && t.slides[0]) || '';
+      const href = 'career_docs_slides.html?firebase=' + d.id;
+      const thumb = cover
+        ? '<img src="'+esc(cover)+'" alt="'+esc(title)+'" style="width:100%;height:100%;object-fit:cover;"/>'
+        : '<div class="tmpl-thumb-placeholder" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;font-weight:700;font-size:13px;">'+esc(title)+'</div>';
+      const card = document.createElement('a');
+      card.className = 'tmpl-card';
+      card.href = href;
+      card.style.cssText = 'display:block;text-decoration:none;color:inherit;';
+      card.innerHTML =
+        '<div class="tmpl-thumb">'+thumb+
+          '<span class="tmpl-badge" style="background:#22c55e;color:#04210f;">NEW</span>'+
+          '<div class="tmpl-hover-overlay"><button class="tmpl-preview-btn" type="button">Preview</button></div>'+
+        '</div>'+
+        '<div class="tmpl-info">'+
+          '<div class="tmpl-name">'+esc(title)+'</div>'+
+          '<div class="tmpl-type">'+esc(TYPE_LABEL[type]||'Document')+' · PDF</div>'+
+          '<div class="tmpl-footer">'+
+            '<span class="tmpl-price">'+priceLabel(data.price)+'</span>'+
+            '<span class="tmpl-dl-btn">Download</span>'+
+          '</div>'+
+        '</div>';
+      return card;
+    }
+
     const q = query(collection(db,'templates'), where('status','==','approved'), where('template.category','==','resume_cv'));
     onSnapshot(q, snap => {
-      const grid = document.getElementById('liveResumeGrid');
-      const section = document.getElementById('liveResumeSection');
-      if (!grid) return;
       const docs = [];
       snap.forEach(d => docs.push(d));
       docs.sort((a,b) => {
@@ -1234,40 +1268,25 @@
         const tb = b.data().uploadedAt && b.data().uploadedAt.toDate ? b.data().uploadedAt.toDate().getTime() : 0;
         return tb - ta;
       });
-      grid.innerHTML = '';
+      // bucket by document type; legacy uploads with no docType default to Resume
+      const buckets = {};
+      TYPES.forEach(t => buckets[t] = []);
       docs.forEach(d => {
-        const data = d.data();
-        const t = data.template || {};
-        const title = t.name || data.title || 'Untitled Resume';
-        const sub = data.subCategory || t.subCategory || '';
-        const subLabel = SUBCAT[sub] || sub || 'Resume';
-        const cover = data.pngUrl || (Array.isArray(data.slideImages) && data.slideImages[0]) || (Array.isArray(t.slides) && t.slides[0]) || '';
-        const href = 'career_docs_slides.html?firebase=' + d.id;
-        const thumb = cover
-          ? '<img src="'+esc(cover)+'" alt="'+esc(title)+'" style="width:100%;height:100%;object-fit:cover;"/>'
-          : '<div class="tmpl-thumb-placeholder" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;font-weight:700;font-size:13px;">'+esc(title)+'</div>';
-        const card = document.createElement('a');
-        card.className = 'tmpl-card';
-        card.href = href;
-        card.style.cssText = 'display:block;text-decoration:none;color:inherit;';
-        card.innerHTML =
-          '<div class="tmpl-thumb">'+thumb+
-            '<span class="tmpl-badge" style="background:#22c55e;color:#04210f;">NEW</span>'+
-            '<div class="tmpl-hover-overlay"><button class="tmpl-preview-btn" type="button">Preview</button></div>'+
-          '</div>'+
-          '<div class="tmpl-info">'+
-            '<div class="tmpl-name">'+esc(title)+'</div>'+
-            '<div class="tmpl-type">'+esc(subLabel)+' · PDF</div>'+
-            '<div class="tmpl-footer">'+
-              '<span class="tmpl-price">'+priceLabel(data.price)+'</span>'+
-              '<span class="tmpl-dl-btn">Download</span>'+
-            '</div>'+
-          '</div>';
-        grid.appendChild(card);
+        const data = d.data(); const t = data.template || {};
+        let type = String(data.docType || t.docType || '').toLowerCase();
+        if (!TYPES.includes(type)) type = 'resume';
+        buckets[type].push(d);
       });
-      section.style.display = docs.length ? '' : 'none';
-    }, err => console.error('Resume uploads failed to load:', err));
-  } catch(e){ console.error('Resume loader init failed:', e); }
+      TYPES.forEach(type => {
+        const sec = sectionFor(type);
+        if (!sec) return;
+        const grid = sec.querySelector('.live-grid');
+        grid.innerHTML = '';
+        buckets[type].forEach(d => grid.appendChild(cardFor(d, type)));
+        sec.style.display = buckets[type].length ? '' : 'none';
+      });
+    }, err => console.error('Career uploads failed to load:', err));
+  } catch(e){ console.error('Career loader init failed:', e); }
 })();
 </script>
 <nav>
