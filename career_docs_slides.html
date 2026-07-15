@@ -302,7 +302,7 @@ function buildMkCatPanel() {
 
   var allRow = document.createElement('div');
   allRow.className = 'cat-item';
-  allRow.innerHTML = '<span class="ci-icon">🗂️</span><span class="ci-name">All Media Kits</span>';
+  allRow.innerHTML = '<span class="ci-icon">🗂️</span><span class="ci-name">All Career Documents</span>';
   allRow.addEventListener('click', function() { window.location = 'career_docs_folder_section.html'; });
   allRow.addEventListener('mouseenter', function() { hideSub(); });
   panel.appendChild(allRow);
@@ -497,7 +497,7 @@ document.addEventListener('click',function(e){
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div style="font-size:48px;margin-bottom:16px;">📥</div>
-    <h2>Get Your Free Media Kit</h2>
+    <h2>Get Your Free Template</h2>
     <p id="modalDesc">Enter your email to download instantly. No spam. No subscription.</p>
     <div class="email-wrap">
       <input type="email" id="emailInput" placeholder="your@email.com" autocomplete="off"/>
@@ -1009,14 +1009,17 @@ function getMkUrl(k, n, transform) {
     window._ldtProductId = firebaseId;
     window._ldtSellerId = docData.sellerId || (docData.template && docData.template.sellerId) || '';
     var t = docData.template || {};
-    // ── category label mapping ──
-    var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume:'Resume', report:'Report' };
+    // ── category + document-type label mapping ──
+    var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume_cv:'Resume / CV', resume:'Resume', report:'Report' };
+    var docTypeLabels = { resume:'Resume', cv:'CV', 'cover-letter':'Cover Letter', reference:'Reference Page', resignation:'Resignation Letter', recommendation:'Recommendation Letter', thankyou:'Thank You Letter', linkedin:'LinkedIn Template', portfolio:'Portfolio' };
+    var docType   = docData.docType || t.docType || '';
+    var typeLabel = docTypeLabels[docType] || catLabels[t.category] || 'Resume / CV';
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKitData = {
-      name:         t.name || 'Untitled Resume / CV',
-      titleHTML:    (t.name || 'Untitled Resume / CV') + '<br/><span>Resume / CV</span>',
-      desc:         t.designNotes || t.description || 'A professional media kit template.',
-      type:         catLabels[t.category] || t.type || 'Media Kit',
+      name:         t.name || 'Untitled Template',
+      titleHTML:    (t.name || 'Untitled Template') + '<br/><span>' + typeLabel + '</span>',
+      desc:         t.designNotes || t.description || 'A professional, ready-to-edit template.',
+      type:         typeLabel,
       style:        industryLabels[t.industry] || t.style || 'Professional',
       pageCount:    t.slideCount || (t.slides ? t.slides.length : 0),
       slides:       t.slides || [],
@@ -1042,6 +1045,11 @@ function getMkUrl(k, n, transform) {
 
 function loadKit(k) {
   currentKitData = k;
+  // PDF-only items (resumes / cover letters) have no slide PNGs — use PDF page 1 as the preview image.
+  if ((!k.slides || !k.slides.length) && k.pdfUrl && k.pdfUrl.indexOf('/image/upload/') !== -1) {
+    k.slides = [ k.pdfUrl.replace('/image/upload/', '/image/upload/f_jpg,pg_1/') ];
+    if (!k.pageCount) k.pageCount = 1;
+  }
   document.getElementById('breadcrumbName').textContent = k.name;
   // Fix price display
   var priceEl = document.querySelector('.etsy-price');
@@ -1055,7 +1063,7 @@ function loadKit(k) {
   document.getElementById('templateDesc').textContent = k.desc;
   document.getElementById('specType').textContent = k.type;
   document.getElementById('specStyle').textContent = k.style;
-  document.getElementById('specPages').textContent = k.pageCount + ' Pages';
+  document.getElementById('specPages').textContent = k.pageCount + (k.pageCount === 1 ? ' Page' : ' Pages');
   var kwEl = document.getElementById('etsyKeywords');
   // Update file types display dynamically
   var ftEl = document.getElementById('fileTypeDisplay');
