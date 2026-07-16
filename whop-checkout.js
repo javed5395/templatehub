@@ -25,7 +25,13 @@
 
   function getPlanId() {
     try {
-      var k = (typeof currentKitData !== 'undefined' && currentKitData) ? currentKitData : (window.currentKitData || {});
+      /* each category page names its data object differently */
+      var k = {};
+      var names = ['currentKitData','currentDeckData','currentKeynoteData','currentWebKitData','currentProductData'];
+      for (var i = 0; i < names.length; i++) {
+        var v = window[names[i]];
+        if (v && (v.whopPlanId || v.whop_plan_id)) { k = v; break; }
+      }
       var pid = k.whopPlanId || k.whop_plan_id || '';
       pid = String(pid).trim();
       /* accept a bare plan id or a full pasted checkout URL */

@@ -1016,6 +1016,7 @@ function getMkUrl(k, n, transform) {
     var typeLabel = docTypeLabels[docType] || catLabels[t.category] || 'Resume / CV';
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKitData = {
+      whopPlanId:   (typeof docData!=='undefined' && docData ? (docData.whopPlanId||'') : '') || (t.whopPlanId||''),
       name:         t.name || 'Untitled Template',
       titleHTML:    (t.name || 'Untitled Template') + '<br/><span>' + typeLabel + '</span>',
       desc:         t.designNotes || t.description || 'A professional, ready-to-edit template.',

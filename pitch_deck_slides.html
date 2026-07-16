@@ -614,6 +614,7 @@ buildCatPanel();
     var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume:'Resume', report:'Report' };
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentDeckData = {
+      whopPlanId:   (typeof docData!=='undefined' && docData ? (docData.whopPlanId||'') : '') || (t.whopPlanId||''),
       name:         t.name || 'Untitled Deck',
       titleHTML:    (t.name || 'Untitled Deck') + '<br/><span>Pitch Deck</span>',
       desc:         t.designNotes || t.description || 'A professional pitch deck template. Fully editable in Microsoft PowerPoint.',

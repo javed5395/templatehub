@@ -1013,6 +1013,7 @@ function getMkUrl(k, n, transform) {
     var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', presentation:'Presentation', resume:'Resume', report:'Report' };
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKitData = {
+      whopPlanId:   (typeof docData!=='undefined' && docData ? (docData.whopPlanId||'') : '') || (t.whopPlanId||''),
       name:         t.name || 'Untitled Media Kit',
       titleHTML:    (t.name || 'Untitled Media Kit') + '<br/><span>Media Kit</span>',
       desc:         t.designNotes || t.description || 'A professional media kit template.',

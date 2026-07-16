@@ -1017,6 +1017,7 @@ function getMkUrl(k, n, transform) {
     var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', web_kit:'Website Kit', social_media_kit:'Social Media Kit', resume_cv:'Resume / CV', digital_keynotes:'Digital Keynote', presentation:'Presentation', resume:'Resume', report:'Report' };
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKitData = {
+      whopPlanId:   (typeof docData!=='undefined' && docData ? (docData.whopPlanId||'') : '') || (t.whopPlanId||''),
       name:         t.name || 'Untitled Website Kit',
       titleHTML:    (t.name || 'Untitled Website Kit') + '<br/><span>Website Kit</span>',
       desc:         t.designNotes || t.description || 'A professional website kit template.',
