@@ -1538,11 +1538,26 @@ window.submitForm = async function() {
     }
 
     // 6. Upload supporting document (optional)
+    // SECURITY: this slot was uploading RAW files — a _SYSTEM.pdf dropped here
+    // leaked Section 11 to buyers. Any PDF now goes through the same
+    // Section-11 stripper as the main PDF; on failure the doc is SKIPPED,
+    // never uploaded raw.
     let designDocUrl = null; let designDocFileId = null;
     if (designDocFile) {
-      setProgress(91, 'Uploading design brief...');
-      designDocUrl    = await uploadDocToDrive(designDocFile);
-      designDocFileId = extractDriveFileId(designDocUrl);
+      try {
+        let docToUpload = designDocFile;
+        if (/\.pdf$/i.test(designDocFile.name)) {
+          setProgress(90, 'Design brief: Section 11 check/strip...');
+          docToUpload = await stripSection11FromPdf(designDocFile);
+        }
+        setProgress(91, 'Uploading design brief...');
+        designDocUrl    = await uploadDocToDrive(docToUpload);
+        designDocFileId = extractDriveFileId(designDocUrl);
+      } catch (docErr) {
+        console.warn('[DesignDoc] strip failed — skipping supporting doc, nothing raw uploaded:', docErr);
+        designDocUrl = null; designDocFileId = null;
+        setProgress(91, 'Design brief skip (metadata safe) — continuing...');
+      }
     }
 
     // Build fileTypes array dynamically
@@ -2112,33 +2127,4 @@ function applyBgColour(r,g,b) {
 }
 function resetColour() {
   committedR=null; committedG=null; committedB=null;
-  document.body.style.backgroundColor = '#070714';
-  document.getElementById('colourSwatch').style.background = '#d4af37';
-  document.getElementById('colourHex').textContent = '#D4AF37';
-}
-</script>
-<!-- ── FILE VALIDATION POPUP ──────────────────────────────────────────────── -->
-<div id="fileValidationPopup" style="
-  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75);
-  z-index:99999; align-items:center; justify-content:center;">
-  <div style="
-    background:#0d0d2b; border:1px solid rgba(212,175,55,0.35);
-    border-radius:20px; padding:36px 32px; max-width:420px; width:90%;
-    text-align:center; box-shadow:0 30px 80px rgba(0,0,0,0.8);
-    font-family:'Poppins',sans-serif;">
-    <div id="fvIcon" style="font-size:52px; margin-bottom:14px;">⚠️</div>
-    <h3 id="fvTitle" style="font-size:17px; font-weight:800; color:#e8eaf0; margin-bottom:10px;">File Not Accepted</h3>
-    <p id="fvMsg" style="font-size:13px; color:#8899aa; line-height:1.7; margin-bottom:24px;"></p>
-    <button onclick="document.getElementById('fileValidationPopup').style.display='none'"
-      style="background:#d4af37; color:#070714; border:none; border-radius:10px;
-             padding:12px 32px; font-family:'Poppins',sans-serif; font-size:14px;
-             font-weight:800; cursor:pointer;">Got it</button>
-  </div>
-</div>
-
-<script src="footerbar.js"></script>
-<script src="va_dictionary.js"></script>
-<script src="navbar.js"></script>
-<script defer src="commerce-loader.js"></script>
-</body>
-</html>
+  document.body.style.backgro
