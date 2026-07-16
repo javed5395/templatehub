@@ -91,7 +91,21 @@
   };
 <\/script>`;
 
-  document.body.insertAdjacentHTML('beforeend', authHTML);
+  /* FIX: scripts inside insertAdjacentHTML NEVER execute — the whole Firebase
+     auth block (doSignIn/doGoogleSignIn/onAuthStateChanged…) was dead on every
+     page. Inject the HTML part normally, then run the module script for real. */
+  var _authSplit = authHTML.indexOf('<script type="module">');
+  if (_authSplit === -1) {
+    document.body.insertAdjacentHTML('beforeend', authHTML);
+  } else {
+    document.body.insertAdjacentHTML('beforeend', authHTML.slice(0, _authSplit));
+    var _authJs = authHTML.slice(_authSplit + '<script type="module">'.length)
+                          .replace(/<\/script>\s*$/, '');
+    var _authTag = document.createElement('script');
+    _authTag.type = 'module';
+    _authTag.textContent = _authJs;
+    document.body.appendChild(_authTag);
+  }
 
   // Auth JS functions
   window.openAuth = function(mode) {
