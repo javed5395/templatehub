@@ -161,7 +161,8 @@
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
   <div class="nb-links" id="nbLinks">
-    <a href="whats_new.html" class="nb-whatsnew" title="What's new & coming soon" style="color:#d4af37;font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;text-decoration:none;padding:6px 10px;white-space:nowrap;">✨ What's New</a>
+    <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="display:inline-flex;align-items:center;gap:5px;background:#fff4d6;color:#a9791a;border:1px solid #e6c65c;border-radius:0;padding:7px 12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12.5px;text-decoration:none;white-space:nowrap;">✨ What's New</a>
+    <a href="whats_new.html#coming" class="nb-wn-tab" title="Coming soon" style="display:inline-flex;align-items:center;gap:5px;background:#eceeff;color:#5b5bd6;border:1px solid #b9c2ff;border-radius:0;padding:7px 12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12.5px;text-decoration:none;white-space:nowrap;">🚀 Coming Soon</a>
     <button class="nav-search-icon" id="navSearchBtn" onclick="nbOpenSearch()" title="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
     <button class="nb-lang" id="nbLangBtn" onmouseenter="nbShowLang()" onmouseleave="nbLangLeaveBtn()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span id="nbLangLabel">English</span></button>
     <div class="nb-feat-wrap" id="nbFeatWrap" onmouseenter="nbFeatHover(true)" onmouseleave="nbFeatHover(false)">
@@ -556,21 +557,21 @@
       #helpbotPanel .lb-thread{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f6f7fb;}
       #helpbotPanel .lb-row{display:flex;}
       #helpbotPanel .lb-row.user{justify-content:flex-end;}
-      #helpbotPanel .lb-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:12.8px;line-height:1.5;font-family:'Inter',sans-serif;word-wrap:break-word;}
-      #helpbotPanel .lb-msg.bot{background:#fff;color:#2a3142;border:1px solid #e7e9f2;border-bottom-left-radius:5px;}
-      #helpbotPanel .lb-msg.user{background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border-bottom-right-radius:5px;}
+      #helpbotPanel .lb-msg{max-width:82%;padding:10px 13px;border-radius:0;font-size:12.8px;line-height:1.5;font-family:'Inter',sans-serif;word-wrap:break-word;}
+      #helpbotPanel .lb-msg.bot{background:#fff;color:#2a3142;border:1px solid #e7e9f2;}
+      #helpbotPanel .lb-msg.user{background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;}
       #helpbotPanel .lb-msg a{color:inherit;text-decoration:underline;}
       #helpbotPanel .lb-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
-      #helpbotPanel .lb-chip{background:#fff;border:1px solid #d9deef;color:#3a4256;border-radius:16px;padding:7px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+      #helpbotPanel .lb-chip{background:#fff;border:1px solid #d9deef;color:#3a4256;border-radius:0;padding:7px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
       #helpbotPanel .lb-chip:hover{background:#5b7fff;color:#fff;border-color:#5b7fff;}
       #helpbotPanel .lb-typing span{display:inline-block;width:6px;height:6px;margin:0 1px;background:#9aa3bd;border-radius:50%;animation:lbBlink 1.2s infinite both;}
       #helpbotPanel .lb-typing span:nth-child(2){animation-delay:.2s;}
       #helpbotPanel .lb-typing span:nth-child(3){animation-delay:.4s;}
       @keyframes lbBlink{0%,80%,100%{opacity:.3;}40%{opacity:1;}}
       #helpbotPanel .lb-inputrow{display:flex;gap:8px;padding:10px;border-top:1px solid #eceef6;background:#fff;align-items:center;}
-      #helpbotPanel .lb-inputrow input{flex:1;padding:10px 14px;border:1px solid #d8dce6;border-radius:22px;font-size:12.8px;font-family:'Inter',sans-serif;outline:none;color:#1a1a2e;background:#f6f7fb;}
+      #helpbotPanel .lb-inputrow input{flex:1;padding:10px 14px;border:1px solid #d8dce6;border-radius:0;font-size:12.8px;font-family:'Inter',sans-serif;outline:none;color:#1a1a2e;background:#f6f7fb;}
       #helpbotPanel .lb-inputrow input:focus{border-color:#5b7fff;background:#fff;}
-      #helpbotPanel .lb-send{width:38px;height:38px;flex-shrink:0;border:none;border-radius:50%;background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;font-size:15px;cursor:pointer;}
+      #helpbotPanel .lb-send{width:38px;height:38px;flex-shrink:0;border:none;border-radius:0;background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;font-size:15px;cursor:pointer;}
       #helpbotPanel .lb-send:hover{opacity:.9;}
     </style>
     <div class="lb-thread" id="lbThread">

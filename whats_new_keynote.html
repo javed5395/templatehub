@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LazyDogTemplates — Meet your template library</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#0d0d1a;
+    --ink-2:#15152a;
+    --gold:#d4af37;
+    --gold-soft:rgba(212,175,55,0.14);
+    --cream:#f5f1e8;
+    --lav:#9d8ec1;
+    --muted:#8b8a9c;
+    --line:rgba(212,175,55,0.18);
+  }
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--cream);
+    font-family:'Inter',sans-serif;
+    overflow-x:hidden;
+  }
+  ::selection{ background:var(--gold); color:var(--ink); }
+
+  .progress{
+    position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--lav));
+    z-index:999; width:0%; transition:width .1s linear;
+  }
+
+  section{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:120px 10vw;
+    position:relative;
+  }
+
+  .eyebrow{
+    font-size:12px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--gold); font-weight:600; margin-bottom:18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{ content:''; width:24px; height:1px; background:var(--gold); }
+
+  h1{
+    font-family:'Fraunces',serif; font-weight:600; font-size:clamp(40px,7vw,92px);
+    line-height:1.02; letter-spacing:-0.01em; max-width:14ch;
+  }
+  h1 em{ font-style:italic; font-weight:300; color:var(--lav); }
+  h2{
+    font-family:'Fraunces',serif; font-weight:600; font-size:clamp(30px,4.2vw,52px);
+    line-height:1.08; max-width:16ch; margin-bottom:8px;
+  }
+  .sub{
+    font-size:clamp(15px,1.6vw,19px); color:var(--muted); max-width:42ch; margin-top:22px; line-height:1.6;
+  }
+
+  .reveal{ opacity:0; transform:translateY(28px); transition:opacity .8s ease, transform .8s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+  .reveal.d1{ transition-delay:.1s; }
+  .reveal.d2{ transition-delay:.22s; }
+  .reveal.d3{ transition-delay:.34s; }
+  .reveal.d4{ transition-delay:.46s; }
+
+  /* ---------- HERO ---------- */
+  #hero{
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(157,142,193,.18), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 10% 90%, rgba(212,175,55,.12), transparent 60%),
+      var(--ink);
+  }
+  .card-stack{
+    position:absolute; right:6vw; top:50%; transform:translateY(-50%);
+    width:260px; height:340px;
+  }
+  .stack-card{
+    position:absolute; inset:0; border-radius:14px;
+    border:1px solid var(--line);
+    background:linear-gradient(160deg, var(--ink-2), var(--ink));
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.6);
+    display:flex; flex-direction:column; justify-content:space-between; padding:22px;
+    transition:transform 1.4s cubic-bezier(.16,1,.3,1), opacity 1s ease;
+  }
+  .stack-card .tag{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); }
+  .stack-card .name{ font-family:'Fraunces',serif; font-size:18px; }
+  .stack-card .swatch{ width:100%; height:60%; border-radius:8px; margin-top:14px; }
+  .sc1 .swatch{ background:linear-gradient(135deg,#d4af37,#7a6b3f); }
+  .sc2 .swatch{ background:linear-gradient(135deg,#9d8ec1,#4d4366); }
+  .sc3 .swatch{ background:linear-gradient(135deg,#5c8a8a,#2c4444); }
+
+  .stack-card.sc1{ z-index:3; }
+  .stack-card.sc2{ z-index:2; transform: rotate(-7deg) translate(-26px, 18px); }
+  .stack-card.sc3{ z-index:1; transform: rotate(8deg) translate(30px, 34px); }
+  #hero.fanned .sc2{ transform: rotate(-16deg) translate(-90px, 10px); }
+  #hero.fanned .sc3{ transform: rotate(18deg) translate(100px, 30px); }
+
+  .hero-foot{
+    margin-top:60px; display:flex; gap:48px; flex-wrap:wrap;
+  }
+  .hero-foot div{ font-size:13px; color:var(--muted); }
+  .hero-foot strong{ color:var(--cream); display:block; font-family:'Fraunces',serif; font-size:26px; font-weight:600; }
+
+  /* ---------- PILLARS ---------- */
+  #pillars{ background:var(--ink); }
+  .pillar-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:18px; overflow:hidden; margin-top:52px;
+  }
+  .pillar{
+    background:var(--ink-2); padding:42px 34px; min-height:260px;
+    display:flex; flex-direction:column; justify-content:flex-end; gap:10px;
+    transition:background .3s ease;
+  }
+  .pillar:hover{ background:#1c1c36; }
+  .pillar .glyph{
+    width:38px; height:38px; border-radius:9px; background:var(--gold-soft);
+    display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:17px; margin-bottom:auto;
+  }
+  .pillar h3{ font-family:'Fraunces',serif; font-size:21px; font-weight:600; }
+  .pillar p{ color:var(--muted); font-size:14px; line-height:1.55; }
+
+  @media(max-width:860px){ .pillar-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- WHAT'S NEW / OFFER GRID ---------- */
+  #offer{ background:var(--ink-2); }
+  .offer-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:54px;
+  }
+  .offer-card{
+    border:1px solid var(--line); border-radius:16px; padding:26px 22px;
+    background:var(--ink); min-height:200px; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .offer-card .n{ font-family:'Fraunces',serif; font-style:italic; color:var(--lav); font-size:14px; }
+  .offer-card h4{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; margin-top:14px; }
+  .offer-card p{ color:var(--muted); font-size:13px; line-height:1.5; margin-top:8px; }
+  @media(max-width:980px){ .offer-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:560px){ .offer-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- LIBRARY / MEMORY-STYLE SECTION ---------- */
+  #library{
+    background:var(--ink);
+    background-image: radial-gradient(circle at 85% 30%, rgba(212,175,55,.08), transparent 55%);
+  }
+  .lib-wrap{ display:flex; gap:80px; align-items:center; margin-top:50px; flex-wrap:wrap; }
+  .lib-copy{ flex:1; min-width:280px; }
+  .lib-copy ul{ list-style:none; margin-top:26px; display:flex; flex-direction:column; gap:16px; }
+  .lib-copy li{ display:flex; gap:14px; align-items:flex-start; color:var(--cream); font-size:15px; }
+  .lib-copy li::before{ content:'—'; color:var(--gold); flex-shrink:0; }
+
+  .lib-panel{
+    flex:1; min-width:280px; max-width:420px;
+    background:var(--ink-2); border:1px solid var(--line); border-radius:18px;
+    padding:30px; box-shadow:0 40px 80px -30px rgba(0,0,0,.7);
+  }
+  .lib-panel .head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .lib-panel .head span{ font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); }
+  .lib-row{ display:flex; gap:14px; align-items:center; padding:13px 0; border-top:1px solid var(--line); }
+  .lib-row:first-of-type{ border-top:none; }
+  .lib-thumb{ width:42px; height:42px; border-radius:9px; flex-shrink:0; }
+  .lib-row:nth-child(2) .lib-thumb{ background:linear-gradient(135deg,#d4af37,#7a6b3f); }
+  .lib-row:nth-child(3) .lib-thumb{ background:linear-gradient(135deg,#9d8ec1,#4d4366); }
+  .lib-row:nth-child(4) .lib-thumb{ background:linear-gradient(135deg,#5c8a8a,#2c4444); }
+  .lib-row .meta{ font-size:13px; }
+  .lib-row .meta b{ display:block; font-weight:600; }
+  .lib-row .meta span{ color:var(--muted); font-size:12px; }
+
+  /* ---------- CTA ---------- */
+  #cta{
+    background:linear-gradient(180deg, var(--ink) 0%, #1a1530 100%);
+    text-align:center; align-items:center;
+  }
+  .cta-prompts{
+    display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:34px;
+  }
+  .cta-prompts span{
+    border:1px solid var(--line); border-radius:30px; padding:10px 20px; font-size:13.5px; color:var(--cream);
+    background:var(--ink-2);
+  }
+  .cta-btn{
+    margin-top:46px; display:inline-block; background:var(--gold); color:var(--ink);
+    font-weight:700; font-size:15px; padding:16px 38px; border-radius:30px; text-decoration:none;
+    font-family:'Inter',sans-serif; transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .cta-btn:hover{ transform:translateY(-3px); box-shadow:0 14px 30px -10px rgba(212,175,55,.5); }
+  .cta-foot{ margin-top:80px; color:var(--muted); font-size:12.5px; }
+
+  .scroll-cue{
+    position:absolute; bottom:36px; left:10vw; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--muted); display:flex; align-items:center; gap:10px;
+  }
+  .scroll-cue::after{ content:''; width:1px; height:34px; background:linear-gradient(var(--gold), transparent); animation:scrollline 1.8s infinite; }
+  @keyframes scrollline{ 0%{ opacity:0; transform:scaleY(0); transform-origin:top;} 50%{opacity:1; transform:scaleY(1); transform-origin:top;} 100%{opacity:0; transform:scaleY(1); transform-origin:bottom;} }
+
+  @media(prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="eyebrow reveal in">Curated Template Marketplace</div>
+  <h1 class="reveal in">Meet <em>LazyDog</em><br/>Templates.</h1>
+  <p class="sub reveal in d1">A growing library of presentation, pitch deck, and brand templates — vetted for quality, ready to edit, built for people who'd rather design less and ship more.</p>
+
+  <div class="hero-foot reveal in d2">
+    <div><strong>1000+</strong> templates curated</div>
+    <div><strong>7-day</strong> refund window</div>
+    <div><strong>Free + Pro</strong> tiers</div>
+  </div>
+
+  <div class="card-stack reveal in d3" id="cardStack">
+    <div class="stack-card sc3"><div class="tag">Brand Kit</div><div class="swatch"></div><div class="name">Social Kit</div></div>
+    <div class="stack-card sc2"><div class="tag">Slides</div><div class="swatch"></div><div class="name">Pitch Deck</div></div>
+    <div class="stack-card sc1"><div class="tag">Web</div><div class="swatch"></div><div class="name">Media Kit</div></div>
+  </div>
+
+  <div class="scroll-cue">Scroll</div>
+</section>
+
+<!-- PILLARS -->
+<section id="pillars">
+  <div class="eyebrow reveal">Why LazyDogTemplates is different</div>
+  <h2 class="reveal d1">Three things <br/>no template store gets right.</h2>
+
+  <div class="pillar-grid">
+    <div class="pillar reveal d1">
+      <div class="glyph">✓</div>
+      <h3>Actually curated.</h3>
+      <p>Every submission goes through editorial and quality review. No marketplace flood, no abandoned listings.</p>
+    </div>
+    <div class="pillar reveal d2">
+      <div class="glyph">⌁</div>
+      <h3>Edit, don't rebuild.</h3>
+      <p>Real typography, real layout systems. Swap your content in — the design work is already done.</p>
+    </div>
+    <div class="pillar reveal d3">
+      <div class="glyph">↻</div>
+      <h3>Free and Pro, side by side.</h3>
+      <p>Start free, no account needed. Upgrade for premium templates and priority downloads when you're ready.</p>
+    </div>
+  </div>
+</section>
+
+<!-- OFFER GRID -->
+<section id="offer">
+  <div class="eyebrow reveal">What's inside</div>
+  <h2 class="reveal d1">Not just slides.<br/>A whole toolkit.</h2>
+
+  <div class="offer-grid">
+    <div class="offer-card reveal d1">
+      <div class="n">Pitch Decks</div>
+      <h4>Investor-ready, in one download.</h4>
+      <p>Structured narrative slides with real layout hierarchy — not just pretty backgrounds.</p>
+    </div>
+    <div class="offer-card reveal d2">
+      <div class="n">Media Kits</div>
+      <h4>Press-ready in minutes.</h4>
+      <p>Bios, stats, and brand assets pre-arranged so you only fill in the blanks.</p>
+    </div>
+    <div class="offer-card reveal d3">
+      <div class="n">Social Kits</div>
+      <h4>Feeds that feel designed.</h4>
+      <p>Cohesive post templates sized and styled for every platform you actually use.</p>
+    </div>
+    <div class="offer-card reveal d4">
+      <div class="n">Web Templates</div>
+      <h4>Launch-ready pages.</h4>
+      <p>Responsive, lightweight, and built to be customised — not fought with.</p>
+    </div>
+  </div>
+</section>
+
+<!-- LIBRARY -->
+<section id="library">
+  <div class="eyebrow reveal">Your library</div>
+  <h2 class="reveal d1">Everything you've downloaded.<br/>One place.</h2>
+
+  <div class="lib-wrap">
+    <div class="lib-copy reveal d1">
+      <p class="sub" style="margin-top:0;">Every template you grab stays tied to your account — re-download anytime, track what's Pro, what's free, and what's new since you last checked.</p>
+      <ul>
+        <li>Re-download any owned template, no time limit</li>
+        <li>Pro badge shows what's included in your plan</li>
+        <li>New contributor drops surfaced as they're approved</li>
+      </ul>
+    </div>
+    <div class="lib-panel reveal d2">
+      <div class="head"><span>My Library</span><span>3 saved</span></div>
+      <div class="lib-row"><div class="lib-thumb"></div><div class="meta"><b>Founder Pitch Deck</b><span>Pro · Slides</span></div></div>
+      <div class="lib-row"><div class="lib-thumb"></div><div class="meta"><b>Studio Media Kit</b><span>Free · Web</span></div></div>
+      <div class="lib-row"><div class="lib-thumb"></div><div class="meta"><b>Launch Social Kit</b><span>Pro · Social</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="eyebrow reveal" style="justify-content:center;">Your turn</div>
+  <h2 class="reveal d1" style="max-width:none;">Find your next template.</h2>
+  <p class="sub reveal d2" style="margin-left:auto;margin-right:auto;">Browse the full library, or jump straight to what you need.</p>
+
+  <div class="cta-prompts reveal d3">
+    <span>"Pitch deck for a seed round"</span>
+    <span>"Media kit for a content creator"</span>
+    <span>"Social templates for a product launch"</span>
+  </div>
+
+  <a href="#hero" class="cta-btn reveal d4">Browse Templates</a>
+  <div class="cta-foot reveal d4">LazyDogTemplates · Curated by humans, used by thousands.</div>
+</section>
+
+<script>
+  // Scroll progress bar
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    progress.style.width = scrolled + '%';
+  });
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.15 });
+  reveals.forEach(r => io.observe(r));
+
+  // Hero card fan-out on load
+  setTimeout(() => { document.getElementById('hero').classList.add('fanned'); }, 600);
+</script>
+
+</body>
+</html>

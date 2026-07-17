@@ -27,17 +27,17 @@
     .wn-hero p { color:var(--muted); margin-top:10px; font-size:15px; }
     .wn-tabs { display:flex; gap:8px; justify-content:center; margin-bottom:32px; flex-wrap:wrap; }
     .wn-tab { background:var(--card); border:1px solid rgba(255,255,255,0.1); color:var(--text);
-              padding:11px 22px; border-radius:30px; font-family:'Poppins',sans-serif; font-weight:700; font-size:14px; cursor:pointer; transition:all .2s; }
+              padding:11px 22px; border-radius:0; font-family:'Poppins',sans-serif; font-weight:700; font-size:14px; cursor:pointer; transition:all .2s; }
     .wn-tab.active { background:linear-gradient(135deg,#5b7fff,#b464ff); border-color:transparent; }
     .wn-panel { display:none; }
     .wn-panel.active { display:block; animation:wnFade .3s ease; }
     @keyframes wnFade { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
-    .wn-card { background:var(--card); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:20px 22px; margin-bottom:14px;
+    .wn-card { background:var(--card); border:1px solid rgba(255,255,255,0.08); border-radius:0; padding:20px 22px; margin-bottom:14px;
                box-shadow:0 8px 30px rgba(0,0,0,0.3); }
     .wn-card-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
     .wn-card h3 { font-family:'Poppins',sans-serif; font-size:16.5px; font-weight:700; color:#fff; }
     .wn-card p { color:var(--muted); font-size:14px; line-height:1.6; }
-    .wn-badge { font-size:10.5px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; padding:4px 10px; border-radius:6px; font-family:'Poppins',sans-serif; }
+    .wn-badge { font-size:10.5px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; padding:4px 10px; border-radius:0; font-family:'Poppins',sans-serif; }
     .b-feature{background:rgba(91,127,255,0.18);color:#8ea6ff;} .b-design{background:rgba(212,175,55,0.18);color:var(--accent);}
     .b-improvement{background:rgba(80,200,140,0.18);color:#57c98b;} .b-fix{background:rgba(224,80,80,0.18);color:#e07070;}
     .b-soon{background:rgba(80,200,140,0.18);color:#57c98b;} .b-in-progress{background:rgba(91,127,255,0.18);color:#8ea6ff;} .b-planned{background:rgba(136,153,170,0.18);color:var(--muted);}
@@ -102,6 +102,7 @@
       }).join('');
     }
     wnRenderNew(); wnRenderComing();
+    if (location.hash === '#coming') { wnShow('coming', document.querySelector('.wn-tab[data-tab="coming"]')); }
   </script>
 </body>
 </html>

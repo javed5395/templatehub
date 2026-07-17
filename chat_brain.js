@@ -79,7 +79,7 @@
         var n = window.WHATS_NEW || [];
         var msg = n.length ? ("Recently added: " + n.slice(0, 3).map(function (x) { return x.title; }).join('; ') + ".")
                            : "See the latest additions on our What's New page.";
-        return { reply: msg, target: 'whats_new.html', label: "See What's New" };
+        return { reply: msg, target: 'whats_new_keynote.html', label: "See What's New" };
       }
       // "Coming soon" intent.
       if (/(coming soon|what ?s? coming|whats coming|road ?map|upcoming|next plan|planned|future features)/.test(low)) {
@@ -101,7 +101,7 @@
     web_kits:    { url: 'web_kit_folder_file.html',       label: 'Open Website UI Kits' },
     invoice:     { url: 'invoice.html',                    label: 'Open Invoice Generator' },
     home:        { url: 'main.html',                       label: 'Go to Store Hub' },
-    whats_new:   { url: 'whats_new.html',                  label: "See What's New" }
+    whats_new:   { url: 'whats_new_keynote.html',          label: "See What's New" }
   };
   function labelForUrl(url) {
     for (var k in ACTION_TARGETS) { if (ACTION_TARGETS[k].url === url) return ACTION_TARGETS[k].label; }
@@ -131,7 +131,7 @@
     a.href = url;
     a.textContent = (label || labelForUrl(url)) + ' →';
     a.style.cssText = 'display:inline-block;margin-top:8px;padding:8px 13px;' +
-      'background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border-radius:10px;' +
+      'background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border-radius:0;' +
       'font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;font-family:Inter,sans-serif;';
     return a;
   };
