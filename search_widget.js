@@ -535,8 +535,17 @@
       var reply = (Object.keys(found).length && !isRevealTrigger(lower) ? 'Got it — noted. ' : '') + summary;
       addMsg(reply, 'engine');
     } else {
-      // No searchable detail → treat as a general question → AI cascade.
-      askAI(text);
+      // No template-search detail found. Try the word-compiler first (FREE),
+      // and only fall through to the AI cascade if it composes nothing.
+      var composed = (window.vaComposeReply && window.vaComposeReply(text)) || null;
+      if (composed && composed.reply) {
+        addMsg(composed.reply, 'engine');
+        if (composed.target) {
+          setTimeout(function(){ window.location.href = composed.target; }, 1200);
+        }
+      } else {
+        askAI(text);
+      }
     }
   }
 

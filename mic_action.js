@@ -390,4 +390,29 @@
     vaSpeak('Voice changed to ' + vaGender);
   };
 
+  // ── Reusable: run the SAME word-compiler on TYPED text and return a composed
+  // answer WITHOUT speaking. Lets the typed chat box use the free compiler
+  // before ever falling through to the AI cascade. Voice path is untouched.
+  // Returns { reply, target } or null.
+  window.vaComposeReply = function(text) {
+    try {
+      var lower = String(text || '').toLowerCase().trim();
+      if (!lower) return null;
+      var dictMatch = vaMatchDictionary(lower);
+      var targetMatch = vaFindTargetMatch(lower);
+      var best = null;
+      if (dictMatch.cmd && dictMatch.len >= targetMatch.len) {
+        best = dictMatch.cmd;
+      } else if (targetMatch.group) {
+        best = { action: 'navigate', target: targetMatch.group.target, reply: targetMatch.group.reply };
+      } else if (dictMatch.cmd) {
+        best = dictMatch.cmd;
+      }
+      if (best && best.reply) {
+        return { reply: best.reply, target: (best.action === 'navigate') ? best.target : null };
+      }
+    } catch (e) {}
+    return null;
+  };
+
 })();
