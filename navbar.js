@@ -161,6 +161,7 @@
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
   <div class="nb-links" id="nbLinks">
+    <a href="whats_new.html" class="nb-whatsnew" title="What's new & coming soon" style="color:#d4af37;font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;text-decoration:none;padding:6px 10px;white-space:nowrap;">✨ What's New</a>
     <button class="nav-search-icon" id="navSearchBtn" onclick="nbOpenSearch()" title="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
     <button class="nb-lang" id="nbLangBtn" onmouseenter="nbShowLang()" onmouseleave="nbLangLeaveBtn()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span id="nbLangLabel">English</span></button>
     <div class="nb-feat-wrap" id="nbFeatWrap" onmouseenter="nbFeatHover(true)" onmouseleave="nbFeatHover(false)">
@@ -1095,6 +1096,13 @@
   var micActionScript = document.createElement('script');
   micActionScript.src = 'mic_action.js';
   document.head.appendChild(micActionScript);
+
+  // Updates data (What's New / Coming Soon) — so Hexa can answer about them on any page.
+  if (!window.WHATS_NEW) {
+    var updatesScript = document.createElement('script');
+    updatesScript.src = 'updates_data.js';
+    document.head.appendChild(updatesScript);
+  }
 
   // Typed-chat brain (separate from voice; reuses vaDictionary vocab, chat-tailored replies).
   var chatBrainScript = document.createElement('script');

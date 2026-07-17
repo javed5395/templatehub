@@ -72,7 +72,24 @@
   }
 
   window.chatCompose = function (text) {
-    try { return chatMatch(text); } catch (e) { return null; }
+    try {
+      var low = norm(text);
+      // "What's new" intent — summarize from updates_data.js + offer the page.
+      if (/(what ?s? new|new feature|new features|any updates|what changed|latest update|new arrivals|new templates|whats new)/.test(low)) {
+        var n = window.WHATS_NEW || [];
+        var msg = n.length ? ("Recently added: " + n.slice(0, 3).map(function (x) { return x.title; }).join('; ') + ".")
+                           : "See the latest additions on our What's New page.";
+        return { reply: msg, target: 'whats_new.html', label: "See What's New" };
+      }
+      // "Coming soon" intent.
+      if (/(coming soon|what ?s? coming|whats coming|road ?map|upcoming|next plan|planned|future features)/.test(low)) {
+        var c = window.WHATS_COMING || [];
+        var msg2 = c.length ? ("Coming soon: " + c.slice(0, 3).map(function (x) { return x.title; }).join('; ') + ".")
+                            : "Exciting things are on the way.";
+        return { reply: msg2, target: 'whats_new.html', label: "See Coming Soon" };
+      }
+      return chatMatch(text);
+    } catch (e) { return null; }
   };
 
   // ── AI ACTIONS ──────────────────────────────────────────────
@@ -83,7 +100,8 @@
     media_kits:  { url: 'media_kits_folder_section.html', label: 'Open Media Kits' },
     web_kits:    { url: 'web_kit_folder_file.html',       label: 'Open Website UI Kits' },
     invoice:     { url: 'invoice.html',                    label: 'Open Invoice Generator' },
-    home:        { url: 'main.html',                       label: 'Go to Store Hub' }
+    home:        { url: 'main.html',                       label: 'Go to Store Hub' },
+    whats_new:   { url: 'whats_new.html',                  label: "See What's New" }
   };
   function labelForUrl(url) {
     for (var k in ACTION_TARGETS) { if (ACTION_TARGETS[k].url === url) return ACTION_TARGETS[k].label; }
