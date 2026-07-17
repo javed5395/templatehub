@@ -161,8 +161,6 @@
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
   <div class="nb-links" id="nbLinks">
-    <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="display:inline-flex;align-items:center;gap:5px;background:#fff4d6;color:#a9791a;border:1px solid #e6c65c;border-radius:0;padding:7px 12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12.5px;text-decoration:none;white-space:nowrap;">✨ What's New</a>
-    <a href="whats_new.html#coming" class="nb-wn-tab" title="Coming soon" style="display:inline-flex;align-items:center;gap:5px;background:#eceeff;color:#5b5bd6;border:1px solid #b9c2ff;border-radius:0;padding:7px 12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12.5px;text-decoration:none;white-space:nowrap;">🚀 Coming Soon</a>
     <button class="nav-search-icon" id="navSearchBtn" onclick="nbOpenSearch()" title="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
     <button class="nb-lang" id="nbLangBtn" onmouseenter="nbShowLang()" onmouseleave="nbLangLeaveBtn()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span id="nbLangLabel">English</span></button>
     <div class="nb-feat-wrap" id="nbFeatWrap" onmouseenter="nbFeatHover(true)" onmouseleave="nbFeatHover(false)">
@@ -182,6 +180,8 @@
         </div>
       </div>
     </div>
+    <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="background:#fff;color:#c79a20;border:1.5px solid #dcb43f;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">✨ What's New</a>
+    <a href="#" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">🚀 Coming Soon</a>
     <!-- CONTRIBUTOR HIDDEN (re-enable after KYC): <button class="nb-seller" onclick="window.location='upload_form.html'">🛍️ Apply as a Contributor</button> -->
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
