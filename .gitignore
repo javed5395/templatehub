@@ -27,3 +27,6 @@ content_fitter.py
 # AI cascade — private, deploy to Firebase but never GitHub
 ai_fill.py
 firebase/functions/ai_fill.py
+
+# Word source of va_dictionary.js — reference only, keep off public site
+va_dictionary.docx
