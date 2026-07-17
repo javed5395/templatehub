@@ -550,74 +550,90 @@
     <button class="helpbot-close" onclick="toggleBot()">✕</button>
   </div>
   <div class="helpbot-body" id="helpbotBody">
-    <div class="helpbot-greeting">Hi there! 👋 I'm <span>LazyDogTemplates Assistant</span>. What can I help you with today?</div>
-    <div class="helpbot-qs" id="helpbotQs">
-      <button class="helpbot-q" onclick="showAnswer(0)">📊 What templates are available?</button>
-      <button class="helpbot-q" onclick="showAnswer(1)">⬇️ How do I download a template?</button>
-      <button class="helpbot-q" onclick="showAnswer(2)">💰 Are the templates really free?</button>
-      <button class="helpbot-q" onclick="showAnswer(3)">🎨 Can I edit the templates?</button>
-      <button class="helpbot-q" onclick="showAnswer(4)">📁 What file formats are available?</button>
-      <button class="helpbot-q" onclick="showAnswer(5)">📩 How do I contact support?</button>
+    <style>
+      #helpbotPanel .helpbot-body{padding:0;display:flex;flex-direction:column;height:430px;max-height:72vh;}
+      #helpbotPanel .lb-thread{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f6f7fb;}
+      #helpbotPanel .lb-row{display:flex;}
+      #helpbotPanel .lb-row.user{justify-content:flex-end;}
+      #helpbotPanel .lb-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:12.8px;line-height:1.5;font-family:'Inter',sans-serif;word-wrap:break-word;}
+      #helpbotPanel .lb-msg.bot{background:#fff;color:#2a3142;border:1px solid #e7e9f2;border-bottom-left-radius:5px;}
+      #helpbotPanel .lb-msg.user{background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border-bottom-right-radius:5px;}
+      #helpbotPanel .lb-msg a{color:inherit;text-decoration:underline;}
+      #helpbotPanel .lb-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+      #helpbotPanel .lb-chip{background:#fff;border:1px solid #d9deef;color:#3a4256;border-radius:16px;padding:7px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+      #helpbotPanel .lb-chip:hover{background:#5b7fff;color:#fff;border-color:#5b7fff;}
+      #helpbotPanel .lb-typing span{display:inline-block;width:6px;height:6px;margin:0 1px;background:#9aa3bd;border-radius:50%;animation:lbBlink 1.2s infinite both;}
+      #helpbotPanel .lb-typing span:nth-child(2){animation-delay:.2s;}
+      #helpbotPanel .lb-typing span:nth-child(3){animation-delay:.4s;}
+      @keyframes lbBlink{0%,80%,100%{opacity:.3;}40%{opacity:1;}}
+      #helpbotPanel .lb-inputrow{display:flex;gap:8px;padding:10px;border-top:1px solid #eceef6;background:#fff;align-items:center;}
+      #helpbotPanel .lb-inputrow input{flex:1;padding:10px 14px;border:1px solid #d8dce6;border-radius:22px;font-size:12.8px;font-family:'Inter',sans-serif;outline:none;color:#1a1a2e;background:#f6f7fb;}
+      #helpbotPanel .lb-inputrow input:focus{border-color:#5b7fff;background:#fff;}
+      #helpbotPanel .lb-send{width:38px;height:38px;flex-shrink:0;border:none;border-radius:50%;background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;font-size:15px;cursor:pointer;}
+      #helpbotPanel .lb-send:hover{opacity:.9;}
+    </style>
+    <div class="lb-thread" id="lbThread">
+      <div class="lb-row bot"><div class="lb-msg bot">Hi 👋 I'm the <strong>LazyDog Assistant</strong>. Ask me about our templates, pricing, formats, or your order — or tap a question below.</div></div>
+      <div class="lb-chips" id="lbChips">
+        <button class="lb-chip" onclick="helpbotSend('What templates are available?')">📊 What's available</button>
+        <button class="lb-chip" onclick="helpbotSend('How do I buy and download a template?')">⬇️ Buy &amp; download</button>
+        <button class="lb-chip" onclick="helpbotSend('How much do templates cost?')">💳 Pricing</button>
+        <button class="lb-chip" onclick="helpbotSend('Can I edit the templates?')">🎨 Editing</button>
+        <button class="lb-chip" onclick="helpbotSend('What file formats are available?')">📁 Formats</button>
+        <button class="lb-chip" onclick="helpbotSend('How do I contact support?')">📩 Support</button>
+      </div>
     </div>
-    <div class="helpbot-answer" id="helpbotAnswer"></div>
-    <span class="helpbot-back" id="helpbotBack" onclick="goBack()" style="display:none;">← Back to questions</span>
-    <div class="helpbot-ask" style="display:flex;gap:6px;margin-top:12px;">
-      <input id="helpbotInput" type="text" placeholder="Type your own question…" onkeydown="if(event.key==='Enter')helpbotAsk();" style="flex:1;padding:9px 11px;border:1px solid #d8dce6;border-radius:10px;font-size:12.5px;font-family:'Inter',sans-serif;outline:none;color:#1a1a2e;background:#fff;" />
-      <button onclick="helpbotAsk()" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;">Send</button>
+    <div class="lb-inputrow">
+      <input id="helpbotInput" type="text" placeholder="Type your question…" autocomplete="off" onkeydown="if(event.key==='Enter')helpbotAsk();" />
+      <button class="lb-send" onclick="helpbotAsk()" aria-label="Send">➤</button>
     </div>
   </div>
 </div>`;
   document.body.insertAdjacentHTML('beforeend', helpbotHTML);
 
-  var ANSWERS = [
-    "We have <strong>Pitch Deck Templates</strong> across 20+ industries (Tech, Medical, Finance, Construction and more) and <strong>Media Kit Templates</strong> for podcasters, brands, influencers, press & fashion. New templates added regularly!",
-    "Click <strong>Browse Templates</strong> → select any template → click <strong>View</strong> → enter your email → click <strong>Download</strong>. The file downloads instantly to your device. No account needed.",
-    "Yes — <strong>100% free</strong>! No subscription, no credit card, no hidden fees. Just enter your email and download. Simple.",
-    "Absolutely! All templates are fully editable in <strong>Microsoft PowerPoint</strong>. Media Kits also have <strong>Canva</strong> versions available — just click the purple Canva button on any kit page.",
-    "Templates are available as <strong>.PPTX</strong> (PowerPoint) and <strong>.PDF</strong>. Media Kits also include <strong>PNG</strong> image files and <strong>Canva</strong> links where available.",
-    "Reach us at <strong>javed5395@gmail.com</strong> — we typically respond within 24 hours. You can also visit <strong>www.lazydogtemplates.com</strong> for updates."
-  ];
-  var botOpen = false;
-  window.toggleBot = function(){ botOpen=!botOpen; var p=document.getElementById('helpbotPanel'),b=document.getElementById('helpbotBtn'); if(botOpen){p.classList.add('open');b.textContent='✕';}else{p.classList.remove('open');b.textContent='💬';goBack();} };
-  window.showAnswer = function(i){ document.getElementById('helpbotQs').style.display='none'; var a=document.getElementById('helpbotAnswer'); a.innerHTML=ANSWERS[i]; a.classList.add('show'); document.getElementById('helpbotBack').style.display='inline-block'; };
-  window.goBack = function(){ document.getElementById('helpbotQs').style.display='flex'; var a=document.getElementById('helpbotAnswer'); a.classList.remove('show'); a.innerHTML=''; document.getElementById('helpbotBack').style.display='none'; };
-
-  // Typed question → FREE word-compiler first, then AI cascade only if it finds nothing.
-  window.helpbotAsk = function(){
-    var inp = document.getElementById('helpbotInput');
-    var text = ((inp && inp.value) || '').trim();
-    if (!text) return;
-    inp.value = '';
-    document.getElementById('helpbotQs').style.display = 'none';
-    var a = document.getElementById('helpbotAnswer');
-    a.classList.add('show');
-    a.innerHTML = '';
-    var q = document.createElement('div');
-    q.style.cssText = 'font-weight:700;margin-bottom:6px;color:#1a1a2e;';
-    q.textContent = text;
-    a.appendChild(q);
-    var ans = document.createElement('div');
-    ans.style.color = '#4a5568';
-    ans.textContent = '…';
-    a.appendChild(ans);
-    document.getElementById('helpbotBack').style.display = 'inline-block';
-    // 1) FREE word-compiler (mic_action.js). Answers most domain questions at no cost.
-    var composed = (window.vaComposeReply && window.vaComposeReply(text)) || null;
-    if (composed && composed.reply) {
-      ans.innerHTML = composed.reply;
-      if (composed.target) setTimeout(function(){ window.location.href = composed.target; }, 1200);
-      return;
-    }
-    // 2) AI cascade fallback (Groq -> Gemini -> ... server-side, keys never exposed).
-    fetch('https://us-central1-templatehub-16cd7.cloudfunctions.net/chat_http', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){ ans.textContent = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now."; })
-    .catch(function(){ ans.textContent = "Sorry, I'm having trouble right now. Please try again."; });
+  var CANNED = {
+    'What templates are available?': "We offer <strong>Pitch Deck Templates</strong> across 20+ industries (Tech, Medical, Finance, Construction and more), <strong>Media Kit Templates</strong> (podcasters, brands, influencers, press, fashion), and <strong>Website UI Kits</strong>. New designs are added regularly.",
+    'How do I buy and download a template?': "Browse templates → open the one you like → pick your <strong>license</strong> (Personal or Commercial) → checkout securely. Right after payment you get an instant download link, and it's saved to your account too.",
+    'How much do templates cost?': "Each template is a <strong>one-time purchase</strong> — no subscription. Every design has a <strong>Personal</strong> and a <strong>Commercial</strong> license, priced separately; the exact price is shown on each template's page. (Our Invoice Generator is free to use.)",
+    'Can I edit the templates?': "Yes — every template is fully editable in <strong>Microsoft PowerPoint</strong>, and Media Kits also include <strong>Canva</strong> versions (look for the purple Canva button on a kit page).",
+    'What file formats are available?': "Templates come as <strong>.PPTX</strong> (PowerPoint) and <strong>.PDF</strong>. Media Kits also include <strong>PNG</strong> images and <strong>Canva</strong> links where available.",
+    'How do I contact support?': "Email <strong>support@lazydogtemplates.com</strong> — we usually reply within 24 hours."
   };
+  var HB_CHAT_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/chat_http';
+  var botOpen = false;
+
+  window.toggleBot = function(){
+    botOpen = !botOpen;
+    var p = document.getElementById('helpbotPanel'), b = document.getElementById('helpbotBtn');
+    if (botOpen){ p.classList.add('open'); b.textContent='✕'; var inp=document.getElementById('helpbotInput'); if(inp) setTimeout(function(){inp.focus();},120); }
+    else { p.classList.remove('open'); b.textContent='💬'; }
+  };
+
+  function hbScroll(){ var th=document.getElementById('lbThread'); if(th) th.scrollTop=th.scrollHeight; }
+  function hbAdd(content, who, asText){
+    var th=document.getElementById('lbThread');
+    var row=document.createElement('div'); row.className='lb-row '+who;
+    var msg=document.createElement('div'); msg.className='lb-msg '+who;
+    if(asText){ msg.textContent=content; } else { msg.innerHTML=content; }
+    row.appendChild(msg); th.appendChild(row); hbScroll();
+    return msg;
+  }
+
+  // Unified entry (chips + typed). FREE first: canned answer → word-compiler → then AI cascade.
+  window.helpbotSend = function(text){
+    text=(text||'').trim(); if(!text) return;
+    var chips=document.getElementById('lbChips'); if(chips) chips.style.display='none';
+    hbAdd(text,'user',true);
+    var bubble=hbAdd('<span class="lb-typing"><span></span><span></span><span></span></span>','bot',false);
+    if (CANNED[text]) { bubble.innerHTML=CANNED[text]; hbScroll(); return; }
+    var composed=(window.vaComposeReply && window.vaComposeReply(text))||null;
+    if (composed && composed.reply) { bubble.innerHTML=composed.reply; hbScroll(); if(composed.target){ setTimeout(function(){window.location.href=composed.target;},1200); } return; }
+    fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})})
+      .then(function(r){return r.json();})
+      .then(function(d){ bubble.textContent=(d&&d.reply)?d.reply:"Sorry, I couldn't answer that right now."; hbScroll(); })
+      .catch(function(){ bubble.textContent="Sorry, I'm having trouble right now. Please try again."; hbScroll(); });
+  };
+  window.helpbotAsk = function(){ var inp=document.getElementById('helpbotInput'); var t=((inp&&inp.value)||'').trim(); if(!t) return; inp.value=''; window.helpbotSend(t); };
 
   // ── THEME TOGGLE ──
   // ── UNIVERSAL FONT PANEL (works on all pages) ──
