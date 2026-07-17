@@ -532,6 +532,8 @@
     if (!text) return;
     addMsg(text, 'user');
     input.value = '';
+    var _cmd=(window.hexaCommand && window.hexaCommand(text))||null;
+    if(_cmd && _cmd.reply){ addMsg(_cmd.reply,'engine'); return; }
     var lower = norm(text);
     var found = extractFromText(text);
     mergeRequirements(found);
@@ -547,7 +549,8 @@
       var composed = (window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
       if (composed && composed.reply) {
         var mb = addMsg(composed.reply, 'engine');
-        if (composed.target && window.chatMakeActionBtn) { mb.appendChild(document.createElement('br')); mb.appendChild(window.chatMakeActionBtn(composed.target, composed.label)); }
+        if (composed.target && composed.execute) { setTimeout(function(){ window.location.href = composed.target; }, 900); }
+        else if (composed.target && window.chatMakeActionBtn) { mb.appendChild(document.createElement('br')); mb.appendChild(window.chatMakeActionBtn(composed.target, composed.label)); }
       } else {
         askAI(text);
       }

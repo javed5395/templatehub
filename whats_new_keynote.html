@@ -207,15 +207,9 @@
 
 <!-- HERO -->
 <section id="hero">
-  <div class="eyebrow reveal in">Curated Template Marketplace</div>
   <h1 class="reveal in">Meet <em>LazyDog</em><br/>Templates.</h1>
   <p class="sub reveal in d1">A growing library of presentation, pitch deck, and brand templates — vetted for quality, ready to edit, built for people who'd rather design less and ship more.</p>
 
-  <div class="hero-foot reveal in d2">
-    <div><strong>1000+</strong> templates curated</div>
-    <div><strong>7-day</strong> refund window</div>
-    <div><strong>Free + Pro</strong> tiers</div>
-  </div>
 
   <div class="card-stack reveal in d3" id="cardStack">
     <div class="stack-card sc3"><div class="tag">Brand Kit</div><div class="swatch"></div><div class="name">Social Kit</div></div>
@@ -227,28 +221,536 @@
 </section>
 
 <!-- PILLARS -->
-<section id="pillars">
-  <div class="eyebrow reveal">Why LazyDogTemplates is different</div>
-  <h2 class="reveal d1">Three things <br/>no template store gets right.</h2>
+<!-- ══ WHAT'S NEW — sticky scroll cards (ported from landing) ══ -->
+<div class="wnflip">
+<style>
+/* Keynote overrides: black bg, floating white cards, smaller + left-aligned */
+.wnflip .sticky-section{background:transparent !important;}
+.wnflip .section-header{display:none !important;}
+.wnflip .sticky-card{width:min(48vw,700px) !important;}
+.wnflip .sticky-card__inner{min-height:400px !important;grid-template-columns:1fr !important;}
+.wnflip .sticky-card__content{display:none !important;}
+.wnflip .sticky-card__title{font-size:clamp(19px,1.9vw,26px) !important;}
+.wnflip .sticky-card__desc{font-size:13px !important;}
+</style>
 
-  <div class="pillar-grid">
-    <div class="pillar reveal d1">
-      <div class="glyph">✓</div>
-      <h3>Actually curated.</h3>
-      <p>Every submission goes through editorial and quality review. No marketplace flood, no abandoned listings.</p>
-    </div>
-    <div class="pillar reveal d2">
-      <div class="glyph">⌁</div>
-      <h3>Edit, don't rebuild.</h3>
-      <p>Real typography, real layout systems. Swap your content in — the design work is already done.</p>
-    </div>
-    <div class="pillar reveal d3">
-      <div class="glyph">↻</div>
-      <h3>Free and Pro, side by side.</h3>
-      <p>Start free, no account needed. Upgrade for premium templates and priority downloads when you're ready.</p>
+<style>
+.wnflip {
+  --white: #FFFFFF;
+  --black: #111111;
+  --text-secondary: #5E5E5E;
+  --border: #ECECEC;
+  --card-bg: #FFFFFF;
+  --accent: #1A56DB;
+  --accent-hover: #1447C0;
+  --accent-light: #EEF3FF;
+  --radius-card: 22px;
+  --radius-btn: 12px;
+  --shadow-soft: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-hover: 0 8px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.05);
+  --max-width: 1400px;
+  --content-width: 1200px;
+  --hero-width: 900px;
+  --section-gap: 160px;
+  --font-body: 'Inter', -apple-system, sans-serif;
+}.wnflip .serif {
+  font-family: 'Canela', 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-weight: 400;
+}.wnflip .container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 48px;
+}.wnflip .container--hero {
+  max-width: var(--hero-width);
+}.wnflip .section-header {
+  text-align: center;
+  margin-bottom: 80px;
+}.wnflip .section-tag {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+  display: block;
+}.wnflip .section-heading {
+  font-size: clamp(32px, 3.5vw, 48px);
+  font-weight: 400;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  color: var(--black);
+  margin-bottom: 20px;
+  font-family: 'Canela', 'Cormorant Garamond', Georgia, serif;
+}.wnflip .section-sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  max-width: 560px;
+  margin: 0 auto;
+}.wnflip .sticky-section {
+  padding: var(--section-gap) 0;
+  background: #FAFAFA;
+}.wnflip .sticky-section .section-header { margin-bottom: 100px; }.wnflip .sticky-cards-wrapper {
+  position: relative;
+}.wnflip .sticky-cards-track {
+  
+}.wnflip .sticky-cards-viewport {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}.wnflip .sticky-card {
+  position: absolute;
+  width: min(82vw, 1000px);
+  background: var(--white);
+  border-radius: 28px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  will-change: transform, opacity;
+  transform-origin: center bottom;
+}.wnflip .sticky-card__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 540px;
+}.wnflip .sticky-card__content {
+  padding: 64px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}.wnflip .sticky-card__number {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}.wnflip .sticky-card__number::before {
+  content: '';
+  width: 24px; height: 1.5px;
+  background: var(--accent);
+}.wnflip .sticky-card__title {
+  font-size: clamp(24px, 2.5vw, 34px);
+  font-weight: 400;
+  letter-spacing: -1px;
+  line-height: 1.15;
+  color: var(--black);
+  margin-bottom: 20px;
+  font-family: 'Canela', 'Cormorant Garamond', Georgia, serif;
+}.wnflip .sticky-card__desc {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 32px;
+}.wnflip .sticky-card__link {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 0.2s;
+}.wnflip .sticky-card__link:hover { gap: 10px; }.wnflip .sticky-card__visual {
+  background: #F4F6FB;
+  border-left: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}.wnflip .mock {
+  width: 100%;
+  max-width: 340px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  overflow: hidden;
+  font-size: 12px;
+}.wnflip .mock__header {
+  padding: 14px 18px;
+  border-bottom: 1px solid #F0F0F0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}.wnflip .mock__dot { width: 8px; height: 8px; border-radius: 50%; }.wnflip .mock__body { padding: 18px; }.wnflip .mock__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid #F8F8F8;
+  gap: 8px;
+}.wnflip .mock__row:last-child { border-bottom: none; }.wnflip .mock__label { color: #666; font-weight: 500; font-size: 11.5px; }.wnflip .mock__value { font-weight: 600; color: #111; font-size: 12px; }.wnflip .mock__badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 100px;
+}.wnflip .mock__badge--green { background: #E8F9EE; color: #1B7F3E; }.wnflip .mock__badge--blue { background: #EEF3FF; color: #1A56DB; }.wnflip .mock__badge--amber { background: #FEF3E2; color: #B45309; }.wnflip .mock__chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 60px;
+  margin: 14px 0 8px;
+}.wnflip .mock__bar {
+  flex: 1;
+  background: var(--accent-light);
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: height 1.5s cubic-bezier(.22,1,.36,1);
+}.wnflip .mock__bar.active { background: var(--accent); }.wnflip .mock__progress {
+  height: 6px;
+  background: #F0F0F0;
+  border-radius: 100px;
+  margin: 8px 0;
+  overflow: hidden;
+}.wnflip .mock__progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 100px;
+  width: 0%;
+  transition: width 1.2s cubic-bezier(.22,1,.36,1);
+}.wnflip .mock__stat {
+  text-align: center;
+  padding: 12px;
+  background: #FAFAFA;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}.wnflip .mock__stat-num { font-size: 22px; font-weight: 700; color: var(--black); letter-spacing: -1px; }.wnflip .mock__stat-lbl { font-size: 10.5px; color: #999; font-weight: 500; margin-top: 2px; }
+</style>
+<!-- ══ STICKY SCROLL CARDS ══ -->
+<section class="sticky-section" id="wnFlipFeatures">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">Platform</span>
+      <h2 class="section-heading serif">Every layer of revenue,<br>handled with precision</h2>
+      <p class="section-sub">From first charge to annual renewal — Meridian owns the entire revenue lifecycle so nothing slips through.</p>
     </div>
   </div>
+
+  <div class="sticky-cards-wrapper" id="stickyWrapper">
+    <div class="sticky-cards-track" id="stickyTrack">
+      <div class="sticky-cards-viewport" id="stickyViewport">
+
+        <!-- Card 1 -->
+        <div class="sticky-card" id="sc1">
+          <div class="sticky-card__inner">
+            <div class="sticky-card__content">
+              <div class="sticky-card__number">01 — Billing</div>
+              <h3 class="sticky-card__title serif">Intelligent billing that adapts to any pricing model</h3>
+              <p class="sticky-card__desc">From usage-based and seat licensing to hybrid enterprise contracts — configure any billing logic without custom code. Meridian handles proration, mid-cycle changes, and multi-currency natively.</p>
+              <a href="#" class="sticky-card__link">Explore billing → </a>
+            </div>
+            <div class="sticky-card__visual">
+              <div class="mock" id="mock1">
+                <div class="mock__header">
+                  <span class="mock__dot" style="background:#FF5F57"></span>
+                  <span class="mock__dot" style="background:#FFBD2E"></span>
+                  <span class="mock__dot" style="background:#28CA42"></span>
+                  <span style="font-size:11px;color:#999;margin-left:8px;font-weight:500">Invoice #4891</span>
+                </div>
+                <div class="mock__body">
+                  <div class="mock__stat"><div class="mock__stat-num" id="rev1">$0</div><div class="mock__stat-lbl">MRR This Month</div></div>
+                  <div class="mock__chart" id="chart1">
+                    <div class="mock__bar" style="height:40%"></div>
+                    <div class="mock__bar" style="height:55%"></div>
+                    <div class="mock__bar" style="height:45%"></div>
+                    <div class="mock__bar" style="height:70%"></div>
+                    <div class="mock__bar" style="height:60%"></div>
+                    <div class="mock__bar active" style="height:85%"></div>
+                  </div>
+                  <div class="mock__row"><span class="mock__label">Pro Plan — 48 seats</span><span class="mock__value">$9,600</span></div>
+                  <div class="mock__row"><span class="mock__label">API Add-on</span><span class="mock__value">$1,200</span></div>
+                  <div class="mock__row"><span class="mock__label">Status</span><span class="mock__badge mock__badge--green">Paid</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="sticky-card" id="sc2">
+          <div class="sticky-card__inner">
+            <div class="sticky-card__content">
+              <div class="sticky-card__number">02 — Tax</div>
+              <h3 class="sticky-card__title serif">Automatic tax compliance across every jurisdiction</h3>
+              <p class="sticky-card__desc">Meridian calculates, collects, and remits sales tax, VAT, and GST in 190+ countries. Stay compliant as you expand globally — with zero manual work and real-time audit logs.</p>
+              <a href="#" class="sticky-card__link">Explore tax engine → </a>
+            </div>
+            <div class="sticky-card__visual">
+              <div class="mock" id="mock2">
+                <div class="mock__header">
+                  <span class="mock__dot" style="background:#FF5F57"></span>
+                  <span class="mock__dot" style="background:#FFBD2E"></span>
+                  <span class="mock__dot" style="background:#28CA42"></span>
+                  <span style="font-size:11px;color:#999;margin-left:8px;font-weight:500">Tax Dashboard</span>
+                </div>
+                <div class="mock__body">
+                  <div class="mock__row"><span class="mock__label">United States</span><span class="mock__badge mock__badge--green">Compliant</span></div>
+                  <div class="mock__row"><span class="mock__label">European Union</span><span class="mock__badge mock__badge--green">VAT Registered</span></div>
+                  <div class="mock__row"><span class="mock__label">United Kingdom</span><span class="mock__badge mock__badge--green">MTD Active</span></div>
+                  <div class="mock__row"><span class="mock__label">Australia</span><span class="mock__badge mock__badge--blue">GST Filing</span></div>
+                  <div class="mock__row"><span class="mock__label">Canada</span><span class="mock__badge mock__badge--amber">Review</span></div>
+                  <div style="margin-top:12px">
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin-bottom:4px"><span>Q4 Remittance</span><span>87%</span></div>
+                    <div class="mock__progress"><div class="mock__progress-fill" id="taxBar" style="width:87%"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="sticky-card" id="sc3">
+          <div class="sticky-card__inner">
+            <div class="sticky-card__content">
+              <div class="sticky-card__number">03 — Analytics</div>
+              <h3 class="sticky-card__title serif">Revenue intelligence that drives decisions</h3>
+              <p class="sticky-card__desc">Real-time MRR, churn forecasting, cohort analysis, and expansion revenue tracking — all in one unified dashboard. Export to your data warehouse in one click.</p>
+              <a href="#" class="sticky-card__link">Explore analytics → </a>
+            </div>
+            <div class="sticky-card__visual">
+              <div class="mock" id="mock3">
+                <div class="mock__header">
+                  <span class="mock__dot" style="background:#FF5F57"></span>
+                  <span class="mock__dot" style="background:#FFBD2E"></span>
+                  <span class="mock__dot" style="background:#28CA42"></span>
+                  <span style="font-size:11px;color:#999;margin-left:8px;font-weight:500">Revenue Analytics</span>
+                </div>
+                <div class="mock__body">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                    <div class="mock__stat"><div class="mock__stat-num" style="font-size:18px" id="mrr3">$0</div><div class="mock__stat-lbl">MRR</div></div>
+                    <div class="mock__stat"><div class="mock__stat-num" style="font-size:18px;color:#1B7F3E">↑ 18%</div><div class="mock__stat-lbl">Growth</div></div>
+                  </div>
+                  <div class="mock__row"><span class="mock__label">Churn Rate</span><span class="mock__value" style="color:#1B7F3E">1.2%</span></div>
+                  <div class="mock__row"><span class="mock__label">Expansion MRR</span><span class="mock__value">$14,320</span></div>
+                  <div class="mock__row"><span class="mock__label">LTV / CAC</span><span class="mock__value">8.4×</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="sticky-card" id="sc4">
+          <div class="sticky-card__inner">
+            <div class="sticky-card__content">
+              <div class="sticky-card__number">04 — Checkout</div>
+              <h3 class="sticky-card__title serif">Conversion-optimized checkout, fully branded</h3>
+              <p class="sticky-card__desc">Drop in a checkout that converts 30% better than average. Localized currencies, local payment methods, and smart retry logic — all without a single line of payment code.</p>
+              <a href="#" class="sticky-card__link">Explore checkout → </a>
+            </div>
+            <div class="sticky-card__visual">
+              <div class="mock" id="mock4">
+                <div class="mock__header">
+                  <span class="mock__dot" style="background:#FF5F57"></span>
+                  <span class="mock__dot" style="background:#FFBD2E"></span>
+                  <span class="mock__dot" style="background:#28CA42"></span>
+                  <span style="font-size:11px;color:#999;margin-left:8px;font-weight:500">Checkout Performance</span>
+                </div>
+                <div class="mock__body">
+                  <div class="mock__stat"><div class="mock__stat-num" id="conv4">0%</div><div class="mock__stat-lbl">Conversion Rate</div></div>
+                  <div style="margin-top:10px">
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin-bottom:4px"><span>Card payments</span><span>62%</span></div>
+                    <div class="mock__progress"><div class="mock__progress-fill" id="bar4a" style="width:62%"></div></div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin:8px 0 4px"><span>Local methods</span><span>28%</span></div>
+                    <div class="mock__progress"><div class="mock__progress-fill" id="bar4b" style="width:28%"></div></div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin:8px 0 4px"><span>Digital wallets</span><span>10%</span></div>
+                    <div class="mock__progress"><div class="mock__progress-fill" id="bar4c" style="width:10%"></div></div>
+                  </div>
+                  <div class="mock__row" style="margin-top:8px"><span class="mock__label">Recovery rate</span><span class="mock__badge mock__badge--green">+34% retried</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /viewport -->
+    </div><!-- /track -->
+  </div><!-- /wrapper -->
 </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+window.addEventListener("load",function(){
+  if(typeof gsap==="undefined"||typeof ScrollTrigger==="undefined")return;
+  gsap.registerPlugin(ScrollTrigger);
+const cards = [
+    document.getElementById('sc1'),
+    document.getElementById('sc2'),
+    document.getElementById('sc3'),
+    document.getElementById('sc4'),
+  ];
+  const viewport = document.getElementById('stickyViewport');
+  const track = document.getElementById('stickyTrack');
+  const wrapper = document.getElementById('stickyWrapper');
+
+  const CARD_HEIGHT = () => Math.min(window.innerWidth * 0.82, 1000) * 0.57; // approx card height
+  const SCROLL_PER_CARD = window.innerHeight * 0.9;
+  const totalScroll = SCROLL_PER_CARD * (cards.length - 1);
+
+  // Set track height to create scroll distance
+  function setTrackHeight() {
+    track.style.height = (window.innerHeight + totalScroll) + 'px';
+  }
+  setTrackHeight();
+  window.addEventListener('resize', setTrackHeight);
+
+  // Position all cards centered
+  cards.forEach((card, i) => {
+    gsap.set(card, {
+      position: 'absolute',
+      left: '4%',
+      xPercent: 0,
+      yPercent: -50,
+      top: '50%',
+      zIndex: i + 1,
+      transformOrigin: 'center bottom',
+    });
+    if (i > 0) {
+      gsap.set(card, { y: '100vh' }); // start off-screen below
+    }
+  });
+
+  // Main scroll animation
+  ScrollTrigger.create({
+    trigger: track,
+    start: 'top top',
+    end: () => `+=${totalScroll}`,
+    scrub: 1,
+    pin: viewport,
+    anticipatePin: 1,
+    onUpdate: (self) => {
+      const progress = self.progress; // 0 to 1
+      const totalCards = cards.length;
+      const segSize = 1 / (totalCards - 1);
+
+      cards.forEach((card, i) => {
+        if (i === 0) {
+          // Card 1: stays, scales & fades as progress increases
+          const p = Math.min(progress / segSize, 1);
+          const scale = gsap.utils.interpolate(1, 0.94, p);
+          const opacity = gsap.utils.interpolate(1, 0.7, p);
+          const yUp = gsap.utils.interpolate(0, -32, p);
+          gsap.set(card, { scale, opacity, y: yUp, zIndex: 1 });
+        } else {
+          // Card i: enters when segment (i-1) begins
+          const segStart = (i - 1) * segSize;
+          const segEnd = i * segSize;
+          const p = gsap.utils.clamp(0, 1, (progress - segStart) / segSize);
+
+          // Slide in from below
+          const yIn = gsap.utils.interpolate(window.innerHeight * 0.85, 0, p);
+          const opacity = gsap.utils.interpolate(0, 1, Math.min(p * 2, 1));
+          const zIdx = i + 1;
+
+          // If there's a next card coming, scale this one down
+          if (i < totalCards - 1) {
+            const nextSegStart = i * segSize;
+            const nextP = gsap.utils.clamp(0, 1, (progress - nextSegStart) / segSize);
+            const scale = gsap.utils.interpolate(1, 0.94, nextP);
+            const opFade = gsap.utils.interpolate(1, 0.7, nextP);
+            const yUp = gsap.utils.interpolate(0, -32, nextP);
+            if (p >= 1) {
+              gsap.set(card, { y: yUp, scale, opacity: opFade, zIndex: zIdx });
+            } else {
+              gsap.set(card, { y: yIn, opacity, scale: 1, zIndex: zIdx });
+            }
+          } else {
+            // Last card — just slide in
+            gsap.set(card, { y: yIn > 0 ? yIn : 0, opacity, zIndex: zIdx });
+          }
+        }
+      });
+    }
+  });
+
+  /* Card mock animations on activation */
+  let activatedCards = new Set();
+
+  function activateMock(cardIndex) {
+    if (activatedCards.has(cardIndex)) return;
+    activatedCards.add(cardIndex);
+
+    if (cardIndex === 0) {
+      // MRR counter
+      const rev1 = document.getElementById('rev1');
+      if (rev1) {
+        let val = 0; const target = 142800;
+        const dur = 1400; const s = performance.now();
+        const tick = (now) => {
+          const p = Math.min((now - s)/dur, 1);
+          const e = 1 - Math.pow(1-p, 3);
+          rev1.textContent = '$' + Math.round(e * target).toLocaleString();
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }
+    if (cardIndex === 1) {
+      // Tax bar
+      const bar = document.getElementById('taxBar');
+      if (bar) { bar.style.width = '0'; setTimeout(() => bar.style.width = '87%', 100); }
+    }
+    if (cardIndex === 2) {
+      const mrr3 = document.getElementById('mrr3');
+      if (mrr3) {
+        let val = 0; const target = 284500;
+        const dur = 1400; const s = performance.now();
+        const tick = (now) => {
+          const p = Math.min((now - s)/dur, 1);
+          const e = 1 - Math.pow(1-p, 3);
+          mrr3.textContent = '$' + Math.round(e * target).toLocaleString();
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }
+    if (cardIndex === 3) {
+      const conv4 = document.getElementById('conv4');
+      if (conv4) {
+        let val = 0; const target = 74.3;
+        const dur = 1200; const s = performance.now();
+        const tick = (now) => {
+          const p = Math.min((now - s)/dur, 1);
+          const e = 1 - Math.pow(1-p, 3);
+          conv4.textContent = (e * target).toFixed(1) + '%';
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }
+  }
+
+  ScrollTrigger.create({
+    trigger: track,
+    start: 'top top',
+    end: () => `+=${totalScroll}`,
+    onUpdate: (self) => {
+      const p = self.progress;
+      const seg = 1 / (cards.length - 1);
+      const activeIdx = Math.min(Math.floor(p / seg + 0.1), cards.length - 1);
+      activateMock(activeIdx);
+    }
+  });
+
+  // Activate first card immediately when it enters viewport
+  ScrollTrigger.create({
+    trigger: wrapper,
+    start: 'top 80%',
+    once: true,
+    onEnter: () => activateMock(0)
+  });
+});
+</script>
 
 <!-- OFFER GRID -->
 <section id="offer">
@@ -267,9 +769,9 @@
       <p>Bios, stats, and brand assets pre-arranged so you only fill in the blanks.</p>
     </div>
     <div class="offer-card reveal d3">
-      <div class="n">Social Kits</div>
-      <h4>Feeds that feel designed.</h4>
-      <p>Cohesive post templates sized and styled for every platform you actually use.</p>
+      <div class="n">Digital Keynotes</div>
+      <h4>Present like a pro.</h4>
+      <p>Polished keynote decks with real structure — just drop in your story and present.</p>
     </div>
     <div class="offer-card reveal d4">
       <div class="n">Web Templates</div>
@@ -280,44 +782,7 @@
 </section>
 
 <!-- LIBRARY -->
-<section id="library">
-  <div class="eyebrow reveal">Your library</div>
-  <h2 class="reveal d1">Everything you've downloaded.<br/>One place.</h2>
-
-  <div class="lib-wrap">
-    <div class="lib-copy reveal d1">
-      <p class="sub" style="margin-top:0;">Every template you grab stays tied to your account — re-download anytime, track what's Pro, what's free, and what's new since you last checked.</p>
-      <ul>
-        <li>Re-download any owned template, no time limit</li>
-        <li>Pro badge shows what's included in your plan</li>
-        <li>New contributor drops surfaced as they're approved</li>
-      </ul>
-    </div>
-    <div class="lib-panel reveal d2">
-      <div class="head"><span>My Library</span><span>3 saved</span></div>
-      <div class="lib-row"><div class="lib-thumb"></div><div class="meta"><b>Founder Pitch Deck</b><span>Pro · Slides</span></div></div>
-      <div class="lib-row"><div class="lib-thumb"></div><div class="meta"><b>Studio Media Kit</b><span>Free · Web</span></div></div>
-      <div class="lib-row"><div class="lib-thumb"></div><div class="meta"><b>Launch Social Kit</b><span>Pro · Social</span></div></div>
-    </div>
-  </div>
-</section>
-
 <!-- CTA -->
-<section id="cta">
-  <div class="eyebrow reveal" style="justify-content:center;">Your turn</div>
-  <h2 class="reveal d1" style="max-width:none;">Find your next template.</h2>
-  <p class="sub reveal d2" style="margin-left:auto;margin-right:auto;">Browse the full library, or jump straight to what you need.</p>
-
-  <div class="cta-prompts reveal d3">
-    <span>"Pitch deck for a seed round"</span>
-    <span>"Media kit for a content creator"</span>
-    <span>"Social templates for a product launch"</span>
-  </div>
-
-  <a href="#hero" class="cta-btn reveal d4">Browse Templates</a>
-  <div class="cta-foot reveal d4">LazyDogTemplates · Curated by humans, used by thousands.</div>
-</section>
-
 <script>
   // Scroll progress bar
   const progress = document.getElementById('progress');
@@ -337,6 +802,9 @@
   // Hero card fan-out on load
   setTimeout(() => { document.getElementById('hero').classList.add('fanned'); }, 600);
 </script>
+
+
+
 
 </body>
 </html>

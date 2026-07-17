@@ -586,7 +586,8 @@
       </div>
     </div>
     <div class="lb-inputrow">
-      <input id="helpbotInput" type="text" placeholder="Type your question…" autocomplete="off" onkeydown="if(event.key==='Enter')helpbotAsk();" />
+      <input id="helpbotInput" type="text" placeholder="Type or speak…" autocomplete="off" onkeydown="if(event.key==='Enter')helpbotAsk();" />
+      <button id="hexaMicBtn" class="lb-send" onclick="hexaMic()" title="Speak to Hexa" aria-label="Speak" style="background:#eef1ff;color:#5b5bd6;">🎤</button>
       <button class="lb-send" onclick="helpbotAsk()" aria-label="Send">➤</button>
     </div>
   </div>
@@ -630,12 +631,16 @@
     hbAdd(text,'user',true);
     hbRemember('user', text);
     var bubble=hbAdd('<span class="lb-typing"><span></span><span></span><span></span></span>','bot',false);
+    // 0) top-bar command (language / mic / colour)
+    var cmd=(window.hexaCommand && window.hexaCommand(text))||null;
+    if(cmd && cmd.reply){ bubble.textContent=cmd.reply; hbRemember('assistant',cmd.reply); hbScroll(); return; }
     // 1) canned preset answer
     if (CANNED[text]) { bubble.innerHTML=CANNED[text]; hbRemember('assistant', bubble.textContent); hbScroll(); return; }
     // 2) FREE word-compiler
     var composed=(window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
     if (composed && composed.reply) {
       bubble.innerHTML=composed.reply;
+      if(composed.target && composed.execute){ hbRemember('assistant',composed.reply); hbScroll(); setTimeout(function(){window.location.href=composed.target;},900); return; }
       if(composed.target && window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(composed.target, composed.label)); }
       hbRemember('assistant', composed.reply); hbScroll(); return;
     }
@@ -653,6 +658,18 @@
       .catch(function(){ bubble.textContent="Sorry, I'm having trouble right now. Please try again."; hbScroll(); });
   };
   window.helpbotAsk = function(){ var inp=document.getElementById('helpbotInput'); var t=((inp&&inp.value)||'').trim(); if(!t) return; inp.value=''; window.helpbotSend(t); };
+
+  // Hexa mic: speak instead of type — dictates into Hexa and sends.
+  window.hexaMic = function(){
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ alert("Voice input isn't supported in this browser — please type instead."); return; }
+    var r=new SR(); r.lang=(document.documentElement.lang||'en-US'); r.interimResults=false; r.maxAlternatives=1;
+    var btn=document.getElementById('hexaMicBtn'); if(btn) btn.textContent='●';
+    r.onresult=function(e){ var tx=e.results[0][0].transcript; var inp=document.getElementById('helpbotInput'); if(inp) inp.value=tx; if(window.helpbotSend) window.helpbotSend(tx); };
+    r.onend=function(){ if(btn) btn.textContent='🎤'; };
+    r.onerror=function(){ if(btn) btn.textContent='🎤'; };
+    try{ r.start(); }catch(e){}
+  };
 
   // ── THEME TOGGLE ──
   // ── UNIVERSAL FONT PANEL (works on all pages) ──

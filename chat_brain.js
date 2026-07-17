@@ -39,6 +39,18 @@
     'support_contact': "Email <strong>support@lazydogtemplates.com</strong> — we usually reply within 24 hours."
   };
 
+  // ════════════════════════════════════════════════════════════════
+  //  ✎ EDIT ME — Hexa's custom answers (FREE, no API call).
+  //  Add a line: { match: ["keyword or phrase", "another wording"], reply: "answer" }
+  //  If the visitor's message CONTAINS any phrase in match, Hexa gives reply.
+  //  Optional: add  target: "some_page.html"  to also show an Open button.
+  //  Checked top-to-bottom — put the most specific entries first.
+  // ════════════════════════════════════════════════════════════════
+  var CHAT_FAQ = [
+    // { match: ["refund", "money back"], reply: "We offer a 14-day refund window on eligible purchases." },
+    // { match: ["discount", "coupon", "promo code"], reply: "Check the What's New page for any current offers.", target: "whats_new_keynote.html" },
+  ];
+
   function norm(s) {
     return String(s || '')
       .toLowerCase()
@@ -65,15 +77,23 @@
       }
     }
     if (!best) return null;
-    return {
-      reply: OVERRIDES[best.id] || best.reply,
-      target: (best.action === 'navigate') ? best.target : null
-    };
+    var tgt = (best.action === 'navigate') ? best.target : null;
+    var exec = !!tgt && /\b(open|show|take me|go to|goto|bring|browse|see|view|visit)\b/.test(lower);
+    return { reply: OVERRIDES[best.id] || best.reply, target: tgt, label: tgt ? labelForUrl(tgt) : null, execute: exec };
   }
 
   window.chatCompose = function (text) {
     try {
       var low = norm(text);
+      // 0) custom FAQ (edit CHAT_FAQ at the top of this file)
+      for (var fi = 0; fi < CHAT_FAQ.length; fi++) {
+        var fe = CHAT_FAQ[fi], fm = fe.match || [];
+        for (var fj = 0; fj < fm.length; fj++) {
+          if (fm[fj] && low.indexOf(norm(fm[fj])) !== -1) {
+            return { reply: fe.reply, target: fe.target || null, label: fe.target ? labelForUrl(fe.target) : null, execute: !!fe.execute };
+          }
+        }
+      }
       // "What's new" intent → open the What's New keynote.
       if (/(what ?s? new|new feature|new features|any updates|what changed|latest update|new arrivals|new templates|whats new)/.test(low)) {
         return { reply: "Here's what's new at LazyDog 👇", target: 'whats_new_keynote.html', label: "See What's New" };
@@ -128,6 +148,51 @@
       'background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border-radius:0;' +
       'font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;font-family:Inter,sans-serif;';
     return a;
+  };
+
+  // ── Hexa command executor: run top-bar controls (language / mic / colour) ──
+  var LANGS = {english:['en','English'],arabic:['ar','العربية'],spanish:['es','Español'],french:['fr','Français'],german:['de','Deutsch'],dutch:['nl','Nederlands'],japanese:['ja','日本語'],indonesian:['id','Bahasa Indonesia'],thai:['th','ภาษาไทย'],vietnamese:['vi','Tiếng Việt'],korean:['ko','한국어'],persian:['fa','فارسی'],farsi:['fa','فارسی'],hindi:['hi','हिन्दी'],turkish:['tr','Türkçe'],polish:['pl','Polski'],russian:['ru','Русский'],ukrainian:['uk','Українська'],italian:['it','Italiano'],urdu:['ur','اردو'],bengali:['bn','বাংলা'],malay:['ms','Bahasa Melayu'],swahili:['sw','Kiswahili'],filipino:['tl','Filipino'],tagalog:['tl','Filipino'],greek:['el','Ελληνικά'],czech:['cs','Čeština'],romanian:['ro','Română'],hungarian:['hu','Magyar'],swedish:['sv','Svenska'],norwegian:['no','Norsk'],danish:['da','Dansk'],portuguese:['pt','Português (Brasil)'],chinese:['zh-CN','简体中文'],mandarin:['zh-CN','简体中文']};
+  var COLOURS = {red:'#e03030',blue:'#2b45f0',green:'#1b7f3e',gold:'#d4af37',golden:'#d4af37',purple:'#7c3aed',orange:'#ff6b35',pink:'#ec4899',teal:'#14b8a6',black:'#111111',cyan:'#06b6d4',yellow:'#eab308'};
+  window.hexaCommand = function(text){
+    var t=String(text||'').toLowerCase();
+    // LANGUAGE
+    var lh=null,ln=null;
+    for(var nm in LANGS){ if(t.indexOf(nm)!==-1){ lh=LANGS[nm]; ln=nm; break; } }
+    if(lh && /(language|translat|site|page|speak|switch|change|convert|version|read)/.test(t)){
+      try{ if(window.nbSetLang) window.nbSetLang(lh[0],lh[1]); }catch(e){}
+      return { reply: "Switching the site to "+ln.charAt(0).toUpperCase()+ln.slice(1)+"…" };
+    }
+    if(/(change|switch|set).{0,12}(language|translat)/.test(t) || /(language|translat).{0,8}(to|into)/.test(t)){
+      return { reply: "That language isn't in our list — but the 🌐 menu up top has 30+ options." };
+    }
+    // MIC
+    if(/\b(mic|microphone|voice)\b/.test(t)){
+      if(/\b(off|stop|disable|close|end)\b/.test(t)){ try{ if(window.toggleVoiceAssistant) window.toggleVoiceAssistant(); }catch(e){} return { reply:"Voice turned off." }; }
+      if(/\b(on|start|open|enable|activate|use|begin|turn)\b/.test(t)){ try{ if(window.toggleVoiceAssistant) window.toggleVoiceAssistant(); }catch(e){} return { reply:"Voice is on — speak your command 🎤" }; }
+    }
+    // COLOUR
+    if(/(colou?r|theme|accent)/.test(t) && /(change|set|make|switch|turn|use)/.test(t)){
+      for(var c in COLOURS){ if(t.indexOf(c)!==-1){ try{ var pk=document.getElementById('nbCPicker'); if(pk){ pk.value=COLOURS[c]; pk.dispatchEvent(new Event('input',{bubbles:true})); pk.dispatchEvent(new Event('change',{bubbles:true})); } }catch(e){} return { reply:"Accent colour changed to "+c+"." }; } }
+      return { reply:"Pick a colour like red, blue, gold or purple — or use the 🎨 menu up top." };
+    }
+    // APPS — open an external editor in a NEW browser tab
+    var APPS={powerpoint:'https://www.office.com/launch/powerpoint',figma:'https://www.figma.com',canva:'https://www.canva.com','google slides':'https://docs.google.com/presentation/',keynote:'https://www.icloud.com/keynote'};
+    var APPNAMES={powerpoint:'PowerPoint',figma:'Figma',canva:'Canva','google slides':'Google Slides',keynote:'Keynote'};
+    if(/(open|launch|start|go to|take me to|use)/.test(t)){
+      for(var ap in APPS){
+        if(t.indexOf(ap)!==-1){
+          if(ap==='keynote' && t.indexOf('digital')!==-1) continue; // "digital keynotes" = our category
+          try{ window.open(APPS[ap],'_blank'); }catch(e){}
+          return { reply:"Opening "+APPNAMES[ap]+" in a new tab ↗" };
+        }
+      }
+    }
+    // FOOTER / legal pages (internal navigation)
+    var PAGES={'terms and conditions':'terms.html','privacy policy':'terms.html#privacy','refund policy':'terms.html#refund','frequently asked':'faq.html','cookie':'terms.html','privacy':'terms.html#privacy','refund':'terms.html#refund','terms':'terms.html','faq':'faq.html'};
+    if(/(open|show|take me|go to|see|view|read)/.test(t)){
+      for(var pg in PAGES){ if(t.indexOf(pg)!==-1){ try{ window.location.href=PAGES[pg]; }catch(e){} return { reply:"Opening "+pg+"…" }; } }
+    }
+    return null;
   };
 
 })();
