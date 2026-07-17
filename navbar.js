@@ -181,7 +181,7 @@
       </div>
     </div>
     <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="background:#fff;color:#c79a20;border:1.5px solid #dcb43f;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">✨ What's New</a>
-    <a href="#" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">🚀 Coming Soon</a>
+    <a href="coming_soon.html" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">🚀 Coming Soon</a>
     <!-- CONTRIBUTOR HIDDEN (re-enable after KYC): <button class="nb-seller" onclick="window.location='upload_form.html'">🛍️ Apply as a Contributor</button> -->
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
@@ -547,7 +547,7 @@
 <button class="nb-sb-helpbot" id="helpbotBtn" onclick="toggleBot()" title="Need help?">💬</button>
 <div class="helpbot-panel" id="helpbotPanel">
   <div class="helpbot-header">
-    <div class="helpbot-avatar">🤖</div>
+    <div class="helpbot-avatar">👩‍💼</div>
     <div><div class="helpbot-title">Hexa</div><div class="helpbot-sub">LazyDog assistant • Ask me anything ✦</div></div>
     <button class="helpbot-close" onclick="toggleBot()">✕</button>
   </div>

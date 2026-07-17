@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE NEXT CHAPTER — LazyDog Studios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0A0A0A;
+  --fg: #F5F3F0;
+  --muted: #8A8680;
+  --silver: #C8C4BE;
+  --blue: #4A6FA5;
+  --amber: #C4956A;
+  --dark: #050505;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-snap-type:y mandatory;overflow-y:scroll;scrollbar-width:none}
+html::-webkit-scrollbar{display:none}
+body{background:var(--bg);color:var(--fg);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* Global particle canvas */
+#gc{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+/* Film grain overlay */
+.grain{position:fixed;inset:0;z-index:1000;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='.6'/%3E%3C/svg%3E");
+  background-size:150px 150px;animation:grainShift .4s steps(1) infinite}
+@keyframes grainShift{0%{transform:translate(0,0)}25%{transform:translate(-5%,-5%)}50%{transform:translate(3%,2%)}75%{transform:translate(-2%,4%)}100%{transform:translate(4%,-3%)}}
+
+/* Progress bar */
+.prog{position:fixed;right:2rem;top:50%;transform:translateY(-50%);width:2px;height:100px;background:rgba(255,255,255,.06);border-radius:1px;z-index:999}
+.prog-fill{width:100%;background:rgba(255,255,255,.25);border-radius:1px;transition:height .6s cubic-bezier(.22,1,.36,1);height:0%}
+
+/* Slide base */
+.slide{height:100vh;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.slide::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(5,5,5,.7) 100%);pointer-events:none;z-index:1}
+.slide canvas.sc{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+
+/* Slide inner content */
+.si{position:relative;z-index:2;text-align:center;max-width:880px;padding:0 2rem;width:100%}
+.si.left{text-align:left;max-width:520px}
+
+/* Reveal system */
+.rv{opacity:0;transform:translateY(36px);transition:opacity 1s cubic-bezier(.22,1,.36,1),transform 1s cubic-bezier(.22,1,.36,1);transition-delay:var(--d,0ms)}
+.slide.active .rv{opacity:1;transform:translateY(0)}
+.rv-scale{opacity:0;transform:scale(.92);transition:opacity 1.2s cubic-bezier(.22,1,.36,1),transform 1.2s cubic-bezier(.22,1,.36,1);transition-delay:var(--d,0ms)}
+.slide.active .rv-scale{opacity:1;transform:scale(1)}
+
+/* Atmospheric blobs */
+.blob{position:absolute;border-radius:50%;pointer-events:none;z-index:0}
+
+/* Typography */
+.fs{font-family:'Instrument Serif',serif}
+.fss{font-family:'Space Grotesk',sans-serif}
+.hero{font-size:clamp(2.4rem,5.5vw,5rem);line-height:1.1;font-weight:400}
+.hero-xl{font-size:clamp(3rem,7.5vw,7rem);line-height:1.05;font-weight:400}
+.hero-xxl{font-size:clamp(3.5rem,9vw,8.5rem);line-height:1;font-weight:400}
+.label{font-size:clamp(.7rem,1vw,.85rem);letter-spacing:.2em;text-transform:uppercase;font-weight:500;color:var(--muted)}
+.body-lg{font-size:clamp(1rem,1.8vw,1.35rem);line-height:1.7;font-weight:300;color:var(--silver)}
+.body-sm{font-size:clamp(.85rem,1.2vw,1rem);line-height:1.8;font-weight:300;color:var(--muted)}
+.muted{color:var(--muted)}.silver{color:var(--silver)}.blue{color:var(--blue)}.amber{color:var(--amber)}
+
+/* Scroll hint */
+.scroll-hint{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;z-index:2}
+.scroll-hint span{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted)}
+.scroll-line{width:1px;height:32px;background:linear-gradient(to bottom,var(--muted),transparent);animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{opacity:.3;transform:scaleY(1)}50%{opacity:.8;transform:scaleY(1.2)}}
+
+/* Slide 03 — Pillars */
+.pillars{display:flex;gap:clamp(1.5rem,4vw,4rem);justify-content:center;align-items:flex-end;margin-top:3rem}
+.pillar{padding:2.5rem 1.8rem;border:1px solid rgba(200,196,190,.1);border-radius:4px;background:rgba(255,255,255,.02);backdrop-filter:blur(4px);transition:border-color .6s ease}
+.slide.active .pillar{border-color:rgba(200,196,190,.15)}
+.pillar span{font-size:clamp(.75rem,1.1vw,.9rem);letter-spacing:.3em;font-weight:600;color:var(--silver)}
+
+/* Slide 04 — Description lines */
+.desc-lines{text-align:left;display:flex;flex-direction:column;gap:.35rem;margin-top:2rem}
+.desc-lines span{font-size:clamp(.95rem,1.4vw,1.15rem);font-weight:300;color:var(--silver);line-height:1.6}
+
+/* Slide 05 — Steps */
+.steps{display:flex;flex-direction:column;gap:.6rem;margin-top:2.5rem;text-align:left}
+.step{display:flex;align-items:center;gap:1rem;padding:.8rem 0;border-bottom:1px solid rgba(200,196,190,.06)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:var(--silver);flex-shrink:0;opacity:.5}
+.step span{font-size:clamp(.9rem,1.3vw,1.1rem);font-weight:300;color:var(--silver)}
+.step-final{margin-top:1.5rem;display:flex;gap:2rem;justify-content:center}
+.step-final span{font-size:clamp(.8rem,1vw,.9rem);letter-spacing:.15em;font-weight:400;color:var(--muted)}
+
+/* Slide 06 — Role list */
+.role-list{text-align:left;display:flex;flex-direction:column;gap:.25rem;margin-top:1.8rem}
+.role-list span{font-size:clamp(.95rem,1.3vw,1.15rem);font-weight:300;color:var(--silver)}
+
+/* Slide 08 — Floating cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:2.5rem;max-width:680px;margin-left:auto;margin-right:auto}
+.card{padding:1.4rem 1.2rem;border:1px solid rgba(200,196,190,.07);border-radius:6px;background:rgba(255,255,255,.015);transition:border-color .5s,transform .5s,background .5s}
+.card:hover{border-color:rgba(200,196,190,.18);transform:translateY(-4px);background:rgba(255,255,255,.03)}
+.card span{font-size:clamp(.8rem,1vw,.92rem);font-weight:400;color:var(--silver);letter-spacing:.04em}
+
+/* Slide 09 — Blank canvas */
+.blank-canvas{width:clamp(260px,40vw,420px);height:clamp(180px,28vw,300px);border:1px solid rgba(200,196,190,.12);border-radius:4px;margin:2.5rem auto 0;position:relative;overflow:hidden;background:rgba(255,255,255,.01)}
+.blank-canvas .fill{position:absolute;inset:0;background:rgba(255,255,255,.015);opacity:0;transition:opacity 1.5s ease .8s}
+.slide.active .blank-canvas .fill{opacity:1}
+.blank-canvas .corner{position:absolute;width:16px;height:16px;border-color:var(--silver);border-style:solid;opacity:.3}
+.blank-canvas .corner.tl{top:8px;left:8px;border-width:1px 0 0 1px}
+.blank-canvas .corner.tr{top:8px;right:8px;border-width:1px 1px 0 0}
+.blank-canvas .corner.bl{bottom:8px;left:8px;border-width:0 0 1px 1px}
+.blank-canvas .corner.br{bottom:8px;right:8px;border-width:0 1px 1px 0}
+
+/* Slide 10 — Transform steps */
+.transform-steps{display:flex;gap:clamp(1rem,3vw,3rem);justify-content:center;margin-top:2.5rem;flex-wrap:wrap}
+.ts-item{text-align:center}
+.ts-item .num{font-family:'Instrument Serif',serif;font-size:2rem;color:var(--amber);opacity:.6}
+.ts-item .txt{font-size:.85rem;color:var(--muted);margin-top:.3rem;letter-spacing:.08em}
+.transform-sub{margin-top:2rem}
+
+/* Slide 11 — Morph cards */
+.morph-row{display:flex;gap:clamp(1.5rem,4vw,4rem);justify-content:center;align-items:center;margin-top:2.5rem;flex-wrap:wrap}
+.morph-card{width:clamp(160px,22vw,240px);height:clamp(200px,28vw,300px);border-radius:6px;border:1px solid rgba(200,196,190,.08);position:relative;overflow:hidden;transition:transform .8s ease}
+.morph-card.standard{background:rgba(255,255,255,.02)}
+.morph-card.standard .mc-bar{position:absolute;top:0;left:0;right:0;height:24px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,196,190,.06)}
+.morph-card.standard .mc-line{height:4px;background:rgba(255,255,255,.05);border-radius:2px;margin:16px 14px 0}
+.morph-card.standard .mc-line:nth-child(2){width:60%}
+.morph-card.standard .mc-line:nth-child(3){width:80%;margin-top:10px}
+.morph-card.standard .mc-line:nth-child(4){width:45%;margin-top:10px}
+.morph-card.custom{background:rgba(196,149,106,.04);border-color:rgba(196,149,106,.15)}
+.morph-card.custom .mc-bar{position:absolute;top:0;left:0;right:0;height:24px;background:rgba(196,149,106,.08);border-bottom:1px solid rgba(196,149,106,.12)}
+.morph-card.custom .mc-line{height:4px;border-radius:2px;margin:16px 14px 0}
+.morph-card.custom .mc-line:nth-child(2){width:55%;background:rgba(196,149,106,.2)}
+.morph-card.custom .mc-line:nth-child(3){width:75%;margin-top:10px;background:rgba(196,149,106,.15)}
+.morph-card.custom .mc-line:nth-child(4){width:40%;margin-top:10px;background:rgba(196,149,106,.1)}
+.morph-arrow{color:var(--muted);font-size:1.2rem;opacity:.4}
+
+/* Slide 12 — Because statements */
+.because{margin-top:2.5rem;display:flex;flex-direction:column;gap:1.2rem}
+.because span{font-family:'Instrument Serif',serif;font-size:clamp(1.15rem,2vw,1.6rem);font-weight:400;color:var(--silver);line-height:1.5;font-style:italic}
+
+/* Slide 13 — Ecosystem circles */
+.eco-wrap{display:flex;align-items:center;justify-content:center;gap:clamp(2rem,5vw,5rem);margin-top:3rem;flex-wrap:wrap}
+.eco-circle{width:clamp(120px,16vw,180px);height:clamp(120px,16vw,180px);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;position:relative}
+.eco-circle::before{content:'';position:absolute;inset:-1px;border-radius:50%;border:1px solid;opacity:.2;animation:ecoPulse 4s ease-in-out infinite}
+.eco-circle.blue::before{border-color:var(--blue)}
+.eco-circle.amber::before{border-color:var(--amber)}
+.eco-circle.silver::before{border-color:var(--silver)}
+@keyframes ecoPulse{0%,100%{transform:scale(1);opacity:.15}50%{transform:scale(1.08);opacity:.3}}
+.eco-circle span{font-size:clamp(.6rem,.85vw,.78rem);letter-spacing:.12em;font-weight:500;text-transform:uppercase;padding:0 1rem}
+.eco-circle.blue span{color:var(--blue)}
+.eco-circle.amber span{color:var(--amber)}
+.eco-circle.silver span{color:var(--silver)}
+.eco-line{width:clamp(40px,6vw,80px);height:1px;background:linear-gradient(to right,transparent,rgba(200,196,190,.15),transparent)}
+
+/* Slide 14 — Coming soon */
+.coming-soon-line{width:60px;height:1px;background:var(--amber);margin:2rem auto 0;opacity:.5}
+
+/* Slide 15 — Final */
+.final-words{display:flex;gap:clamp(1rem,3vw,2.5rem);justify-content:center;margin-top:2.5rem;flex-wrap:wrap}
+.final-words span{font-family:'Instrument Serif',serif;font-size:clamp(1.3rem,2.5vw,2rem);color:var(--silver);font-style:italic;opacity:.7}
+
+/* Fade out final slide hint */
+.no-hint .scroll-hint{opacity:0;pointer-events:none}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  .rv,.rv-scale{transition:opacity .3s ease!important;transform:none!important}
+  .slide.active .rv,.slide.active .rv-scale{transform:none!important}
+  .grain{animation:none}
+  .scroll-line{animation:none}
+  .eco-circle::before{animation:none}
+}
+
+/* Mobile adjustments */
+@media(max-width:768px){
+  .si{padding:0 1.2rem}
+  .pillars{flex-direction:column;align-items:center}
+  .card-grid{grid-template-columns:repeat(2,1fr);gap:.7rem}
+  .morph-row{flex-direction:column}
+  .morph-arrow{transform:rotate(90deg)}
+  .eco-wrap{flex-direction:column;gap:1.5rem}
+  .eco-line{width:1px;height:40px;background:linear-gradient(to bottom,transparent,rgba(200,196,190,.15),transparent)}
+  .prog{right:1rem}
+  .step-final{flex-direction:column;gap:.5rem;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<canvas id="gc"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="prog" aria-hidden="true"><div class="prog-fill" id="pf"></div></div>
+
+<main>
+
+<!-- Slide 00: Title Card -->
+<section class="slide" data-slide="0">
+  <div class="si">
+    <p class="rv fss label" style="--d:200ms">LazyDog Studios Presents</p>
+    <h1 class="rv fs hero-xxl" style="--d:500ms">THE NEXT CHAPTER</h1>
+    <p class="rv body-sm muted" style="--d:900ms">Three new worlds are opening inside LazyDog.</p>
+  </div>
+  <div class="scroll-hint rv" style="--d:1600ms">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- Slide 01: A Question -->
+<section class="slide" data-slide="1">
+  <div class="si">
+    <p class="rv label" style="--d:0ms">A Question</p>
+    <h1 class="rv fs hero" style="--d:400ms">What happens when creators<br>stop working alone?</h1>
+  </div>
+</section>
+
+<!-- Slide 02: A Platform Becomes An Ecosystem -->
+<section class="slide" data-slide="2">
+  <div class="blob" style="width:500px;height:500px;top:-15%;right:-10%;background:rgba(138,134,128,.08);filter:blur(140px)" aria-hidden="true"></div>
+  <div class="si">
+    <h1 class="rv fs hero" style="--d:0ms">A Platform Becomes<br>An Ecosystem</h1>
+    <p class="rv body-lg muted" style="--d:500ms">For years, LazyDog helped people create.</p>
+    <p class="rv body-lg silver" style="--d:900ms">Now it begins connecting them.</p>
+  </div>
+</section>
+
+<!-- Slide 03: Three New Worlds -->
+<section class="slide" data-slide="3">
+  <div class="blob" style="width:400px;height:400px;top:30%;left:40%;background:rgba(74,111,165,.06);filter:blur(130px)" aria-hidden="true"></div>
+  <div class="si">
+    <p class="rv label" style="--d:0ms">Introduction</p>
+    <h1 class="rv fs hero" style="--d:300ms">Three New Worlds</h1>
+    <div class="pillars">
+      <div class="pillar rv" style="--d:800ms"><span>MARKETERS</span></div>
+      <div class="pillar rv" style="--d:1000ms"><span>CONTRIBUTORS</span></div>
+      <div class="pillar rv" style="--d:1200ms"><span>CREATORS</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 04: Open Affiliate -->
+<section class="slide" data-slide="4">
+  <canvas class="sc" id="c4"></canvas>
+  <div class="blob" style="width:450px;height:450px;bottom:-10%;left:-5%;background:rgba(196,149,106,.07);filter:blur(130px)" aria-hidden="true"></div>
+  <div class="si left" style="max-width:480px">
+    <p class="rv label" style="--d:0ms">The First World</p>
+    <h1 class="rv fs fs hero-xl" style="--d:300ms"><em>Open Affiliate</em></h1>
+    <div class="desc-lines">
+      <span class="rv" style="--d:600ms">A new home for marketers.</span>
+      <span class="rv" style="--d:750ms">Not employees. Not salespeople. Partners.</span>
+      <span class="rv" style="--d:900ms">People who understand businesses.</span>
+      <span class="rv" style="--d:1050ms">People who bring opportunities.</span>
+      <span class="rv" style="--d:1200ms">People who create connections.</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 05: How It Works -->
+<section class="slide" data-slide="5">
+  <canvas class="sc" id="c5"></canvas>
+  <div class="blob" style="width:400px;height:400px;top:10%;right:-8%;background:rgba(74,111,165,.06);filter:blur(120px)" aria-hidden="true"></div>
+  <div class="si left" style="max-width:440px">
+    <p class="rv label" style="--d:0ms">How It Works</p>
+    <div class="steps">
+      <div class="step rv" style="--d:300ms"><div class="step-dot"></div><span>Bring clients.</span></div>
+      <div class="step rv" style="--d:450ms"><div class="step-dot"></div><span>Track projects.</span></div>
+      <div class="step rv" style="--d:600ms"><div class="step-dot"></div><span>Earn automatically.</span></div>
+      <div class="step rv" style="--d:750ms"><div class="step-dot"></div><span>Grow with the ecosystem.</span></div>
+    </div>
+    <div class="step-final">
+      <span class="rv" style="--d:1000ms">No hard selling.</span>
+      <span class="rv" style="--d:1100ms">No complicated systems.</span>
+    </div>
+    <div class="step-final" style="margin-top:.8rem">
+      <span class="rv amber" style="--d:1300ms">Simple.</span>
+      <span class="rv amber" style="--d:1400ms">Transparent.</span>
+      <span class="rv amber" style="--d:1500ms">Scalable.</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 06: Contributor Program -->
+<section class="slide" data-slide="6">
+  <canvas class="sc" id="c6"></canvas>
+  <div class="blob" style="width:400px;height:400px;top:-10%;left:-5%;background:rgba(74,111,165,.06);filter:blur(130px)" aria-hidden="true"></div>
+  <div class="si left" style="max-width:480px">
+    <p class="rv label" style="--d:0ms">The Second World</p>
+    <h1 class="rv fs hero-xl" style="--d:300ms">Contributor<br>Program</h1>
+    <div class="role-list">
+      <span class="rv" style="--d:700ms">For designers.</span>
+      <span class="rv" style="--d:820ms">For developers.</span>
+      <span class="rv" style="--d:940ms">For writers.</span>
+      <span class="rv" style="--d:1060ms">For researchers.</span>
+      <span class="rv" style="--d:1180ms">For creative specialists.</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 07: A Collective Intelligence -->
+<section class="slide" data-slide="7">
+  <canvas class="sc" id="c7"></canvas>
+  <div class="blob" style="width:500px;height:500px;top:25%;left:35%;background:rgba(196,149,106,.05);filter:blur(140px)" aria-hidden="true"></div>
+  <div class="si" style="max-width:560px">
+    <h1 class="rv fs hero" style="--d:0ms">A Collective<br>Intelligence</h1>
+    <p class="rv body-lg muted" style="--d:500ms">Every contributor brings something unique.</p>
+    <p class="rv body-lg silver" style="--d:800ms">Together they build something larger.</p>
+    <div style="margin-top:2rem">
+      <p class="rv body-sm muted" style="--d:1100ms">Not freelancers. Not contractors.</p>
+      <p class="rv body-lg amber" style="--d:1400ms">Contributors.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 08: Who Can Join -->
+<section class="slide" data-slide="8">
+  <div class="blob" style="width:350px;height:350px;top:20%;left:10%;background:rgba(200,196,190,.04);filter:blur(120px)" aria-hidden="true"></div>
+  <div class="blob" style="width:300px;height:300px;bottom:15%;right:10%;background:rgba(200,196,190,.03);filter:blur(110px)" aria-hidden="true"></div>
+  <div class="si">
+    <p class="rv label" style="--d:0ms">Roles</p>
+    <h1 class="rv fs hero" style="--d:300ms">Who Can Join</h1>
+    <div class="card-grid">
+      <div class="card rv" style="--d:700ms"><span>UI Designers</span></div>
+      <div class="card rv" style="--d:800ms"><span>UX Designers</span></div>
+      <div class="card rv" style="--d:900ms"><span>Developers</span></div>
+      <div class="card rv" style="--d:1000ms"><span>Brand Specialists</span></div>
+      <div class="card rv" style="--d:1100ms"><span>Researchers</span></div>
+      <div class="card rv" style="--d:1200ms"><span>Presentation Designers</span></div>
+      <div class="card rv" style="--d:1300ms"><span>Motion Artists</span></div>
+      <div class="card rv" style="--d:1400ms"><span>Creative Thinkers</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 09: Edit Your Template -->
+<section class="slide" data-slide="9">
+  <div class="blob" style="width:400px;height:400px;top:30%;left:40%;background:rgba(74,111,165,.05);filter:blur(130px)" aria-hidden="true"></div>
+  <div class="si">
+    <p class="rv label" style="--d:0ms">The Third World</p>
+    <h1 class="rv fs hero-xl" style="--d:300ms"><em>Edit Your Template</em></h1>
+    <p class="rv body-lg muted" style="--d:700ms">A completely new experience.</p>
+    <div class="blank-canvas rv-scale" style="--d:1000ms">
+      <div class="fill"></div>
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 10: Creation Without Friction -->
+<section class="slide" data-slide="10">
+  <div class="blob" style="width:400px;height:400px;bottom:10%;left:-5%;background:rgba(196,149,106,.06);filter:blur(120px)" aria-hidden="true"></div>
+  <div class="si">
+    <h1 class="rv fs hero" style="--d:0ms">Creation Without Friction</h1>
+    <div class="transform-steps">
+      <div class="ts-item rv" style="--d:500ms"><div class="num">01</div><div class="txt">Choose</div></div>
+      <div class="ts-item rv" style="--d:700ms"><div class="num">02</div><div class="txt">Customize</div></div>
+      <div class="ts-item rv" style="--d:900ms"><div class="num">03</div><div class="txt">Refine</div></div>
+      <div class="ts-item rv" style="--d:1100ms"><div class="num">04</div><div class="txt">Download</div></div>
+    </div>
+    <p class="rv body-sm muted transform-sub" style="--d:1400ms">The template becomes yours. No waiting. No complexity.</p>
+  </div>
+</section>
+
+<!-- Slide 11: A New Generation Of Templates -->
+<section class="slide" data-slide="11">
+  <div class="blob" style="width:350px;height:350px;top:10%;left:5%;background:rgba(74,111,165,.05);filter:blur(120px)" aria-hidden="true"></div>
+  <div class="blob" style="width:300px;height:300px;bottom:10%;right:5%;background:rgba(196,149,106,.05);filter:blur(120px)" aria-hidden="true"></div>
+  <div class="si">
+    <h1 class="rv fs hero" style="--d:0ms">A New Generation<br>Of Templates</h1>
+    <div class="morph-row">
+      <div class="morph-card standard rv-scale" style="--d:600ms">
+        <div class="mc-bar"></div>
+        <div class="mc-line"></div>
+        <div class="mc-line"></div>
+        <div class="mc-line"></div>
+      </div>
+      <div class="morph-arrow rv" style="--d:900ms">&#8594;</div>
+      <div class="morph-card custom rv-scale" style="--d:1200ms">
+        <div class="mc-bar"></div>
+        <div class="mc-line"></div>
+        <div class="mc-line"></div>
+        <div class="mc-line"></div>
+      </div>
+    </div>
+    <div style="margin-top:2.5rem;display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap">
+      <span class="rv body-sm silver" style="--d:1400ms">Not static files.</span>
+      <span class="rv body-sm silver" style="--d:1550ms">Living systems.</span>
+      <span class="rv body-sm silver" style="--d:1700ms">Editable. Flexible. Personal.</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 12: Why We Are Building This -->
+<section class="slide" data-slide="12">
+  <div class="blob" style="width:500px;height:500px;top:30%;left:30%;background:rgba(138,134,128,.05);filter:blur(140px)" aria-hidden="true"></div>
+  <div class="si" style="max-width:620px">
+    <h1 class="rv fs hero" style="--d:0ms">Why We Are Building This</h1>
+    <div class="because">
+      <span class="rv" style="--d:600ms">Because creation should be collaborative.</span>
+      <span class="rv" style="--d:900ms">Because opportunities should be shared.</span>
+      <span class="rv" style="--d:1200ms">Because good design should evolve.</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 13: The Ecosystem -->
+<section class="slide" data-slide="13">
+  <div class="blob" style="width:250px;height:250px;top:20%;left:15%;background:rgba(74,111,165,.05);filter:blur(100px)" aria-hidden="true"></div>
+  <div class="blob" style="width:250px;height:250px;top:25%;right:15%;background:rgba(196,149,106,.05);filter:blur(100px)" aria-hidden="true"></div>
+  <div class="blob" style="width:200px;height:200px;bottom:20%;left:45%;background:rgba(200,196,190,.04);filter:blur(100px)" aria-hidden="true"></div>
+  <div class="si">
+    <h1 class="rv fs hero" style="--d:0ms">The Ecosystem</h1>
+    <div class="eco-wrap">
+      <div class="eco-circle blue rv-scale" style="--d:600ms"><span>Open Affiliate</span></div>
+      <div class="eco-line rv" style="--d:800ms" aria-hidden="true"></div>
+      <div class="eco-circle amber rv-scale" style="--d:800ms"><span>Contributor Program</span></div>
+      <div class="eco-line rv" style="--d:1000ms" aria-hidden="true"></div>
+      <div class="eco-circle silver rv-scale" style="--d:1000ms"><span>Template Editor</span></div>
+    </div>
+    <p class="rv body-sm muted" style="--d:1400ms">Three circles. One ecosystem.</p>
+  </div>
+</section>
+
+<!-- Slide 14: Coming Soon -->
+<section class="slide" data-slide="14">
+  <div class="blob" style="width:350px;height:350px;top:35%;left:40%;background:rgba(196,149,106,.04);filter:blur(130px)" aria-hidden="true"></div>
+  <div class="si">
+    <h1 class="rv fs hero-xl" style="--d:200ms">Coming Soon</h1>
+    <div class="coming-soon-line rv" style="--d:700ms"></div>
+    <p class="rv fs body-lg silver" style="--d:1000ms" style="margin-top:2rem;font-style:italic">"The next chapter has already begun."</p>
+  </div>
+</section>
+
+<!-- Slide 15: LazyDog Studios -->
+<section class="slide" data-slide="15">
+  <div class="si">
+    <h1 class="rv fs hero-xxl" style="--d:300ms">LazyDog Studios</h1>
+    <div class="final-words">
+      <span class="rv" style="--d:900ms">Build.</span>
+      <span class="rv" style="--d:1100ms">Collaborate.</span>
+      <span class="rv" style="--d:1300ms">Grow.</span>
+      <span class="rv" style="--d:1500ms">Together.</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+const TOTAL_SLIDES = 16;
+let activeSlide = -1;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+function lerp(a, b, t) { return a + (b - a) * t; }
+function dist(x1, y1, x2, y2) { return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2); }
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+/* ============================================================
+   GLOBAL PARTICLE SYSTEM
+   ============================================================ */
+const gc = document.getElementById('gc');
+const gctx = gc.getContext('2d');
+let gParticles = [];
+
+function resizeGlobal() {
+  gc.width = window.innerWidth;
+  gc.height = window.innerHeight;
+}
+
+function initGlobalParticles() {
+  resizeGlobal();
+  gParticles = [];
+  const count = reducedMotion ? 20 : 55;
+  for (let i = 0; i < count; i++) {
+    gParticles.push({
+      x: rand(0, gc.width),
+      y: rand(0, gc.height),
+      vx: rand(-0.15, 0.15),
+      vy: rand(-0.1, 0.1),
+      r: rand(0.6, 1.8),
+      o: rand(0.06, 0.25),
+      color: Math.random() < 0.12 ? 'amber' : Math.random() < 0.2 ? 'blue' : 'white'
+    });
+  }
+}
+
+function drawGlobalParticles() {
+  gctx.clearRect(0, 0, gc.width, gc.height);
+  for (const p of gParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < -10) p.x = gc.width + 10;
+    if (p.x > gc.width + 10) p.x = -10;
+    if (p.y < -10) p.y = gc.height + 10;
+    if (p.y > gc.height + 10) p.y = -10;
+
+    let c = '255,255,255';
+    if (p.color === 'amber') c = '196,149,106';
+    else if (p.color === 'blue') c = '74,111,165';
+
+    gctx.beginPath();
+    gctx.arc(p.x, p.y, Math.max(0.3, p.r), 0, Math.PI * 2);
+    gctx.fillStyle = 'rgba(' + c + ',' + p.o + ')';
+    gctx.fill();
+  }
+}
+
+/* ============================================================
+   SLIDE DETECTION
+   ============================================================ */
+const slides = document.querySelectorAll('.slide');
+const pf = document.getElementById('pf');
+
+function updateActiveSlide() {
+  const idx = Math.round(window.scrollY / window.innerHeight);
+  if (idx === activeSlide) return;
+  // Deactivate previous
+  if (activeSlide >= 0 && activeSlide < slides.length) {
+    slides[activeSlide].classList.remove('active');
+  }
+  activeSlide = idx;
+  // Activate current
+  if (activeSlide >= 0 && activeSlide < slides.length) {
+    slides[activeSlide].classList.add('active');
+  }
+  // Hide scroll hint after first scroll
+  if (activeSlide > 0) {
+    slides[0].classList.add('no-hint');
+  }
+  // Update progress
+  const pct = Math.min(100, (activeSlide / (TOTAL_SLIDES - 1)) * 100);
+  pf.style.height = pct + '%';
+}
+
+/* ============================================================
+   SLIDE 04 — NETWORK NODES
+   ============================================================ */
+const c4 = document.getElementById('c4');
+const ctx4 = c4.getContext('2d');
+let nodes4 = [];
+let nodes4Active = false;
+let nodes4Time = 0;
+
+function initNodes4() {
+  const rect = c4.parentElement.getBoundingClientRect();
+  c4.width = rect.width;
+  c4.height = rect.height;
+  nodes4 = [];
+  const maxNodes = 28;
+  for (let i = 0; i < maxNodes; i++) {
+    nodes4.push({
+      x: rand(c4.width * 0.45, c4.width * 0.95),
+      y: rand(c4.height * 0.1, c4.height * 0.9),
+      vx: rand(-0.2, 0.2),
+      vy: rand(-0.15, 0.15),
+      r: rand(2, 4.5),
+      born: i * 6, // frame at which this node appears
+      color: Math.random() < 0.25 ? 'blue' : Math.random() < 0.3 ? 'amber' : 'silver'
+    });
+  }
+}
+
+function drawNodes4() {
+  ctx4.clearRect(0, 0, c4.width, c4.height);
+  nodes4Time++;
+  const visibleNodes = nodes4.filter(n => nodes4Time >= n.born);
+
+  // Draw edges
+  for (let i = 0; i < visibleNodes.length; i++) {
+    for (let j = i + 1; j < visibleNodes.length; j++) {
+      const d = dist(visibleNodes[i].x, visibleNodes[i].y, visibleNodes[j].x, visibleNodes[j].y);
+      if (d < 140) {
+        const alpha = (1 - d / 140) * 0.15;
+        ctx4.beginPath();
+        ctx4.moveTo(visibleNodes[i].x, visibleNodes[i].y);
+        ctx4.lineTo(visibleNodes[j].x, visibleNodes[j].y);
+        ctx4.strokeStyle = 'rgba(200,196,190,' + alpha.toFixed(3) + ')';
+        ctx4.lineWidth = 0.6;
+        ctx4.stroke();
+      }
+    }
+  }
+
+  // Draw and move nodes
+  for (const n of visibleNodes) {
+    n.x += n.vx;
+    n.y += n.vy;
+    if (n.x < c4.width * 0.4 || n.x > c4.width * 0.98) n.vx *= -1;
+    if (n.y < 10 || n.y > c4.height - 10) n.vy *= -1;
+
+    let c = '200,196,190';
+    if (n.color === 'blue') c = '74,111,165';
+    else if (n.color === 'amber') c = '196,149,106';
+
+    ctx4.beginPath();
+    ctx4.arc(n.x, n.y, Math.max(0.5, n.r), 0, Math.PI * 2);
+    ctx4.fillStyle = 'rgba(' + c + ',0.5)';
+    ctx4.fill();
+  }
+}
+
+/* ============================================================
+   SLIDE 05 — FLOWING PATHWAYS
+   ============================================================ */
+const c5 = document.getElementById('c5');
+const ctx5 = c5.getContext('2d');
+let paths5 = [];
+let paths5Active = false;
+let paths5Time = 0;
+
+function initPaths5() {
+  const rect = c5.parentElement.getBoundingClientRect();
+  c5.width = rect.width;
+  c5.height = rect.height;
+  paths5 = [];
+  for (let i = 0; i < 5; i++) {
+    const pts = [];
+    const startX = c5.width * 0.5;
+    const startY = rand(c5.height * 0.15, c5.height * 0.85);
+    for (let j = 0; j < 5; j++) {
+      pts.push({
+        x: startX + (j / 4) * c5.width * 0.48,
+        y: startY + Math.sin(j * 1.3 + i) * c5.height * 0.2,
+        oy: 0 // offset for animation
+      });
+    }
+    paths5.push({
+      pts,
+      color: i < 2 ? 'blue' : i < 4 ? 'amber' : 'silver',
+      dotPos: rand(0, 1)
+    });
+  }
+}
+
+function drawPaths5() {
+  ctx5.clearRect(0, 0, c5.width, c5.height);
+  paths5Time++;
+
+  for (const path of paths5) {
+    // Animate points
+    for (const p of path.pts) {
+      p.oy = Math.sin(paths5Time * 0.008 + p.x * 0.005) * 20;
+    }
+
+    // Draw curve
+    ctx5.beginPath();
+    const pts = path.pts;
+    ctx5.moveTo(pts[0].x, pts[0].y + pts[0].oy);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const xc = (pts[i].x + pts[i + 1].x) / 2;
+      const yc = (pts[i].y + pts[i].oy + pts[i + 1].y + pts[i + 1].oy) / 2;
+      ctx5.quadraticCurveTo(pts[i].x, pts[i].y + pts[i].oy, xc, yc);
+    }
+    const last = pts[pts.length - 1];
+    ctx5.lineTo(last.x, last.y + last.oy);
+
+    let c = '200,196,190';
+    if (path.color === 'blue') c = '74,111,165';
+    else if (path.color === 'amber') c = '196,149,106';
+    ctx5.strokeStyle = 'rgba(' + c + ',0.08)';
+    ctx5.lineWidth = 1.2;
+    ctx5.stroke();
+
+    // Draw traveling dot
+    path.dotPos += 0.002;
+    if (path.dotPos > 1) path.dotPos = 0;
+    const t = path.dotPos;
+    const idx = Math.floor(t * (pts.length - 1));
+    const lt = t * (pts.length - 1) - idx;
+    if (idx < pts.length - 1) {
+      const dx = lerp(pts[idx].x, pts[idx + 1].x, lt);
+      const dy = lerp(pts[idx].y + pts[idx].oy, pts[idx + 1].y + pts[idx + 1].oy, lt);
+      ctx5.beginPath();
+      ctx5.arc(dx, dy, Math.max(0.5, 2), 0, Math.PI * 2);
+      ctx5.fillStyle = 'rgba(' + c + ',0.4)';
+      ctx4.fill && 0; // just ensure no crash
+      ctx5.fill();
+    }
+  }
+}
+
+/* ============================================================
+   SLIDE 06 — CONSTELLATION
+   ============================================================ */
+const c6 = document.getElementById('c6');
+const ctx6 = c6.getContext('2d');
+let stars6 = [];
+let stars6Active = false;
+let stars6Time = 0;
+
+function initStars6() {
+  const rect = c6.parentElement.getBoundingClientRect();
+  c6.width = rect.width;
+  c6.height = rect.height;
+  stars6 = [];
+  for (let i = 0; i < 35; i++) {
+    stars6.push({
+      x: rand(c6.width * 0.4, c6.width * 0.98),
+      y: rand(c6.height * 0.05, c6.height * 0.95),
+      r: rand(1, 2.8),
+      twinkle: rand(0, Math.PI * 2),
+      speed: rand(0.01, 0.03)
+    });
+  }
+}
+
+function drawStars6() {
+  ctx6.clearRect(0, 0, c6.width, c6.height);
+  stars6Time++;
+  const showLines = stars6Time > 40;
+
+  if (showLines) {
+    for (let i = 0; i < stars6.length; i++) {
+      for (let j = i + 1; j < stars6.length; j++) {
+        const d = dist(stars6[i].x, stars6[i].y, stars6[j].x, stars6[j].y);
+        if (d < 110) {
+          const alpha = (1 - d / 110) * 0.12;
+          ctx6.beginPath();
+          ctx6.moveTo(stars6[i].x, stars6[i].y);
+          ctx6.lineTo(stars6[j].x, stars6[j].y);
+          ctx6.strokeStyle = 'rgba(74,111,165,' + alpha.toFixed(3) + ')';
+          ctx6.lineWidth = 0.5;
+          ctx6.stroke();
+        }
+      }
+    }
+  }
+
+  for (const s of stars6) {
+    s.twinkle += s.speed;
+    const alpha = 0.25 + Math.sin(s.twinkle) * 0.2;
+    ctx6.beginPath();
+    ctx6.arc(s.x, s.y, Math.max(0.3, s.r), 0, Math.PI * 2);
+    ctx6.fillStyle = 'rgba(200,196,190,' + Math.max(0.05, alpha).toFixed(3) + ')';
+    ctx6.fill();
+  }
+}
+
+/* ============================================================
+   SLIDE 07 — PARTICLES TO STRUCTURE
+   ============================================================ */
+const c7 = document.getElementById('c7');
+const ctx7 = c7.getContext('2d');
+let parts7 = [];
+let parts7Active = false;
+let parts7Time = 0;
+let targets7 = [];
+
+function initParts7() {
+  const rect = c7.parentElement.getBoundingClientRect();
+  c7.width = rect.width;
+  c7.height = rect.height;
+
+  // Define hexagon target positions
+  targets7 = [];
+  const cx = c7.width * 0.65;
+  const cy = c7.height * 0.5;
+  const r = Math.min(c7.width, c7.height) * 0.2;
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 2;
+    targets7.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
+  }
+  // Inner hexagon
+  const r2 = r * 0.5;
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 2 + Math.PI / 6;
+    targets7.push({ x: cx + Math.cos(angle) * r2, y: cy + Math.sin(angle) * r2 });
+  }
+  // Center
+  targets7.push({ x: cx, y: cy });
+
+  parts7 = [];
+  for (let i = 0; i < targets7.length; i++) {
+    parts7.push({
+      x: rand(0, c7.width),
+      y: rand(0, c7.height),
+      tx: targets7[i].x,
+      ty: targets7[i].y,
+      r: rand(1.5, 3),
+      arrived: false
+    });
+  }
+}
+
+function drawParts7() {
+  ctx7.clearRect(0, 0, c7.width, c7.height);
+  parts7Time++;
+
+  // Draw connections
+  for (let i = 0; i < parts7.length; i++) {
+    for (let j = i + 1; j < parts7.length; j++) {
+      const d = dist(parts7[i].x, parts7[i].y, parts7[j].x, parts7[j].y);
+      const targetD = dist(parts7[i].tx, parts7[i].ty, parts7[j].tx, parts7[j].ty);
+      if (targetD < Math.min(c7.width, c7.height) * 0.25) {
+        const alpha = Math.max(0, 0.12 - d * 0.0003);
+        if (alpha > 0.01) {
+          ctx7.beginPath();
+          ctx7.moveTo(parts7[i].x, parts7[i].y);
+          ctx7.lineTo(parts7[j].x, parts7[j].y);
+          ctx7.strokeStyle = 'rgba(196,149,106,' + alpha.toFixed(3) + ')';
+          ctx7.lineWidth = 0.5;
+          ctx7.stroke();
+        }
+      }
+    }
+  }
+
+  // Move and draw particles
+  for (const p of parts7) {
+    const speed = 0.015;
+    p.x = lerp(p.x, p.tx, speed);
+    p.y = lerp(p.y, p.ty, speed);
+
+    // Small vibration when near target
+    if (dist(p.x, p.y, p.tx, p.ty) < 2) {
+      p.x = p.tx + Math.sin(parts7Time * 0.03 + p.tx) * 1.5;
+      p.y = p.ty + Math.cos(parts7Time * 0.025 + p.ty) * 1.5;
+      p.arrived = true;
+    }
+
+    ctx7.beginPath();
+    ctx7.arc(p.x, p.y, Math.max(0.3, p.r), 0, Math.PI * 2);
+    ctx7.fillStyle = p.arrived ? 'rgba(196,149,106,0.55)' : 'rgba(200,196,190,0.3)';
+    ctx7.fill();
+  }
+}
+
+/* ============================================================
+   INIT SLIDE CANVASES
+   ============================================================ */
+function initSlideCanvases() {
+  initNodes4();
+  initPaths5();
+  initStars6();
+  initParts7();
+}
+
+/* ============================================================
+   MAIN ANIMATION LOOP
+   ============================================================ */
+function animate() {
+  drawGlobalParticles();
+
+  // Only animate the active slide's canvas
+  if (activeSlide === 4) drawNodes4();
+  if (activeSlide === 5) drawPaths5();
+  if (activeSlide === 6) drawStars6();
+  if (activeSlide === 7) drawParts7();
+
+  requestAnimationFrame(animate);
+}
+
+/* ============================================================
+   KEYBOARD NAVIGATION
+   ============================================================ */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    const next = Math.min(activeSlide + 1, TOTAL_SLIDES - 1);
+    window.scrollTo({ top: next * window.innerHeight, behavior: 'smooth' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prev = Math.max(activeSlide - 1, 0);
+    window.scrollTo({ top: prev * window.innerHeight, behavior: 'smooth' });
+  }
+});
+
+/* ============================================================
+   RESIZE HANDLER
+   ============================================================ */
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    resizeGlobal();
+    initSlideCanvases();
+    // Re-trigger active slide canvas time
+    nodes4Time = 0;
+    paths5Time = 0;
+    stars6Time = 0;
+    parts7Time = 0;
+  }, 200);
+});
+
+/* ============================================================
+   SCROLL LISTENER
+   ============================================================ */
+let scrollTicking = false;
+window.addEventListener('scroll', () => {
+  if (!scrollTicking) {
+    requestAnimationFrame(() => {
+      updateActiveSlide();
+      scrollTicking = false;
+    });
+    scrollTicking = true;
+  }
+}, { passive: true });
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  initGlobalParticles();
+  initSlideCanvases();
+  // Activate first slide
+  updateActiveSlide();
+  animate();
+}
+
+init();
+</script>
+</body>
+</html>

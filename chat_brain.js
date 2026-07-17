@@ -47,8 +47,23 @@
   //  Checked top-to-bottom — put the most specific entries first.
   // ════════════════════════════════════════════════════════════════
   var CHAT_FAQ = [
+    // ↓ Add your own free answers here anytime.
     // { match: ["refund", "money back"], reply: "We offer a 14-day refund window on eligible purchases." },
-    // { match: ["discount", "coupon", "promo code"], reply: "Check the What's New page for any current offers.", target: "whats_new_keynote.html" },
+
+    // --- conversational / voice ---
+    { match: ["do you hear me","can you hear me","are you listening","did you hear","hear me"], reply: "Yes, I can hear you loud and clear \ud83c\udfa4 — go ahead!" },
+    { match: ["hello","hi hexa","hey hexa","hey there"], reply: "Hey! \ud83d\udc4b I'm Hexa. Want help finding a pitch deck, media kit, or web kit?" },
+    { match: ["thank you","thanks","thankyou","thx"], reply: "Anytime! \ud83d\udc9b Anything else I can help you find?" },
+    { match: ["are you human","are you a robot","are you real","are you ai","are you a bot"], reply: "I'm Hexa — LazyDog's assistant. Real enough to genuinely help you with templates \ud83d\ude0a" },
+    { match: ["who made you","who created you","who built you"], reply: "I'm Hexa, built for LazyDog Templates to help you find, buy, and use the right design." },
+    { match: ["what can you do","how can you help","what do you do"], reply: "I help you find templates, explain pricing & licenses, open pages, switch language, and answer questions — just ask or tap the \ud83c\udfa4 mic." },
+
+    // --- off-topic → polite, on-brand deflection (no API) ---
+    { match: ["what is the date","whats the date","today's date","what date","what day is it","date today"], reply: "I stick to LazyDog templates, so I can't give the date — your device clock has that \ud83d\ude0a But I can help you find the perfect template!" },
+    { match: ["what time","current time","time now","clock"], reply: "Time's outside my world \ud83d\ude0a — I'm your templates assistant. Need a deck, media kit, or invoice?" },
+    { match: ["weather","temperature","how hot","how cold","raining"], reply: "Weather's not my area \ud83d\ude04 — but I can find you a great design. Want to see some?" },
+    { match: ["tell me a joke","a joke","make me laugh"], reply: "I'm better at slides than punchlines \ud83d\ude04 — but I can find a pitch deck that lands. Want a look?" },
+    { match: ["news","stock","cricket","football","match score","who won"], reply: "That's outside my lane \ud83d\ude0a — I focus on LazyDog templates. Want me to find you a design?" }
   ];
 
   function norm(s) {
@@ -100,7 +115,7 @@
       }
       // "Coming soon" intent → keynote will be linked once provided.
       if (/(coming soon|what ?s? coming|whats coming|road ?map|upcoming|next plan|planned|future features)/.test(low)) {
-        return { reply: "Exciting things are coming soon — stay tuned!", target: null, label: null };
+        return { reply: "Here's what's coming next 👇", target: 'coming_soon.html', label: "See Coming Soon" };
       }
       return chatMatch(text);
     } catch (e) { return null; }
