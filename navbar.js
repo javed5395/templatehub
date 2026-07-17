@@ -546,7 +546,7 @@
 <div class="helpbot-panel" id="helpbotPanel">
   <div class="helpbot-header">
     <div class="helpbot-avatar">🤖</div>
-    <div><div class="helpbot-title">LazyDogTemplates Assistant</div><div class="helpbot-sub">Ask me anything ✦</div></div>
+    <div><div class="helpbot-title">Hexa</div><div class="helpbot-sub">LazyDog assistant • Ask me anything ✦</div></div>
     <button class="helpbot-close" onclick="toggleBot()">✕</button>
   </div>
   <div class="helpbot-body" id="helpbotBody">
@@ -573,7 +573,7 @@
       #helpbotPanel .lb-send:hover{opacity:.9;}
     </style>
     <div class="lb-thread" id="lbThread">
-      <div class="lb-row bot"><div class="lb-msg bot">Hi 👋 I'm the <strong>LazyDog Assistant</strong>. Ask me about our templates, pricing, formats, or your order — or tap a question below.</div></div>
+      <div class="lb-row bot"><div class="lb-msg bot">Hi 👋 I'm <strong>Hexa</strong>, your LazyDog assistant. Ask me about our templates, pricing, formats, or your order — or tap a question below.</div></div>
       <div class="lb-chips" id="lbChips">
         <button class="lb-chip" onclick="helpbotSend('What templates are available?')">📊 What's available</button>
         <button class="lb-chip" onclick="helpbotSend('How do I buy and download a template?')">⬇️ Buy &amp; download</button>
@@ -632,17 +632,21 @@
     if (CANNED[text]) { bubble.innerHTML=CANNED[text]; hbRemember('assistant', bubble.textContent); hbScroll(); return; }
     // 2) FREE word-compiler
     var composed=(window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
-    if (composed && composed.reply) { bubble.innerHTML=composed.reply; hbRemember('assistant', bubble.textContent); hbScroll(); if(composed.target){ setTimeout(function(){window.location.href=composed.target;},1200); } return; }
-    // 3) AI cascade (send prior history for context; parse ACTION to open pages)
+    if (composed && composed.reply) {
+      bubble.innerHTML=composed.reply;
+      if(composed.target && window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(composed.target, composed.label)); }
+      hbRemember('assistant', composed.reply); hbScroll(); return;
+    }
+    // 3) AI cascade (send prior history for context; ACTION -> a click button, never auto-navigate)
     fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text, history:hbHistory.slice(0,-1)})})
       .then(function(r){return r.json();})
       .then(function(d){
         var raw=(d&&d.reply)?d.reply:"Sorry, I couldn't answer that right now.";
-        var parsed=(window.chatParseAction)?window.chatParseAction(raw):{text:raw,target:null};
+        var parsed=(window.chatParseAction)?window.chatParseAction(raw):{text:raw,target:null,label:null};
         bubble.textContent=parsed.text||raw;
-        hbRemember('assistant', bubble.textContent);
+        if(parsed.target && window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(parsed.target, parsed.label)); }
+        hbRemember('assistant', parsed.text||raw);
         hbScroll();
-        if(parsed.target){ setTimeout(function(){window.location.href=parsed.target;},1400); }
       })
       .catch(function(){ bubble.textContent="Sorry, I'm having trouble right now. Please try again."; hbScroll(); });
   };

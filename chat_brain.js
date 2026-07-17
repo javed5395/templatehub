@@ -18,8 +18,8 @@
   // voice reply. Everything else falls through to the original reply.
   var OVERRIDES = {
     // --- identity / capabilities: strip voice-only phrasing ---
-    'greeting': "Hi! 👋 I can help you find pitch decks, media kits, website UI kits, or the free invoice generator — and answer questions about buying, editing, formats and licensing. What do you need?",
-    'identity_assistant': "I'm the LazyDog Templates assistant. I can help you find templates, explain pricing and licensing, and answer questions about buying, downloading and editing.",
+    'greeting': "Hi! 👋 I'm Hexa. I can help you find pitch decks, media kits, website UI kits, or the free invoice generator — and answer questions about buying, editing, formats and licensing. What do you need?",
+    'identity_assistant': "I'm Hexa, the LazyDog Templates assistant. I can help you find templates, explain pricing and licensing, and answer questions about buying, downloading and editing.",
     'help': "You can ask me to open pitch decks, media kits, or the invoice generator — or ask anything about pricing, licenses, file formats, editing, or your order.",
     'va_howto': "Just type your question — templates, pricing, licenses, formats, editing, or your order — and I'll answer.",
     'va_language': "Type your question in plain English and I'll do my best to help.",
@@ -79,23 +79,43 @@
   // The AI may end a reply with "ACTION: <key>" to open a page. These keys map
   // to the SAME destinations the voice/mic engine uses.
   var ACTION_TARGETS = {
-    pitch_decks: 'pitch_deck_folder_section.html',
-    media_kits:  'media_kits_folder_section.html',
-    web_kits:    'web_kit_folder_file.html',
-    invoice:     'invoice.html',
-    home:        'main.html'
+    pitch_decks: { url: 'pitch_deck_folder_section.html', label: 'Open Pitch Decks' },
+    media_kits:  { url: 'media_kits_folder_section.html', label: 'Open Media Kits' },
+    web_kits:    { url: 'web_kit_folder_file.html',       label: 'Open Website UI Kits' },
+    invoice:     { url: 'invoice.html',                    label: 'Open Invoice Generator' },
+    home:        { url: 'main.html',                       label: 'Go to Store Hub' }
   };
+  function labelForUrl(url) {
+    for (var k in ACTION_TARGETS) { if (ACTION_TARGETS[k].url === url) return ACTION_TARGETS[k].label; }
+    return 'Open';
+  }
+  window.chatLabelForUrl = labelForUrl;
+
   // Strip the ACTION directive from the visible text and return its target (if any).
-  // -> { text: <clean reply>, target: <url or null> }
+  // -> { text: <clean reply>, target: <url or null>, label: <button label or null> }
   window.chatParseAction = function (reply) {
     reply = String(reply || '');
-    var target = null;
+    var target = null, label = null;
     var m = reply.match(/ACTION:\s*([a-z_]+)/i);
-    if (m && ACTION_TARGETS[m[1].toLowerCase()]) target = ACTION_TARGETS[m[1].toLowerCase()];
+    if (m && ACTION_TARGETS[m[1].toLowerCase()]) {
+      target = ACTION_TARGETS[m[1].toLowerCase()].url;
+      label  = ACTION_TARGETS[m[1].toLowerCase()].label;
+    }
     var text = reply.replace(/\n?\s*ACTION:\s*[a-z_]+\s*$/i, '')
                     .replace(/ACTION:\s*[a-z_]+/i, '')
                     .trim();
-    return { text: text, target: target };
+    return { text: text, target: target, label: label };
+  };
+
+  // Build a click-to-open button. NOTHING auto-navigates — the visitor decides.
+  window.chatMakeActionBtn = function (url, label) {
+    var a = document.createElement('a');
+    a.href = url;
+    a.textContent = (label || labelForUrl(url)) + ' →';
+    a.style.cssText = 'display:inline-block;margin-top:8px;padding:8px 13px;' +
+      'background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border-radius:10px;' +
+      'font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;font-family:Inter,sans-serif;';
+    return a;
   };
 
 })();

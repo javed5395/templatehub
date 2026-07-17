@@ -518,9 +518,9 @@
       var raw = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now.";
       var parsed = (window.chatParseAction) ? window.chatParseAction(raw) : { text: raw, target: null };
       if (bubble) bubble.textContent = parsed.text || raw;
+      if (bubble && parsed.target && window.chatMakeActionBtn) { bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(parsed.target, parsed.label)); }
       swHistory.push({ role: 'assistant', content: (bubble ? bubble.textContent : '').slice(0, 500) });
       var box = document.getElementById('chatBox'); if (box) box.scrollTop = box.scrollHeight;
-      if (parsed.target) setTimeout(function(){ window.location.href = parsed.target; }, 1400);
     })
     .catch(function(){
       if (bubble) bubble.textContent = "I didn't catch a searchable detail — try slide count, color, style, industry, or content type.";
@@ -546,10 +546,8 @@
       // and only fall through to the AI cascade if it composes nothing.
       var composed = (window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
       if (composed && composed.reply) {
-        addMsg(composed.reply, 'engine');
-        if (composed.target) {
-          setTimeout(function(){ window.location.href = composed.target; }, 1200);
-        }
+        var mb = addMsg(composed.reply, 'engine');
+        if (composed.target && window.chatMakeActionBtn) { mb.appendChild(document.createElement('br')); mb.appendChild(window.chatMakeActionBtn(composed.target, composed.label)); }
       } else {
         askAI(text);
       }
