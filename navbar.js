@@ -180,7 +180,7 @@
         </div>
       </div>
     </div>
-    <button class="nb-seller" onclick="window.location='upload_form.html'">🛍️ Apply as a Contributor</button>
+    <!-- CONTRIBUTOR HIDDEN (re-enable after KYC): <button class="nb-seller" onclick="window.location='upload_form.html'">🛍️ Apply as a Contributor</button> -->
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
     <button class="nb-theme-nb" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode"><svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg></button>
@@ -561,6 +561,10 @@
     </div>
     <div class="helpbot-answer" id="helpbotAnswer"></div>
     <span class="helpbot-back" id="helpbotBack" onclick="goBack()" style="display:none;">← Back to questions</span>
+    <div class="helpbot-ask" style="display:flex;gap:6px;margin-top:12px;">
+      <input id="helpbotInput" type="text" placeholder="Type your own question…" onkeydown="if(event.key==='Enter')helpbotAsk();" style="flex:1;padding:9px 11px;border:1px solid #d8dce6;border-radius:10px;font-size:12.5px;font-family:'Inter',sans-serif;outline:none;color:#1a1a2e;background:#fff;" />
+      <button onclick="helpbotAsk()" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer;font-size:13px;font-family:'Poppins',sans-serif;">Send</button>
+    </div>
   </div>
 </div>`;
   document.body.insertAdjacentHTML('beforeend', helpbotHTML);
@@ -577,6 +581,43 @@
   window.toggleBot = function(){ botOpen=!botOpen; var p=document.getElementById('helpbotPanel'),b=document.getElementById('helpbotBtn'); if(botOpen){p.classList.add('open');b.textContent='✕';}else{p.classList.remove('open');b.textContent='💬';goBack();} };
   window.showAnswer = function(i){ document.getElementById('helpbotQs').style.display='none'; var a=document.getElementById('helpbotAnswer'); a.innerHTML=ANSWERS[i]; a.classList.add('show'); document.getElementById('helpbotBack').style.display='inline-block'; };
   window.goBack = function(){ document.getElementById('helpbotQs').style.display='flex'; var a=document.getElementById('helpbotAnswer'); a.classList.remove('show'); a.innerHTML=''; document.getElementById('helpbotBack').style.display='none'; };
+
+  // Typed question → FREE word-compiler first, then AI cascade only if it finds nothing.
+  window.helpbotAsk = function(){
+    var inp = document.getElementById('helpbotInput');
+    var text = ((inp && inp.value) || '').trim();
+    if (!text) return;
+    inp.value = '';
+    document.getElementById('helpbotQs').style.display = 'none';
+    var a = document.getElementById('helpbotAnswer');
+    a.classList.add('show');
+    a.innerHTML = '';
+    var q = document.createElement('div');
+    q.style.cssText = 'font-weight:700;margin-bottom:6px;color:#1a1a2e;';
+    q.textContent = text;
+    a.appendChild(q);
+    var ans = document.createElement('div');
+    ans.style.color = '#4a5568';
+    ans.textContent = '…';
+    a.appendChild(ans);
+    document.getElementById('helpbotBack').style.display = 'inline-block';
+    // 1) FREE word-compiler (mic_action.js). Answers most domain questions at no cost.
+    var composed = (window.vaComposeReply && window.vaComposeReply(text)) || null;
+    if (composed && composed.reply) {
+      ans.innerHTML = composed.reply;
+      if (composed.target) setTimeout(function(){ window.location.href = composed.target; }, 1200);
+      return;
+    }
+    // 2) AI cascade fallback (Groq -> Gemini -> ... server-side, keys never exposed).
+    fetch('https://us-central1-templatehub-16cd7.cloudfunctions.net/chat_http', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ ans.textContent = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now."; })
+    .catch(function(){ ans.textContent = "Sorry, I'm having trouble right now. Please try again."; });
+  };
 
   // ── THEME TOGGLE ──
   // ── UNIVERSAL FONT PANEL (works on all pages) ──
