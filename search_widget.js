@@ -486,6 +486,7 @@
     div.textContent = text;
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
+    return div;
   }
 
   var REVEAL_TRIGGERS = ['show me', 'show results', 'show decks', 'find decks', 'search now', 'search', 'go ahead', 'reveal', 'display'];
@@ -499,6 +500,25 @@
     var lines = scored.slice(0,3).map(function(s){ return '"' + s.deck.name + '" (' + s.pct + '%)'; });
     return 'Top matches: ' + lines.join(', ') + '.';
   }
+  // Free AI cascade backend (Groq -> Gemini -> ... server-side). Only called for
+  // general questions the search rule-bot can't turn into a template search.
+  var CHAT_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/chat_http';
+  function askAI(text) {
+    var bubble = addMsg('…', 'engine');
+    fetch(CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (bubble) bubble.textContent = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now.";
+      var box = document.getElementById('chatBox'); if (box) box.scrollTop = box.scrollHeight;
+    })
+    .catch(function(){
+      if (bubble) bubble.textContent = "I didn't catch a searchable detail — try slide count, color, style, industry, or content type.";
+    });
+  }
   function sendMsg() {
     var input = document.getElementById('userInput');
     var text = input.value.trim();
@@ -510,10 +530,14 @@
     mergeRequirements(found);
     recomputeRequirements();
     var summary = summarizeTop(requirements);
-    var reply = summary
-      ? (Object.keys(found).length && !isRevealTrigger(lower) ? 'Got it — noted. ' : '') + summary
-      : "I didn't catch a searchable detail — try slide count, color, style, industry, or content type.";
-    addMsg(reply, 'engine');
+    if (summary) {
+      // Rule-bot handled it as a template search — free, no API call.
+      var reply = (Object.keys(found).length && !isRevealTrigger(lower) ? 'Got it — noted. ' : '') + summary;
+      addMsg(reply, 'engine');
+    } else {
+      // No searchable detail → treat as a general question → AI cascade.
+      askAI(text);
+    }
   }
 
   // ---------------------------------------------------------
