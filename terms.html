@@ -111,7 +111,7 @@
   <button class="tab-btn active" onclick="showTab('terms', this)">Terms &amp; Conditions</button>
   <button class="tab-btn" onclick="showTab('privacy', this)">Privacy Policy</button>
   <button class="tab-btn" onclick="showTab('license', this)">Template License</button>
-  <button class="tab-btn" onclick="showTab('contributor', this)">Contributor Terms</button>
+  <!-- CONTRIBUTOR HIDDEN (re-enable after KYC): <button class="tab-btn" onclick="showTab('contributor', this)">Contributor Terms</button> -->
   <button class="tab-btn" onclick="showTab('refund', this)">Refund Policy</button>
   <button class="tab-btn" onclick="showTab('cookies', this)">Cookie Policy</button>
 </div>
@@ -145,22 +145,24 @@
     <h2>4. User Accounts</h2>
     <p>If you create an account, you are responsible for maintaining the confidentiality of your login credentials. You agree to notify us immediately of any unauthorised use of your account. We reserve the right to terminate accounts that violate these terms.</p>
 
+    <!-- CONTRIBUTOR HIDDEN (re-enable after KYC): restore this section as "5. Contributor Program" and renumber the sections below back to 6-10
     <h2>5. Contributor Program</h2>
     <p>LazyDogTemplates operates a curated contributor program. Contributors may submit digital products for editorial review. Submission does not guarantee publication. LazyDogTemplates reserves the sole discretion to approve, reject, edit, modify, unpublish, or remove any submitted content at any time. Approved content may be listed, marketed, and sold through the LazyDogTemplates platform under the LazyDogTemplates brand and storefront. Contributors do not operate independent storefronts on the platform and do not receive direct customer payments through the website. Any contributor compensation, revenue share, or payout arrangements are governed exclusively by separate Contributor Terms accepted during onboarding.</p>
+    -->
 
-    <h2>6. Disclaimer of Warranties</h2>
+    <h2>5. Disclaimer of Warranties</h2>
     <div class="highlight-box"><p>Templates are provided "as is" without warranty of any kind. We do not guarantee that templates will meet your specific requirements or that the site will be uninterrupted or error-free.</p></div>
 
-    <h2>7. Limitation of Liability</h2>
+    <h2>6. Limitation of Liability</h2>
     <p>To the maximum extent permitted by law, LazyDogTemplates shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of our templates or services, even if we have been advised of the possibility of such damages.</p>
 
-    <h2>8. Changes to Terms</h2>
+    <h2>7. Changes to Terms</h2>
     <p>We reserve the right to modify these Terms at any time. Changes will be posted on this page with an updated effective date. Continued use of the site constitutes acceptance of the revised terms.</p>
 
-    <h2>9. Governing Law</h2>
+    <h2>8. Governing Law</h2>
     <p>These Terms are governed by the laws of Pakistan. Any disputes shall be subject to the exclusive jurisdiction of the courts of Pakistan.</p>
 
-    <h2>10. Contact</h2>
+    <h2>9. Contact</h2>
     <p>For any questions regarding these Terms, please contact us at <a href="mailto:support@lazydogtemplates.com" style="color:#d4af37;">support@lazydogtemplates.com</a>.</p>
   </div>
 
@@ -251,8 +253,8 @@
     <p>If you're unsure whether your intended use is permitted, please contact us before proceeding: <a href="mailto:support@lazydogtemplates.com" style="color:#d4af37;">support@lazydogtemplates.com</a></p>
   </div>
 
-  <!-- CONTRIBUTOR TERMS -->
-  <div id="contributor" class="tab-panel">
+  <!-- CONTRIBUTOR TERMS — HIDDEN for KYC. Re-enable: remove style="display:none" below and uncomment the tab button + section 5 above. -->
+  <div id="contributor" class="tab-panel" style="display:none">
     <span class="last-updated">Effective: June 2026</span>
     <h2>Contributor Terms</h2>
     <p>These Contributor Terms govern the submission, review, approval, hosting, display, promotion, listing, distribution, and sale of digital content submitted to LazyDogTemplates ("LazyDogTemplates", "we", "us", or "our") by contributors ("Contributor", "you", or "your").</p>
@@ -443,6 +445,8 @@ window.addEventListener('DOMContentLoaded', function(){
   }
 });
 </script>
+<script src="va_dictionary.js"></script>
+<script src="navbar.js"></script>
 <script src="footerbar.js"></script>
 </body>
 </html>
