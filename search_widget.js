@@ -503,17 +503,24 @@
   // Free AI cascade backend (Groq -> Gemini -> ... server-side). Only called for
   // general questions the search rule-bot can't turn into a template search.
   var CHAT_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/chat_http';
+  var swHistory = [];
   function askAI(text) {
+    swHistory.push({ role: 'user', content: String(text).slice(0, 500) });
+    if (swHistory.length > 12) swHistory = swHistory.slice(-12);
     var bubble = addMsg('…', 'engine');
     fetch(CHAT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ message: text, history: swHistory.slice(0, -1) })
     })
     .then(function(r){ return r.json(); })
     .then(function(d){
-      if (bubble) bubble.textContent = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now.";
+      var raw = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now.";
+      var parsed = (window.chatParseAction) ? window.chatParseAction(raw) : { text: raw, target: null };
+      if (bubble) bubble.textContent = parsed.text || raw;
+      swHistory.push({ role: 'assistant', content: (bubble ? bubble.textContent : '').slice(0, 500) });
       var box = document.getElementById('chatBox'); if (box) box.scrollTop = box.scrollHeight;
+      if (parsed.target) setTimeout(function(){ window.location.href = parsed.target; }, 1400);
     })
     .catch(function(){
       if (bubble) bubble.textContent = "I didn't catch a searchable detail — try slide count, color, style, industry, or content type.";

@@ -75,4 +75,27 @@
     try { return chatMatch(text); } catch (e) { return null; }
   };
 
+  // ── AI ACTIONS ──────────────────────────────────────────────
+  // The AI may end a reply with "ACTION: <key>" to open a page. These keys map
+  // to the SAME destinations the voice/mic engine uses.
+  var ACTION_TARGETS = {
+    pitch_decks: 'pitch_deck_folder_section.html',
+    media_kits:  'media_kits_folder_section.html',
+    web_kits:    'web_kit_folder_file.html',
+    invoice:     'invoice.html',
+    home:        'main.html'
+  };
+  // Strip the ACTION directive from the visible text and return its target (if any).
+  // -> { text: <clean reply>, target: <url or null> }
+  window.chatParseAction = function (reply) {
+    reply = String(reply || '');
+    var target = null;
+    var m = reply.match(/ACTION:\s*([a-z_]+)/i);
+    if (m && ACTION_TARGETS[m[1].toLowerCase()]) target = ACTION_TARGETS[m[1].toLowerCase()];
+    var text = reply.replace(/\n?\s*ACTION:\s*[a-z_]+\s*$/i, '')
+                    .replace(/ACTION:\s*[a-z_]+/i, '')
+                    .trim();
+    return { text: text, target: target };
+  };
+
 })();

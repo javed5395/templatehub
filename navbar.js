@@ -620,17 +620,30 @@
   }
 
   // Unified entry (chips + typed). FREE first: canned answer → word-compiler → then AI cascade.
+  var hbHistory = [];
+  function hbRemember(role, text){ hbHistory.push({role:role, content:String(text||'').slice(0,500)}); if(hbHistory.length>12) hbHistory=hbHistory.slice(-12); }
   window.helpbotSend = function(text){
     text=(text||'').trim(); if(!text) return;
     var chips=document.getElementById('lbChips'); if(chips) chips.style.display='none';
     hbAdd(text,'user',true);
+    hbRemember('user', text);
     var bubble=hbAdd('<span class="lb-typing"><span></span><span></span><span></span></span>','bot',false);
-    if (CANNED[text]) { bubble.innerHTML=CANNED[text]; hbScroll(); return; }
+    // 1) canned preset answer
+    if (CANNED[text]) { bubble.innerHTML=CANNED[text]; hbRemember('assistant', bubble.textContent); hbScroll(); return; }
+    // 2) FREE word-compiler
     var composed=(window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
-    if (composed && composed.reply) { bubble.innerHTML=composed.reply; hbScroll(); if(composed.target){ setTimeout(function(){window.location.href=composed.target;},1200); } return; }
-    fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})})
+    if (composed && composed.reply) { bubble.innerHTML=composed.reply; hbRemember('assistant', bubble.textContent); hbScroll(); if(composed.target){ setTimeout(function(){window.location.href=composed.target;},1200); } return; }
+    // 3) AI cascade (send prior history for context; parse ACTION to open pages)
+    fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text, history:hbHistory.slice(0,-1)})})
       .then(function(r){return r.json();})
-      .then(function(d){ bubble.textContent=(d&&d.reply)?d.reply:"Sorry, I couldn't answer that right now."; hbScroll(); })
+      .then(function(d){
+        var raw=(d&&d.reply)?d.reply:"Sorry, I couldn't answer that right now.";
+        var parsed=(window.chatParseAction)?window.chatParseAction(raw):{text:raw,target:null};
+        bubble.textContent=parsed.text||raw;
+        hbRemember('assistant', bubble.textContent);
+        hbScroll();
+        if(parsed.target){ setTimeout(function(){window.location.href=parsed.target;},1400); }
+      })
       .catch(function(){ bubble.textContent="Sorry, I'm having trouble right now. Please try again."; hbScroll(); });
   };
   window.helpbotAsk = function(){ var inp=document.getElementById('helpbotInput'); var t=((inp&&inp.value)||'').trim(); if(!t) return; inp.value=''; window.helpbotSend(t); };
