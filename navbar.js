@@ -626,7 +626,7 @@
     hbAdd(text,'user',true);
     var bubble=hbAdd('<span class="lb-typing"><span></span><span></span><span></span></span>','bot',false);
     if (CANNED[text]) { bubble.innerHTML=CANNED[text]; hbScroll(); return; }
-    var composed=(window.vaComposeReply && window.vaComposeReply(text))||null;
+    var composed=(window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
     if (composed && composed.reply) { bubble.innerHTML=composed.reply; hbScroll(); if(composed.target){ setTimeout(function(){window.location.href=composed.target;},1200); } return; }
     fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})})
       .then(function(r){return r.json();})
@@ -1078,6 +1078,11 @@
   var micActionScript = document.createElement('script');
   micActionScript.src = 'mic_action.js';
   document.head.appendChild(micActionScript);
+
+  // Typed-chat brain (separate from voice; reuses vaDictionary vocab, chat-tailored replies).
+  var chatBrainScript = document.createElement('script');
+  chatBrainScript.src = 'chat_brain.js';
+  document.head.appendChild(chatBrainScript);
 
 })();
   // ── CUSTOM CURSOR (ported from lazydog studio.html — black "ink" cursor) ──

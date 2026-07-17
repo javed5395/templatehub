@@ -537,7 +537,7 @@
     } else {
       // No template-search detail found. Try the word-compiler first (FREE),
       // and only fall through to the AI cascade if it composes nothing.
-      var composed = (window.vaComposeReply && window.vaComposeReply(text)) || null;
+      var composed = (window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
       if (composed && composed.reply) {
         addMsg(composed.reply, 'engine');
         if (composed.target) {
