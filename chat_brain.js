@@ -74,19 +74,13 @@
   window.chatCompose = function (text) {
     try {
       var low = norm(text);
-      // "What's new" intent — summarize from updates_data.js + offer the page.
+      // "What's new" intent → open the What's New keynote.
       if (/(what ?s? new|new feature|new features|any updates|what changed|latest update|new arrivals|new templates|whats new)/.test(low)) {
-        var n = window.WHATS_NEW || [];
-        var msg = n.length ? ("Recently added: " + n.slice(0, 3).map(function (x) { return x.title; }).join('; ') + ".")
-                           : "See the latest additions on our What's New page.";
-        return { reply: msg, target: 'whats_new_keynote.html', label: "See What's New" };
+        return { reply: "Here's what's new at LazyDog 👇", target: 'whats_new_keynote.html', label: "See What's New" };
       }
-      // "Coming soon" intent.
+      // "Coming soon" intent → keynote will be linked once provided.
       if (/(coming soon|what ?s? coming|whats coming|road ?map|upcoming|next plan|planned|future features)/.test(low)) {
-        var c = window.WHATS_COMING || [];
-        var msg2 = c.length ? ("Coming soon: " + c.slice(0, 3).map(function (x) { return x.title; }).join('; ') + ".")
-                            : "Exciting things are on the way.";
-        return { reply: msg2, target: 'whats_new.html', label: "See Coming Soon" };
+        return { reply: "Exciting things are coming soon — stay tuned!", target: null, label: null };
       }
       return chatMatch(text);
     } catch (e) { return null; }

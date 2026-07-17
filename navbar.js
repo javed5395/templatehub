@@ -1098,13 +1098,6 @@
   micActionScript.src = 'mic_action.js';
   document.head.appendChild(micActionScript);
 
-  // Updates data (What's New / Coming Soon) — so Hexa can answer about them on any page.
-  if (!window.WHATS_NEW) {
-    var updatesScript = document.createElement('script');
-    updatesScript.src = 'updates_data.js';
-    document.head.appendChild(updatesScript);
-  }
-
   // Typed-chat brain (separate from voice; reuses vaDictionary vocab, chat-tailored replies).
   var chatBrainScript = document.createElement('script');
   chatBrainScript.src = 'chat_brain.js';
