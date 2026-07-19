@@ -693,7 +693,7 @@
       #helpbotPanel .lb-send:hover{opacity:.9;}
     </style>
     <div class="lb-thread" id="lbThread">
-      <div class="lb-row bot"><div class="lb-msg bot">Hi 👋 I'm <strong>Hexa</strong>, your LazyDog assistant. Ask me about our templates, pricing, formats, or your order — or tap a question below.</div></div>
+      <div class="lb-row bot"><div class="lb-msg bot" id="lbGreet">Hi 👋 I'm <strong>Hexa</strong>, your LazyDog assistant. Ask me about our templates, pricing, formats, or your order — or tap a question below.</div></div>
       <div class="lb-chips" id="lbChips">
         <button class="lb-chip" onclick="helpbotSend('What templates are available?')">📊 What's available</button>
         <button class="lb-chip" onclick="helpbotSend('How do I buy and download a template?')">⬇️ Buy &amp; download</button>
@@ -726,7 +726,10 @@
   window.toggleBot = function(){
     botOpen = !botOpen;
     var p = document.getElementById('helpbotPanel'), b = document.getElementById('helpbotBtn');
-    if (botOpen){ p.classList.add('open'); b.textContent='✕'; var inp=document.getElementById('helpbotInput'); if(inp) setTimeout(function(){inp.focus();},120); }
+    if (botOpen){ p.classList.add('open'); b.textContent='✕'; var inp=document.getElementById('helpbotInput'); if(inp) setTimeout(function(){inp.focus();},120);
+      // #5 memory: returning visitor → personalised greeting (first open only)
+      try{ var g=document.getElementById('lbGreet'); if(g && !g.dataset.done && window.hexaGreeting){ var gr=window.hexaGreeting(); if(gr) g.textContent=gr; g.dataset.done='1'; } }catch(e){}
+    }
     else { p.classList.remove('open'); b.textContent='💬'; }
   };
 
@@ -752,6 +755,12 @@
     // 0) top-bar command (language / mic / colour)
     var cmd=(window.hexaCommand && window.hexaCommand(text))||null;
     if(cmd && cmd.reply){ bubble.textContent=cmd.reply; hbRemember('assistant',cmd.reply); hbScroll(); return; }
+    // 0.5) lead capture — email in message / "notify me" (#4)
+    var lead=(window.hexaLeadCapture && window.hexaLeadCapture(text))||null;
+    if(lead && lead.reply){ bubble.textContent=lead.reply; hbRemember('assistant',lead.reply); hbScroll(); return; }
+    // 0.6) name capture — "my name is X" → remember the visitor (#5)
+    var nm=(window.hexaNameCapture && window.hexaNameCapture(text))||null;
+    if(nm && nm.reply){ bubble.textContent=nm.reply; hbRemember('assistant',nm.reply); hbScroll(); return; }
     // 1) canned preset answer
     if (CANNED[text]) { bubble.innerHTML=CANNED[text]; hbRemember('assistant', bubble.textContent); hbScroll(); return; }
     // 2) FREE word-compiler
@@ -764,7 +773,7 @@
     }
     // 3) AI cascade (send prior history for context; ACTION -> a click button, never auto-navigate)
     var doAI=function(){
-      fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text, history:hbHistory.slice(0,-1)})})
+      fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text, history:hbHistory.slice(0,-1), email:(window.hexaMemory&&window.hexaMemory.get().email)||''})})
         .then(function(r){return r.json();})
         .then(function(d){
           var raw=(d&&d.reply)?d.reply:"Sorry, I couldn't answer that right now.";

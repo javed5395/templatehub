@@ -512,7 +512,7 @@
       fetch(CHAT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: swHistory.slice(0, -1) })
+        body: JSON.stringify({ message: text, history: swHistory.slice(0, -1), email: (window.hexaMemory && window.hexaMemory.get().email) || '' })
       })
       .then(function(r){ return r.json(); })
       .then(function(d){
@@ -549,6 +549,12 @@
     input.value = '';
     var _cmd=(window.hexaCommand && window.hexaCommand(text))||null;
     if(_cmd && _cmd.reply){ addMsg(_cmd.reply,'engine'); return; }
+    // lead capture — email in message / "notify me" (#4)
+    var _lead=(window.hexaLeadCapture && window.hexaLeadCapture(text))||null;
+    if(_lead && _lead.reply){ addMsg(_lead.reply,'engine'); return; }
+    // name capture — "my name is X" (#5)
+    var _nm=(window.hexaNameCapture && window.hexaNameCapture(text))||null;
+    if(_nm && _nm.reply){ addMsg(_nm.reply,'engine'); return; }
     var lower = norm(text);
     var found = extractFromText(text);
     mergeRequirements(found);

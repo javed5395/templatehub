@@ -182,7 +182,94 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: String(text || '').slice(0, 300), limit: 4 })
-    }).then(function (r) { return r.json(); });
+    }).then(function (r) { return r.json(); })
+      .then(function (rec) {
+        try { memSet({ last_topic: String(text || '').slice(0, 120) }); } catch (e) {}
+        // Nothing in stock for this ask → remember it as a lead interest (#4)
+        if (!rec || !rec.results || !rec.results.length) hexaInterest = String(text || '').slice(0, 200);
+        return rec;
+      });
+  };
+
+  // ── #5 MEMORY — remember returning visitors (localStorage, device-local) ───
+  var MEM_KEY = 'hexa_mem';
+  function memGet() {
+    try { return JSON.parse(localStorage.getItem(MEM_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function memSet(patch) {
+    try {
+      var m = memGet();
+      for (var k in patch) m[k] = patch[k];
+      m.last_visit = Date.now();
+      m.visits = m.visits || 1;
+      localStorage.setItem(MEM_KEY, JSON.stringify(m));
+    } catch (e) {}
+  }
+  window.hexaMemory = { get: memGet, set: memSet };
+
+  // Count a visit once per page-load
+  (function () {
+    try {
+      var m = memGet();
+      if (!m.last_visit || Date.now() - m.last_visit > 30 * 60 * 1000) memSet({ visits: (m.visits || 0) + 1 });
+    } catch (e) {}
+  })();
+
+  // Personalised greeting for the widget's first bubble (null = keep default)
+  window.hexaGreeting = function () {
+    var m = memGet();
+    if (!m.name && !m.last_topic) return null;
+    var hi = m.name ? 'Welcome back, ' + m.name + '! 👋' : 'Welcome back! 👋';
+    if (m.last_topic) return hi + " Last time you were looking for “" + m.last_topic + "” — want me to check what's new for that? Or ask me anything.";
+    return hi + ' Ask me about templates, pricing, formats, or your order.';
+  };
+
+  // "my name is X / call me X / i'm X" → remember + warm reply
+  var NAME_STOP = { a:1, an:1, the:1, just:1, here:1, back:1, good:1, fine:1, ok:1, okay:1, not:1, so:1, very:1, really:1, still:1, also:1, now:1, new:1, sure:1, sorry:1, done:1, interested:1, looking:1, searching:1, trying:1, wondering:1, browsing:1, buying:1, asking:1 };
+  window.hexaNameCapture = function (text) {
+    var t = norm(text);
+    var m = t.match(/\b(?:my name is|call me|i am|i m)\s+([a-z][a-z\-']{1,20})\b/);
+    if (!m || NAME_STOP[m[1]]) return null;
+    // "i am/i'm" only counts in short, name-like messages ("hi i'm sara")
+    if (/\b(i am|i m)\b/.test(t) && !/\b(my name is|call me)\b/.test(t) && t.split(' ').length > 5) return null;
+    var name = m[1].charAt(0).toUpperCase() + m[1].slice(1);
+    memSet({ name: name });
+    return { reply: 'Lovely to meet you, ' + name + '! 😊 What can I find for you — a pitch deck, media kit, or web kit?' };
+  };
+
+  // ── #4 LEAD CAPTURE — visitor emails → server → private `leads` collection ─
+  // Widgets call hexaLeadCapture(text) right after hexaCommand. Returns
+  // { reply } when it handled the message (email saved / email requested).
+  var LEAD_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/lead_http';
+  var EMAIL_RX = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
+  var NOTIFY_RX = /\b(notify me|let me know|email me|mail me|inform me|update me|alert me|tell me when|ping me|keep me (posted|updated)|when (it s|its|it is|they are|available|ready))\b/;
+  var hexaInterest = '';   // last thing the visitor wanted that we didn't have
+
+  window.hexaLeadCapture = function (text) {
+    var raw = String(text || '');
+    var m = raw.match(EMAIL_RX);
+    if (m) {
+      var email = m[0].toLowerCase();
+      try {
+        fetch(LEAD_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            interest: hexaInterest,
+            page: (location.pathname || '').split('/').pop() || 'home'
+          })
+        }).catch(function () {});
+      } catch (e) {}
+      var why = hexaInterest ? ' as soon as we add what you were looking for' : ' when fresh designs drop';
+      memSet({ email: email });
+      hexaInterest = '';
+      return { reply: "Perfect — I've saved " + email + " 📬 I'll make sure you hear about it" + why + "!" };
+    }
+    if (NOTIFY_RX.test(norm(raw))) {
+      return { reply: "Happy to! Just type your email here and I'll save it 📬" };
+    }
+    return null;
   };
 
   // Renders results into the given bubble. Returns true if it rendered
