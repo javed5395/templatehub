@@ -5494,7 +5494,13 @@ init();
 
 
 /* ==== LAZYDOG CLOUD GLUE ==== */
-window.LD_BACKEND = window.LD_BACKEND || 'http://localhost:8080';
+/* Backend auto-select: on the live site use the Firebase gateway; locally
+   (file:// or localhost) use the gcloud proxy tunnel. */
+window.LD_BACKEND = window.LD_BACKEND || (
+  (location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname))
+    ? 'http://localhost:8080'
+    : 'https://us-central1-templatehub-16cd7.cloudfunctions.net/composer_proxy'
+);
 window.ldHeaders = function (ct) {
   var h = { 'Content-Type': ct };
   if (window.LD_AUTH_TOKEN) h['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
