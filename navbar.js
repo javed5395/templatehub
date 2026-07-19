@@ -758,6 +758,13 @@
     // 0.5) lead capture — email in message / "notify me" (#4)
     var lead=(window.hexaLeadCapture && window.hexaLeadCapture(text))||null;
     if(lead && lead.reply){ bubble.textContent=lead.reply; hbRemember('assistant',lead.reply); hbScroll(); return; }
+    // 0.55) design order — "make me a hospital kit" → Open in Designer button
+    if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
+      var dz=window.hexaDesign(text);
+      bubble.textContent=dz.reply;
+      if(window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(dz.target, dz.label)); }
+      hbRemember('assistant',dz.reply); hbScroll(); return;
+    }
     // 0.6) name capture — "my name is X" → remember the visitor (#5)
     var nm=(window.hexaNameCapture && window.hexaNameCapture(text))||null;
     if(nm && nm.reply){ bubble.textContent=nm.reply; hbRemember('assistant',nm.reply); hbScroll(); return; }

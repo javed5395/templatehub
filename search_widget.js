@@ -552,6 +552,13 @@
     // lead capture — email in message / "notify me" (#4)
     var _lead=(window.hexaLeadCapture && window.hexaLeadCapture(text))||null;
     if(_lead && _lead.reply){ addMsg(_lead.reply,'engine'); return; }
+    // design order — "make me a hospital kit" → Open in Designer button
+    if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
+      var _dz=window.hexaDesign(text);
+      var _dm=addMsg(_dz.reply,'engine');
+      if(window.chatMakeActionBtn){ _dm.appendChild(document.createElement('br')); _dm.appendChild(window.chatMakeActionBtn(_dz.target,_dz.label)); }
+      return;
+    }
     // name capture — "my name is X" (#5)
     var _nm=(window.hexaNameCapture && window.hexaNameCapture(text))||null;
     if(_nm && _nm.reply){ addMsg(_nm.reply,'engine'); return; }

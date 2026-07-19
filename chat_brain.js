@@ -237,6 +237,23 @@
     return { reply: 'Lovely to meet you, ' + name + '! 😊 What can I find for you — a pitch deck, media kit, or web kit?' };
   };
 
+  // ── DESIGN ORDERS — "make me a hospital kit, black bg, 8 slides" ──────────
+  // Detected by verbs of creation (not browsing). Shows an "Open in Designer"
+  // button → editor.html?compose=<sentence>. The editor + cloud do the rest.
+  var DESIGN_VERB = /\b(make|design|create|compose|build|generate|prepare)\b/;
+  var DESIGN_NOUN = /\b(kit|kits|deck|decks|presentation|presentations|template|templates|design|slides)\b/;
+  window.hexaDesignIntent = function (text) {
+    var t = norm(text);
+    return DESIGN_VERB.test(t) && DESIGN_NOUN.test(t);
+  };
+  window.hexaDesign = function (text) {
+    return {
+      reply: "I can design that for you right now 🎨 — opening it in the LazyDog Designer:",
+      target: 'editor.html?compose=' + encodeURIComponent(String(text || '').slice(0, 200)),
+      label: 'Open in Designer'
+    };
+  };
+
   // ── #4 LEAD CAPTURE — visitor emails → server → private `leads` collection ─
   // Widgets call hexaLeadCapture(text) right after hexaCommand. Returns
   // { reply } when it handled the message (email saved / email requested).
