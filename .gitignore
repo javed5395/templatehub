@@ -11,6 +11,14 @@ admin_panel.html
 meta_codec.py
 firebase/functions/meta_codec.py
 
+# Compiled Python — bytecode of the private files leaks the same secrets!
+__pycache__/
+*.pyc
+
+# Backend function source — deploys via `firebase deploy`, git never needs it.
+firebase/functions/main.py
+firebase/functions/venv/
+
 # Common local-only / sensitive files
 *.bak
 *.tmp
