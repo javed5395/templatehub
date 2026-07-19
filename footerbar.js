@@ -68,7 +68,7 @@
     <div class="footer-links">
       <h4>Company</h4>
       <a href="#">About Us</a>
-      <a href="#">Blog</a>
+      <a href="blog.html">Blog</a>
       <a href="#">Affiliate Program</a>
       <a href="#">Careers</a>
       <a href="mailto:support@lazydogtemplates.com">Contact Us</a>
