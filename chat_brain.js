@@ -237,6 +237,45 @@
     return { reply: 'Lovely to meet you, ' + name + '! 😊 What can I find for you — a pitch deck, media kit, or web kit?' };
   };
 
+  // ── HEXA ADMIN — owner-only store commands (needs admin login) ────────────
+  // "prepare today's decks" → cloud composes the daily batch into review.
+  // "publish all decks" / "publish decks 1,3,5" → picked decks go LIVE.
+  var GATE_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/composer_proxy';
+  window.hexaAdminIntent = function (text) {
+    var t = norm(text);
+    return /\b(prepare|make|generate|create)\b.*\b(today s|todays|daily)\b.*\bdecks?\b/.test(t)
+        || /\bpublish\b.*\bdecks?\b/.test(t) || /\bdecks?\b.*\bgo live\b/.test(t);
+  };
+  window.hexaAdmin = async function (text) {
+    var t = norm(text);
+    var token = window.ldGetToken ? await window.ldGetToken() : null;
+    if (!token) return { reply: "That's an owner command — please sign in with the admin account first 🔐" };
+    var H = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+    try {
+      if (/\bpublish\b|\bgo live\b/.test(t)) {
+        var picks = 'all';
+        var nums = t.match(/\d+/g);
+        if (nums && !/\ball\b/.test(t)) picks = nums.map(Number);
+        var r = await fetch(GATE_URL + '/publish_batch', { method: 'POST', headers: H,
+          body: JSON.stringify({ picks: picks }) });
+        var d = await r.json();
+        if (!r.ok) return { reply: 'Publish failed: ' + (d.error || r.status) };
+        return { reply: d.published && d.published.length
+          ? '🚀 LIVE! Published ' + d.published.length + ' deck(s):\n' + d.published.join('\n')
+          : 'Nothing published — is there a batch for today?' };
+      }
+      // prepare today's decks
+      var r2 = await fetch(GATE_URL + '/daily_batch', { method: 'POST', headers: H, body: '{}' });
+      var d2 = await r2.json();
+      if (!r2.ok) return { reply: 'Batch failed: ' + (d2.error || r2.status) };
+      var lines = (d2.decks || []).map(function (x) { return x.i + '. ' + x.name; });
+      return { reply: "🎨 Today's " + d2.count + " decks are ready for your review:\n" + lines.join('\n')
+        + "\n\nDownload links are in your review folder (Storage → review/" + d2.date + "). "
+        + "When happy, tell me: \"publish all decks\" or \"publish decks 1,3,5\".",
+        decks: d2.decks };
+    } catch (e) { return { reply: 'Admin command error: ' + e.message }; }
+  };
+
   // ── DESIGN ORDERS — "make me a hospital kit, black bg, 8 slides" ──────────
   // Detected by verbs of creation (not browsing). Shows an "Open in Designer"
   // button → editor.html?compose=<sentence>. The editor + cloud do the rest.

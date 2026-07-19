@@ -55,6 +55,8 @@
   const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  // Hexa admin: fresh ID token for gated composer calls (null when logged out)
+  window.ldGetToken = async function(){ try{ return auth.currentUser ? await auth.currentUser.getIdToken() : null; }catch(e){ return null; } };
   onAuthStateChanged(auth, (user) => {
     const si=document.getElementById('signinBtn'), su=document.getElementById('signupBtn');
     const um=document.getElementById('nbUserMenu'), un=document.getElementById('nbUserName'), ua=document.getElementById('nbUserAvatar');
@@ -758,6 +760,19 @@
     // 0.5) lead capture — email in message / "notify me" (#4)
     var lead=(window.hexaLeadCapture && window.hexaLeadCapture(text))||null;
     if(lead && lead.reply){ bubble.textContent=lead.reply; hbRemember('assistant',lead.reply); hbScroll(); return; }
+    // 0.52) HEXA ADMIN — owner store commands (prepare/publish daily decks)
+    if(window.hexaAdminIntent && window.hexaAdmin && window.hexaAdminIntent(text)){
+      window.hexaAdmin(text).then(function(ad){
+        bubble.textContent=ad.reply;
+        if(ad.decks && window.chatMakeActionBtn){
+          ad.decks.forEach(function(dk){
+            if(dk.pptx_url){ var b=window.chatMakeActionBtn(dk.pptx_url, dk.i+'. '+dk.name.slice(0,34)); b.target='_blank'; bubble.appendChild(document.createElement('br')); bubble.appendChild(b); }
+          });
+        }
+        hbRemember('assistant',ad.reply); hbScroll();
+      }).catch(function(e){ bubble.textContent='Admin command error.'; hbScroll(); });
+      return;
+    }
     // 0.55) design order — "make me a hospital kit" → Open in Designer button
     if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
       var dz=window.hexaDesign(text);
