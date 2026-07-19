@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blog — LazyDogTemplates</title>
+<meta name="description" content="Updates, feature spotlights, and honest behind-the-scenes notes from LazyDogTemplates." />
+<link rel="canonical" href="https://www.lazydogtemplates.com/blog.html" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fdfaf6; font-family: 'Inter', sans-serif; }
+
+  /* ══ HERO ══ */
+  .blog-hero {
+    background: #07071a;
+    padding: 90px 40px 70px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .blog-hero::before {
+    content: "";
+    position: absolute;
+    top: -120px; right: -80px;
+    width: 340px; height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,175,55,0.16), transparent 70%);
+  }
+  .blog-hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: #d4af37; font-family: 'Poppins', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 18px;
+  }
+  .blog-hero-eyebrow::before { content: "◆"; font-size: 10px; }
+  .blog-hero h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 16px;
+    line-height: 1.1;
+  }
+  .blog-hero h1 span { color: #e03030; }
+  .blog-hero p {
+    color: #b8bfd0;
+    font-size: 17px;
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ══ POST GRID ══ */
+  .blog-grid-section { padding: 60px 40px 100px; max-width: 1180px; margin: 0 auto; }
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 32px;
+  }
+
+  .blog-card {
+    background: #fff;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+  }
+  .blog-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
+
+  .blog-card-thumb {
+    width: 100%; height: 190px;
+    background: linear-gradient(135deg, #0d1b4b 0%, #1a1a2e 55%, #3a2400 100%);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .blog-card-thumb-mark {
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px; font-weight: 800;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.5px;
+  }
+  .blog-card-badge {
+    position: absolute; top: 14px; left: 14px;
+    background: #d4af37; color: #1a0a3a;
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 0;
+  }
+
+  .blog-card-body { padding: 22px 22px 20px; }
+  .blog-card-cat {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: #7c5cbf;
+    margin-bottom: 8px; font-family: 'Poppins', sans-serif;
+  }
+  .blog-card-title {
+    font-size: 18px; font-weight: 700;
+    color: #1a1a2e; line-height: 1.35;
+    margin-bottom: 10px; font-family: 'Poppins', sans-serif;
+  }
+  .blog-card-excerpt {
+    font-size: 13.5px; color: #666e7d; line-height: 1.6;
+    margin-bottom: 18px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .blog-card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 14px; border-top: 1px solid #eef0f4;
+  }
+  .blog-card-author { display: flex; align-items: center; gap: 8px; }
+  .blog-card-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, #6b21c8, #9333ea);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 11px; font-weight: 800; font-family: 'Poppins', sans-serif;
+    flex-shrink: 0;
+  }
+  .blog-card-author-name { font-size: 12px; font-weight: 600; color: #1a1a2e; }
+  .blog-card-date { font-size: 11.5px; color: #98a0ae; }
+
+  /* ══ COMING SOON PLACEHOLDER CARDS ══ */
+  .blog-card-empty {
+    border: 1.5px dashed #d8dce4;
+    border-radius: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px;
+    padding: 40px 20px;
+    min-height: 300px;
+    color: #b0b6c2;
+  }
+  .blog-card-empty-icon { font-size: 22px; color: #d4af37; }
+  .blog-card-empty p {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: #a3a9b8; margin: 0;
+  }
+
+  @media (max-width: 600px) {
+    .blog-hero { padding: 60px 24px 50px; }
+    .blog-grid-section { padding: 40px 20px 70px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR injected by navbar.js -->
+<script src="navbar.js"></script>
+
+<!-- ══ BLOG HERO ══ -->
+<section class="blog-hero">
+  <div class="blog-hero-eyebrow">LazyDog Journal</div>
+  <h1>Notes from the <span>Build</span></h1>
+  <p>Feature spotlights, honest updates, and what we're working on next — straight from the team building LazyDogTemplates.</p>
+</section>
+
+<!-- ══ BLOG GRID ══ -->
+<section class="blog-grid-section">
+  <div class="blog-grid" id="blogGrid">
+
+    <a href="blog-pitch-decks-first-launch.html" class="blog-card">
+      <div class="blog-card-thumb">
+        <span class="blog-card-badge">First Launch</span>
+        <span class="blog-card-thumb-mark">LazyDogTemplates</span>
+      </div>
+      <div class="blog-card-body">
+        <div class="blog-card-cat">Behind the Build</div>
+        <div class="blog-card-title">Pitch Decks: Our First Launch, and Why We're Starting Small</div>
+        <div class="blog-card-excerpt">What you'll find here today is a small set of sample decks — not thousands of templates. That's on purpose. Here's why quality is coming before quantity.</div>
+        <div class="blog-card-footer">
+          <div class="blog-card-author">
+            <div class="blog-card-avatar">LD</div>
+            <div class="blog-card-author-name">LazyDog Team</div>
+          </div>
+          <div class="blog-card-date">July 2026</div>
+        </div>
+      </div>
+    </a>
+
+    <div class="blog-card-empty">
+      <div class="blog-card-empty-icon">◆</div>
+      <p>More stories coming soon</p>
+    </div>
+
+    <div class="blog-card-empty">
+      <div class="blog-card-empty-icon">◆</div>
+      <p>More stories coming soon</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER injected by footerbar.js -->
+<script src="footerbar.js"></script>
+
+</body>
+</html>

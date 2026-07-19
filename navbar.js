@@ -187,6 +187,16 @@
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
     <button class="nb-theme-nb" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode"><svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg></button>
     <button class="nb-theme-nb" id="nbCartBtn" onclick="nbOpenCart()" title="Cart" style="position:relative;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span id="nbCartCount" style="position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;padding:0 4px;background:#e5533c;color:#fff;font-size:10px;font-weight:700;line-height:16px;border-radius:9px;text-align:center;display:none;font-family:Poppins,sans-serif;box-sizing:border-box;">0</span></button>
+    <div class="nb-bell-wrap" id="nbBellWrap" style="position:relative;">
+      <button class="nb-theme-nb" id="nbBellBtn" onclick="nbToggleUpdates()" title="What's new"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span id="nbBellDot" style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:#e5533c;display:none;box-sizing:border-box;"></span></button>
+      <div class="nb-updates-panel" id="nbUpdatesPanel">
+        <div class="nb-updates-head">Updates</div>
+        <div class="nb-updates-list" id="nbUpdatesList">
+          <div class="nb-updates-empty">Checking for updates…</div>
+        </div>
+        <a href="blog.html" class="nb-updates-footer">View all updates →</a>
+      </div>
+    </div>
     <div class="nb-user-menu" id="nbUserMenu" style="display:none;">
       <div class="nb-user-avatar" id="nbUserAvatar" onclick="toggleNbUserDropdown()">J</div>
       <span class="nb-user-name" id="nbUserName"></span>
@@ -320,6 +330,114 @@
     });
 
     nbUpdateCartBadge();
+  })();
+
+  // ── NOTIFICATION BELL — "what's new" feed, isolated module, same pattern as cart ──
+  // Pulls short update entries from Firestore's `updates` collection (added by
+  // whoever ships a feature) and lists them here. Each item can link to the
+  // full blog post or straight to the feature. Falls back gracefully if the
+  // collection is empty or Firestore isn't reachable yet.
+  (function nbInitUpdates(){
+    var bellStyle = document.createElement('style');
+    bellStyle.textContent = `
+      .nb-updates-panel {
+        display:none; position:absolute; top:calc(100% + 10px); right:0;
+        width:320px; max-height:400px; overflow-y:auto;
+        background:#fff; border:1.5px solid #1a1a2e; border-radius:0;
+        box-shadow:0 12px 32px rgba(0,0,0,0.18); z-index:9999;
+      }
+      .nb-updates-head {
+        font-family:'Poppins',sans-serif; font-weight:700; font-size:13px;
+        letter-spacing:0.4px; text-transform:uppercase; color:#1a1a2e;
+        padding:14px 16px 10px; border-bottom:1px solid #eee;
+      }
+      .nb-updates-list { padding:6px 0; }
+      .nb-updates-empty {
+        padding:24px 16px; text-align:center; font-size:13px; color:#98a0ae;
+        font-family:'Inter',sans-serif;
+      }
+      .nb-update-item {
+        display:block; padding:12px 16px; text-decoration:none; color:inherit;
+        border-bottom:1px solid #f2f2f5; transition:background 0.15s;
+      }
+      .nb-update-item:last-child { border-bottom:none; }
+      .nb-update-item:hover { background:#faf8f3; }
+      .nb-update-tag {
+        display:inline-block; font-size:9px; font-weight:800; letter-spacing:0.6px;
+        text-transform:uppercase; color:#c79a20; background:#fdf6e3;
+        border:1px solid #dcb43f; padding:2px 7px; margin-bottom:6px;
+        font-family:'Poppins',sans-serif;
+      }
+      .nb-update-title {
+        font-family:'Poppins',sans-serif; font-weight:600; font-size:13px;
+        color:#1a1a2e; line-height:1.4; margin-bottom:3px;
+      }
+      .nb-update-date { font-size:11px; color:#98a0ae; font-family:'Inter',sans-serif; }
+      .nb-updates-footer {
+        display:block; text-align:center; padding:12px; font-size:12.5px;
+        font-weight:600; color:#c79a20; text-decoration:none;
+        border-top:1px solid #eee; font-family:'Poppins',sans-serif;
+      }
+      .nb-updates-footer:hover { background:#faf8f3; }
+    `;
+    document.head.appendChild(bellStyle);
+
+    window.nbToggleUpdates = function(){
+      var p = document.getElementById('nbUpdatesPanel');
+      if (!p) return;
+      var open = p.style.display === 'block';
+      p.style.display = open ? 'none' : 'block';
+      if (!open) {
+        var dot = document.getElementById('nbBellDot');
+        if (dot) dot.style.display = 'none';
+        try { localStorage.setItem('nb_updates_seen_at', Date.now().toString()); } catch(e){}
+      }
+    };
+
+    document.addEventListener('click', function(e){
+      var p = document.getElementById('nbUpdatesPanel');
+      var wrap = document.getElementById('nbBellWrap');
+      if (!p || p.style.display !== 'block') return;
+      if (wrap && wrap.contains(e.target)) return;
+      p.style.display = 'none';
+    });
+
+    function renderUpdates(items){
+      var list = document.getElementById('nbUpdatesList');
+      if (!list) return;
+      if (!items || !items.length) {
+        list.innerHTML = '<div class="nb-updates-empty">No updates yet — check back soon.</div>';
+        return;
+      }
+      list.innerHTML = items.slice(0, 5).map(function(u){
+        var href = u.link || 'blog.html';
+        var tag = u.tag ? '<span class="nb-update-tag">' + u.tag + '</span><br/>' : '';
+        return '<a class="nb-update-item" href="' + href + '">' + tag +
+          '<div class="nb-update-title">' + (u.title || '') + '</div>' +
+          '<div class="nb-update-date">' + (u.date || '') + '</div></a>';
+      }).join('');
+
+      try {
+        var lastSeen = parseInt(localStorage.getItem('nb_updates_seen_at') || '0', 10);
+        var newestTs = items[0] && items[0].timestamp ? items[0].timestamp : 0;
+        var dot = document.getElementById('nbBellDot');
+        if (dot && newestTs > lastSeen) dot.style.display = 'block';
+      } catch(e){}
+    }
+
+    // Placeholder feed until wired to the real `updates` Firestore collection.
+    // Replace this static array with a Firestore fetch (same pattern as the
+    // rest of the site's data — see kit loading in career_docs_slides.html
+    // for the reference pattern) once the collection exists.
+    renderUpdates([
+      {
+        tag: 'First Launch',
+        title: 'Pitch Decks is live — our first template category',
+        date: 'July 2026',
+        link: 'blog.html',
+        timestamp: Date.parse('2026-07-19')
+      }
+    ]);
   })();
 
   // ── FORCE Studios span green via JS — beats any CSS including shared-styles.css ──
