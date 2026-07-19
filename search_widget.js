@@ -508,23 +508,38 @@
     swHistory.push({ role: 'user', content: String(text).slice(0, 500) });
     if (swHistory.length > 12) swHistory = swHistory.slice(-12);
     var bubble = addMsg('…', 'engine');
-    fetch(CHAT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: swHistory.slice(0, -1) })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var raw = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now.";
-      var parsed = (window.chatParseAction) ? window.chatParseAction(raw) : { text: raw, target: null };
-      if (bubble) bubble.textContent = parsed.text || raw;
-      if (bubble && parsed.target && window.chatMakeActionBtn) { bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(parsed.target, parsed.label)); }
-      swHistory.push({ role: 'assistant', content: (bubble ? bubble.textContent : '').slice(0, 500) });
-      var box = document.getElementById('chatBox'); if (box) box.scrollTop = box.scrollHeight;
-    })
-    .catch(function(){
-      if (bubble) bubble.textContent = "I didn't catch a searchable detail — try slide count, color, style, industry, or content type.";
-    });
+    var doAI = function(){
+      fetch(CHAT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history: swHistory.slice(0, -1) })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var raw = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now.";
+        var parsed = (window.chatParseAction) ? window.chatParseAction(raw) : { text: raw, target: null };
+        if (bubble) bubble.textContent = parsed.text || raw;
+        if (bubble && parsed.target && window.chatMakeActionBtn) { bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(parsed.target, parsed.label)); }
+        swHistory.push({ role: 'assistant', content: (bubble ? bubble.textContent : '').slice(0, 500) });
+        var box = document.getElementById('chatBox'); if (box) box.scrollTop = box.scrollHeight;
+      })
+      .catch(function(){
+        if (bubble) bubble.textContent = "I didn't catch a searchable detail — try slide count, color, style, industry, or content type.";
+      });
+    };
+    // REAL recommendations first — server matches actual kit metadata; AI on miss
+    if (window.hexaRecommendIntent && window.hexaRecommend && window.hexaRenderRecs && window.hexaRecommendIntent(text)) {
+      window.hexaRecommend(text)
+        .then(function(rec){
+          if (window.hexaRenderRecs(bubble, rec)) {
+            swHistory.push({ role: 'assistant', content: bubble.textContent.slice(0, 500) });
+            var box = document.getElementById('chatBox'); if (box) box.scrollTop = box.scrollHeight;
+          } else doAI();
+        })
+        .catch(doAI);
+      return;
+    }
+    doAI();
   }
   function sendMsg() {
     var input = document.getElementById('userInput');

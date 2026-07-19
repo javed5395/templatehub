@@ -763,17 +763,30 @@
       hbRemember('assistant', composed.reply); hbScroll(); return;
     }
     // 3) AI cascade (send prior history for context; ACTION -> a click button, never auto-navigate)
-    fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text, history:hbHistory.slice(0,-1)})})
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var raw=(d&&d.reply)?d.reply:"Sorry, I couldn't answer that right now.";
-        var parsed=(window.chatParseAction)?window.chatParseAction(raw):{text:raw,target:null,label:null};
-        bubble.textContent=parsed.text||raw;
-        if(parsed.target && window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(parsed.target, parsed.label)); }
-        hbRemember('assistant', parsed.text||raw);
-        hbScroll();
-      })
-      .catch(function(){ bubble.textContent="Sorry, I'm having trouble right now. Please try again."; hbScroll(); });
+    var doAI=function(){
+      fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text, history:hbHistory.slice(0,-1)})})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          var raw=(d&&d.reply)?d.reply:"Sorry, I couldn't answer that right now.";
+          var parsed=(window.chatParseAction)?window.chatParseAction(raw):{text:raw,target:null,label:null};
+          bubble.textContent=parsed.text||raw;
+          if(parsed.target && window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(parsed.target, parsed.label)); }
+          hbRemember('assistant', parsed.text||raw);
+          hbScroll();
+        })
+        .catch(function(){ bubble.textContent="Sorry, I'm having trouble right now. Please try again."; hbScroll(); });
+    };
+    // 2.5) REAL recommendations — server matches actual kit metadata; falls back to AI on no result
+    if(window.hexaRecommendIntent && window.hexaRecommend && window.hexaRenderRecs && window.hexaRecommendIntent(text)){
+      window.hexaRecommend(text)
+        .then(function(rec){
+          if(window.hexaRenderRecs(bubble,rec)){ hbRemember('assistant',bubble.textContent); hbScroll(); }
+          else doAI();
+        })
+        .catch(doAI);
+      return;
+    }
+    doAI();
   };
   window.helpbotAsk = function(){ var inp=document.getElementById('helpbotInput'); var t=((inp&&inp.value)||'').trim(); if(!t) return; inp.value=''; window.helpbotSend(t); };
 

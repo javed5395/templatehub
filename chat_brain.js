@@ -165,6 +165,46 @@
     return a;
   };
 
+  // ── #3 REAL RECOMMENDATIONS — Hexa searches the actual kit metadata ────────
+  // Widgets call: if (hexaRecommendIntent(text)) hexaRecommend(text).then(rec =>
+  //   hexaRenderRecs(bubble, rec) || fallThroughToAI())
+  var REC_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/recommend_http';
+  var REC_VERB = /\b(show|find|recommend|suggest|need|want|looking for|look for|search|any|got|have|browse|see|give me|do you)\b/;
+  var REC_NOUN = /\b(deck|decks|kit|kits|template|templates|design|designs|keynote|keynotes|presentation|presentations|slides)\b/;
+
+  window.hexaRecommendIntent = function (text) {
+    var t = norm(text);
+    return REC_VERB.test(t) && REC_NOUN.test(t);
+  };
+
+  window.hexaRecommend = function (text) {
+    return fetch(REC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: String(text || '').slice(0, 300), limit: 4 })
+    }).then(function (r) { return r.json(); });
+  };
+
+  // Renders results into the given bubble. Returns true if it rendered
+  // anything (caller then skips the AI cascade), false otherwise.
+  window.hexaRenderRecs = function (bubble, rec) {
+    var res = (rec && rec.results) || [];
+    if (!res.length || !bubble) return false;
+    var why = res[0].match && res[0].match.length ? ' for "' + res[0].match.join(', ') + '"' : '';
+    bubble.textContent = (res.length === 1
+      ? 'Found a great match' + why + ' 👇'
+      : 'Found ' + res.length + ' matches' + why + ' 👇');
+    for (var i = 0; i < res.length; i++) {
+      var r = res[i];
+      var label = r.name + (r.slides ? ' · ' + r.slides + ' slides' : '');
+      var a = window.chatMakeActionBtn(r.url || '#', label);
+      a.target = '_blank'; a.rel = 'noopener';
+      bubble.appendChild(document.createElement('br'));
+      bubble.appendChild(a);
+    }
+    return true;
+  };
+
   // ── Hexa command executor: run top-bar controls (language / mic / colour) ──
   var LANGS = {english:['en','English'],arabic:['ar','العربية'],spanish:['es','Español'],french:['fr','Français'],german:['de','Deutsch'],dutch:['nl','Nederlands'],japanese:['ja','日本語'],indonesian:['id','Bahasa Indonesia'],thai:['th','ภาษาไทย'],vietnamese:['vi','Tiếng Việt'],korean:['ko','한국어'],persian:['fa','فارسی'],farsi:['fa','فارسی'],hindi:['hi','हिन्दी'],turkish:['tr','Türkçe'],polish:['pl','Polski'],russian:['ru','Русский'],ukrainian:['uk','Українська'],italian:['it','Italiano'],urdu:['ur','اردو'],bengali:['bn','বাংলা'],malay:['ms','Bahasa Melayu'],swahili:['sw','Kiswahili'],filipino:['tl','Filipino'],tagalog:['tl','Filipino'],greek:['el','Ελληνικά'],czech:['cs','Čeština'],romanian:['ro','Română'],hungarian:['hu','Magyar'],swedish:['sv','Svenska'],norwegian:['no','Norsk'],danish:['da','Dansk'],portuguese:['pt','Português (Brasil)'],chinese:['zh-CN','简体中文'],mandarin:['zh-CN','简体中文']};
   var COLOURS = {red:'#e03030',blue:'#2b45f0',green:'#1b7f3e',gold:'#d4af37',golden:'#d4af37',purple:'#7c3aed',orange:'#ff6b35',pink:'#ec4899',teal:'#14b8a6',black:'#111111',cyan:'#06b6d4',yellow:'#eab308'};
