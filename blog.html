@@ -127,6 +127,11 @@
   .blog-card-author-name { font-size: 12px; font-weight: 600; color: #1a1a2e; }
   .blog-card-date { font-size: 11.5px; color: #98a0ae; }
 
+  .blog-grid-loading {
+    grid-column: 1 / -1; text-align: center; padding: 60px 20px;
+    color: #98a0ae; font-family: 'Poppins', sans-serif; font-size: 14px;
+  }
+
   /* ══ COMING SOON PLACEHOLDER CARDS ══ */
   .blog-card-empty {
     border: 1.5px dashed #d8dce4;
@@ -165,41 +170,83 @@
 <!-- ══ BLOG GRID ══ -->
 <section class="blog-grid-section">
   <div class="blog-grid" id="blogGrid">
-
-    <a href="blog-pitch-decks-first-launch.html" class="blog-card">
-      <div class="blog-card-thumb">
-        <span class="blog-card-badge">First Launch</span>
-        <span class="blog-card-thumb-mark">LazyDogTemplates</span>
-      </div>
-      <div class="blog-card-body">
-        <div class="blog-card-cat">Behind the Build</div>
-        <div class="blog-card-title">Pitch Decks: Our First Launch, and Why We're Starting Small</div>
-        <div class="blog-card-excerpt">What you'll find here today is a small set of sample decks — not thousands of templates. That's on purpose. Here's why quality is coming before quantity.</div>
-        <div class="blog-card-footer">
-          <div class="blog-card-author">
-            <div class="blog-card-avatar">LD</div>
-            <div class="blog-card-author-name">LazyDog Team</div>
-          </div>
-          <div class="blog-card-date">July 2026</div>
-        </div>
-      </div>
-    </a>
-
-    <div class="blog-card-empty">
-      <div class="blog-card-empty-icon">◆</div>
-      <p>More stories coming soon</p>
-    </div>
-
-    <div class="blog-card-empty">
-      <div class="blog-card-empty-icon">◆</div>
-      <p>More stories coming soon</p>
-    </div>
-
+    <div class="blog-grid-loading" id="blogGridLoading">Loading posts…</div>
   </div>
 </section>
 
 <!-- FOOTER injected by footerbar.js -->
 <script src="footerbar.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+    authDomain: "templatehub-16cd7.firebaseapp.com",
+    projectId: "templatehub-16cd7",
+    storageBucket: "templatehub-16cd7.firebasestorage.app",
+    messagingSenderId: "143000893683",
+    appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  function cardHTML(id, p){
+    return '<a href="blog-post.html?post=' + encodeURIComponent(id) + '" class="blog-card">' +
+      '<div class="blog-card-thumb">' +
+        '<span class="blog-card-badge">' + escapeHtml(p.tag || 'Update') + '</span>' +
+        '<span class="blog-card-thumb-mark">LazyDogTemplates</span>' +
+      '</div>' +
+      '<div class="blog-card-body">' +
+        '<div class="blog-card-cat">' + escapeHtml(p.category || 'Behind the Build') + '</div>' +
+        '<div class="blog-card-title">' + escapeHtml(p.title || '') + '</div>' +
+        '<div class="blog-card-excerpt">' + escapeHtml(p.excerpt || '') + '</div>' +
+        '<div class="blog-card-footer">' +
+          '<div class="blog-card-author">' +
+            '<div class="blog-card-avatar">LD</div>' +
+            '<div class="blog-card-author-name">' + escapeHtml(p.author || 'LazyDog Team') + '</div>' +
+          '</div>' +
+          '<div class="blog-card-date">' + escapeHtml(p.date || '') + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</a>';
+  }
+
+  function emptyCardHTML(){
+    return '<div class="blog-card-empty"><div class="blog-card-empty-icon">◆</div><p>More stories coming soon</p></div>';
+  }
+
+  (async function loadBlogGrid(){
+    const grid = document.getElementById('blogGrid');
+    try {
+      const q = query(collection(db, 'blog_posts'), orderBy('timestamp', 'desc'), limit(12));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        grid.innerHTML = emptyCardHTML() + emptyCardHTML() + emptyCardHTML();
+        return;
+      }
+
+      let html = '';
+      snap.forEach(function(docSnap){
+        html += cardHTML(docSnap.id, docSnap.data());
+      });
+      // Pad with a couple of "coming soon" placeholders so the grid never looks sparse.
+      html += emptyCardHTML() + emptyCardHTML();
+      grid.innerHTML = html;
+    } catch (err) {
+      console.error('Failed to load blog posts:', err);
+      grid.innerHTML = emptyCardHTML() + emptyCardHTML() + emptyCardHTML();
+    }
+  })();
+</script>
 
 </body>
 </html>
