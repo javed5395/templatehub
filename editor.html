@@ -5556,7 +5556,10 @@ window.ldCompose = async function (sentence) {
    gate recognises the owner. Visitors see a sign-in prompt via Hexa/site. */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-const _app = initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" }, "ld-editor-auth");
+let _app;
+try { const { getApp } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"); _app = getApp(); }
+catch (e) { _app = null; }
+if (!_app) _app = initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" });
 const _auth = getAuth(_app);
 onAuthStateChanged(_auth, async (u) => {
   window.LD_AUTH_TOKEN = u ? await u.getIdToken() : null;
