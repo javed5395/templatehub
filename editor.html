@@ -5545,5 +5545,17 @@ window.ldCompose = async function (sentence) {
      ============================================================ -->
 <!-- bridge omitted in test build -->
 
+<script type="module">
+/* Designer sign-in: reuse the site's Firebase session so the locked cloud
+   gate recognises the owner. Visitors see a sign-in prompt via Hexa/site. */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+const _app = initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" }, "ld-editor-auth");
+const _auth = getAuth(_app);
+onAuthStateChanged(_auth, async (u) => {
+  window.LD_AUTH_TOKEN = u ? await u.getIdToken() : null;
+});
+setInterval(async () => { try { if (_auth.currentUser) window.LD_AUTH_TOKEN = await _auth.currentUser.getIdToken(); } catch(e){} }, 10 * 60 * 1000);
+</script>
 </body>
 </html>
