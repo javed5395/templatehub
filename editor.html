@@ -5524,8 +5524,14 @@ window.loadDeckIRIntoEditor = async function (deckIR) {
 };
 window.ldCompose = async function (sentence) {
   showToast('Designing in LazyDog cloud…');
+  // give the sign-in token a moment on cold page loads
+  for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function(res){ setTimeout(res, 500); });
   var r = await fetch(window.LD_BACKEND + '/compose_ir', { method:'POST',
     headers: window.ldHeaders('application/json'), body: JSON.stringify({ sentence: sentence }) });
+  if (r.status === 401 || r.status === 403) {
+    showToast('Please sign in on the main site first, then reopen the Designer 🔐');
+    return;
+  }
   if (!r.ok) { showToast('Compose failed: ' + r.status); return; }
   var d = await r.json();
   await window.loadDeckIRIntoEditor(d.deck);
