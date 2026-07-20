@@ -5499,7 +5499,7 @@ init();
 window.LD_BACKEND = window.LD_BACKEND || (
   (location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname))
     ? 'http://localhost:8080'
-    : 'https://us-central1-templatehub-16cd7.cloudfunctions.net/composer_proxy'
+    : 'https://composer-proxy-irosbvpq7q-uc.a.run.app'
 );
 window.ldHeaders = function (ct) {
   var h = { 'Content-Type': ct };

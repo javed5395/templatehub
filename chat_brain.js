@@ -240,7 +240,7 @@
   // ── HEXA ADMIN — owner-only store commands (needs admin login) ────────────
   // "prepare today's decks" → cloud composes the daily batch into review.
   // "publish all decks" / "publish decks 1,3,5" → picked decks go LIVE.
-  var GATE_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/composer_proxy';
+  var GATE_URL = 'https://composer-proxy-irosbvpq7q-uc.a.run.app';
   window.hexaAdminIntent = function (text) {
     var t = norm(text);
     return /\b(prepare|make|generate|create)\b.*\b(today s|todays|daily)\b.*\bdecks?\b/.test(t)
