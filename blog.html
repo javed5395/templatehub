@@ -170,7 +170,27 @@
 <!-- ══ BLOG GRID ══ -->
 <section class="blog-grid-section">
   <div class="blog-grid" id="blogGrid">
-    <div class="blog-grid-loading" id="blogGridLoading">Loading posts…</div>
+
+    <a href="blog-pitch-decks-first-launch.html" class="blog-card">
+      <div class="blog-card-thumb">
+        <span class="blog-card-badge">First Launch</span>
+        <span class="blog-card-thumb-mark">LazyDogTemplates</span>
+      </div>
+      <div class="blog-card-body">
+        <div class="blog-card-cat">Behind the Build</div>
+        <div class="blog-card-title">Pitch Decks: Our First Launch, and Why We're Starting Small</div>
+        <div class="blog-card-excerpt">What you'll find here today is a small set of sample decks — not thousands of templates. That's on purpose. Here's why quality is coming before quantity.</div>
+        <div class="blog-card-footer">
+          <div class="blog-card-author">
+            <div class="blog-card-avatar">LD</div>
+            <div class="blog-card-author-name">LazyDog Team</div>
+          </div>
+          <div class="blog-card-date">July 2026</div>
+        </div>
+      </div>
+    </a>
+
+    <div id="blogGridDynamic"></div>
   </div>
 </section>
 
@@ -224,26 +244,23 @@
   }
 
   (async function loadBlogGrid(){
-    const grid = document.getElementById('blogGrid');
+    const dynamicSlot = document.getElementById('blogGridDynamic');
     try {
-      const q = query(collection(db, 'blog_posts'), orderBy('timestamp', 'desc'), limit(12));
+      const q = query(collection(db, 'blog_posts'), orderBy('timestamp', 'desc'), limit(11));
       const snap = await getDocs(q);
-
-      if (snap.empty) {
-        grid.innerHTML = emptyCardHTML() + emptyCardHTML() + emptyCardHTML();
-        return;
-      }
 
       let html = '';
       snap.forEach(function(docSnap){
+        // Skip if this Firestore post is the same one already shown as the static card above.
+        if (docSnap.id === 'pitch-decks-first-launch') return;
         html += cardHTML(docSnap.id, docSnap.data());
       });
-      // Pad with a couple of "coming soon" placeholders so the grid never looks sparse.
+      // Pad with placeholders so the grid never looks sparse.
       html += emptyCardHTML() + emptyCardHTML();
-      grid.innerHTML = html;
+      dynamicSlot.outerHTML = html;
     } catch (err) {
       console.error('Failed to load blog posts:', err);
-      grid.innerHTML = emptyCardHTML() + emptyCardHTML() + emptyCardHTML();
+      dynamicSlot.outerHTML = emptyCardHTML() + emptyCardHTML();
     }
   })();
 </script>
