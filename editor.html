@@ -2021,21 +2021,30 @@ body.show-ruler .canvas-area::after {
     <span class="rb-div"></span>
     <div class="ribbon-tabs" id="ribbon-tabs" role="tablist" aria-label="Ribbon tabs"></div>
     <div class="rb-flex"></div>
-    <div class="doc-wrap"><span class="doc-title" contenteditable="true" spellcheck="false" role="textbox" aria-label="Document title">Untitled design</span>
-    <span class="doc-type">- Presentation · b50</span></div>
-    <button class="btn-upgrade" data-action="upgrade">Upgrade your plan</button>
-    <button class="btn-outline" data-action="present">
-      <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">play_arrow</span>Present
-    </button>
     <div style="position:relative;">
-      <button class="btn-primary" data-action="share">Share</button>
+      <button class="btn-outline" data-action="upload-menu">
+        <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">upload</span>Upload
+      </button>
+      <div class="dropdown" id="upload-dropdown">
+        <button class="dropdown-item" data-action="upload-image"><span class="material-icons-outlined">image</span>Image</button>
+        <button class="dropdown-item" data-action="upload-pptx"><span class="material-icons-outlined">slideshow</span>PowerPoint (.pptx)</button>
+        <div class="dropdown-sep"></div>
+        <button class="dropdown-item" data-action="grid-autofill"><span class="material-icons-outlined">burst_mode</span>Fill frames with images…</button>
+      </div>
+    </div>
+    <div style="position:relative;">
+      <button class="btn-primary" data-action="share">
+        <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">download</span>Download
+      </button>
       <div class="dropdown" id="share-dropdown">
+        <button class="dropdown-item" data-share="pptx"><span class="material-icons-outlined">slideshow</span>PowerPoint (.pptx)</button>
+        <button class="dropdown-item" data-action="exp-pdf"><span class="material-icons-outlined">picture_as_pdf</span>PDF</button>
+        <button class="dropdown-item" data-action="exp-png"><span class="material-icons-outlined">image</span>PNG</button>
+        <button class="dropdown-item" data-action="exp-jpg"><span class="material-icons-outlined">photo</span>JPG</button>
+        <button class="dropdown-item" data-action="exp-svg"><span class="material-icons-outlined">polyline</span>SVG</button>
+        <div class="dropdown-sep"></div>
         <button class="dropdown-item" data-share="link"><span class="material-icons-outlined">link</span>Copy link</button>
         <button class="dropdown-item" data-share="email"><span class="material-icons-outlined">mail</span>Send by email</button>
-        <button class="dropdown-item" data-share="pptx"><span class="material-icons-outlined">slideshow</span>Download PPTX</button>
-        <button class="dropdown-item" data-share="download"><span class="material-icons-outlined">download</span>Download PNG</button>
-        <div class="dropdown-sep"></div>
-        <button class="dropdown-item" data-share="schedule"><span class="material-icons-outlined">schedule</span>Schedule</button>
       </div>
     </div>
     <div style="position:relative;">
@@ -2128,19 +2137,15 @@ body.show-ruler .canvas-area::after {
     <!-- Page thumbnails injected by JS -->
   </div>
   <div class="bottom-right">
-    <span class="page-info" id="page-info">1 of 1</span>
     <div class="zoom-controls">
       <button class="zoom-btn" data-zoom="out" aria-label="Zoom out">
         <span class="material-icons-outlined">remove</span>
       </button>
-      <input type="range" class="zoom-slider" id="zoom-slider" min="25" max="200" value="80" aria-label="Zoom level">
+      <input type="range" class="zoom-slider" id="zoom-slider" min="25" max="200" value="62" aria-label="Zoom level">
       <button class="zoom-btn" data-zoom="in" aria-label="Zoom in">
         <span class="material-icons-outlined">add</span>
       </button>
-      <span class="zoom-value" id="zoom-value">80%</span>
-      <button class="zoom-btn" data-zoom="fit" aria-label="Fit to screen">
-        <span class="material-icons-outlined">fit_screen</span>
-      </button>
+      <span class="zoom-value" id="zoom-value">62%</span>
     </div>
   </div>
 </footer>
@@ -2166,7 +2171,7 @@ const state = {
   activeTool: null,         // currently selected tool id
   pages: [makeBlankPage(1)], // array of page objects
   currentPage: 0,           // index of active page
-  zoom: 80,                 // zoom percentage
+  zoom: 62,                 // zoom percentage
   slideSelected: false,
   notesOpen: false,
   timerRunning: false,
@@ -2204,7 +2209,7 @@ const designTools = [
   { id: 'presenter',  icon: 'co_present',      label: 'Present' },
   { id: 'a11y',       icon: 'accessibility_new', label: 'Access.' },
   { id: 'text',       icon: 'title',           label: 'Text' },
-  { id: 'uploads',    icon: 'cloud_upload',    label: 'Uploads' },
+  /* Uploads moved to the Upload button beside Download in the top bar */
   { id: 'draw',       icon: 'gesture',         label: 'Draw' },
   { id: 'photos',     icon: 'image',           label: 'Photos' },
   { id: 'videos',     icon: 'videocam',        label: 'Videos' },
@@ -2532,6 +2537,7 @@ const dom = {
   timerReset: $('#timer-reset'),
   toastContainer: $('#toast-container'),
   shareDropdown: $('#share-dropdown'),
+  uploadDropdown: $('#upload-dropdown'),
   moreDropdown: $('#more-dropdown'),
   undoBtn: $('#undo-btn'),
   redoBtn: $('#redo-btn'),
@@ -4589,20 +4595,6 @@ var RIBBON = [
     ]},
   ]},
 
-  { id:'export', name:'Export', groups:[
-    { name:'Export', items:[
-      ['picture_as_pdf','PDF','exp-pdf','sm'],
-      ['slideshow','PPTX','exp-pptx','sm'],
-      ['image','PNG','exp-png','sm'],
-      ['photo','JPG','exp-jpg','sm'],
-      ['polyline','SVG','exp-svg','sm'],
-      ['movie','Video','exp-video','sm'],
-    ]},
-    { name:'Sharing', items:[
-      ['link','Share link','share-link','w'],
-      ['public','Publish','publish','w'],
-    ]},
-  ]},
 
   { id:'dev', name:'Developer', groups:[
     { name:'Tools', items:[
@@ -4800,16 +4792,6 @@ function ribbonRun(key) {
     case 'rehearse':        openPanel('presenter'); rehearseStart(); return;
     case 'record':          openPanel('presenter'); return;
 
-    /* ── Export ── */
-    case 'exp-pdf':    rbExportPdf(); return;
-    case 'exp-pptx':   rbExportPptx(); return;
-    case 'exp-png':    rbExportImage('png'); return;
-    case 'exp-jpg':    rbExportImage('jpg'); return;
-    case 'exp-svg':    rbExportSvg(); return;
-    case 'exp-video':  openPanel('presenter'); showToast('Record from the Presenter panel'); return;
-    case 'share-link': rbShareLink(); return;
-    case 'publish':    rbPublish(); return;
-
     /* ── Developer ── */
     case 'dev-json':  rbInspectJson(); return;
     case 'dev-layer': rbInspectLayer(); return;
@@ -4854,9 +4836,11 @@ function ribbonRun(key) {
       break;
 
     case 'zoom-in':  case 'zoom-out': case 'zoom-fit': {
-      var z = { 'zoom-in':'in', 'zoom-out':'out', 'zoom-fit':'fit' }[key];
-      var zb = document.querySelector('[data-zoom="' + z + '"]');
-      if (zb) zb.click();
+      /* call the zoom functions directly — the fit button no longer exists
+         in the bottom bar, so clicking a DOM node is not reliable */
+      if (typeof setZoom !== 'function') break;
+      if (key === 'zoom-fit') { setZoom(calculateFitZoom()); break; }
+      setZoom(state.zoom + (key === 'zoom-in' ? 10 : -10));
       break;
     }
 
@@ -6066,76 +6050,114 @@ function rbDownload(dataUrl, filename) {
   a.href = dataUrl; a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
 }
+/* Walk EVERY slide, run `grab` on each, then put the user back where they
+   were. Everything that exports the deck goes through this, so the page
+   restore and the sticker freeze can never be forgotten in one of them. */
+function rbEachSlide(grab) {
+  return new Promise(function (resolve) {
+    if (!fc) return resolve([]);
+    captureCurrentPage();
+    if (typeof stickerFreeze === 'function') stickerFreeze();
+    var startedOn = state.currentPage;
+    var out = [], i = 0;
+    var step = function () {
+      if (i >= state.pages.length) {
+        switchPage(startedOn).then(function () { resolve(out); });
+        return;
+      }
+      switchPage(i).then(function () {
+        /* a beat for fonts and images to settle before the snapshot */
+        setTimeout(function () {
+          if (typeof stickerFreeze === 'function') stickerFreeze();
+          try { out.push(grab(i)); } catch (e) { out.push(null); }
+          i++; step();
+        }, 130);
+      });
+    };
+    step();
+  });
+}
+
+function rbSlideName(i, ext) {
+  return 'slide-' + String(i + 1).padStart(2, '0') + '.' + ext;
+}
+
+/* One file downloads directly; a deck is bundled into a zip, because
+   browsers block a burst of individual downloads. */
+function rbDeliver(files, ext, label) {
+  var good = files.filter(function (f) { return f && f.data; });
+  if (!good.length) { showToast('Nothing could be exported'); return; }
+
+  if (good.length === 1) {
+    rbDownload(good[0].url, good[0].name);
+    showToast(label + ' downloaded');
+    return;
+  }
+  if (typeof JSZip === 'undefined') {
+    showToast('Cannot bundle — JSZip missing');
+    return;
+  }
+  var zip = new JSZip();
+  good.forEach(function (f) { zip.file(f.name, f.data, { base64: f.base64 }); });
+  showToast('Bundling ' + good.length + ' slides…');
+  zip.generateAsync({ type: 'blob' }).then(function (blob) {
+    var url = URL.createObjectURL(blob);
+    rbDownload(url, 'presentation-' + ext + '.zip');
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+    showToast(good.length + ' slides downloaded as ' + label);
+  }).catch(function () { showToast('Could not build the zip'); });
+}
+
 function rbExportImage(fmt) {
   if (!fc) return;
-  if (typeof stickerFreeze === 'function') stickerFreeze();
-  try {
-    var url = fc.toDataURL({ format: fmt === 'jpg' ? 'jpeg' : 'png',
-                             quality: 0.92, multiplier: 2 });
-    rbDownload(url, 'slide-' + (state.currentPage + 1) + '.' + fmt);
-    showToast('Slide exported as ' + fmt.toUpperCase());
-  } catch (e) {
-    showToast('Export blocked — an image on this slide is cross-origin');
-  }
+  var mime = fmt === 'jpg' ? 'jpeg' : 'png';
+  showToast('Rendering all slides…');
+  rbEachSlide(function (i) {
+    var url = fc.toDataURL({ format: mime, quality: 0.92, multiplier: 2 });
+    return { name: rbSlideName(i, fmt), url: url,
+             data: url.split(',')[1], base64: true };
+  }).then(function (files) {
+    if (!files.filter(Boolean).length) {
+      showToast('Export blocked — an image in this deck is cross-origin');
+      return;
+    }
+    rbDeliver(files, fmt, fmt.toUpperCase());
+  });
 }
+
 function rbExportSvg() {
   if (!fc || !fc.toSVG) return;
-  try {
+  showToast('Rendering all slides…');
+  rbEachSlide(function (i) {
     var svg = fc.toSVG();
-    rbDownload('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg),
-               'slide-' + (state.currentPage + 1) + '.svg');
-    showToast('Slide exported as SVG');
-  } catch (e) { showToast('SVG export failed'); }
+    return { name: rbSlideName(i, 'svg'),
+             url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg),
+             data: svg, base64: false };
+  }).then(function (files) { rbDeliver(files, 'svg', 'SVG'); });
 }
 /* PDF: render every slide to an image and hand them to the browser's own
    print-to-PDF. No PDF library needed, and it keeps vector text crisp
    enough at 2x while staying dependency-free. */
 function rbExportPdf() {
   if (!fc) return;
-  showToast('Preparing slides…');
-  captureCurrentPage();
-  if (typeof stickerFreeze === 'function') stickerFreeze();
-  var imgs = [], i = 0;
-  var current = state.currentPage;
-  var step = function () {
-    if (i >= state.pages.length) return finish();
-    switchPage(i).then(function () {
-      setTimeout(function () {
-        try { imgs.push(fc.toDataURL({ format:'png', multiplier:2 })); } catch (e) { imgs.push(null); }
-        i++; step();
-      }, 120);
-    });
-  };
-  var finish = function () {
-    switchPage(current);
+  showToast('Rendering all slides…');
+  rbEachSlide(function () {
+    return { url: fc.toDataURL({ format: 'png', multiplier: 2 }) };
+  }).then(function (files) {
+    var imgs = files.filter(Boolean).map(function (f) { return f.url; });
+    if (!imgs.length) { showToast('Nothing to export'); return; }
     var w = window.open('', '_blank');
     if (!w) { showToast('Allow pop-ups to export a PDF'); return; }
-    w.document.write('<!doctype html><title>Export</title><style>'
-      + '@page{size:landscape;margin:0}body{margin:0}'
+    w.document.write('<!doctype html><title>Presentation</title><style>'
+      + '@page{size:landscape;margin:0}html,body{margin:0;padding:0}'
       + 'img{width:100%;display:block;page-break-after:always}'
+      + 'img:last-child{page-break-after:auto}'
       + '</style>'
-      + imgs.filter(Boolean).map(function (s) { return '<img src="' + s + '">'; }).join(''));
+      + imgs.map(function (s) { return '<img src="' + s + '">'; }).join(''));
     w.document.close();
-    setTimeout(function () { w.focus(); w.print(); }, 400);
-    showToast('Choose “Save as PDF” in the print dialog');
-  };
-  step();
-}
-function rbExportPptx() {
-  var btn = document.querySelector('[data-share="pptx"]');
-  if (btn) { btn.click(); return; }
-  showToast('PPTX export goes through the cloud composer');
-}
-function rbShareLink() {
-  var url = location.href.split('#')[0];
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(function () {
-      showToast('Editor link copied — hosted sharing needs the backend');
-    }).catch(function () { showToast('Could not copy'); });
-  } else showToast('Clipboard unavailable');
-}
-function rbPublish() {
-  showToast('Publishing needs the cloud backend — not deployed yet');
+    setTimeout(function () { w.focus(); w.print(); }, 500);
+    showToast(imgs.length + ' slides ready — choose “Save as PDF”');
+  });
 }
 
 /* ── Developer ── */
@@ -10663,7 +10685,9 @@ function renderPageThumbs() {
   dom.pageThumbs.innerHTML = html;
   var actv = dom.pageThumbs.querySelector('.page-thumb.active');
   if (actv && actv.scrollIntoView) actv.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  dom.pageInfo.textContent = `${state.currentPage + 1} of ${state.pages.length}`;
+  /* the "1 of N" counter was removed from the bottom bar — guard rather than
+     assume it exists, or every thumbnail render throws */
+  if (dom.pageInfo) dom.pageInfo.textContent = `${state.currentPage + 1} of ${state.pages.length}`;
 }
 
 /* Capture the page we're LEAVING: serialize its fabric state + a small thumb,
@@ -10802,14 +10826,18 @@ function toggleNotes() {
    ============================================ */
 function openDropdown(id) {
   closeDropdowns();
-  const el = id === 'share' ? dom.shareDropdown : dom.moreDropdown;
+  const el = id === 'share' ? dom.shareDropdown
+           : id === 'upload' ? dom.uploadDropdown
+           : dom.moreDropdown;
+  if (!el) return;
   el.classList.add('open');
   state.openDropdown = id;
 }
 
 function closeDropdowns() {
-  dom.shareDropdown.classList.remove('open');
-  dom.moreDropdown.classList.remove('open');
+  [dom.shareDropdown, dom.uploadDropdown, dom.moreDropdown].forEach(function (el) {
+    if (el) el.classList.remove('open');
+  });
   state.openDropdown = null;
 }
 
@@ -13436,6 +13464,14 @@ function initEvents() {
         if (state.openDropdown === 'more') closeDropdowns();
         else openDropdown('more');
         break;
+      case 'upload-menu':
+        if (state.openDropdown === 'upload') closeDropdowns();
+        else openDropdown('upload');
+        break;
+      case 'exp-pdf':  closeDropdowns(); rbExportPdf(); break;
+      case 'exp-png':  closeDropdowns(); rbExportImage('png'); break;
+      case 'exp-jpg':  closeDropdowns(); rbExportImage('jpg'); break;
+      case 'exp-svg':  closeDropdowns(); rbExportSvg(); break;
       case 'close-panel':
         closePanel();
         break;
@@ -13723,8 +13759,26 @@ function initEvents() {
         closeDropdowns();
         return;
       }
-      const msgs = { link: 'Link copied to clipboard', email: 'Share via email dialog would open', schedule: 'Schedule dialog would open' };
-      showToast(msgs[item.dataset.share] || 'Action triggered');
+      /* these used to only claim to work — now they actually do */
+      if (item.dataset.share === 'link') {
+        const url = location.href.split('#')[0];
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url)
+            .then(() => showToast('Editor link copied'))
+            .catch(() => showToast('Could not copy — copy it from the address bar'));
+        } else showToast('Clipboard unavailable — copy from the address bar');
+        closeDropdowns();
+        return;
+      }
+      if (item.dataset.share === 'email') {
+        const subject = encodeURIComponent('Presentation');
+        const body = encodeURIComponent('Here is the editor link:\n\n' + location.href.split('#')[0]
+          + '\n\nTo send the deck itself, download it first and attach the file.');
+        location.href = 'mailto:?subject=' + subject + '&body=' + body;
+        closeDropdowns();
+        return;
+      }
+      showToast('Action triggered');
       closeDropdowns();
       return;
     }
@@ -13804,7 +13858,10 @@ function initEvents() {
   // --- Zoom Controls ---
   $('[data-zoom="in"]').addEventListener('click', () => setZoom(state.zoom + 10));
   $('[data-zoom="out"]').addEventListener('click', () => setZoom(state.zoom - 10));
-  $('[data-zoom="fit"]').addEventListener('click', () => setZoom(calculateFitZoom()));
+  /* the fit-screen icon was removed from the bottom bar; Fit page lives in
+     ribbon View. Bind only if the button is present. */
+  const fitBtn = $('[data-zoom="fit"]');
+  if (fitBtn) fitBtn.addEventListener('click', () => setZoom(calculateFitZoom()));
   dom.zoomSlider.addEventListener('input', () => setZoom(parseInt(dom.zoomSlider.value)));
 
   // --- Timer ---
@@ -13896,7 +13953,7 @@ function init() {
   renderSidebarTools();
   ensurePageHistory(0); // seed page 0's per-page undo stack with the blank canvas
   renderPageThumbs();
-  setZoom(Math.max(70, calculateFitZoom())); /* open at 70% minimum */
+  setZoom(Math.max(62, calculateFitZoom())); /* open at 62% minimum */
   initEvents();
 
   // Add a second page for demo purposes
