@@ -950,6 +950,72 @@ body.ld-resizing .side-panel { transition: none; }
 .icon-star:hover { color: #EAB308; }
 .panel-subhead span { font-weight: 500; }
 
+/* --- Ribbon: view overlays + inspector modal --- */
+.slide-frame.show-grid::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background-image:
+    linear-gradient(to right, rgba(124,58,237,0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124,58,237,0.14) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.slide-frame.show-guides::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background-image:
+    linear-gradient(to right, transparent calc(50% - 1px), rgba(232,89,12,.5) 50%, transparent calc(50% + 1px)),
+    linear-gradient(to bottom, transparent calc(50% - 1px), rgba(232,89,12,.5) 50%, transparent calc(50% + 1px));
+}
+body.show-ruler .canvas-area::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 18px; z-index: 40;
+  background: repeating-linear-gradient(to right,
+    var(--border-strong) 0 1px, transparent 1px 20px);
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+}
+body.show-ruler .canvas-area::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 18px; z-index: 40;
+  background: repeating-linear-gradient(to bottom,
+    var(--border-strong) 0 1px, transparent 1px 20px);
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border);
+}
+.rb-modal {
+  position: absolute; inset: 0; z-index: 400;
+  background: rgba(15,23,42,0.45);
+  display: flex; align-items: center; justify-content: center;
+}
+.rb-modal-box {
+  width: min(620px, 90vw); max-height: 78vh;
+  display: flex; flex-direction: column;
+  background: var(--bg-surface); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); overflow: hidden;
+}
+.rb-modal-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+}
+.rb-modal-head b { font-size: 14px; font-weight: 700; }
+.rb-modal-head span { flex: 1; font-size: 11.5px; color: var(--text-muted); }
+.rb-modal-head button {
+  width: 26px; height: 26px; border-radius: var(--radius-sm);
+  font-size: 19px; color: var(--text-secondary); line-height: 1;
+}
+.rb-modal-head button:hover { background: var(--bg-hover); }
+.rb-modal-box textarea {
+  flex: 1; min-height: 220px; resize: none; border: 0; outline: none;
+  padding: 12px 14px; font-family: monospace; font-size: 11.5px; line-height: 1.55;
+  color: var(--text-primary); background: var(--bg-surface); white-space: pre;
+}
+.rb-modal-foot {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 10px 14px; border-top: 1px solid var(--border);
+}
+.rb-modal-foot button {
+  padding: 7px 16px; border-radius: var(--radius-md);
+  font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+}
+.rb-modal-foot button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
 /* --- Accessibility panel --- */
 .a11y-score {
   display: flex; align-items: baseline; gap: 8px;
@@ -4358,90 +4424,191 @@ var RIBBON = [
       ['content_paste','Paste','paste','m'],
       ['content_cut','Cut','cut','sm'],
       ['content_copy','Copy','copy','sm'],
-      ['library_add','Duplicate','duplicate','sm'],
+      ['format_paint','Painter','painter','sm'],
     ]},
-    { name:'Slides', items:[
-      ['add_box','New','add-page','w'],
-      ['filter_none','Duplicate','dup-page',''],
-      ['delete_sweep','Delete','del-page','d'],
-    ]},
-    { name:'Font', items:[
+    { name:'Text', items:[
+      ['font_download','Font','font-family','sw'],
+      ['format_size','Size','font-size','sm'],
+      ['text_increase','Bigger','font-up','sm'],
+      ['text_decrease','Smaller','font-down','sm'],
       ['format_bold','Bold','bold','sm'],
       ['format_italic','Italic','italic','sm'],
       ['format_underlined','Under','underline','sm'],
-      ['format_color_text','Colour','text-colour','sm'],
+      ['format_strikethrough','Strike','strike','sm'],
+      ['format_clear','Clear','clear-format','sm'],
+    ]},
+    { name:'Text colour', items:[
+      ['format_color_text','Font','text-colour','sm'],
+      ['border_color','Highlight','highlight','sm'],
     ]},
     { name:'Paragraph', items:[
-      ['format_align_left','Left','align-left','sm'],
-      ['format_align_center','Centre','align-center','sm'],
-      ['format_align_right','Right','align-right','sm'],
+      ['format_align_left','Left','p-left','sm'],
+      ['format_align_center','Centre','p-center','sm'],
+      ['format_align_right','Right','p-right','sm'],
+      ['format_align_justify','Justify','p-justify','sm'],
+      ['format_list_bulleted','Bullets','bullets','sm'],
+      ['format_list_numbered','Numbers','numbering','sm'],
+      ['format_indent_increase','Indent','indent-in','sm'],
+      ['format_indent_decrease','Outdent','indent-out','sm'],
+      ['format_line_spacing','Spacing','line-spacing','sm'],
     ]},
-    { name:'Drawing', items:[
-      ['interests','Shapes','shapes','w'],
-      ['format_color_fill','Fill','shape-fill','sm'],
-      ['border_color','Outline','shape-outline','sm'],
-      ['flip_to_front','Arrange','front','sm'],
-    ]},
-  ]},
-
-  { id:'insert', name:'Insert', groups:[
-    { name:'Slides', items:[
-      ['add_box','New slide','add-page','w'],
-    ]},
-    { name:'Media', items:[
-      ['image','Picture','upload-image',''],
-      ['slideshow','PPTX','upload-pptx',''],
-    ]},
-    { name:'Illustrations', items:[
-      ['interests','Shapes','shapes','w'],
-    ]},
-    { name:'Text', items:[
-      ['title','Text box','add-textbox','w'],
-    ]},
-  ]},
-
-  { id:'design', name:'Design', groups:[
-    { name:'Slide size', items:[
-      ['crop_16_9','16:9','size-169',''],
-      ['crop_5_4','4:3','size-43',''],
-    ]},
-    { name:'Background', items:[
-      ['format_color_fill','Colour','bg-colour','w'],
+    { name:'Selection', items:[
+      ['select_all','Select all','select-all','m'],
+      ['deselect','Deselect','deselect','m'],
+      ['search','Find','find','m'],
     ]},
   ]},
 
   { id:'arrange', name:'Arrange', groups:[
-    { name:'Order', items:[
+    { name:'Layer order', items:[
       ['flip_to_front','To front','front','sm'],
+      ['keyboard_arrow_up','Forward','forward','sm'],
+      ['keyboard_arrow_down','Backward','backward','sm'],
       ['flip_to_back','To back','back','sm'],
-      ['arrow_upward','Forward','forward','sm'],
-      ['arrow_downward','Backward','backward','sm'],
     ]},
     { name:'Align', items:[
-      ['align_horizontal_center','Centre','centre','sm'],
-      ['vertical_align_center','Middle','middle','sm'],
+      ['align_horizontal_left','Left','a-left','sm'],
+      ['align_horizontal_center','Centre','a-hcenter','sm'],
+      ['align_horizontal_right','Right','a-right','sm'],
+      ['align_vertical_top','Top','a-top','sm'],
+      ['align_vertical_center','Middle','a-vcenter','sm'],
+      ['align_vertical_bottom','Bottom','a-bottom','sm'],
+    ]},
+    { name:'Distribute', items:[
+      ['horizontal_distribute','Horizontal','dist-h','sm'],
+      ['vertical_distribute','Vertical','dist-v','sm'],
+    ]},
+    { name:'Transform', items:[
+      ['rotate_left','Rotate left','rot-left','sm'],
+      ['rotate_right','Rotate right','rot-right','sm'],
+      ['flip','Flip H','flip-h','sm'],
+      ['flip_camera_android','Flip V','flip-v','sm'],
     ]},
     { name:'Object', items:[
-      ['lock','Lock','lock','sm'],
-      ['delete','Delete','delete','sd'],
+      ['library_add','Group','group','sm'],
+      ['library_add_check','Ungroup','ungroup','sm'],
+      ['lock','Lock','lock-on','sm'],
+      ['lock_open','Unlock all','unlock-all','m'],
+    ]},
+  ]},
+
+  { id:'design', name:'Design', groups:[
+    { name:'Theme', items:[
+      ['auto_fix_high','Apply','theme-apply-current','w'],
+      ['bookmark_add','Save theme','theme-save','w'],
+    ]},
+    { name:'Colours', items:[
+      ['palette','Theme colours','theme-accent','w'],
+    ]},
+    { name:'Typography', items:[
+      ['text_format','Theme fonts','theme-fonts','w'],
+    ]},
+    { name:'Canvas', items:[
+      ['aspect_ratio','Page size','page-size','w'],
+      ['screen_rotation','Orientation','orientation','w'],
+    ]},
+    { name:'Background', items:[
+      ['wallpaper','Apply to all','bg-to-all','w'],
+    ]},
+  ]},
+
+  { id:'animate', name:'Animate', groups:[
+    { name:'Object animation', items:[
+      ['gradient','Fade','anim:fade','sm'],
+      ['zoom_out_map','Zoom','anim:zoom','sm'],
+      ['flight','Fly','anim:fly','sm'],
+      ['arrow_upward','Rise','anim:rise','sm'],
+      ['sports_basketball','Bounce','anim:bounce','sm'],
+      ['block','None','anim:none','sm'],
+    ]},
+    { name:'Timing', items:[
+      ['timer','Duration','anim-ms','sm'],
+      ['hourglass_empty','Delay','anim-delay','sm'],
+    ]},
+    { name:'Trigger', items:[
+      ['ads_click','On click','trig:click','sm'],
+      ['playlist_play','After prev','trig:after','sm'],
+      ['layers','With prev','trig:with','sm'],
+    ]},
+    { name:'Page transition', items:[
+      ['gradient','Fade','trans:fade','sm'],
+      ['swipe_left','Slide','trans:slide','sm'],
+      ['east','Push','trans:push','sm'],
+      ['blur_on','Dissolve','trans:dissolve','sm'],
+      ['play_arrow','Preview','trans-play','sm'],
     ]},
   ]},
 
   { id:'view', name:'View', groups:[
-    { name:'Zoom', items:[
-      ['zoom_in','In','zoom-in','m'],
-      ['zoom_out','Out','zoom-out','m'],
-      ['fit_screen','Fit','zoom-fit','m'],
+    { name:'Workspace', items:[
+      ['zoom_in','Zoom in','zoom-in','sm'],
+      ['zoom_out','Zoom out','zoom-out','sm'],
+      ['fit_screen','Fit page','zoom-fit','sm'],
+      ['width_normal','Fit width','fit-width','sm'],
     ]},
-    { name:'Show', items:[
-      ['sticky_note_2','Notes','toggle-notes',''],
-      ['view_sidebar','Panel','toggle-sidebar',''],
+    { name:'Visibility', items:[
+      ['straighten','Ruler','v-ruler','sm'],
+      ['grid_on','Grid','v-grid','sm'],
+      ['grid_goldenratio','Guides','v-guides','sm'],
+    ]},
+    { name:'Panels', items:[
+      ['view_sidebar','Sidebar','toggle-sidebar','sm'],
+      ['layers','Layers','panel-layers','sm'],
+      ['tune','Properties','panel-props','sm'],
     ]},
   ]},
 
-  { id:'show', name:'Slide show', groups:[
-    { name:'Start', items:[
-      ['play_arrow','Present','present','w'],
+  { id:'review', name:'Review', groups:[
+    { name:'Proofing', items:[
+      ['spellcheck','Spelling','proof-spell','w'],
+      ['rule','Grammar','proof-grammar','w'],
+    ]},
+    { name:'Comments', items:[
+      ['add_comment','Add','comment-add','w'],
+      ['check_circle','Resolve','comment-resolve','w'],
+    ]},
+    { name:'Accessibility', items:[
+      ['accessibility_new','Run check','a11y-check','w'],
+    ]},
+  ]},
+
+  { id:'present', name:'Present', groups:[
+    { name:'Presentation', items:[
+      ['play_arrow','From start','present-start','w'],
+      ['play_circle','From current','present-current','w'],
+    ]},
+    { name:'Presenter', items:[
+      ['co_present','Presenter view','presenter-view','w'],
+      ['sticky_note_2','Notes','toggle-notes','w'],
+    ]},
+    { name:'Rehearsal', items:[
+      ['timer','Rehearse','rehearse','w'],
+    ]},
+    { name:'Recording', items:[
+      ['videocam','Record','record','w'],
+    ]},
+  ]},
+
+  { id:'export', name:'Export', groups:[
+    { name:'Export', items:[
+      ['picture_as_pdf','PDF','exp-pdf','sm'],
+      ['slideshow','PPTX','exp-pptx','sm'],
+      ['image','PNG','exp-png','sm'],
+      ['photo','JPG','exp-jpg','sm'],
+      ['polyline','SVG','exp-svg','sm'],
+      ['movie','Video','exp-video','sm'],
+    ]},
+    { name:'Sharing', items:[
+      ['link','Share link','share-link','w'],
+      ['public','Publish','publish','w'],
+    ]},
+  ]},
+
+  { id:'dev', name:'Developer', groups:[
+    { name:'Tools', items:[
+      ['data_object','JSON','dev-json','w'],
+      ['layers','Layer','dev-layer','w'],
+      ['speed','Performance','dev-perf','w'],
     ]},
   ]},
 
@@ -4454,7 +4621,6 @@ var RIBBON = [
     { name:'Object', items:[
       ['library_add','Duplicate','duplicate','sm'],
       ['flip_to_front','Front','front','sm'],
-      ['flip_to_back','Back','back','sm'],
       ['delete','Delete','delete','sd'],
     ]},
   ]},
@@ -4470,7 +4636,6 @@ var RIBBON = [
     ]},
     { name:'Object', items:[
       ['library_add','Duplicate','duplicate','sm'],
-      ['flip_to_front','Front','front','sm'],
       ['delete','Delete','delete','sd'],
     ]},
   ]},
@@ -4488,18 +4653,14 @@ var RIBBON = [
       ['restart_alt','Reset','frame-crop-reset','sm'],
       ['check','Done','frame-crop-done','sm'],
     ]},
-    { name:'Fill', items:[
-      ['format_color_fill','Fill','shape-fill','s'],
-    ]},
-    { name:'Order', items:[
-      ['flip_to_front','Front','front','sm'],
-      ['flip_to_back','Back','back','sm'],
+    { name:'Style', items:[
+      ['format_color_fill','Fill','shape-fill','sm'],
+      ['border_color','Outline','shape-outline','sm'],
     ]},
     { name:'Object', items:[
       ['library_add','Duplicate','duplicate','sm'],
       ['link','Link','link','sm'],
       ['accessible','Alt text','alttext','sm'],
-      ['info','Info','info','sm'],
       ['delete','Delete','delete','sd'],
     ]},
   ]},
@@ -4558,6 +4719,102 @@ function renderRibbon() {
    of each behaviour in the file. */
 function ribbonRun(key) {
   var o = ribbonSelection();
+
+  /* prefixed keys: anim:fade, trig:click, trans:push */
+  if (key.indexOf('anim:') === 0)  { animSet(key.slice(5)); return; }
+  if (key.indexOf('trig:') === 0)  { rbAnimTrigger(key.slice(5)); return; }
+  if (key.indexOf('trans:') === 0) { transSet(key.slice(6)); return; }
+
+  switch (key) {
+    /* ── Home ── */
+    case 'painter':       rbPainterPick(); return;
+    case 'font-family':   rbFontFamily(); return;
+    case 'font-size':     rbFontSize(0); return;
+    case 'font-up':       rbFontSize(2); return;
+    case 'font-down':     rbFontSize(-2); return;
+    case 'strike':        rbTextStyle('strike'); return;
+    case 'clear-format':  rbClearFormatting(); return;
+    case 'highlight':     rbHighlight(); return;
+    case 'p-left':        rbAlignText('left'); return;
+    case 'p-center':      rbAlignText('center'); return;
+    case 'p-right':       rbAlignText('right'); return;
+    case 'p-justify':     rbAlignText('justify'); return;
+    case 'bullets':       rbList('bullet'); return;
+    case 'numbering':     rbList('number'); return;
+    case 'indent-in':     rbIndent(1); return;
+    case 'indent-out':    rbIndent(-1); return;
+    case 'line-spacing':  rbLineSpacing(); return;
+    case 'select-all':    rbSelectAll(); return;
+    case 'deselect':      rbDeselect(); return;
+    case 'find':          rbFind(); return;
+
+    /* ── Arrange ── */
+    case 'a-left':        rbAlign('left'); return;
+    case 'a-hcenter':     rbAlign('hcenter'); return;
+    case 'a-right':       rbAlign('right'); return;
+    case 'a-top':         rbAlign('top'); return;
+    case 'a-vcenter':     rbAlign('vcenter'); return;
+    case 'a-bottom':      rbAlign('bottom'); return;
+    case 'dist-h':        rbDistribute('h'); return;
+    case 'dist-v':        rbDistribute('v'); return;
+    case 'rot-left':      rbRotate(-90); return;
+    case 'rot-right':     rbRotate(90); return;
+    case 'flip-h':        rbFlip('h'); return;
+    case 'flip-v':        rbFlip('v'); return;
+    case 'group':         layerGroup(); return;
+    case 'ungroup':       layerUngroup(); return;
+    case 'lock-on':       rbLock(true); return;
+    case 'unlock-all':    rbUnlockAll(); return;
+
+    /* ── Design ── */
+    case 'theme-save':    rbSaveTheme(); return;
+    case 'theme-accent':  rbThemeAccent(); return;
+    case 'theme-fonts':   rbThemeFont(); return;
+    case 'page-size':     rbPageSize(); return;
+    case 'orientation':   rbOrientation(); return;
+    case 'bg-to-all':     rbBgToAll(); return;
+
+    /* ── Animate ── */
+    case 'anim-ms':       rbAnimTiming('ms'); return;
+    case 'anim-delay':    rbAnimTiming('delay'); return;
+
+    /* ── View ── */
+    case 'fit-width':     rbFitWidth(); return;
+    case 'v-ruler':       rbToggleView('ruler'); return;
+    case 'v-grid':        rbToggleView('grid'); return;
+    case 'v-guides':      rbToggleView('guides'); return;
+    case 'panel-layers':  rbTogglePanel('layers'); return;
+    case 'panel-props':   rbTogglePanel('effects2'); return;
+
+    /* ── Review ── */
+    case 'proof-spell':     rbProof('spell'); return;
+    case 'proof-grammar':   rbProof('grammar'); return;
+    case 'comment-add':     rbAddComment(); return;
+    case 'comment-resolve': rbResolveComment(); return;
+    case 'a11y-check':      openPanel('a11y'); return;
+
+    /* ── Present ── */
+    case 'present-start':   rbPresent(false); return;
+    case 'present-current': rbPresent(true); return;
+    case 'presenter-view':  openPanel('presenter'); return;
+    case 'rehearse':        openPanel('presenter'); rehearseStart(); return;
+    case 'record':          openPanel('presenter'); return;
+
+    /* ── Export ── */
+    case 'exp-pdf':    rbExportPdf(); return;
+    case 'exp-pptx':   rbExportPptx(); return;
+    case 'exp-png':    rbExportImage('png'); return;
+    case 'exp-jpg':    rbExportImage('jpg'); return;
+    case 'exp-svg':    rbExportSvg(); return;
+    case 'exp-video':  openPanel('presenter'); showToast('Record from the Presenter panel'); return;
+    case 'share-link': rbShareLink(); return;
+    case 'publish':    rbPublish(); return;
+
+    /* ── Developer ── */
+    case 'dev-json':  rbInspectJson(); return;
+    case 'dev-layer': rbInspectLayer(); return;
+    case 'dev-perf':  rbPerfStats(); return;
+  }
 
   if (key.indexOf('panel:') === 0) { openPanel(key.slice(6)); return; }
   if (key.indexOf('act:') === 0) {
@@ -5392,6 +5649,569 @@ function renderFramePanel(tab) {
               + '<span>' + FRAME_DEFS[k].label + '</span></div>';
           }).join('') + '</div>';
     }).join('');
+}
+
+/* ════════════════════════════════════════════════════════════
+   RIBBON COMMANDS
+   Everything the ribbon needs that did not already exist. Rules kept from
+   the original build: a ribbon button never duplicates a sidebar tool, and
+   nothing is added that cannot actually run.
+   ════════════════════════════════════════════════════════════ */
+function rbSel() { return fc && fc.getActiveObject(); }
+function rbText() {
+  var o = rbSel();
+  return (o && /text/.test(o.type || '')) ? o : null;
+}
+function rbNeed(o, msg) {
+  if (!o) { showToast(msg || 'Select something first'); return false; }
+  return true;
+}
+
+/* ── Format painter: copy a style, then paint it onto the next click ── */
+var _painter = null;
+function rbPainterPick() {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  _painter = {
+    fill: o.fill, stroke: o.stroke, strokeWidth: o.strokeWidth,
+    fontFamily: o.fontFamily, fontSize: o.fontSize, fontWeight: o.fontWeight,
+    fontStyle: o.fontStyle, underline: o.underline, linethrough: o.linethrough,
+    textAlign: o.textAlign, lineHeight: o.lineHeight, opacity: o.opacity,
+    fx: o.fx ? JSON.parse(JSON.stringify(o.fx)) : null
+  };
+  showToast('Style copied — now click what you want to paint');
+}
+function rbPainterApply(target) {
+  if (!_painter || !target) return false;
+  var isText = /text/.test(target.type || '');
+  Object.keys(_painter).forEach(function (k) {
+    if (k === 'fx') return;
+    if (!isText && ['fontFamily','fontSize','fontWeight','fontStyle','underline',
+                    'linethrough','textAlign','lineHeight'].indexOf(k) > -1) return;
+    if (_painter[k] !== undefined) target.set(k, _painter[k]);
+  });
+  if (_painter.fx && typeof fxApply === 'function') {
+    target.fx = JSON.parse(JSON.stringify(_painter.fx));
+    try { fxApply(target); } catch (e) {}
+  }
+  target.dirty = true;
+  fc.requestRenderAll();
+  saveState();
+  _painter = null;
+  showToast('Style painted');
+  return true;
+}
+(function () {
+  var t = setInterval(function () {
+    if (typeof fc === 'undefined' || !fc || !fc.on) return;
+    clearInterval(t);
+    fc.on('mouse:down', function (e) {
+      if (_painter && e.target) rbPainterApply(e.target);
+    });
+  }, 300);
+})();
+
+/* ── Text ── */
+function rbFontFamily() {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  var fonts = (window.ldAllFonts || []).map(function (f) { return f.name; });
+  var n = prompt('Font family:\n(' + fonts.length + ' available — type any name)', o.fontFamily || 'DM Sans');
+  if (!n) return;
+  var apply = function () { o.set('fontFamily', n.trim()); fc.renderAll(); saveState(); };
+  if (window.loadDeckFonts) window.loadDeckFonts([n.trim()], apply); else apply();
+}
+function rbFontSize(delta) {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  var cur = o.fontSize || 24;
+  var next = delta === 0 ? parseFloat(prompt('Font size (px):', cur)) : cur + delta;
+  if (!isFinite(next) || next <= 0) return;
+  o.set('fontSize', Math.max(4, Math.min(400, Math.round(next))));
+  fc.renderAll(); saveState();
+}
+function rbTextStyle(prop) {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  if (prop === 'bold') o.set('fontWeight', o.fontWeight === 'bold' ? 'normal' : 'bold');
+  if (prop === 'italic') o.set('fontStyle', o.fontStyle === 'italic' ? 'normal' : 'italic');
+  if (prop === 'underline') o.set('underline', !o.underline);
+  if (prop === 'strike') o.set('linethrough', !o.linethrough);
+  fc.renderAll(); saveState();
+}
+function rbClearFormatting() {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  if (/text/.test(o.type || '')) {
+    o.set({ fontWeight:'normal', fontStyle:'normal', underline:false, linethrough:false,
+            textBackgroundColor:'', charSpacing:0, lineHeight:1.16, textAlign:'left' });
+  }
+  o.set({ stroke:'', strokeWidth:0, shadow:null, opacity:1 });
+  if (o.fx) { o.fx = {}; if (typeof fxApply === 'function') { try { fxApply(o); } catch (e) {} } }
+  o.dirty = true; fc.renderAll(); saveState();
+  showToast('Formatting cleared');
+}
+function rbHighlight() {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  var c = prompt('Highlight colour (hex), or blank to remove:', o.textBackgroundColor || '#FDE047');
+  if (c === null) return;
+  o.set('textBackgroundColor', c.trim());
+  fc.renderAll(); saveState();
+}
+
+/* ── Paragraph ── */
+function rbAlignText(mode) {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  o.set('textAlign', mode);
+  fc.renderAll(); saveState();
+}
+function rbList(kind) {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  var lines = String(o.text || '').split('\n');
+  var bulleted = lines.every(function (l) { return !l.trim() || /^\s*([•]|\d+\.)\s/.test(l); });
+  var out;
+  if (bulleted) {
+    out = lines.map(function (l) { return l.replace(/^\s*([•]|\d+\.)\s+/, ''); });
+  } else {
+    var n = 0;
+    out = lines.map(function (l) {
+      if (!l.trim()) return l;
+      n++;
+      return (kind === 'number' ? (n + '. ') : '• ') + l.replace(/^\s+/, '');
+    });
+  }
+  o.set('text', out.join('\n'));
+  o.dirty = true; fc.renderAll(); saveState();
+}
+function rbIndent(dir) {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  var lines = String(o.text || '').split('\n');
+  o.set('text', lines.map(function (l) {
+    if (dir > 0) return '    ' + l;
+    return l.replace(/^ {1,4}/, '');
+  }).join('\n'));
+  o.dirty = true; fc.renderAll(); saveState();
+}
+function rbLineSpacing() {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  var v = parseFloat(prompt('Line spacing (1 = single, 1.5, 2…):', o.lineHeight || 1.16));
+  if (!isFinite(v) || v <= 0) return;
+  o.set('lineHeight', Math.max(0.5, Math.min(4, v)));
+  fc.renderAll(); saveState();
+}
+
+/* ── Selection ── */
+function rbSelectAll() {
+  if (!fc) return;
+  var objs = (fc.getObjects() || []).filter(function (o) { return o.selectable !== false && o.visible !== false; });
+  if (!objs.length) { showToast('Nothing to select'); return; }
+  fc.discardActiveObject();
+  var sel = new fabric.ActiveSelection(objs, { canvas: fc });
+  fc.setActiveObject(sel);
+  fc.requestRenderAll();
+  showToast(objs.length + ' object' + (objs.length === 1 ? '' : 's') + ' selected');
+}
+function rbDeselect() {
+  if (!fc) return;
+  fc.discardActiveObject();
+  fc.requestRenderAll();
+}
+function rbFind() {
+  var q = prompt('Find text on this slide:');
+  if (!q || !q.trim()) return;
+  var needle = q.trim().toLowerCase();
+  var hits = (fc.getObjects() || []).filter(function (o) {
+    return /text/.test(o.type || '') && String(o.text || '').toLowerCase().indexOf(needle) > -1;
+  });
+  if (!hits.length) { showToast('“' + q + '” not found on this slide'); return; }
+  fc.setActiveObject(hits[0]);
+  fc.requestRenderAll();
+  showToast('Found ' + hits.length + ' match' + (hits.length === 1 ? '' : 'es') + ' — first selected');
+}
+
+/* ── Arrange ── */
+function rbAlign(edge) {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  var W = fc.getWidth() / fc.getZoom(), H = fc.getHeight() / fc.getZoom();
+  var w = o.getScaledWidth(), h = o.getScaledHeight();
+  if (edge === 'left')   o.set('left', 0);
+  if (edge === 'hcenter')o.set('left', (W - w) / 2);
+  if (edge === 'right')  o.set('left', W - w);
+  if (edge === 'top')    o.set('top', 0);
+  if (edge === 'vcenter')o.set('top', (H - h) / 2);
+  if (edge === 'bottom') o.set('top', H - h);
+  o.setCoords(); fc.renderAll(); saveState();
+}
+function rbDistribute(axis) {
+  var a = rbSel();
+  if (!a || a.type !== 'activeSelection' || !a._objects || a._objects.length < 3) {
+    showToast('Select three or more objects to distribute'); return;
+  }
+  var objs = a._objects.slice();
+  var key = axis === 'h' ? 'left' : 'top';
+  var sizeKey = axis === 'h' ? 'getScaledWidth' : 'getScaledHeight';
+  objs.sort(function (x, y) { return x[key] - y[key]; });
+  var first = objs[0], last = objs[objs.length - 1];
+  var span = (last[key] + last[sizeKey]()) - first[key];
+  var totalSize = objs.reduce(function (s, o) { return s + o[sizeKey](); }, 0);
+  var gap = (span - totalSize) / (objs.length - 1);
+  var cursor = first[key];
+  objs.forEach(function (o) {
+    o.set(key, cursor);
+    cursor += o[sizeKey]() + gap;
+    o.setCoords();
+  });
+  fc.requestRenderAll(); saveState();
+  showToast('Distributed ' + objs.length + ' objects');
+}
+function rbRotate(deg) {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  o.rotate(((o.angle || 0) + deg + 360) % 360);
+  o.setCoords(); fc.renderAll(); saveState();
+}
+function rbFlip(axis) {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  o.set(axis === 'h' ? 'flipX' : 'flipY', !(axis === 'h' ? o.flipX : o.flipY));
+  fc.renderAll(); saveState();
+}
+function rbLock(on) {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  o.set({ lockMovementX:on, lockMovementY:on, lockScalingX:on, lockScalingY:on,
+          lockRotation:on, hasControls:!on, selectable:!on, evented:!on });
+  if (on) fc.discardActiveObject();
+  fc.renderAll(); saveState();
+  showToast(on ? 'Locked' : 'Unlocked');
+}
+function rbUnlockAll() {
+  (fc.getObjects() || []).forEach(function (o) {
+    o.set({ lockMovementX:false, lockMovementY:false, lockScalingX:false, lockScalingY:false,
+            lockRotation:false, hasControls:true, selectable:true, evented:true });
+  });
+  fc.renderAll(); saveState();
+  showToast('All objects unlocked');
+}
+
+/* ── Design ── */
+function rbSaveTheme() {
+  var th = themeCurrent();
+  var name = prompt('Save this theme as:', th.name === 'Custom' ? 'My theme' : th.name);
+  if (!name) return;
+  var saved = iconStore('ld_saved_themes', []);
+  var rec = JSON.parse(JSON.stringify(th));
+  rec.id = 'saved-' + Date.now();
+  rec.name = name.trim();
+  saved.unshift(rec);
+  iconSave('ld_saved_themes', saved.slice(0, 12));
+  /* make it selectable straight away */
+  THEME_PRESETS.unshift(rec);
+  themeRefresh();
+  showToast('Theme “' + rec.name + '” saved');
+}
+function rbThemeAccent() {
+  var th = themeCurrent();
+  var c = prompt('Theme accent colour (hex):', th.accent);
+  if (!c || !/^#[0-9A-Fa-f]{6}$/.test(c.trim())) { if (c) showToast('Use a 6-digit hex'); return; }
+  th.accent = c.trim().toUpperCase(); th.id = 'custom'; th.name = 'Custom';
+  themeApply(null);
+}
+function rbThemeFont() {
+  var th = themeCurrent();
+  var n = prompt('Heading font for the whole deck:', th.hFont);
+  if (!n) return;
+  var b = prompt('Body font:', th.bFont);
+  th.hFont = n.trim(); if (b) th.bFont = b.trim();
+  th.id = 'custom'; th.name = 'Custom';
+  themeApply(null);
+}
+function rbPageSize() {
+  var pick = prompt('Page size:\n1 = 16:9 widescreen\n2 = 4:3 standard\n3 = A4 landscape\n4 = Square', '1');
+  var map = { '1':[12192000,6858000], '2':[9144000,6858000],
+              '3':[10692130,7560310], '4':[9144000,9144000] };
+  var r = map[String(pick || '').trim()];
+  if (!r) return;
+  if (typeof setSlideAspect === 'function') { setSlideAspect(r[0], r[1]); showToast('Page size changed'); }
+}
+function rbOrientation() {
+  var d = window._deckIR && window._deckIR.size;
+  var w = d ? d.w : 12192000, h = d ? d.h : 6858000;
+  if (typeof setSlideAspect === 'function') {
+    setSlideAspect(h, w);
+    showToast(h > w ? 'Landscape' : 'Portrait');
+  }
+}
+function rbBgToAll() {
+  if (!fc) return;
+  var bg = fc.backgroundColor;
+  if (!bg) { showToast('This slide has no background colour set'); return; }
+  captureCurrentPage();
+  var n = 0;
+  (state.pages || []).forEach(function (p, i) {
+    if (i === state.currentPage) return;
+    if (!p.canvasJSON) return;
+    var json = typeof p.canvasJSON === 'string' ? JSON.parse(p.canvasJSON) : p.canvasJSON;
+    json.background = typeof bg === 'string' ? bg : json.background;
+    p.canvasJSON = json;
+    n++;
+  });
+  showToast('Background applied to ' + n + ' other slide' + (n === 1 ? '' : 's'));
+}
+
+/* ── Animate: trigger ── */
+function rbAnimTrigger(kind) {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  if (!o.animType) { showToast('Give it an animation first'); return; }
+  o.animTrigger = kind;
+  saveState(); animRefresh();
+  showToast('Starts ' + (kind === 'click' ? 'on click'
+    : kind === 'after' ? 'after the previous one' : 'with the previous one'));
+}
+function rbAnimTiming(which) {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  if (!o.animType) { showToast('Give it an animation first'); return; }
+  var cur = which === 'ms' ? (o.animMs || 600) : (o.animDelay || 0);
+  var v = parseInt(prompt(which === 'ms' ? 'Duration (ms):' : 'Delay (ms):', cur), 10);
+  if (!isFinite(v)) return;
+  if (which === 'ms') o.animMs = Math.max(50, Math.min(5000, v));
+  else o.animDelay = Math.max(0, Math.min(5000, v));
+  saveState(); animRefresh();
+}
+
+/* ── View ── */
+var _viewGrid = false, _viewRuler = false, _viewGuides = false;
+function rbFitWidth() {
+  if (!fc || typeof setZoom !== 'function') return;
+  var area = dom.canvasArea ? dom.canvasArea.clientWidth : 0;
+  if (!area) { if (typeof calculateFitZoom === 'function') setZoom(calculateFitZoom()); return; }
+  var slideW = fc.getWidth() / fc.getZoom();
+  setZoom(Math.max(0.1, Math.min(3, (area - 80) / slideW)));
+}
+function rbToggleView(kind) {
+  var frame = document.getElementById('slide-frame');
+  if (!frame) return;
+  if (kind === 'grid')   { _viewGrid = !_viewGrid;   frame.classList.toggle('show-grid', _viewGrid); }
+  if (kind === 'ruler')  { _viewRuler = !_viewRuler; document.body.classList.toggle('show-ruler', _viewRuler); }
+  if (kind === 'guides') { _viewGuides = !_viewGuides; frame.classList.toggle('show-guides', _viewGuides); }
+  showToast(kind + ' ' + ((kind==='grid'?_viewGrid:kind==='ruler'?_viewRuler:_viewGuides) ? 'on' : 'off'));
+}
+function rbTogglePanel(tool) {
+  if (typeof state !== 'undefined' && state.activeTool === tool && dom.sidePanel
+      && dom.sidePanel.classList.contains('open')) {
+    closePanel();
+  } else {
+    openPanel(tool);
+  }
+}
+
+/* ── Review ── */
+function rbProof(kind) {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box to check')) return;
+  var src = String(o.text || '').trim();
+  if (!src) { showToast('That text box is empty'); return; }
+  var p = kind === 'spell'
+    ? 'Correct only the spelling in this text. Change nothing else. Reply with the corrected text only:\n\n' + src
+    : 'Correct the grammar and punctuation in this text, keeping the wording and tone. Reply with the corrected text only:\n\n' + src;
+  showToast(kind === 'spell' ? 'Checking spelling…' : 'Checking grammar…');
+  aiAsk(p).then(function (out) {
+    if (out.trim() === src) { showToast('No ' + kind + ' issues found'); return; }
+    o._aiBefore = src;
+    o.set('text', out);
+    o.dirty = true; fc.requestRenderAll(); saveState();
+    showToast('Corrected — AI panel has Revert if you disagree');
+  }).catch(function () {
+    showToast('Proofing needs the chat function deployed');
+  });
+}
+function rbAddComment() {
+  openPanel('comments');
+  setTimeout(function () {
+    var box = document.getElementById('cm-input');
+    if (box && box.focus) box.focus();
+  }, 120);
+}
+function rbResolveComment() {
+  var open = commentAll().filter(function (c) { return !c.resolved && c.page === state.currentPage; });
+  if (!open.length) { showToast('No open comments on this slide'); return; }
+  commentResolve(open[0].id);
+}
+
+/* ── Present ── */
+function rbPresent(fromCurrent) {
+  if (!fromCurrent && state.currentPage !== 0) {
+    switchPage(0).then(function () { rbGoFullscreen(); });
+  } else rbGoFullscreen();
+}
+function rbGoFullscreen() {
+  var el = dom.canvasArea;
+  if (el && el.requestFullscreen) el.requestFullscreen().catch(function () {});
+  if (typeof transPlay === 'function') transPlay();
+  if (typeof animPlay === 'function') setTimeout(animPlay, 260);
+  showToast('Presenting — Esc to exit, arrow keys to move');
+}
+
+/* ── Export ── */
+function rbDownload(dataUrl, filename) {
+  var a = document.createElement('a');
+  a.href = dataUrl; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function rbExportImage(fmt) {
+  if (!fc) return;
+  if (typeof stickerFreeze === 'function') stickerFreeze();
+  try {
+    var url = fc.toDataURL({ format: fmt === 'jpg' ? 'jpeg' : 'png',
+                             quality: 0.92, multiplier: 2 });
+    rbDownload(url, 'slide-' + (state.currentPage + 1) + '.' + fmt);
+    showToast('Slide exported as ' + fmt.toUpperCase());
+  } catch (e) {
+    showToast('Export blocked — an image on this slide is cross-origin');
+  }
+}
+function rbExportSvg() {
+  if (!fc || !fc.toSVG) return;
+  try {
+    var svg = fc.toSVG();
+    rbDownload('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg),
+               'slide-' + (state.currentPage + 1) + '.svg');
+    showToast('Slide exported as SVG');
+  } catch (e) { showToast('SVG export failed'); }
+}
+/* PDF: render every slide to an image and hand them to the browser's own
+   print-to-PDF. No PDF library needed, and it keeps vector text crisp
+   enough at 2x while staying dependency-free. */
+function rbExportPdf() {
+  if (!fc) return;
+  showToast('Preparing slides…');
+  captureCurrentPage();
+  if (typeof stickerFreeze === 'function') stickerFreeze();
+  var imgs = [], i = 0;
+  var current = state.currentPage;
+  var step = function () {
+    if (i >= state.pages.length) return finish();
+    switchPage(i).then(function () {
+      setTimeout(function () {
+        try { imgs.push(fc.toDataURL({ format:'png', multiplier:2 })); } catch (e) { imgs.push(null); }
+        i++; step();
+      }, 120);
+    });
+  };
+  var finish = function () {
+    switchPage(current);
+    var w = window.open('', '_blank');
+    if (!w) { showToast('Allow pop-ups to export a PDF'); return; }
+    w.document.write('<!doctype html><title>Export</title><style>'
+      + '@page{size:landscape;margin:0}body{margin:0}'
+      + 'img{width:100%;display:block;page-break-after:always}'
+      + '</style>'
+      + imgs.filter(Boolean).map(function (s) { return '<img src="' + s + '">'; }).join(''));
+    w.document.close();
+    setTimeout(function () { w.focus(); w.print(); }, 400);
+    showToast('Choose “Save as PDF” in the print dialog');
+  };
+  step();
+}
+function rbExportPptx() {
+  var btn = document.querySelector('[data-share="pptx"]');
+  if (btn) { btn.click(); return; }
+  showToast('PPTX export goes through the cloud composer');
+}
+function rbShareLink() {
+  var url = location.href.split('#')[0];
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function () {
+      showToast('Editor link copied — hosted sharing needs the backend');
+    }).catch(function () { showToast('Could not copy'); });
+  } else showToast('Clipboard unavailable');
+}
+function rbPublish() {
+  showToast('Publishing needs the cloud backend — not deployed yet');
+}
+
+/* ── Developer ── */
+function rbInspectJson() {
+  if (!fc) return;
+  var json = JSON.stringify(fc.toJSON(FABRIC_JSON_PROPS), null, 2);
+  rbShowModal('Slide JSON', json,
+    (json.length / 1024).toFixed(1) + ' KB · ' + (fc.getObjects() || []).length + ' objects');
+}
+function rbInspectLayer() {
+  var o = rbSel();
+  if (!rbNeed(o)) return;
+  var out = {};
+  ['type','left','top','width','height','scaleX','scaleY','angle','opacity','fill','stroke',
+   'fontFamily','fontSize','fontWeight','isFrame','frameKind','isIcon','iconName','isIllo',
+   'isSticker','isComponent','componentId','chartType','datasetId','animType','themeRole',
+   'altText','readOrder','layerName','visible','lockMovementX']
+    .forEach(function (k) { if (o[k] !== undefined && o[k] !== null) out[k] = o[k]; });
+  if (o.fx) out.fx = o.fx;
+  rbShowModal('Layer inspector', JSON.stringify(out, null, 2), layerLabel(o));
+}
+function rbPerfStats() {
+  if (!fc) return;
+  var objs = fc.getObjects() || [];
+  var kinds = {};
+  objs.forEach(function (o) {
+    var k = o.isFrame ? 'frame' : o.isIcon ? 'icon' : o.isIllo ? 'illustration'
+          : o.isSticker ? 'sticker' : o.isComponent ? 'component'
+          : o.chartType ? 'chart' : (o.type || 'other');
+    kinds[k] = (kinds[k] || 0) + 1;
+  });
+  var json = JSON.stringify(fc.toJSON(FABRIC_JSON_PROPS));
+  var deckBytes = 0;
+  (state.pages || []).forEach(function (p) {
+    if (p.canvasJSON) deckBytes += JSON.stringify(p.canvasJSON).length;
+    if (p.thumb) deckBytes += p.thumb.length;
+  });
+  var lines = [
+    'Slides            ' + (state.pages || []).length,
+    'Objects on slide  ' + objs.length,
+    'Slide JSON        ' + (json.length / 1024).toFixed(1) + ' KB',
+    'Whole deck        ' + (deckBytes / 1048576).toFixed(2) + ' MB',
+    'Canvas            ' + Math.round(fc.getWidth()) + ' × ' + Math.round(fc.getHeight())
+      + ' @ ' + Math.round(fc.getZoom() * 100) + '%',
+    'Datasets          ' + ((state.datasets || []).length),
+    'Comments          ' + ((state.comments || []).length),
+    '',
+    'By kind:'
+  ].concat(Object.keys(kinds).sort().map(function (k) {
+    return '  ' + k.padEnd(16) + kinds[k];
+  }));
+  rbShowModal('Performance', lines.join('\n'), 'current slide and deck');
+}
+function rbShowModal(title, body, sub) {
+  var old = document.getElementById('rb-modal');
+  if (old) old.remove();
+  var d = document.createElement('div');
+  d.id = 'rb-modal';
+  d.className = 'rb-modal';
+  d.innerHTML = '<div class="rb-modal-box">'
+    + '<div class="rb-modal-head"><b>' + commentEsc(title) + '</b>'
+    + '<span>' + commentEsc(sub || '') + '</span>'
+    + '<button data-rbclose>×</button></div>'
+    + '<textarea readonly spellcheck="false">' + commentEsc(body) + '</textarea>'
+    + '<div class="rb-modal-foot">'
+      + '<button data-rbcopy>Copy</button>'
+      + '<button data-rbclose class="primary">Close</button></div></div>';
+  document.body.appendChild(d);
+  d.addEventListener('click', function (e) {
+    if (e.target === d || e.target.hasAttribute('data-rbclose')) d.remove();
+    if (e.target.hasAttribute('data-rbcopy')) {
+      var ta = d.querySelector('textarea');
+      ta.select();
+      try { document.execCommand('copy'); showToast('Copied'); } catch (err) {}
+    }
+  });
 }
 
 /* ════════════════════════════════════════════════════════════
