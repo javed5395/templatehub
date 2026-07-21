@@ -8847,6 +8847,55 @@ async function renderImageElementIR(el, sx, sy, fc) {
     brokenImagePlaceholder(left, top, w, h, fc, el);
     return;
   }
+  /* ═══ CANVA FRAME (Element 106): picture-fill shape with CUSTOM GEOMETRY.
+     The photo is drawn cover-fit (honouring the negative-inset fillRect that
+     Canva writes) onto a canvas, then clipped by the true bezier path — the
+     circle/diamond/blob masks render exactly as Canva shows them. */
+  if (el.geom && el.geom.custom && el.geom.custom.pathCmds && el.src && el.format !== 'svg' && !el.tile) {
+    var fimg = await new Promise(function (res) {
+      var fi = new Image(); fi.onload = function () { res(fi); }; fi.onerror = function () { res(null); };
+      fi.src = el.src;
+    });
+    if (fimg) {
+      var fcv = document.createElement('canvas');
+      fcv.width = Math.max(2, Math.round(w)); fcv.height = Math.max(2, Math.round(h));
+      var fg = fcv.getContext('2d');
+      var fr = el.frect;
+      if (fr) {
+        /* PPT stretch fillRect: insets as fractions of the shape (negative = photo
+           overflows the mask = Canva cover-crop) */
+        var dx = fcv.width * fr.l, dy = fcv.height * fr.t;
+        var dw = fcv.width * (1 - fr.l - fr.r), dh = fcv.height * (1 - fr.t - fr.b);
+        fg.drawImage(fimg, dx, dy, dw, dh);
+      } else {
+        /* no fillRect → classic cover-fit, centred */
+        var sc = Math.max(fcv.width / fimg.width, fcv.height / fimg.height);
+        fg.drawImage(fimg, (fcv.width - fimg.width * sc) / 2, (fcv.height - fimg.height * sc) / 2,
+                     fimg.width * sc, fimg.height * sc);
+      }
+      var cg2 = el.geom.custom, fkx = w / (cg2.pathW || 1), fky = h / (cg2.pathH || 1);
+      var fd = cg2.pathCmds.map(function (c) {
+        if (c[0] === 'Z') return 'Z';
+        var fo = [c[0]];
+        for (var fj = 1; fj < c.length; fj += 2) fo.push(c[fj] * fkx, c[fj + 1] * fky);
+        return fo.join(' ');
+      }).join(' ');
+      var fpath = new fabric.Path(fd, {
+        fill: new fabric.Pattern({ source: fcv, repeat: 'no-repeat' }),
+        stroke: el.spStroke ? el.spStroke.color : '',
+        strokeWidth: el.spStroke ? Math.max(1, el.spStroke.w * sx) : 0,
+        opacity: el.opacity == null ? 1 : el.opacity,
+        selectable: false, evented: false
+      });
+      var fgrp = new fabric.Group([fpath], { left: left, top: top, angle: el.rot || 0,
+        irId: el.id, irOrigin: el.origin, flipX: !!el.flipH, flipY: !!el.flipV });
+      fgrp.isFrame = true; fgrp._sx = sx; fgrp._sy = sy;
+      applyCenterRotation(fgrp, el, sx, sy);
+      fc.add(fgrp);
+      return;
+    }
+  }
+
   /* picture/texture-fill SHAPES (tile, border or rounded corners): painted
      as a fabric.Rect with a Pattern fill so radius+stroke render natively;
      wrapped in a group so edit-sync reuses the original image IR */
@@ -12379,8 +12428,6 @@ init();
 
 
 /* ==== LAZYDOG CLOUD GLUE ==== */
-/* Backend auto-select: on the live site use the Firebase gateway; locally
-   (file:// or localhost) use the gcloud proxy tunnel. */
 window.LD_BACKEND = window.LD_BACKEND || (
   (location.protocol === 'file:' || /^(localhost|127\.)/.test(location.hostname))
     ? 'http://localhost:8080'
@@ -12450,6 +12497,14 @@ onAuthStateChanged(_auth, async (u) => {
   window.LD_AUTH_TOKEN = u ? await u.getIdToken() : null;
 });
 setInterval(async () => { try { if (_auth.currentUser) window.LD_AUTH_TOKEN = await _auth.currentUser.getIdToken(); } catch(e){} }, 10 * 60 * 1000);
+</script>
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+const _app = getApps().length ? getApp() : initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" });
+const _auth = getAuth(_app);
+onAuthStateChanged(_auth, async (u) => { window.LD_AUTH_TOKEN = u ? await u.getIdToken() : null; });
+setInterval(async () => { try { if (_auth.currentUser) window.LD_AUTH_TOKEN = await _auth.currentUser.getIdToken(); } catch(e){} }, 600000);
 </script>
 </body>
 </html>
