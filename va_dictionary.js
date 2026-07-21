@@ -28,7 +28,27 @@ var vaDictionary = [
       'business deck', 'startup deck', 'investor deck',
       'i need a pitch deck', 'get pitch deck', 'download pitch deck',
       'show me templates', 'open templates', 'view templates',
-      'are pitch deck templates available', 'do you offer presentation templates'
+      'are pitch deck templates available', 'do you offer presentation templates',
+      'pitchdeck',
+      'pitchdecks',
+      'pitch dek',
+      'pich deck',
+      'deck template',
+      'wanna see decks',
+      'gimme a deck',
+      'got any decks',
+      'any pitch decks',
+      'show me some decks',
+      'need a deck for investors',
+      'investor slides',
+      'fundraising slides',
+      'seed deck',
+      'series a deck',
+      'startup slides',
+      'company deck',
+      'sales deck',
+      'board deck',
+      'demo day deck'
     ],
     action: 'navigate',
     target: 'pitch_deck_folder_section.html',
@@ -48,7 +68,21 @@ var vaDictionary = [
       'kit', 'kits', 'show kits', 'open kits', 'find kits',
       'i need a media kit', 'get media kit', 'download media kit',
       'can i find branding kits', 'do you offer branding kits',
-      'are branding kits available'
+      'are branding kits available',
+      'mediakit',
+      'meda kit',
+      'midia kit',
+      'press pack',
+      'wanna see media kits',
+      'got media kits',
+      'any brand kits',
+      'sponsorship kit',
+      'influencer media kit',
+      'creator kit',
+      'youtuber kit',
+      'podcast media kit',
+      'rate card',
+      'collab kit'
     ],
     action: 'navigate',
     target: 'media_kits_folder_section.html',
@@ -65,7 +99,20 @@ var vaDictionary = [
       'generate invoice', 'create invoice', 'make invoice', 'new invoice',
       'invoice generator', 'bill generator', 'receipt',
       'i need an invoice', 'get invoice', 'do you offer invoice templates',
-      'are invoice templates available', 'invoice template'
+      'are invoice templates available', 'invoice template',
+      'invioce',
+      'invocie',
+      'inovice',
+      'invoce',
+      'recipt',
+      'reciept',
+      'make me an invoice',
+      'need to bill a client',
+      'billing tool',
+      'create a bill',
+      'free invoice tool',
+      'invoice maker',
+      'bill maker'
     ],
     action: 'navigate',
     target: 'invoice.html',
@@ -81,7 +128,9 @@ var vaDictionary = [
       'homepage', 'go to homepage', 'back to home', 'return home',
       'haidee', 'hey haidee', 'hi haidee', 'haidee home',
       'start', 'front page', 'landing page', 'main',
-      'take me to the home page', 'i want to go home', 'go back home'
+      'take me to the home page', 'i want to go home', 'go back home',
+      'home page',
+      'start page'
     ],
     action: 'navigate',
     target: 'main.html',
@@ -100,7 +149,15 @@ var vaDictionary = [
       'good morning', 'good afternoon', 'good evening', 'good day',
       'assalam', 'assalam alaikum', 'salam', 'salaam',
       'howdy', 'greetings', 'what is up', 'whats up',
-      'anyone there', 'are you there', 'is anyone there'
+      'anyone there', 'are you there', 'is anyone there',
+      'yo',
+      'yo there',
+      'sup',
+      'heyy',
+      'hii',
+      'helo',
+      'hlo',
+      'hey buddy'
     ],
     action: 'speak',
     reply: 'Hello! Welcome to LazyDogTemplates. I can help you find pitch decks, media kits, or invoices. What are you looking for?'
@@ -117,7 +174,11 @@ var vaDictionary = [
       'who are you', 'what are you', 'are you a robot', 'are you human',
       'what is your name', "what's your name", 'whats your name',
       'who am i talking to', 'what do i call you', 'your name',
-      'tell me your name', 'are you an ai', 'are you a bot', 'who is haidee'
+      'tell me your name', 'are you an ai', 'are you a bot', 'who is haidee',
+      'who r u',
+      'who are u',
+      'ur name',
+      'whats your name'
     ],
     action: 'speak',
     reply: 'I am Haidee, your voice assistant on LazyDogTemplates. I can help you navigate, find templates, and answer your questions.'
@@ -133,7 +194,8 @@ var vaDictionary = [
       'about lazydog templates', 'tell me about lazydog templates',
       'what kind of platform is this', 'describe this site',
       'what do you have', 'what can i find here', 'what is available',
-      'what do you offer', 'what is on this site'
+      'what do you offer', 'what is on this site',
+      'what do you guys do'
     ],
     action: 'speak',
     reply: 'LazyDogTemplates is a free template marketplace offering professional pitch decks, brand media kits, and invoice generators. Everything is free to download — no subscription, no payment required.'
@@ -185,7 +247,13 @@ var vaDictionary = [
       'what template types', 'what can i download',
       'what templates do you have', 'what kind of templates',
       'what do you offer', 'what types are available',
-      'list your templates', 'show me categories'
+      'list your templates', 'show me categories',
+      'catagories',
+      'categorys',
+      'categores',
+      'show all categories',
+      'full list',
+      'everything you have'
     ],
     action: 'speak',
     reply: 'We currently have pitch decks, brand media kits, and invoices. Social media templates and resumes are coming soon.'
@@ -255,7 +323,10 @@ var vaDictionary = [
     phrases: [
       'can i preview templates', 'can i see templates before download',
       'preview available', 'can i look before downloading',
-      'is preview available', 'show me before download'
+      'is preview available', 'show me before download',
+      'can i see first',
+      'sample please',
+      'demo please'
     ],
     action: 'speak',
     reply: 'Yes, you can preview all templates before downloading. Click on any template to see a full slide preview.'
@@ -274,7 +345,19 @@ var vaDictionary = [
       'do i have to pay', 'is there a charge', 'any cost', 'price',
       'pricing', 'how much does it cost', 'what is the price',
       'are there hidden charges', 'hidden fees', 'is it paid',
-      'do i need to pay', 'is there a fee'
+      'do i need to pay', 'is there a fee',
+      'how much dis',
+      'how much is it',
+      'whats the damage',
+      'prise',
+      'pirce',
+      'pricee',
+      'coast',
+      'how mch',
+      'whats it cost',
+      'what does it cost',
+      'ballpark',
+      'price range'
     ],
     action: 'speak',
     reply: 'Everything on LazyDogTemplates is completely free. No payment, no subscription, no hidden charges. Just enter your email and download.'
@@ -286,7 +369,11 @@ var vaDictionary = [
     phrases: [
       'is there a subscription', 'do i need subscription',
       'monthly plan', 'yearly plan', 'do you offer subscriptions',
-      'subscription plan', 'paid plan'
+      'subscription plan', 'paid plan',
+      'recurring charge',
+      'auto renew',
+      'monthly fee',
+      'yearly fee'
     ],
     action: 'speak',
     reply: 'No subscription needed. All templates are free to download without any plan or payment.'
@@ -297,7 +384,12 @@ var vaDictionary = [
     category: 'pricing',
     phrases: [
       'do i need a credit card', 'credit card required',
-      'payment method', 'what payment methods', 'do you accept paypal'
+      'payment method', 'what payment methods', 'do you accept paypal',
+      'debit card',
+      'apple pay',
+      'google pay',
+      'bank transfer',
+      'wire transfer'
     ],
     action: 'speak',
     reply: 'No credit card or payment required. LazyDogTemplates is completely free.'
@@ -314,7 +406,10 @@ var vaDictionary = [
       'do i need an account', 'do i need to sign up',
       'account required', 'do i need to register',
       'do i need to create account', 'can i use without account',
-      'can i browse without account', 'is account creation free'
+      'can i browse without account', 'is account creation free',
+      'without an account',
+      'guest checkout',
+      'do i have to register'
     ],
     action: 'speak',
     reply: 'No account needed to browse. To download, just enter your email address — no full signup required.'
@@ -325,7 +420,12 @@ var vaDictionary = [
     category: 'account',
     phrases: [
       'how do i create account', 'how to sign up', 'how to register',
-      'how to make account', 'sign up', 'create account'
+      'how to make account', 'sign up', 'create account',
+      'signin',
+      'sing up',
+      'signup',
+      'how do i register',
+      'create an account'
     ],
     action: 'speak',
     reply: 'Click Sign Up in the top right corner. You can register with your email or sign in with Google instantly.'
@@ -347,7 +447,11 @@ var vaDictionary = [
     category: 'account',
     phrases: [
       'forgot password', 'reset password', 'i forgot my password',
-      'how to reset password', 'cant login', 'password reset'
+      'how to reset password', 'cant login', 'password reset',
+      'forgot pass',
+      'cannot log in',
+      'reset my password',
+      'locked out'
     ],
     action: 'speak',
     reply: 'Click Sign In, then click Forgot Password. Enter your email and we will send a reset link.'
@@ -374,7 +478,16 @@ var vaDictionary = [
     phrases: [
       'how do i download', 'how to download', 'how can i download',
       'download process', 'steps to download', 'how does download work',
-      'how do i get templates', 'how to get a template'
+      'how do i get templates', 'how to get a template',
+      'donwload',
+      'downlaod',
+      'downlod',
+      'dowload',
+      'how do i get it',
+      'how to get the file',
+      'what happens after payment',
+      'after i pay',
+      'once i pay'
     ],
     action: 'speak',
     reply: 'Browse templates, click on any template you like, enter your email address, and click download. It is instant and free.'
@@ -386,7 +499,11 @@ var vaDictionary = [
     phrases: [
       'where do downloads go', 'where are my downloads',
       'where is the downloaded file', 'download location',
-      'how long does download take', 'are downloads instant'
+      'how long does download take', 'are downloads instant',
+      'cant find download',
+      'where did it go',
+      'wheres my file',
+      'missing download'
     ],
     action: 'speak',
     reply: 'Downloads save to your device downloads folder and are instant — usually just a few seconds.'
@@ -399,7 +516,17 @@ var vaDictionary = [
       'what file formats', 'what formats available', 'what format will i get',
       'pptx format', 'pdf format', 'png format',
       'what software do i need', 'do i need special software',
-      'what file types'
+      'what file types',
+      'which format',
+      'file type',
+      'ppt or pptx',
+      'is it pptx',
+      'psd included',
+      'ai file',
+      'figma file',
+      'source file',
+      'fonts included',
+      'editable file'
     ],
     action: 'speak',
     reply: 'Templates are available in PPTX for editing in PowerPoint, PDF for sharing, and PNG image files for previewing.'
@@ -421,7 +548,11 @@ var vaDictionary = [
     category: 'download',
     phrases: [
       'can i redownload', 're-download', 'download again',
-      'download multiple times', 'can i get it again'
+      'download multiple times', 'can i get it again',
+      'lost my file',
+      'download it again',
+      'get it again',
+      'second download'
     ],
     action: 'speak',
     reply: 'Yes, you can download templates as many times as you need. Downloads do not expire.'
@@ -460,7 +591,14 @@ var vaDictionary = [
     phrases: [
       'how do i edit', 'can i edit templates', 'how to customize',
       'are templates editable', 'can i change content',
-      'how to modify template', 'edit after download'
+      'how to modify template', 'edit after download',
+      'can i edit this',
+      'fully editable',
+      'change the text',
+      'change the colours',
+      'change the colors',
+      'swap the images',
+      'add my logo'
     ],
     action: 'speak',
     reply: 'Download the PPTX file and open it in Microsoft PowerPoint or Google Slides. All text, colors, and images are fully editable.'
@@ -483,7 +621,8 @@ var vaDictionary = [
     category: 'usage',
     phrases: [
       'can i use in canva', 'canva compatible', 'edit in canva',
-      'open in canva', 'works with canva'
+      'open in canva', 'works with canva',
+      'import to canva'
     ],
     action: 'speak',
     reply: 'Yes, some templates include a Canva link. Look for the Open in Canva button on the template page.'
@@ -494,7 +633,10 @@ var vaDictionary = [
     category: 'usage',
     phrases: [
       'works with google slides', 'google slides compatible',
-      'can i use in google slides', 'open in google slides'
+      'can i use in google slides', 'open in google slides',
+      'gslides',
+      'google slide',
+      'works in google slides'
     ],
     action: 'speak',
     reply: 'Yes. Download the PPTX file and import it into Google Slides — it works perfectly.'
@@ -506,7 +648,12 @@ var vaDictionary = [
     phrases: [
       'can i use commercially', 'commercial use', 'use for business',
       'use for clients', 'can i use for my business',
-      'commercial license', 'is commercial use allowed'
+      'commercial license', 'is commercial use allowed',
+      'client work',
+      'freelance use',
+      'can i use for clients',
+      'for my company',
+      'business use'
     ],
     action: 'speak',
     reply: 'Yes, templates can be used for commercial and business projects. Check the individual template page for full license details.'
@@ -517,7 +664,11 @@ var vaDictionary = [
     category: 'usage',
     phrases: [
       'can i resell templates', 'sell templates', 'resell',
-      'can i redistribute', 'share with others'
+      'can i redistribute', 'share with others',
+      'can i sell this',
+      'share with a friend',
+      'give it to someone',
+      'redistribute'
     ],
     action: 'speak',
     reply: 'No, templates cannot be resold or redistributed. They are for your personal or business use only.'
@@ -634,7 +785,12 @@ var vaDictionary = [
     phrases: [
       'how do i contact', 'contact support', 'how to contact',
       'customer support', 'help center', 'get help',
-      'who do i contact', 'contact us', 'support email'
+      'who do i contact', 'contact us', 'support email',
+      'contact you',
+      'your email',
+      'talk to someone',
+      'speak to a human',
+      'customer service'
     ],
     action: 'speak',
     reply: 'You can reach us through the contact form on our website. We respond within 24 to 48 hours.'
@@ -646,7 +802,12 @@ var vaDictionary = [
     phrases: [
       'i have a problem', 'something is not working', 'site not working',
       'found a bug', 'report a problem', 'page not loading',
-      'template is broken', 'broken file', 'missing file'
+      'template is broken', 'broken file', 'missing file',
+      'not working',
+      'something is wrong',
+      'its broken',
+      'having trouble',
+      'an error'
     ],
     action: 'speak',
     reply: 'Please try refreshing the page first. If the problem continues, contact our support team and we will resolve it quickly.'
@@ -674,7 +835,9 @@ var vaDictionary = [
     phrases: [
       'what software do i need', 'software required', 'which app to use',
       'do i need microsoft office', 'do i need powerpoint',
-      'can i open without powerpoint'
+      'can i open without powerpoint',
+      'what software do i need to open',
+      'need ms office'
     ],
     action: 'speak',
     reply: 'You need Microsoft PowerPoint, Google Slides, or Canva to edit PPTX files. PDF files open in any PDF viewer. No special software needed for PNG files.'
@@ -697,7 +860,10 @@ var vaDictionary = [
     category: 'technical',
     phrases: [
       'is there a mobile app', 'android app', 'ios app',
-      'app download', 'phone app', 'smartphone app'
+      'app download', 'phone app', 'smartphone app',
+      'is there an app',
+      'works on phone',
+      'mobile friendly'
     ],
     action: 'speak',
     reply: 'No mobile app yet. The website works on mobile browsers, so you can browse and download from your phone.'
@@ -747,7 +913,11 @@ var vaDictionary = [
     phrases: [
       'help', 'i need help', 'can you help', 'help me',
       'what can you do', 'what commands', 'what can i say',
-      'voice commands', 'list commands', 'instructions'
+      'voice commands', 'list commands', 'instructions',
+      'can u help',
+      'plz help',
+      'need a hand',
+      'give me a hand'
     ],
     action: 'speak',
     reply: 'You can say: pitch decks, media kits, invoice, or go home to navigate. Ask anything about the site and I will answer. Say stop mic to turn me off.'
