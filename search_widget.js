@@ -504,7 +504,7 @@
   // general questions the search rule-bot can't turn into a template search.
   var CHAT_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/chat_http';
   var swHistory = [];
-  function askAI(text) {
+  function askAI(text, fallbackReply) {
     swHistory.push({ role: 'user', content: String(text).slice(0, 500) });
     if (swHistory.length > 12) swHistory = swHistory.slice(-12);
     var bubble = addMsg('…', 'engine');
@@ -516,7 +516,7 @@
       })
       .then(function(r){ return r.json(); })
       .then(function(d){
-        var raw = (d && d.reply) ? d.reply : "Sorry, I couldn't answer that right now.";
+        var raw = (d && d.reply) ? d.reply : (fallbackReply || "Sorry, I couldn't answer that right now.");
         var parsed = (window.chatParseAction) ? window.chatParseAction(raw) : { text: raw, target: null };
         if (bubble) bubble.textContent = parsed.text || raw;
         if (bubble && parsed.target && window.chatMakeActionBtn) { bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(parsed.target, parsed.label)); }
@@ -524,7 +524,7 @@
         var box = document.getElementById('chatBox'); if (box) box.scrollTop = box.scrollHeight;
       })
       .catch(function(){
-        if (bubble) bubble.textContent = "I didn't catch a searchable detail — try slide count, color, style, industry, or content type.";
+        if (bubble) bubble.textContent = fallbackReply || "I didn't catch a searchable detail — try slide count, color, style, industry, or content type.";
       });
     };
     // REAL recommendations first — server matches actual kit metadata; AI on miss
@@ -576,6 +576,9 @@
       // and only fall through to the AI cascade if it composes nothing.
       var composed = (window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
       if (composed && composed.reply) {
+        // soft = greeting / small talk / identity → let the live AI answer warmly (name + history),
+        // with the canned line as offline fallback. Actions/navigation/factual FAQ stay instant & free.
+        if (composed.soft && !composed.target) { askAI(text, composed.reply); return; }
         var mb = addMsg(composed.reply, 'engine');
         if (composed.target && composed.execute) { setTimeout(function(){ window.location.href = composed.target; }, 900); }
         else if (composed.target && window.chatMakeActionBtn) { mb.appendChild(document.createElement('br')); mb.appendChild(window.chatMakeActionBtn(composed.target, composed.label)); }

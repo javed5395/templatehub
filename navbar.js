@@ -786,28 +786,34 @@
     if(nm && nm.reply){ bubble.textContent=nm.reply; hbRemember('assistant',nm.reply); hbScroll(); return; }
     // 1) canned preset answer
     if (CANNED[text]) { bubble.innerHTML=CANNED[text]; hbRemember('assistant', bubble.textContent); hbScroll(); return; }
-    // 2) FREE word-compiler
-    var composed=(window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
-    if (composed && composed.reply) {
-      bubble.innerHTML=composed.reply;
-      if(composed.target && composed.execute){ hbRemember('assistant',composed.reply); hbScroll(); setTimeout(function(){window.location.href=composed.target;},900); return; }
-      if(composed.target && window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(composed.target, composed.label)); }
-      hbRemember('assistant', composed.reply); hbScroll(); return;
-    }
-    // 3) AI cascade (send prior history for context; ACTION -> a click button, never auto-navigate)
-    var doAI=function(){
+    // 3) AI cascade — defined FIRST so conversational 'soft' replies can defer to it.
+    //    Sends prior history + remembered email for context; ACTION -> a click button, never auto-navigate.
+    //    fallbackReply is shown ONLY if every AI provider is unreachable, so Hexa still answers offline.
+    var doAI=function(fallbackReply){
       fetch(HB_CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text, history:hbHistory.slice(0,-1), email:(window.hexaMemory&&window.hexaMemory.get().email)||''})})
         .then(function(r){return r.json();})
         .then(function(d){
-          var raw=(d&&d.reply)?d.reply:"Sorry, I couldn't answer that right now.";
+          var raw=(d&&d.reply)?d.reply:(fallbackReply||"Sorry, I couldn't answer that right now.");
           var parsed=(window.chatParseAction)?window.chatParseAction(raw):{text:raw,target:null,label:null};
           bubble.textContent=parsed.text||raw;
           if(parsed.target && window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(parsed.target, parsed.label)); }
           hbRemember('assistant', parsed.text||raw);
           hbScroll();
         })
-        .catch(function(){ bubble.textContent="Sorry, I'm having trouble right now. Please try again."; hbScroll(); });
+        .catch(function(){ bubble.textContent=fallbackReply||"Sorry, I'm having trouble right now. Please try again."; hbRemember('assistant', bubble.textContent); hbScroll(); });
     };
+    // 2) FREE word-compiler / FAQ
+    var composed=(window.chatCompose && window.chatCompose(text)) || (window.vaComposeReply && window.vaComposeReply(text)) || null;
+    if (composed && composed.reply) {
+      // soft = greeting / small talk / identity → hand to the live AI so the reply is warm,
+      // personal and context-aware; the canned line rides along as the offline fallback.
+      // Actions, navigation and factual FAQ (no soft flag) still answer instantly and free.
+      if (composed.soft && !composed.target) { doAI(composed.reply); return; }
+      bubble.innerHTML=composed.reply;
+      if(composed.target && composed.execute){ hbRemember('assistant',composed.reply); hbScroll(); setTimeout(function(){window.location.href=composed.target;},900); return; }
+      if(composed.target && window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(composed.target, composed.label)); }
+      hbRemember('assistant', composed.reply); hbScroll(); return;
+    }
     // 2.5) REAL recommendations — server matches actual kit metadata; falls back to AI on no result
     if(window.hexaRecommendIntent && window.hexaRecommend && window.hexaRenderRecs && window.hexaRecommendIntent(text)){
       window.hexaRecommend(text)

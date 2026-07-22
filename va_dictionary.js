@@ -147,7 +147,6 @@ var vaDictionary = [
     phrases: [
       'hello', 'hi', 'hey', 'hey there', 'hello there',
       'good morning', 'good afternoon', 'good evening', 'good day',
-      'assalam', 'assalam alaikum', 'salam', 'salaam',
       'howdy', 'greetings', 'what is up', 'whats up',
       'anyone there', 'are you there', 'is anyone there',
       'yo',
@@ -198,7 +197,7 @@ var vaDictionary = [
       'what do you guys do'
     ],
     action: 'speak',
-    reply: 'LazyDogTemplates is a free template marketplace offering professional pitch decks, brand media kits, and invoice generators. Everything is free to download — no subscription, no payment required.'
+    reply: 'LazyDogTemplates is a template marketplace with professional pitch decks, brand media kits and web kits. Each design is a one-time purchase with its price shown on its page. Browsing is free, and the invoice generator is free to use.'
   },
 
   {
@@ -209,7 +208,7 @@ var vaDictionary = [
       'why use this site', 'why lazydog templates', 'what is special about this'
     ],
     action: 'speak',
-    reply: 'LazyDogTemplates offers high-quality, professionally designed templates completely free. No subscription, no hidden fees. Just pick, download, and use.'
+    reply: 'LazyDogTemplates offers high-quality, professionally designed templates. Each is a one-time purchase — no subscription — with Personal and Commercial pricing on its own page. Browsing is free and the invoice tool is free too.'
   },
 
   {
@@ -360,7 +359,7 @@ var vaDictionary = [
       'price range'
     ],
     action: 'speak',
-    reply: 'Everything on LazyDogTemplates is completely free. No payment, no subscription, no hidden charges. Just enter your email and download.'
+    reply: 'Browsing is free and the invoice generator is free. The design templates are paid — each is a one-time purchase with its Personal and Commercial price shown on its page. There is no subscription.'
   },
 
   {
@@ -376,7 +375,7 @@ var vaDictionary = [
       'yearly fee'
     ],
     action: 'speak',
-    reply: 'No subscription needed. All templates are free to download without any plan or payment.'
+    reply: 'No subscription — templates are a one-time purchase. You pay once for a design and it is yours to download. The invoice tool is free.'
   },
 
   {
@@ -392,7 +391,7 @@ var vaDictionary = [
       'wire transfer'
     ],
     action: 'speak',
-    reply: 'No credit card or payment required. LazyDogTemplates is completely free.'
+    reply: 'You only pay when you buy a template — a one-time charge shown on its page. Browsing and the invoice generator are free, and checkout uses a secure payment provider.'
   },
 
   // ══════════════════════════════════════════
@@ -490,7 +489,7 @@ var vaDictionary = [
       'once i pay'
     ],
     action: 'speak',
-    reply: 'Browse templates, click on any template you like, enter your email address, and click download. It is instant and free.'
+    reply: 'Browse templates, open one you like, choose Personal or Commercial, check out, and the download is instant and saved to your account. The invoice generator is free to use.'
   },
 
   {
@@ -963,6 +962,183 @@ var vaDictionary = [
     action: 'gender',
     gender: 'male',
     reply: 'Switched to male voice.'
+  },
+
+
+  // ══════════════════════════════════════════
+  // ADDED (Opus, Jul 2026) — more coverage: nav + Q&A + Urdu-English
+  // ══════════════════════════════════════════
+
+  {
+    id: 'nav_web_kits',
+    category: 'navigation',
+    phrases: [
+      'web kit','web kits','website kit','website kits','landing page','landing pages',
+      'web template','website template','ui kit','ui kits','web design','site template',
+      'show web kits','open web kits','go to web kits','i want a web kit','need a landing page',
+      'web ui','webpage template','website ui','web kit template','webkit','web-kit'
+    ],
+    action: 'navigate',
+    target: 'web_kit_folder_file.html',
+    reply: 'Opening Web Kits for you.'
+  },
+
+  {
+    id: 'nav_career_docs',
+    category: 'navigation',
+    phrases: [
+      'resume','resumes','cv','curriculum vitae','cover letter','cover letters','career docs',
+      'career documents','resume template','cv template','job application','linkedin template',
+      'portfolio template','reference letter','recommendation letter','resignation letter',
+      'show resumes','open resume','i need a resume','need a cv','ats resume','job docs'
+    ],
+    action: 'navigate',
+    target: 'career_docs_folder_section.html',
+    reply: 'Opening Career Docs — resumes, cover letters and more.'
+  },
+
+  {
+    id: 'nav_digital_keynote',
+    category: 'navigation',
+    phrases: [
+      'keynote','digital keynote','keynotes','keynote template','event keynote','talk slides',
+      'conference deck','webinar deck','seminar slides','show keynotes','open keynote',
+      'i want a keynote','presentation keynote','digital keynotes'
+    ],
+    action: 'navigate',
+    target: 'digital_keynote-folder.html',
+    reply: 'Opening Digital Keynotes for you.'
+  },
+
+  {
+    id: 'q_editable',
+    category: 'usage',
+    phrases: [
+      'is it editable','can i edit','can i edit it','fully editable','are they editable',
+      'edit the template','change the text','edit text','can i change it','customisable','customizable','can i customize','can i customise',
+      'editable file','is it editable file'
+    ],
+    action: 'speak',
+    reply: 'Yes — every text box, colour, shape and image placeholder is fully editable. Nothing is flattened into a picture. Open the pptx in PowerPoint, Google Slides or Keynote and change whatever you like.'
+  },
+
+  {
+    id: 'q_formats',
+    category: 'download',
+    phrases: [
+      'what format','which format','file format','what do i get','what is included','file type',
+      'what type of file','is it pptx','do i get pptx','ppt or pdf',
+      'what files','which files','format of file'
+    ],
+    action: 'speak',
+    reply: 'You get an editable pptx that works in PowerPoint, Google Slides and Keynote, plus a PDF preview. Fonts are free Google Fonts listed in the readme, and images are placeholders you swap for your own.'
+  },
+
+  {
+    id: 'q_powerpoint',
+    category: 'usage',
+    phrases: [
+      'open in powerpoint','works in powerpoint','powerpoint version','does it work in powerpoint',
+      'ms powerpoint','microsoft powerpoint','office 365'
+    ],
+    action: 'speak',
+    reply: 'Yes — it opens in any PowerPoint from 2013 onward on Windows or Mac, and in Microsoft 365. Just open the pptx normally.'
+  },
+
+  {
+    id: 'q_canva',
+    category: 'usage',
+    phrases: [
+      'open in canva','works in canva','import to canva','can i use in canva','canva support'
+    ],
+    action: 'speak',
+    reply: 'Canva can import a pptx, but it rebuilds the layout so expect some spacing and font drift. PowerPoint, Google Slides or Keynote stay closest to the original design.'
+  },
+
+  {
+    id: 'q_google_slides',
+    category: 'usage',
+    phrases: [
+      'google slides','open in google slides','gslides','does it work in google slides','upload to google slides'
+    ],
+    action: 'speak',
+    reply: 'Yes — upload the pptx to Google Drive and open it with Google Slides. Install the listed fonts first, or Slides will substitute them.'
+  },
+
+  {
+    id: 'q_refund',
+    category: 'support',
+    phrases: [
+      'refund','money back','can i get a refund','refund policy','return','cancel order','wrong file'
+    ],
+    action: 'speak',
+    reply: 'Digital files cannot be un-downloaded, so refunds are only for genuine problems — a corrupt file, the wrong item, or a duplicate charge. Email support@lazydogtemplates.com with your order number and we will sort it within 24 hours.'
+  },
+
+  {
+    id: 'q_license',
+    category: 'usage',
+    phrases: [
+      'license','licence','which license','personal or commercial','commercial use','use for client',
+      'client work','business use','can i use commercially','license difference','commercial license',
+      'personal vs commercial'
+    ],
+    action: 'speak',
+    reply: 'Personal covers your own non-paid use; Commercial covers business and client work. Both let you use a design in unlimited projects — you just cannot resell or share the file itself. Each template page shows both prices.'
+  },
+
+  {
+    id: 'q_delivery',
+    category: 'download',
+    phrases: [
+      'how long delivery','when will i get it','delivery time','instant download','how do i download',
+      'after payment','where is my download'
+    ],
+    action: 'speak',
+    reply: 'It is instant. After checkout the download appears right away and is emailed to you, and it stays in My Purchases so you can grab it again any time.'
+  },
+
+  {
+    id: 'q_payment_methods',
+    category: 'pricing',
+    phrases: [
+      'payment methods','how can i pay','which cards','do you accept paypal','payment options',
+      'debit card','credit card','apple pay','google pay','how to pay'
+    ],
+    action: 'speak',
+    reply: 'Checkout runs through a secure payment provider that accepts major debit and credit cards. Your card details never touch our servers.'
+  },
+
+  {
+    id: 'q_account',
+    category: 'account',
+    phrases: [
+      'do i need an account','sign up','sign in','login','create account','register','how to make account','forgot password','reset password'
+    ],
+    action: 'speak',
+    reply: 'Browsing is open to everyone. You need a free account to buy, so your purchases are saved and you can re-download them any time. Sign in with Google in one tap.'
+  },
+
+  {
+    id: 'q_support',
+    category: 'support',
+    phrases: [
+      'contact','support','help','talk to a human','customer service','email you','contact you',
+      'need help','report a problem'
+    ],
+    action: 'speak',
+    reply: 'Email support@lazydogtemplates.com — a real person replies, usually within 24 hours.'
+  },
+
+  {
+    id: 'q_discount',
+    category: 'pricing',
+    phrases: [
+      'discount','coupon','promo code','voucher','sale','any offer','cheaper','student discount',
+      'bundle','deal'
+    ],
+    action: 'speak',
+    reply: 'Deals go out by email — leave yours and I will make sure you hear about the next one. Bundles are on the way too.'
   }
 
 ];

@@ -52,11 +52,12 @@
 
     // --- conversational / voice ---
     { match: ["do you hear me","can you hear me","are you listening","did you hear","hear me"], reply: "Yes, I can hear you loud and clear \ud83c\udfa4 — go ahead!" },
-    { match: ["hello","hi hexa","hey hexa","hey there"], reply: "Hey! \ud83d\udc4b I'm Hexa. Want help finding a pitch deck, media kit, or web kit?" },
-    { match: ["thank you","thanks","thankyou","thx"], reply: "Anytime! \ud83d\udc9b Anything else I can help you find?" },
-    { match: ["are you human","are you a robot","are you real","are you ai","are you a bot"], reply: "I'm Hexa — LazyDog's assistant. Real enough to genuinely help you with templates \ud83d\ude0a" },
-    { match: ["who made you","who created you","who built you"], reply: "I'm Hexa, built for LazyDog Templates to help you find, buy, and use the right design." },
-    { match: ["what can you do","how can you help","what do you do"], reply: "I help you find templates, explain pricing & licenses, open pages, switch language, and answer questions — just ask or tap the \ud83c\udfa4 mic." },
+    { match: ["how are you","how r u","how are u","how are ya","how you doing","how ya doing","hows it going","how is it going","how do you do","how have you been","hru"], reply: "I'm doing great, thanks for asking \ud83d\ude0a How are you? And what can I help you find today \u2014 a pitch deck, media kit, or web kit?", soft: true },
+    { match: ["hello","hi hexa","hey hexa","hey there"], reply: "Hey! \ud83d\udc4b I'm Hexa. Want help finding a pitch deck, media kit, or web kit?" , soft: true},
+    { match: ["thank you","thanks","thankyou","thx"], reply: "Anytime! \ud83d\udc9b Anything else I can help you find?" , soft: true},
+    { match: ["are you human","are you a robot","are you real","are you ai","are you a bot"], reply: "I'm Hexa — LazyDog's assistant. Real enough to genuinely help you with templates \ud83d\ude0a" , soft: true},
+    { match: ["who made you","who created you","who built you"], reply: "I'm Hexa, built for LazyDog Templates to help you find, buy, and use the right design." , soft: true},
+    { match: ["what can you do","how can you help","what do you do"], reply: "I help you find templates, explain pricing & licenses, open pages, switch language, and answer questions — just ask or tap the \ud83c\udfa4 mic." , soft: true},
 
     // --- off-topic → polite, on-brand deflection (no API) ---
     { match: ["what is the date","whats the date","today's date","what date","what day is it","date today"], reply: "I stick to LazyDog templates, so I can't give the date — your device clock has that \ud83d\ude0a But I can help you find the perfect template!" },
@@ -81,7 +82,7 @@
 
     // ── formats & what's inside ────────────────────────────────
     { match: ["what format","which format","file format","what do i get","whats included","file type"], reply: "You get an editable <strong>.pptx</strong> (PowerPoint / Google Slides / Keynote), plus a PDF preview. Fonts are free Google Fonts with links in the readme, and images are placeholders you replace with your own." },
-    { match: ["is it editable","can i edit","fully editable","edit everything","editable hai"], reply: "Yes — every text box, colour, shape and image placeholder is editable. Nothing is flattened into a picture." },
+    { match: ["is it editable","can i edit","fully editable","edit everything"], reply: "Yes — every text box, colour, shape and image placeholder is editable. Nothing is flattened into a picture." },
     { match: ["fonts included","which fonts","font missing","font not showing"], reply: "We use free Google Fonts and list them with download links in the readme. If text looks wrong, the font just isn't installed yet — install it and reopen the file." },
     { match: ["images included","stock photos","are photos included","can i use the images"], reply: "Photos in the previews are placeholders for demonstration and aren't licensed for redistribution. Swap in your own images, or free ones from Unsplash or Pexels." },
     { match: ["psd","photoshop file","illustrator","ai file","figma file","sketch file","indesign"], reply: "Templates ship as <strong>.pptx</strong>. We don't include PSD, AI, Figma or InDesign source files." },
@@ -89,8 +90,8 @@
 
     // ── editing in specific apps ───────────────────────────────
     { match: ["open in powerpoint","works in powerpoint","powerpoint version","ms office","which powerpoint"], reply: "Any PowerPoint from 2013 onward, on Windows or Mac, plus Microsoft 365. Just open the .pptx normally." },
-    { match: ["google slides","open in google slides","gslides","google slide me"], reply: "Yes — upload the .pptx to Google Drive and open it with Google Slides. Install the listed fonts first, or Slides will substitute them." },
-    { match: ["canva","open in canva","canva me","import to canva"], reply: "Canva can import a .pptx, but it rebuilds the layout, so expect some spacing and font drift. PowerPoint, Google Slides or Keynote stay closest to the original design." },
+    { match: ["google slides","open in google slides","gslides"], reply: "Yes — upload the .pptx to Google Drive and open it with Google Slides. Install the listed fonts first, or Slides will substitute them." },
+    { match: ["canva","open in canva","import to canva"], reply: "Canva can import a .pptx, but it rebuilds the layout, so expect some spacing and font drift. PowerPoint, Google Slides or Keynote stay closest to the original design." },
     { match: ["keynote","mac keynote","open in keynote"], reply: "Yes — Keynote opens .pptx files directly. Install the listed fonts first for the closest match." },
     { match: ["libreoffice","openoffice","wps office","free alternative"], reply: "They'll open the file, but effects and spacing can shift. PowerPoint or Google Slides give the most faithful result." },
     { match: ["edit on phone","edit on mobile","mobile editing","phone se edit","tablet"], reply: "You can edit in the PowerPoint or Google Slides mobile apps, but a laptop is far easier for detailed work." },
@@ -176,7 +177,47 @@
     { match: ["what font should i use","best fonts for presentations","font pairing"], reply: "One font for headings, one for body, and stop there. Keep body text at 18pt or above so it survives a projector. Our templates already come with a paired set that works." },
     { match: ["what colours should i use","best colors for presentation","colour scheme","color scheme"], reply: "One accent colour used consistently, on a light or dark neutral base. Dark backgrounds look sharper on screen; light ones print and photocopy better. Pick for the room you'll actually be in." },
     { match: ["dark or light background","dark theme or light","which background"], reply: "Dark reads well on a screen or in a dim room and photographs nicely. Light is safer for print, handouts and bright rooms. If you're emailing the deck rather than presenting it, light usually wins." },
-    { match: ["common mistakes","what not to do","deck mistakes","avoid"], reply: "The usual four: too many words per slide, no clear ask, a market size nobody believes, and burying traction on slide nine. Fixing those four lifts most decks more than any redesign." }
+    { match: ["common mistakes","what not to do","deck mistakes","avoid"], reply: "The usual four: too many words per slide, no clear ask, a market size nobody believes, and burying traction on slide nine. Fixing those four lifts most decks more than any redesign." },
+
+    // ══════════════════════════════════════════════════════════
+    //  ADDED (Opus, Jul 2026) — extra factual Q&A, English only
+    // ══════════════════════════════════════════════════════════
+    { match: ["what is a pitch deck","whats a pitch deck","pitch deck meaning","define pitch deck"], reply: "A <strong>pitch deck</strong> is a short slide presentation that pitches your idea, product or company — usually to investors or partners.", target: "pitch_deck_folder_section.html" },
+    { match: ["what is a media kit","whats a media kit","media kit meaning","define media kit"], reply: "A <strong>media kit</strong> presents you or your brand to sponsors, partners and press — audience stats, services, rates and contact.", target: "media_kits_folder_section.html" },
+    { match: ["what is a web kit","whats a web kit","web kit meaning","landing page kit"], reply: "A <strong>web kit</strong> is ready-made landing-page and website UI you can adapt for your brand.", target: "web_kit_folder_file.html" },
+    { match: ["what is a keynote","digital keynote meaning","whats a keynote deck"], reply: "A <strong>digital keynote</strong> is a polished talk or event presentation — great for webinars, conferences and launches.", target: "digital_keynote-folder.html" },
+    { match: ["do you have resumes","resume templates","cv templates","career docs","do you have cv"], reply: "Yes — we have resumes, CVs, cover letters and more career documents, all editable and ATS-friendly.", target: "career_docs_folder_section.html" },
+    { match: ["team license","multiple users","use across my team","company wide","how many seats","team use"], reply: "One purchase covers you and your company for unlimited projects. For a formal large-team licence, email <strong>support@lazydogtemplates.com</strong> and we'll advise." },
+    { match: ["do i own it","who owns the design","copyright","intellectual property"], reply: "You get a licence to use the design in your own work; LazyDog keeps the copyright of the template itself. You can't resell or redistribute the file." },
+    { match: ["can i print","print the slides","printing","print quality","handouts","print resolution"], reply: "Yes — export to PDF from PowerPoint or Google Slides and print. For large formats, check each element is high-resolution first." },
+    { match: ["export to pdf","save as pdf","make a pdf","pdf export"], reply: "In PowerPoint use <em>File → Export → PDF</em>, or in Google Slides <em>File → Download → PDF</em>. The layout stays intact." },
+    { match: ["export video","save as video","mp4","turn into video","video export"], reply: "PowerPoint can export a deck to MP4 via <em>File → Export → Create a Video</em>. Note our pptx export keeps objects but drops motion." },
+    { match: ["change the colours","change the colors","recolour","recolor","rebrand","apply my brand colours","brand colors"], reply: "Every colour is editable. In PowerPoint use <em>Design → Variants → Colours</em> to swap the whole palette at once." },
+    { match: ["add my logo","insert my logo","put my logo","place logo"], reply: "Drop your logo onto any slide, or add it to the slide master so it repeats across the whole deck." },
+    { match: ["add slides","duplicate slides","delete slides","more slides","reorder slides","rearrange slides"], reply: "Yes — duplicate, delete and reorder slides freely. Right-click a slide thumbnail in PowerPoint or Google Slides." },
+    { match: ["change fonts","different font","replace font","swap fonts"], reply: "You can change any font. We use free Google Fonts listed in the readme — install one and it renders exactly as designed." },
+    { match: ["edit charts","change the graph","update the chart","edit data","infographics"], reply: "Charts are editable objects — click one and edit its data in PowerPoint or Slides. Decorative infographics are shapes you can recolour and relabel." },
+    { match: ["speaker notes","presenter notes","notes section"], reply: "The notes area is free for your own speaker notes — add them in the notes pane below each slide." },
+    { match: ["replace images","change the photos","swap pictures","add my photos","use my own images"], reply: "Preview photos are placeholders — right-click and replace with your own, or use free images from Unsplash or Pexels." },
+    { match: ["are the images licensed","can i use the photos","stock photo rights"], reply: "Preview photos are for demonstration only and aren't licensed for redistribution. Swap in your own or free-to-use images before publishing." },
+    { match: ["remove watermark","preview watermark","get rid of watermark"], reply: "Previews may carry a light watermark; the file you purchase is clean with no watermark." },
+    { match: ["change my email","update email","wrong email on account"], reply: "Sign in and update it in your account settings. Locked out? Email <strong>support@lazydogtemplates.com</strong> from the original address." },
+    { match: ["forgot password","reset password","cant log in","cannot sign in","login not working"], reply: "Use the <em>Forgot password</em> link on the sign-in screen, or sign in with Google in one tap. Still stuck? Email <strong>support@lazydogtemplates.com</strong>." },
+    { match: ["delete my account","close my account","remove my data","gdpr","data protection"], reply: "You can request account or data deletion any time — email <strong>support@lazydogtemplates.com</strong> and we'll action it. We only store what's needed to run your account." },
+    { match: ["is my data safe","do you sell my data","what do you do with my email","privacy"], reply: "We use your email only for your account, purchases and updates you opt into. We don't sell your data." },
+    { match: ["what payment methods","how can i pay","which cards","do you take paypal","apple pay","google pay","payment options"], reply: "Checkout runs through a secure provider that accepts major debit and credit cards. Your card details never touch our servers." },
+    { match: ["what currency","which currency","pay in dollars","currency shown","usd"], reply: "Prices are shown at checkout in the supported currency — the exact amount appears before you confirm." },
+    { match: ["tax","vat","gst","sales tax"], reply: "Any applicable tax is shown at checkout, and your emailed receipt is a valid record. Need a company name or tax number on it? Email us and we'll reissue it." },
+    { match: ["how many templates","how many designs","size of catalogue","how big is your library"], reply: "The library grows regularly across pitch decks, media kits, web kits and career docs. Browse a category to see the current selection." },
+    { match: ["new templates","how often new","do you add new","fresh templates"], reply: "We add new designs regularly — tap ✨ What's New in the top bar, or leave your email and I'll tell you when fresh ones land." },
+    { match: ["free updates","do i get updates","template updated","new version free"], reply: "If a template you bought gets an updated version, you can re-download it free from <strong>My Purchases</strong>." },
+    { match: ["affiliate","referral program","earn by referring","partner program"], reply: "An affiliate programme isn't live yet — leave your email and I'll let you know when it launches." },
+    { match: ["file size","how big is the file","download size","large file"], reply: "Most templates are a few megabytes — a quick download. Image-heavy media kits can be larger but still download fast." },
+    { match: ["what language are templates","are templates in english","language of the template"], reply: "Templates are in English, but every text box is editable so you can translate the content into any language." },
+    { match: ["buy for someone","gift a template","buy as a gift"], reply: "You can buy a template and use the exported design in your own work, but the file licence stays with the purchasing account." },
+    { match: ["leave a review","rate the template","write a review","feedback"], reply: "We'd love that — reviews help other buyers. You'll find the option on your purchase, or email us your feedback any time." },
+    { match: ["report a bug","something broken","site not working","page error","found an issue"], reply: "Thanks for flagging it — email <strong>support@lazydogtemplates.com</strong> with what you saw and we'll fix it fast." },
+    { match: ["accessibility","screen reader","colour blind","accessible templates"], reply: "Because everything is fully editable, you can adjust contrast, font size and colours for accessibility. Tell me what you need and I'll point you to the cleanest layouts." },
   ];
 
 
@@ -429,7 +470,7 @@
           if (fp && ((' ' + low + ' ').indexOf(' ' + fp + ' ') !== -1
                   || (' ' + low + ' ').indexOf(' ' + fp + 's ') !== -1
                   || (fp.indexOf(' ') !== -1 && low.indexOf(fp) !== -1))) {
-            return { reply: fe.reply, target: fe.target || null, label: fe.target ? labelForUrl(fe.target) : null, execute: !!fe.execute };
+            return { reply: fe.reply, target: fe.target || null, label: fe.target ? labelForUrl(fe.target) : null, execute: !!fe.execute, soft: !!fe.soft };
           }
         }
       }
