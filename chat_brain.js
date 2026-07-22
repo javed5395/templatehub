@@ -502,8 +502,11 @@
     pitch_decks: { url: 'pitch_deck_folder_section.html', label: 'Open Pitch Decks' },
     media_kits:  { url: 'media_kits_folder_section.html', label: 'Open Media Kits' },
     web_kits:    { url: 'web_kit_folder_file.html',       label: 'Open Website UI Kits' },
+    career_docs: { url: 'career_docs_folder_section.html', label: 'Open Career Docs' },
+    digital_keynotes: { url: 'digital_keynote-folder.html', label: 'Open Digital Keynotes' },
     invoice:     { url: 'invoice.html',                    label: 'Open Invoice Generator' },
     home:        { url: 'main.html',                       label: 'Go to Store Hub' },
+    faq:         { url: 'faq.html',                        label: 'Open FAQ' },
     whats_new:   { url: 'whats_new_keynote.html',          label: "See What's New" }
   };
   function labelForUrl(url) {
@@ -857,6 +860,11 @@
   var COLOURS = {red:'#e03030',blue:'#2b45f0',green:'#1b7f3e',gold:'#d4af37',golden:'#d4af37',purple:'#7c3aed',orange:'#ff6b35',pink:'#ec4899',teal:'#14b8a6',black:'#111111',cyan:'#06b6d4',yellow:'#eab308'};
   window.hexaCommand = function(text){
     var t=String(text||'').toLowerCase();
+    // ADMIN HELPER — reveal own UID (to paste into LD_ADMIN_UIDS for the composer gate)
+    if(/\b(my uid|what s my uid|what is my uid|whats my uid|my user id|admin uid)\b/.test(t)){
+      var uid = window.ldMyUid && window.ldMyUid();
+      return { reply: uid ? ("Your UID is: <strong>" + uid + "</strong>") : "You're not signed in — sign in first, then ask again." };
+    }
     // LANGUAGE
     var lh=null,ln=null;
     for(var nm in LANGS){ if(t.indexOf(nm)!==-1){ lh=LANGS[nm]; ln=nm; break; } }

@@ -57,6 +57,29 @@
   const auth = getAuth(app);
   // Hexa admin: fresh ID token for gated composer calls (null when logged out)
   window.ldGetToken = async function(){ try{ return auth.currentUser ? await auth.currentUser.getIdToken() : null; }catch(e){ return null; } };
+  // Sync signed-in check for the admin composer (final authz is server-side at compose time)
+  window.ldSignedIn = function(){ try{ return !!(auth && auth.currentUser); }catch(e){ return false; } };
+  // OWNER allowlist — deck composing is OWNER-ONLY for now (buyers may chat, but NOT build decks).
+  // STRICT: only UIDs listed here can open the composer. (Real security is also server-side via
+  // TRUSTED_UIDS, which 403s non-admins on the actual build.)
+  // ONE-TIME SETUP: sign in → ask Hexa "what's my uid" → paste it below → git push.
+  //   e.g.  window.LD_ADMIN_UIDS = ['abc123YourOwnerUidHere'];
+  window.LD_ADMIN_UIDS = window.LD_ADMIN_UIDS || [];
+  window.ldIsAdmin = function(){
+    try{
+      if(!(auth && auth.currentUser)) return false;
+      return window.LD_ADMIN_UIDS.indexOf(auth.currentUser.uid) !== -1; // strict: empty list = nobody
+    }catch(e){ return false; }
+  };
+  // Convenience: let the owner read their own UID (to paste into LD_ADMIN_UIDS above).
+  window.ldMyUid = function(){ try{ return auth.currentUser ? auth.currentUser.uid : null; }catch(e){ return null; } };
+  // Detect "make/prepare a deck" style requests (verb + deck-noun).
+  window.hexaComposeIntent = function(text){
+    var t=' '+String(text||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()+' ';
+    var v=/\b(make|making|create|creating|generate|generating|prepare|preparing|build|building|design|designing|compose|composing|produce|draft|whip up|put together)\b/;
+    var n=/\b(deck|decks|presentation|presentations|slides|slide|kit|kits|template|templates|design|designs)\b/;
+    return v.test(t) && n.test(t);
+  };
   onAuthStateChanged(auth, (user) => {
     const si=document.getElementById('signinBtn'), su=document.getElementById('signupBtn');
     const um=document.getElementById('nbUserMenu'), un=document.getElementById('nbUserName'), ua=document.getElementById('nbUserAvatar');
@@ -184,6 +207,7 @@
     </div>
     <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="background:#fff;color:#c79a20;border:1.5px solid #dcb43f;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">✨ What's New</a>
     <a href="coming_soon.html" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">🚀 Coming Soon</a>
+    <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs (owner only for now)" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">🎨 Generate Designs</a>
     <a href="editor.html" class="nb-wn-tab" title="LazyDog Designer" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:1.5px solid #7d6bf0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">🎨 Designer</a>
     <!-- CONTRIBUTOR HIDDEN (re-enable after KYC): <button class="nb-seller" onclick="window.location='upload_form.html'">🛍️ Apply as a Contributor</button> -->
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
@@ -774,8 +798,18 @@
       }).catch(function(e){ bubble.textContent='Admin command error.'; hbScroll(); });
       return;
     }
-    // 0.55) design order — "make me a hospital kit" → Open in Designer button
-    if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
+    // 0.53) ADMIN DECK COMPOSER — signed-in owner asks to "make/prepare a deck"
+    //       → open the full-page composer (design only, not content).
+    //       Non-signed-in users fall through to the buyer design order below.
+    if(window.hexaComposeIntent && window.ldIsAdmin && window.ldIsAdmin() && window.hexaComposeIntent(text)){
+      bubble.innerHTML="🎨 Opening the deck composer…";
+      hbRemember('assistant', bubble.textContent); hbScroll();
+      setTimeout(function(){ window.location.href='Hexa_Promptbox.html?seed='+encodeURIComponent(String(text||'').slice(0,200)); }, 500);
+      return;
+    }
+    // 0.55) design order — "make me a hospital kit" → Open in Designer button.
+    //       LOCKED: owner-only for now (deck building is forbidden for buyers until the gate opens).
+    if(window.hexaDesignIntent && window.hexaDesign && window.ldIsAdmin && window.ldIsAdmin() && window.hexaDesignIntent(text)){
       var dz=window.hexaDesign(text);
       bubble.textContent=dz.reply;
       if(window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(dz.target, dz.label)); }

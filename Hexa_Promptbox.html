@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LazyDog Templates — Welcome to Hexa World</title>
+<meta name="description" content="LazyDog Templates — an AI operating system for presentations, media kits, website kits, keynotes, and documents. Powered by Hexa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   LazyDog Templates · Hexa World
+   Premium AI-first homepage
+   ============================================================ */
+
+/* ---------- Design Tokens ---------- */
+:root {
+  /* Brand accent palette */
+  --accent-violet: #A78BFA;
+  --accent-pink:   #F472B6;
+  --accent-gold:   #FBBF24;
+  --accent-cyan:   #67E8F9;
+
+  --gradient-accent: linear-gradient(135deg, #A78BFA 0%, #F472B6 50%, #FBBF24 100%);
+  --gradient-text:   linear-gradient(120deg, #C4B5FD 0%, #F9A8D4 45%, #FCD34D 100%);
+  --gradient-cool:   linear-gradient(135deg, #818CF8 0%, #C084FC 100%);
+  --gradient-warm:   linear-gradient(135deg, #F472B6 0%, #FBBF24 100%);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+
+  --font-display: 'Instrument Serif', 'Times New Roman', serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --container: 1280px;
+}
+
+/* Dark theme (default) */
+:root,
+[data-theme="dark"] {
+  --bg: #07070B;
+  --bg-deep: #050507;
+  --bg-elevated: #0E0E16;
+  --surface: rgba(255,255,255,0.025);
+  --surface-hover: rgba(255,255,255,0.05);
+  --glass-bg: rgba(18,18,26,0.55);
+  --glass-bg-strong: rgba(22,22,32,0.78);
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-border-strong: rgba(255,255,255,0.14);
+  --text: #F5F5F7;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #71717A;
+  --hairline: rgba(255,255,255,0.07);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 12px 32px rgba(0,0,0,0.45);
+  --shadow-lg: 0 30px 80px rgba(0,0,0,0.55);
+  --shadow-glow: 0 0 80px rgba(167,139,250,0.18);
+  --orb-1: rgba(167,139,250,0.45);
+  --orb-2: rgba(244,114,182,0.35);
+  --orb-3: rgba(251,191,36,0.22);
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg: #FAFAF7;
+  --bg-deep: #F4F4EE;
+  --bg-elevated: #FFFFFF;
+  --surface: rgba(0,0,0,0.015);
+  --surface-hover: rgba(0,0,0,0.04);
+  --glass-bg: rgba(255,255,255,0.7);
+  --glass-bg-strong: rgba(255,255,255,0.88);
+  --glass-border: rgba(0,0,0,0.06);
+  --glass-border-strong: rgba(0,0,0,0.1);
+  --text: #0A0A0F;
+  --text-secondary: #52525B;
+  --text-tertiary: #A1A1AA;
+  --hairline: rgba(0,0,0,0.07);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 12px 32px rgba(15,15,30,0.08);
+  --shadow-lg: 0 30px 80px rgba(15,15,30,0.12);
+  --shadow-glow: 0 0 80px rgba(167,139,250,0.22);
+  --orb-1: rgba(167,139,250,0.4);
+  --orb-2: rgba(244,114,182,0.3);
+  --orb-3: rgba(251,191,36,0.18);
+}
+
+/* ---------- Reset ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  font-size: 15px;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background 0.6s var(--ease-out), color 0.6s var(--ease-out);
+}
+img, svg { display: block; max-width: 100%; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+a { color: inherit; text-decoration: none; }
+::selection { background: rgba(167,139,250,0.35); color: #fff; }
+
+/* ---------- Background orbs ---------- */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(1200px 800px at 80% -10%, var(--orb-1), transparent 60%),
+    radial-gradient(900px 700px at 10% 20%, var(--orb-2), transparent 55%),
+    radial-gradient(700px 600px at 50% 110%, var(--orb-3), transparent 55%),
+    var(--bg);
+  transition: background 0.6s var(--ease-out);
+}
+.bg-grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+  animation: drift 28s var(--ease-in-out) infinite alternate;
+  transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
+}
+.orb.o1 { width: 520px; height: 520px; background: var(--accent-violet); top: -120px; left: -100px; }
+.orb.o2 { width: 460px; height: 460px; background: var(--accent-pink);   top: 30%;     right: -160px; animation-delay: -8s; }
+.orb.o3 { width: 380px; height: 380px; background: var(--accent-gold);   bottom: -120px; left: 35%; animation-delay: -16s; opacity: 0.4; }
+@keyframes drift {
+  0%   { transform: translate3d(var(--px,0px), var(--py,0px), 0) scale(1); }
+  50%  { transform: translate3d(calc(var(--px,0px) + 60px), calc(var(--py,0px) - 40px), 0) scale(1.08); }
+  100% { transform: translate3d(calc(var(--px,0px) - 30px), calc(var(--py,0px) + 50px), 0) scale(0.96); }
+}
+
+/* ---------- Layout primitives ---------- */
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.section {
+  padding: 140px 0;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+/* Atmospheric depth — soft radial aura per section */
+.section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(800px 500px at 15% 0%, rgba(167,139,250,0.07), transparent 60%),
+    radial-gradient(700px 500px at 90% 100%, rgba(244,114,182,0.05), transparent 60%);
+}
+[data-theme="light"] .section::before {
+  background:
+    radial-gradient(800px 500px at 15% 0%, rgba(167,139,250,0.09), transparent 60%),
+    radial-gradient(700px 500px at 90% 100%, rgba(244,114,182,0.07), transparent 60%);
+}
+.section > .container { position: relative; z-index: 1; }
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+.eyebrow .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gradient-accent);
+  box-shadow: 0 0 10px var(--accent-violet);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%     { opacity: 0.4; transform: scale(0.85); }
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-top: 22px;
+  max-width: 720px;
+}
+.section-title em {
+  font-style: italic;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.section-sub {
+  margin-top: 18px;
+  color: var(--text-secondary);
+  font-size: 17px;
+  max-width: 620px;
+  line-height: 1.6;
+}
+.section-head { margin-bottom: 56px; }
+
+/* ---------- Navigation ---------- */
+.nav {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  width: calc(100% - 36px);
+  max-width: var(--container);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 18px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow: var(--shadow-md);
+  transition: background 0.4s, border-color 0.4s;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-size: 15px;
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  position: relative;
+}
+.brand-mark svg { width: 100%; height: 100%; }
+.brand-name { font-family: var(--font-display); font-size: 19px; letter-spacing: -0.01em; }
+.brand-name b { font-weight: 400; }
+.nav-links {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 13.5px;
+}
+.nav-links a {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  transition: color 0.2s, background 0.2s;
+}
+.nav-links a:hover { color: var(--text); background: var(--surface-hover); }
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.icon-btn:hover { background: var(--surface-hover); color: var(--text); }
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn svg { width: 17px; height: 17px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  font-weight: 500;
+  background: var(--text);
+  color: var(--bg);
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn:active { transform: translateY(0); }
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+}
+.btn-ghost:hover { background: var(--surface-hover); }
+.btn-accent {
+  background: var(--gradient-accent);
+  color: #0A0A0F;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(167,139,250,0.35);
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  padding: 180px 0 80px;
+  position: relative;
+  text-align: center;
+}
+.hero-eyebrow-row {
+  display: flex; justify-content: center; margin-bottom: 28px;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(54px, 9vw, 112px);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+.hero-title .line { display: block; }
+.hero-title .accent {
+  font-style: italic;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  position: relative;
+}
+.hero-sub {
+  max-width: 660px;
+  margin: 28px auto 0;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.hero-sub b { color: var(--text); font-weight: 500; }
+
+/* ---------- Hero dual layout: prompt + filter panel ---------- */
+.dual {
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: stretch;
+  text-align: left;
+}
+
+/* AI prompt box */
+.prompt-card {
+  position: relative;
+  border-radius: var(--radius-xl);
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.45), rgba(244,114,182,0.3), rgba(251,191,36,0.25));
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.4s var(--ease-out);
+}
+.prompt-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from 0deg, var(--accent-violet), var(--accent-pink), var(--accent-gold), var(--accent-violet));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.6s;
+  animation: spin 8s linear infinite;
+}
+.prompt-card:focus-within::before { opacity: 0.9; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.prompt-inner {
+  background: var(--glass-bg-strong);
+  border-radius: calc(var(--radius-xl) - 2px);
+  backdrop-filter: blur(30px) saturate(160%);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  padding: 26px 26px 22px;
+}
+.prompt-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 18px;
+}
+.hexa-avatar {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  background: var(--gradient-accent);
+  display: grid; place-items: center;
+  color: #0A0A0F;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(167,139,250,0.4);
+  position: relative;
+  overflow: hidden;
+}
+.hexa-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
+  animation: shimmer 3.5s linear infinite;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.prompt-meta {
+  display: flex; flex-direction: column;
+  font-size: 12.5px;
+}
+.prompt-meta .name { font-weight: 600; letter-spacing: -0.01em; }
+.prompt-meta .status {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+}
+.prompt-meta .status::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #34D399;
+  box-shadow: 0 0 8px #34D399;
+}
+.prompt-mode-tabs {
+  margin-left: auto;
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  font-size: 12px;
+}
+.prompt-mode-tabs button {
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.prompt-mode-tabs button.active {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.prompt-input-wrap {
+  position: relative;
+}
+.prompt-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 15.5px;
+  line-height: 1.6;
+  resize: none;
+  min-height: 84px;
+  padding: 4px 0;
+  letter-spacing: -0.01em;
+}
+.prompt-input::placeholder { color: var(--text-tertiary); }
+
+.prompt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+}
+.tool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.tool-chip:hover { color: var(--text); background: var(--surface-hover); border-color: var(--glass-border-strong); }
+.tool-chip svg { width: 14px; height: 14px; }
+.tool-chip .kbd {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  color: var(--text-tertiary);
+  margin-left: 4px;
+}
+.prompt-send {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px 9px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-accent);
+  color: #0A0A0F;
+  font-weight: 600;
+  font-size: 13px;
+  box-shadow: 0 6px 18px rgba(167,139,250,0.4);
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s;
+}
+.prompt-send:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(167,139,250,0.5); }
+.prompt-send:active { transform: translateY(0); }
+.prompt-send svg { width: 14px; height: 14px; }
+
+/* Example chips */
+.examples-row {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.examples-label {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-right: 4px;
+}
+.example-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  transition: all 0.2s var(--ease-out);
+}
+.example-chip:hover {
+  color: var(--text);
+  border-color: var(--glass-border-strong);
+  background: var(--glass-bg-strong);
+  transform: translateY(-1px);
+}
+.example-chip .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.example-chip[data-tone="fashion"] .dot { background: linear-gradient(135deg,#FBBF24,#F472B6); }
+.example-chip[data-tone="saas"]    .dot { background: linear-gradient(135deg,#60A5FA,#A78BFA); }
+.example-chip[data-tone="coffee"]  .dot { background: linear-gradient(135deg,#D97706,#FBBF24); }
+.example-chip[data-tone="report"]  .dot { background: linear-gradient(135deg,#94A3B8,#E2E8F0); }
+
+/* Right-side filter panel container */
+.filter-panel {
+  position: relative;
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-shadow: var(--shadow-md);
+}
+.filter-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.filter-panel-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 8px;
+}
+.filter-panel-title svg { width: 15px; height: 15px; color: var(--accent-violet); }
+.filter-panel-hint {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.filter-integration-slot {
+  flex: 1;
+  border: 1.5px dashed var(--glass-border-strong);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background:
+    repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255,255,255,0.012) 12px, rgba(255,255,255,0.012) 24px);
+  position: relative;
+}
+.filter-integration-slot::before {
+  content: 'LAZYDOG · ADVANCED FILTER';
+  position: absolute;
+  top: 10px; right: 12px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: var(--text-tertiary);
+  opacity: 0.55;
+}
+.filter-placeholder-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.filter-placeholder-row .label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  width: 64px;
+  flex-shrink: 0;
+}
+.filter-placeholder-row .field {
+  flex: 1;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  position: relative;
+  overflow: hidden;
+}
+.filter-placeholder-row .field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.12), transparent);
+  animation: scan 3.5s ease-in-out infinite;
+}
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.filter-placeholder-row .pill-row { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
+.filter-placeholder-row .pill {
+  height: 26px;
+  padding: 0 10px;
+  display: inline-flex; align-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.filter-placeholder-row .pill.active {
+  background: rgba(167,139,250,0.18);
+  border-color: rgba(167,139,250,0.4);
+  color: var(--text);
+}
+.filter-apply {
+  margin-top: auto;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity 0.2s;
+}
+.filter-apply svg { width: 13px; height: 13px; }
+.filter-apply-note {
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Featured Examples ---------- */
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+}
+.feature-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  overflow: hidden;
+  transition: transform 0.4s var(--ease-out), border-color 0.3s, box-shadow 0.4s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+/* Cursor-follow spotlight on the body (not the preview image) */
+.feature-card .feature-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(260px 200px at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.05), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 0;
+}
+.feature-card:hover .feature-body::before { opacity: 1; }
+.feature-card .feature-body > * { position: relative; z-index: 1; }
+.feature-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--glass-border-strong);
+  box-shadow: var(--shadow-lg);
+}
+.feature-card:hover .feature-preview::after { opacity: 1; }
+.feature-preview {
+  aspect-ratio: 4 / 5;
+  position: relative;
+  overflow: hidden;
+}
+.feature-preview svg {
+  width: 100%; height: 100%;
+  transition: transform 0.6s var(--ease-out);
+}
+.feature-card:hover .feature-preview svg { transform: scale(1.06); }
+.feature-preview::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.45), transparent 50%);
+  opacity: 0.6;
+  transition: opacity 0.4s;
+}
+.feature-tag {
+  position: absolute;
+  top: 12px; left: 12px;
+  z-index: 2;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  border-radius: var(--radius-pill);
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.feature-body {
+  padding: 16px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.feature-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+.feature-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+.feature-meta {
+  margin-top: auto;
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.feature-meta .cat {
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.feature-meta .cat::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gradient-accent);
+}
+.feature-arrow {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  transition: all 0.2s var(--ease-out);
+}
+.feature-card:hover .feature-arrow {
+  background: var(--gradient-accent);
+  color: #0A0A0F;
+  border-color: transparent;
+  transform: translate(2px, -2px);
+}
+.feature-arrow svg { width: 11px; height: 11px; }
+
+/* ---------- AI Capabilities ---------- */
+.cap-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.cap-card {
+  position: relative;
+  padding: 24px 22px 26px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  overflow: hidden;
+  transition: transform 0.4s var(--ease-out), border-color 0.3s, background 0.4s;
+}
+/* Cursor-follow spotlight (set via JS) */
+.cap-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(220px 220px at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.06), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.cap-card:hover::after { opacity: 1; }
+.cap-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--cap-grad, var(--gradient-accent));
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.cap-card:hover { transform: translateY(-4px); border-color: var(--glass-border-strong); }
+.cap-card:hover::before { opacity: 1; }
+.cap-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--cap-grad, var(--gradient-accent));
+  color: #0A0A0F;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+.cap-icon svg { width: 20px; height: 20px; }
+.cap-title {
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-bottom: 8px;
+}
+.cap-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.cap-card .cap-num {
+  position: absolute;
+  top: 18px; right: 18px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Hexa Intelligence workflow ---------- */
+.intel-wrap {
+  position: relative;
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  padding: 48px 40px 44px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.intel-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 25% 30%, rgba(167,139,250,0.16), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(244,114,182,0.12), transparent 55%);
+  pointer-events: none;
+}
+.intel-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.intel-step {
+  text-align: center;
+  position: relative;
+}
+.intel-node {
+  width: 64px; height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 18px;
+  display: grid; place-items: center;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border-strong);
+  position: relative;
+  transition: transform 0.3s var(--ease-out);
+  z-index: 2;
+}
+.intel-step:hover .intel-node { transform: translateY(-4px) scale(1.05); }
+.intel-node .glyph {
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  background: var(--step-grad, var(--gradient-accent));
+  display: grid; place-items: center;
+  color: #0A0A0F;
+}
+.intel-node .glyph svg { width: 16px; height: 16px; }
+.intel-node::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 24px;
+  background: var(--step-grad, var(--gradient-accent));
+  opacity: 0.18;
+  filter: blur(14px);
+  z-index: -1;
+}
+.intel-step .step-num {
+  position: absolute;
+  top: -4px; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.12em;
+}
+.intel-step .step-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.intel-step .step-desc {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  padding: 0 6px;
+}
+.intel-connector {
+  position: absolute;
+  top: 32px;
+  left: 0; right: 0;
+  height: 2px;
+  z-index: 0;
+  pointer-events: none;
+}
+.intel-connector svg { width: 100%; height: 100%; }
+.intel-connector .track {
+  stroke: rgba(167,139,250,0.35);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  fill: none;
+}
+.intel-connector .pulse {
+  stroke: url(#pulseGrad);
+  stroke-width: 2;
+  fill: none;
+  stroke-dasharray: 30 800;
+  animation: flow 4s linear infinite;
+}
+@keyframes flow {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -830; }
+}
+
+.intel-footer {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.intel-stat {
+  display: flex; flex-direction: column;
+}
+.intel-stat .v {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.intel-stat .v em { font-style: italic; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.intel-stat .l {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- CTA / Footer ---------- */
+.cta {
+  text-align: center;
+  padding: 80px 0 40px;
+}
+.cta-card {
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px);
+  padding: 56px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.cta-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(167,139,250,0.2), transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(244,114,182,0.18), transparent 50%);
+  pointer-events: none;
+}
+.cta-card h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(32px, 4vw, 48px);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  position: relative;
+}
+.cta-card h3 em { font-style: italic; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.cta-card p {
+  margin: 14px auto 28px;
+  color: var(--text-secondary);
+  font-size: 15.5px;
+  max-width: 520px;
+  position: relative;
+}
+.cta-actions {
+  display: inline-flex;
+  gap: 12px;
+  position: relative;
+}
+
+footer {
+  border-top: 1px solid var(--hairline);
+  padding: 36px 0 40px;
+  margin-top: 60px;
+}
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+.footer-links { display: flex; gap: 22px; }
+.footer-links a:hover { color: var(--text); }
+.footer-meta { display: flex; align-items: center; gap: 14px; }
+.footer-meta .sep { opacity: 0.4; }
+
+/* ---------- Reveal animations ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+.reveal[data-delay="1"] { transition-delay: 0.08s; }
+.reveal[data-delay="2"] { transition-delay: 0.16s; }
+.reveal[data-delay="3"] { transition-delay: 0.24s; }
+.reveal[data-delay="4"] { transition-delay: 0.32s; }
+.reveal[data-delay="5"] { transition-delay: 0.40s; }
+.reveal[data-delay="6"] { transition-delay: 0.48s; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) {
+  .featured-grid { grid-template-columns: repeat(3, 1fr); }
+  .cap-grid { grid-template-columns: repeat(2, 1fr); }
+  .dual { grid-template-columns: 1fr; }
+  .filter-panel { min-height: auto; }
+  .nav-links { display: none; }
+}
+@media (max-width: 720px) {
+  .container { padding: 0 18px; }
+  .section { padding: 80px 0; }
+  .hero { padding: 140px 0 60px; }
+  .featured-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .cap-grid { grid-template-columns: 1fr; }
+  .intel-grid { grid-template-columns: repeat(3, 1fr); gap: 28px 12px; }
+  .intel-connector { display: none; }
+  .nav { padding: 8px 10px 8px 14px; }
+  .nav .btn-accent { display: none; }
+  .prompt-inner { padding: 20px 18px 18px; }
+  .prompt-mode-tabs { display: none; }
+  .cta-card { padding: 40px 22px; }
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  .orb { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="bg-canvas"></div>
+<div class="bg-grain"></div>
+<div class="bg-orbs">
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+</div>
+
+<!-- Navigation -->
+<nav class="nav" aria-label="Primary">
+  <a href="#" class="brand">
+    <span class="brand-mark">
+      <svg viewBox="0 0 32 32" fill="none">
+        <defs>
+          <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#A78BFA"/>
+            <stop offset="50%" stop-color="#F472B6"/>
+            <stop offset="100%" stop-color="#FBBF24"/>
+          </linearGradient>
+        </defs>
+        <path d="M16 2 L28 9 L28 23 L16 30 L4 23 L4 9 Z" fill="url(#brandGrad)"/>
+        <path d="M16 8 L22 11.5 L22 18.5 L16 22 L10 18.5 L10 11.5 Z" fill="#0A0A0F" opacity="0.85"/>
+        <circle cx="16" cy="15" r="2" fill="url(#brandGrad)"/>
+      </svg>
+    </span>
+    <span class="brand-name">Lazy<b>Dog</b></span>
+  </a>
+  <div class="nav-links">
+    <a href="#featured">Templates</a>
+    <a href="#capabilities">Capabilities</a>
+    <a href="#intelligence">Hexa Engine</a>
+    <a href="#">Pricing</a>
+    <a href="#">Docs</a>
+  </div>
+  <div class="nav-actions">
+    <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+      <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+      <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+    <a href="#" class="btn btn-ghost">Sign in</a>
+    <a href="#hero" class="btn btn-accent">
+      Open Hexa
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============== HERO ============== -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-eyebrow-row reveal">
+      <span class="eyebrow"><span class="dot"></span> AI Operating System for Presentations</span>
+    </div>
+
+    <h1 class="hero-title reveal" data-delay="1">
+      <span class="line">Welcome to</span>
+      <span class="line"><span class="accent">Hexa</span> World</span>
+    </h1>
+
+    <p class="hero-sub reveal" data-delay="2">
+      Describe any presentation, media kit, website kit, keynote, or document.
+      <b>Hexa finds, builds, edits, and prepares it for you.</b>
+    </p>
+
+    <!-- Dual input: Prompt (Method A) + Advanced Filter slot (Method B) -->
+    <div class="dual reveal" data-delay="3">
+
+      <!-- ===== Method A: Natural Language Prompt ===== -->
+      <div class="prompt-card">
+        <div class="prompt-inner">
+          <div class="prompt-header">
+            <div class="hexa-avatar">H</div>
+            <div class="prompt-meta">
+              <span class="name">Hexa</span>
+              <span class="status">Online · Ready to generate</span>
+            </div>
+            <div class="prompt-mode-tabs">
+              <button class="active" data-mode="create">Create</button>
+              <button data-mode="edit">Edit</button>
+              <button data-mode="export">Export</button>
+            </div>
+          </div>
+
+          <div class="prompt-input-wrap">
+            <textarea
+              class="prompt-input"
+              id="promptInput"
+              placeholder="Describe what you want to create..."
+              rows="3"
+              aria-label="Describe what you want to create"></textarea>
+          </div>
+
+          <div class="prompt-toolbar">
+            <button class="tool-chip" title="Attach reference">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              Attach
+            </button>
+            <button class="tool-chip" title="Brand kit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+              Brand kit
+            </button>
+            <button class="tool-chip" title="Output format">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              PPTX · 16:9
+            </button>
+            <button class="prompt-send" id="promptSend">
+              Generate
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+
+          <div class="examples-row">
+            <span class="examples-label">Try</span>
+            <button class="example-chip" data-tone="fashion" data-prompt="Luxury fashion media kit, black background, gold typography, 20 slides.">
+              <span class="dot"></span>Luxury fashion media kit · 20 slides
+            </button>
+            <button class="example-chip" data-tone="saas" data-prompt="SaaS investor pitch deck for seed funding.">
+              <span class="dot"></span>SaaS seed pitch deck
+            </button>
+            <button class="example-chip" data-tone="coffee" data-prompt="Coffee shop website kit with modern branding.">
+              <span class="dot"></span>Coffee shop website kit
+            </button>
+            <button class="example-chip" data-tone="report" data-prompt="Corporate annual report for shareholders.">
+              <span class="dot"></span>Corporate annual report
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Method B: Advanced Filter Panel (integration slot) ===== -->
+      <aside class="filter-panel" aria-label="Advanced filters">
+        <div class="filter-panel-head">
+          <span class="filter-panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Advanced Filters
+          </span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-tertiary);letter-spacing:0.1em">METHOD · B</span>
+        </div>
+        <p class="filter-panel-hint">
+          Prefer precision over prose? Use the LazyDog advanced filter card to dial in category, format, palette, industry, and license.
+        </p>
+
+        <!-- Reserved integration slot for existing LazyDog advanced filter card.
+             Container only — do NOT redesign the embedded card. -->
+        <div class="filter-integration-slot" id="lazydogFilterSlot">
+          <div class="filter-placeholder-row">
+            <span class="label">Category</span>
+            <div class="pill-row">
+              <span class="pill active">Media Kit</span>
+              <span class="pill">Pitch Deck</span>
+              <span class="pill">Keynote</span>
+            </div>
+          </div>
+          <div class="filter-placeholder-row">
+            <span class="label">Format</span>
+            <div class="field"></div>
+          </div>
+          <div class="filter-placeholder-row">
+            <span class="label">Palette</span>
+            <div class="pill-row">
+              <span class="pill">Dark</span>
+              <span class="pill active">Gold</span>
+              <span class="pill">Mono</span>
+              <span class="pill">Pastel</span>
+            </div>
+          </div>
+          <div class="filter-placeholder-row">
+            <span class="label">Industry</span>
+            <div class="field"></div>
+          </div>
+          <div class="filter-placeholder-row">
+            <span class="label">License</span>
+            <div class="pill-row">
+              <span class="pill">Free</span>
+              <span class="pill active">Pro</span>
+              <span class="pill">Enterprise</span>
+            </div>
+          </div>
+
+          <button class="filter-apply">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Apply 5 filters
+          </button>
+          <div class="filter-apply-note">// lazydog.filterCard.mount(#lazydogFilterSlot)</div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============== FEATURED EXAMPLES ============== -->
+<section class="section" id="featured">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="dot"></span> Featured Examples</span>
+      <h2 class="section-title">Ten templates, <em>generated by Hexa</em>, ready to ship.</h2>
+      <p class="section-sub">Every card below was built from a single natural-language prompt — then refined, branded, and exported by Hexa. Tap any card to open it in the editor.</p>
+    </div>
+
+    <div class="featured-grid" id="featuredGrid">
+
+      <!-- 01 · Luxury Fashion Media Kit -->
+      <article class="feature-card reveal" data-delay="1">
+        <div class="feature-preview">
+          <span class="feature-tag">Media Kit</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p1bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1A1A20"/><stop offset="100%" stop-color="#08080B"/></linearGradient>
+              <linearGradient id="p1g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FCD34D"/><stop offset="100%" stop-color="#B45309"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p1bg)"/>
+            <text x="38" y="200" font-family="Instrument Serif, serif" font-size="180" font-style="italic" fill="url(#p1g)">M</text>
+            <line x1="38" y1="232" x2="130" y2="232" stroke="url(#p1g)" stroke-width="1.2"/>
+            <text x="38" y="262" font-family="Inter, sans-serif" font-size="10" letter-spacing="5" fill="#FCD34D" opacity="0.85">MAISON · AURELIA · 2026</text>
+            <text x="38" y="455" font-family="Instrument Serif, serif" font-size="14" font-style="italic" fill="#FCD34D" opacity="0.55">luxury fashion collection</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Maison Aurelia — Fashion Media Kit</h3>
+          <p class="feature-desc">Black canvas, gold serif typography, 20 editorial slides for a Parisian luxury house.</p>
+          <div class="feature-meta">
+            <span class="cat">Media Kit · 20 slides</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 02 · SaaS Investor Pitch Deck -->
+      <article class="feature-card reveal" data-delay="1">
+        <div class="feature-preview">
+          <span class="feature-tag">Pitch Deck</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p2bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0B1220"/><stop offset="100%" stop-color="#020617"/></linearGradient>
+              <linearGradient id="p2g" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#22D3EE"/><stop offset="100%" stop-color="#6366F1"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p2bg)"/>
+            <text x="32" y="80" font-family="Inter, sans-serif" font-size="9" letter-spacing="4" fill="#22D3EE" opacity="0.7">SEED ROUND · 2026</text>
+            <text x="32" y="130" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#F1F5F9">Nebula.ai</text>
+            <text x="32" y="158" font-family="Inter, sans-serif" font-size="11" fill="#94A3B8">Series Seed · $4M target</text>
+            <polyline points="32,420 90,400 150,360 210,310 270,240 330,140 370,90" fill="none" stroke="url(#p2g)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M32,420 L90,400 L150,360 L210,310 L270,240 L330,140 L370,90 L370,440 L32,440 Z" fill="url(#p2g)" opacity="0.15"/>
+            <circle cx="370" cy="90" r="5" fill="#22D3EE"/>
+            <circle cx="370" cy="90" r="11" fill="#22D3EE" opacity="0.25"/>
+            <text x="32" y="470" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748B">+312% YoY · 18k MAU</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Nebula — SaaS Seed Pitch Deck</h3>
+          <p class="feature-desc">Cinematic dark deck with growth-curve hero, market sizing, and 12 financial slides.</p>
+          <div class="feature-meta">
+            <span class="cat">Pitch Deck · 14 slides</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 03 · Coffee Shop Website Kit -->
+      <article class="feature-card reveal" data-delay="2">
+        <div class="feature-preview">
+          <span class="feature-tag">Website Kit</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p3bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5E9D7"/><stop offset="100%" stop-color="#E8D5B7"/></linearGradient>
+              <linearGradient id="p3g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#92400E"/><stop offset="100%" stop-color="#451A03"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p3bg)"/>
+            <circle cx="200" cy="220" r="90" fill="url(#p3g)"/>
+            <circle cx="200" cy="220" r="68" fill="#F5E9D7"/>
+            <circle cx="200" cy="220" r="48" fill="url(#p3g)"/>
+            <path d="M180,130 Q190,110 180,90 Q170,75 185,60" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.55"/>
+            <path d="M210,130 Q220,110 210,90 Q200,75 215,60" stroke="#92400E" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.55"/>
+            <text x="200" y="380" text-anchor="middle" font-family="Instrument Serif, serif" font-size="32" font-style="italic" fill="#451A03">Brewhaus</text>
+            <line x1="160" y1="400" x2="240" y2="400" stroke="#92400E" stroke-width="1"/>
+            <text x="200" y="425" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" letter-spacing="6" fill="#92400E" opacity="0.7">SLOW · COFFEE · CO</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Brewhaus — Coffee Shop Website Kit</h3>
+          <p class="feature-desc">Warm cream palette, hand-drawn marks, 8-page responsive kit with menu and story templates.</p>
+          <div class="feature-meta">
+            <span class="cat">Website Kit · 8 pages</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 04 · Corporate Annual Report -->
+      <article class="feature-card reveal" data-delay="2">
+        <div class="feature-preview">
+          <span class="feature-tag">Annual Report</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p4bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#0F172A"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p4bg)"/>
+            <text x="40" y="100" font-family="Inter, sans-serif" font-size="9" letter-spacing="5" fill="#94A3B8">FY 2025 · ANNUAL REPORT</text>
+            <text x="40" y="170" font-family="Instrument Serif, serif" font-size="62" fill="#E2E8F0">Helios</text>
+            <text x="40" y="210" font-family="Instrument Serif, serif" font-size="62" font-style="italic" fill="#94A3B8">Group.</text>
+            <line x1="40" y1="240" x2="360" y2="240" stroke="#475569" stroke-width="0.8"/>
+            <rect x="40" y="270" width="80" height="6" fill="#64748B" opacity="0.4"/>
+            <rect x="40" y="285" width="120" height="6" fill="#64748B" opacity="0.3"/>
+            <rect x="40" y="300" width="100" height="6" fill="#64748B" opacity="0.3"/>
+            <g transform="translate(40,360)">
+              <rect x="0" y="50" width="40" height="40" fill="#475569"/>
+              <rect x="50" y="30" width="40" height="60" fill="#64748B"/>
+              <rect x="100" y="10" width="40" height="80" fill="#94A3B8"/>
+              <rect x="150" y="-10" width="40" height="100" fill="#CBD5E1"/>
+              <rect x="200" y="-30" width="40" height="120" fill="#E2E8F0"/>
+            </g>
+            <text x="40" y="470" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748B">REVENUE · $1.84B · +18.2%</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Helios Group — Annual Report 2025</h3>
+          <p class="feature-desc">Navy and silver editorial system, 48-page shareholder report with data visualizations.</p>
+          <div class="feature-meta">
+            <span class="cat">Report · 48 pages</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 05 · Minimal Portfolio Keynote -->
+      <article class="feature-card reveal" data-delay="3">
+        <div class="feature-preview">
+          <span class="feature-tag">Keynote</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p5bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAFAF7"/><stop offset="100%" stop-color="#EFEFE9"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p5bg)"/>
+            <text x="40" y="240" font-family="Inter, sans-serif" font-size="9" letter-spacing="5" fill="#A1A1AA">PORTFOLIO · 2026</text>
+            <text x="40" y="300" font-family="Inter, sans-serif" font-size="86" font-weight="800" fill="#0A0A0F" letter-spacing="-4">WORK</text>
+            <text x="40" y="370" font-family="Instrument Serif, serif" font-size="44" font-style="italic" fill="#0A0A0F" opacity="0.85">selected.</text>
+            <line x1="40" y1="410" x2="80" y2="410" stroke="#0A0A0F" stroke-width="2"/>
+            <text x="40" y="450" font-family="Inter, sans-serif" font-size="10" fill="#71717A">Studio Ono · Art Direction</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Studio Ono — Portfolio Keynote</h3>
+          <p class="feature-desc">Brutalist whitespace, oversized typography, 16 slides for a Tokyo design studio.</p>
+          <div class="feature-meta">
+            <span class="cat">Keynote · 16 slides</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 06 · Wellness Brand Media Kit -->
+      <article class="feature-card reveal" data-delay="3">
+        <div class="feature-preview">
+          <span class="feature-tag">Media Kit</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p6bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E4ECE0"/><stop offset="100%" stop-color="#C8D5C0"/></linearGradient>
+              <linearGradient id="p6g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#65855A"/><stop offset="100%" stop-color="#3F5C36"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p6bg)"/>
+            <path d="M200,140 C160,140 130,180 130,230 C130,290 200,340 200,340 C200,340 270,290 270,230 C270,180 240,140 200,140 Z" fill="url(#p6g)" opacity="0.85"/>
+            <path d="M200,180 Q175,210 180,250 Q185,290 200,310" stroke="#E4ECE0" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <text x="200" y="420" text-anchor="middle" font-family="Instrument Serif, serif" font-size="34" font-style="italic" fill="#3F5C36">Verdant</text>
+            <text x="200" y="450" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" letter-spacing="6" fill="#65855A" opacity="0.85">BOTANICAL · WELLNESS</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Verdant — Wellness Brand Media Kit</h3>
+          <p class="feature-desc">Sage palette, organic leaf motifs, 12-page brand book with ingredient storytelling.</p>
+          <div class="feature-meta">
+            <span class="cat">Media Kit · 12 pages</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 07 · Real Estate Pitch Deck -->
+      <article class="feature-card reveal" data-delay="4">
+        <div class="feature-preview">
+          <span class="feature-tag">Pitch Deck</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p7bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3D2B1F"/><stop offset="100%" stop-color="#1F1410"/></linearGradient>
+              <linearGradient id="p7g" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#D97706"/><stop offset="100%" stop-color="#FCD34D"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p7bg)"/>
+            <g transform="translate(60,180)" fill="url(#p7g)" opacity="0.92">
+              <rect x="0" y="180" width="50" height="80"/>
+              <rect x="60" y="120" width="50" height="140"/>
+              <rect x="120" y="60" width="50" height="200"/>
+              <rect x="180" y="100" width="50" height="160"/>
+              <rect x="240" y="40" width="50" height="220"/>
+            </g>
+            <g transform="translate(60,180)" fill="#1F1410" opacity="0.5">
+              <rect x="10" y="200" width="8" height="8"/>
+              <rect x="25" y="200" width="8" height="8"/>
+              <rect x="10" y="220" width="8" height="8"/>
+              <rect x="70" y="140" width="8" height="8"/>
+              <rect x="85" y="140" width="8" height="8"/>
+              <rect x="130" y="80" width="8" height="8"/>
+              <rect x="145" y="80" width="8" height="8"/>
+              <rect x="160" y="80" width="8" height="8"/>
+              <rect x="190" y="120" width="8" height="8"/>
+              <rect x="250" y="60" width="8" height="8"/>
+              <rect x="265" y="60" width="8" height="8"/>
+            </g>
+            <text x="40" y="100" font-family="Inter, sans-serif" font-size="9" letter-spacing="5" fill="#FCD34D" opacity="0.8">MERIDIAN · TOWER</text>
+            <text x="40" y="140" font-family="Instrument Serif, serif" font-size="32" fill="#FCD34D">Skyline Living</text>
+            <text x="40" y="470" font-family="JetBrains Mono, monospace" font-size="9" fill="#D97706" opacity="0.7">240 UNITS · PHASE I · 2027</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Meridian Tower — Real Estate Deck</h3>
+          <p class="feature-desc">Terracotta and gold skyline system, 18 slides with floor-plans and ROI models.</p>
+          <div class="feature-meta">
+            <span class="cat">Pitch Deck · 18 slides</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 08 · Restaurant Menu Kit -->
+      <article class="feature-card reveal" data-delay="4">
+        <div class="feature-preview">
+          <span class="feature-tag">Menu Kit</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p8bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7F1D1D"/><stop offset="100%" stop-color="#450A0A"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p8bg)"/>
+            <rect x="60" y="60" width="280" height="380" fill="#FAF6EE" opacity="0.97" rx="2"/>
+            <text x="200" y="120" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" letter-spacing="6" fill="#7F1D1D">EST · MMXXIV</text>
+            <text x="200" y="170" text-anchor="middle" font-family="Instrument Serif, serif" font-size="36" font-style="italic" fill="#7F1D1D">Osteria</text>
+            <text x="200" y="195" text-anchor="middle" font-family="Instrument Serif, serif" font-size="14" fill="#7F1D1D" opacity="0.7">— Nostra —</text>
+            <line x1="120" y1="220" x2="280" y2="220" stroke="#7F1D1D" stroke-width="0.6"/>
+            <text x="80" y="260" font-family="Instrument Serif, serif" font-size="11" font-style="italic" fill="#7F1D1D">Antipasti</text>
+            <rect x="80" y="275" width="120" height="3" fill="#7F1D1D" opacity="0.4"/>
+            <rect x="80" y="290" width="100" height="3" fill="#7F1D1D" opacity="0.3"/>
+            <text x="300" y="278" text-anchor="end" font-family="Inter, sans-serif" font-size="9" fill="#7F1D1D">18</text>
+            <text x="80" y="325" font-family="Instrument Serif, serif" font-size="11" font-style="italic" fill="#7F1D1D">Primi</text>
+            <rect x="80" y="340" width="140" height="3" fill="#7F1D1D" opacity="0.4"/>
+            <rect x="80" y="355" width="110" height="3" fill="#7F1D1D" opacity="0.3"/>
+            <text x="300" y="343" text-anchor="end" font-family="Inter, sans-serif" font-size="9" fill="#7F1D1D">26</text>
+            <text x="200" y="415" text-anchor="middle" font-family="Instrument Serif, serif" font-size="9" font-style="italic" fill="#7F1D1D" opacity="0.55">— cucina d'autore —</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Osteria Nostra — Menu Kit</h3>
+          <p class="feature-desc">Burgundy and cream editorial menu system, 4 layouts plus wine pairing addendum.</p>
+          <div class="feature-meta">
+            <span class="cat">Menu Kit · 4 layouts</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 09 · Tech Startup Keynote -->
+      <article class="feature-card reveal" data-delay="5">
+        <div class="feature-preview">
+          <span class="feature-tag">Keynote</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p9bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F0A1F"/><stop offset="100%" stop-color="#050211"/></linearGradient>
+              <linearGradient id="p9g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#06B6D4"/><stop offset="50%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#EC4899"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p9bg)"/>
+            <g stroke="url(#p9g)" stroke-width="0.6" opacity="0.35">
+              <line x1="0" y1="100" x2="400" y2="100"/>
+              <line x1="0" y1="180" x2="400" y2="180"/>
+              <line x1="0" y1="260" x2="400" y2="260"/>
+              <line x1="0" y1="340" x2="400" y2="340"/>
+              <line x1="0" y1="420" x2="400" y2="420"/>
+              <line x1="80" y1="0" x2="80" y2="500"/>
+              <line x1="160" y1="0" x2="160" y2="500"/>
+              <line x1="240" y1="0" x2="240" y2="500"/>
+              <line x1="320" y1="0" x2="320" y2="500"/>
+            </g>
+            <circle cx="200" cy="240" r="80" fill="none" stroke="url(#p9g)" stroke-width="1.5" opacity="0.6"/>
+            <circle cx="200" cy="240" r="50" fill="url(#p9g)" opacity="0.25"/>
+            <circle cx="200" cy="240" r="22" fill="url(#p9g)"/>
+            <text x="40" y="80" font-family="JetBrains Mono, monospace" font-size="9" fill="#06B6D4" opacity="0.8">~/hexa/launch.key</text>
+            <text x="40" y="410" font-family="Inter, sans-serif" font-size="11" letter-spacing="3" fill="#8B5CF6">QUANTUM · LAUNCH · 2026</text>
+            <text x="40" y="445" font-family="Instrument Serif, serif" font-size="28" font-style="italic" fill="#F5F5F7">Orbital.</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Orbital — Tech Startup Keynote</h3>
+          <p class="feature-desc">Neon-grid aesthetic, holographic accents, 22 slides for a quantum computing launch.</p>
+          <div class="feature-meta">
+            <span class="cat">Keynote · 22 slides</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 10 · Fashion Lookbook -->
+      <article class="feature-card reveal" data-delay="5">
+        <div class="feature-preview">
+          <span class="feature-tag">Lookbook</span>
+          <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="p10bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FCE7F3"/><stop offset="100%" stop-color="#FBCFE8"/></linearGradient>
+              <linearGradient id="p10g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#831843"/><stop offset="100%" stop-color="#BE185D"/></linearGradient>
+            </defs>
+            <rect width="400" height="500" fill="url(#p10bg)"/>
+            <ellipse cx="200" cy="160" rx="38" ry="44" fill="url(#p10g)"/>
+            <path d="M170,200 Q160,260 165,360 L235,360 Q240,260 230,200 Z" fill="url(#p10g)"/>
+            <path d="M170,200 L155,260 L165,360" stroke="#831843" stroke-width="0.8" fill="none" opacity="0.45"/>
+            <path d="M230,200 L245,260 L235,360" stroke="#831843" stroke-width="0.8" fill="none" opacity="0.45"/>
+            <text x="40" y="430" font-family="Instrument Serif, serif" font-size="40" font-style="italic" fill="#831843">Été</text>
+            <text x="40" y="465" font-family="Inter, sans-serif" font-size="9" letter-spacing="6" fill="#BE185D" opacity="0.75">SS26 · LOOKBOOK</text>
+            <text x="360" y="465" text-anchor="end" font-family="Instrument Serif, serif" font-size="14" font-style="italic" fill="#831843" opacity="0.55">vol. 04</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <h3 class="feature-title">Été SS26 — Fashion Lookbook</h3>
+          <p class="feature-desc">Editorial blush palette, oversized italic serif, 24 lookbook spreads with look notes.</p>
+          <div class="feature-meta">
+            <span class="cat">Lookbook · 24 spreads</span>
+            <span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============== AI CAPABILITIES ============== -->
+<section class="section" id="capabilities">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="dot"></span> AI Capabilities</span>
+      <h2 class="section-title">One engine. <em>Eight creative surfaces.</em></h2>
+      <p class="section-sub">Hexa is not a single tool — it is a unified intelligence that operates across every format your team ships. From investor narratives to brand systems, the same engine understands your intent and outputs production-ready work.</p>
+    </div>
+
+    <div class="cap-grid" id="capGrid">
+
+      <!-- 01 · Generate Pitch Decks -->
+      <div class="cap-card reveal" data-delay="1" style="--cap-grad: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%)">
+        <span class="cap-num">01</span>
+        <div class="cap-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3 class="cap-title">Generate Pitch Decks</h3>
+        <p class="cap-desc">Describe your startup, market, and round. Hexa drafts a 10–14 slide narrative deck with traction, TAM, and ask — ready to send to investors.</p>
+      </div>
+
+      <!-- 02 · Create Media Kits -->
+      <div class="cap-card reveal" data-delay="1" style="--cap-grad: linear-gradient(135deg, #F472B6 0%, #DB2777 100%)">
+        <span class="cap-num">02</span>
+        <div class="cap-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+        </div>
+        <h3 class="cap-title">Create Media Kits</h3>
+        <p class="cap-desc">Press-ready media kits with brand story, leadership bios, logo lockups, fact sheet, and high-res image gallery — formatted for journalists and partners.</p>
+      </div>
+
+      <!-- 03 · Build Website Kits -->
+      <div class="cap-card reveal" data-delay="2" style="--cap-grad: linear-gradient(135deg, #67E8F9 0%, #0891B2 100%)">
+        <span class="cap-num">03</span>
+        <div class="cap-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <h3 class="cap-title">Build Website Kits</h3>
+        <p class="cap-desc">Complete multi-page website kits — landing, about, pricing, blog, contact — with responsive layouts, component library, and CMS-ready structure.</p>
+      </div>
+
+      <!-- 04 · Convert Canva ↔ PPTX -->
+      <div class="cap-card reveal" data-delay="2" style="--cap-grad: linear-gradient(135deg, #FBBF24 0%, #D97706 100%)">
+        <span class="cap-num">04</span>
+        <div class="cap-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M16 21h5v-5"/><path d="M8 21H3v-5"/><path d="M21 21l-7-7"/><path d="M3 21l7-7"/></svg>
+        </div>
+        <h3 class="cap-title">Convert Canva ↔ PPTX</h3>
+        <p class="cap-desc">Lossless two-way conversion between Canva and PowerPoint. Fonts, gradients, animations, and master layouts survive the round trip — no rebuild required.</p>
+      </div>
+
+      <!-- 05 · Create Keynotes -->
+      <div class="cap-card reveal" data-delay="3" style="--cap-grad: linear-gradient(135deg, #818CF8 0%, #4F46E5 100%)">
+        <span class="cap-num">05</span>
+        <div class="cap-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </div>
+        <h3 class="cap-title">Create Keynotes</h3>
+        <p class="cap-desc">Stage-quality keynote presentations with cinematic transitions, speaker notes, and timed builds — engineered for product launches and conference talks.</p>
+      </div>
+
+      <!-- 06 · Smart Template Search -->
+      <div class="cap-card reveal" data-delay="3" style="--cap-grad: linear-gradient(135deg, #34D399 0%, #059669 100%)">
+        <span class="cap-num">06</span>
+        <div class="cap-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3 class="cap-title">Smart Template Search</h3>
+        <p class="cap-desc">Semantic search across 180k+ templates. Hexa understands intent, industry, and aesthetic — surfacing the three best matches before you finish typing.</p>
+      </div>
+
+      <!-- 07 · Auto Fill Content -->
+      <div class="cap-card reveal" data-delay="4" style="--cap-grad: linear-gradient(135deg, #FB7185 0%, #E11D48 100%)">
+        <span class="cap-num">07</span>
+        <div class="cap-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <h3 class="cap-title">Auto Fill Content</h3>
+        <p class="cap-desc">Drop in a URL, brief, or spreadsheet. Hexa extracts key facts, writes slide copy, generates charts, and fills every placeholder with on-brand content.</p>
+      </div>
+
+      <!-- 08 · Brand Consistency Engine -->
+      <div class="cap-card reveal" data-delay="4" style="--cap-grad: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)">
+        <span class="cap-num">08</span>
+        <div class="cap-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
+        <h3 class="cap-title">Brand Consistency Engine</h3>
+        <p class="cap-desc">Upload a brand kit once. Every generated asset — across every format — auto-enforces type scale, color tokens, voice, and logo placement rules.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============== HEXA INTELLIGENCE ============== -->
+<section class="section" id="intelligence">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow"><span class="dot"></span> Hexa Intelligence</span>
+      <h2 class="section-title">From prompt to export in <em>six orchestrated stages.</em></h2>
+      <p class="section-sub">Under the hood, Hexa runs a deterministic pipeline. Each stage hands a structured artifact to the next — so generation is reproducible, editable, and auditable end-to-end.</p>
+    </div>
+
+    <div class="intel-wrap reveal" data-delay="1">
+      <div class="intel-grid" id="intelGrid">
+
+        <!-- Stage 01 · Prompt -->
+        <div class="intel-step" style="--step-grad: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%)">
+          <span class="step-num">01</span>
+          <div class="intel-node">
+            <div class="glyph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+          <div class="step-title">Prompt</div>
+          <div class="step-desc">Natural-language intent capture with brand and format context.</div>
+        </div>
+
+        <!-- Stage 02 · Search Engine -->
+        <div class="intel-step" style="--step-grad: linear-gradient(135deg, #F472B6 0%, #DB2777 100%)">
+          <span class="step-num">02</span>
+          <div class="intel-node">
+            <div class="glyph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+          </div>
+          <div class="step-title">Search Engine</div>
+          <div class="step-desc">Semantic retrieval across 180k+ indexed templates and brand kits.</div>
+        </div>
+
+        <!-- Stage 03 · Template Matching -->
+        <div class="intel-step" style="--step-grad: linear-gradient(135deg, #FBBF24 0%, #D97706 100%)">
+          <span class="step-num">03</span>
+          <div class="intel-node">
+            <div class="glyph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+          </div>
+          <div class="step-title">Template Matching</div>
+          <div class="step-desc">Ranks candidates by intent, industry, palette, and license fit.</div>
+        </div>
+
+        <!-- Stage 04 · Generation -->
+        <div class="intel-step" style="--step-grad: linear-gradient(135deg, #67E8F9 0%, #0891B2 100%)">
+          <span class="step-num">04</span>
+          <div class="intel-node">
+            <div class="glyph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+          </div>
+          <div class="step-title">Generation</div>
+          <div class="step-desc">Assembles slide tree, fills content, applies brand tokens.</div>
+        </div>
+
+        <!-- Stage 05 · Editor -->
+        <div class="intel-step" style="--step-grad: linear-gradient(135deg, #34D399 0%, #059669 100%)">
+          <span class="step-num">05</span>
+          <div class="intel-node">
+            <div class="glyph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </div>
+          </div>
+          <div class="step-title">Editor</div>
+          <div class="step-desc">Visual canvas for inline refinement, swap, and regenerate.</div>
+        </div>
+
+        <!-- Stage 06 · Export -->
+        <div class="intel-step" style="--step-grad: linear-gradient(135deg, #FB7185 0%, #E11D48 100%)">
+          <span class="step-num">06</span>
+          <div class="intel-node">
+            <div class="glyph">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+          </div>
+          <div class="step-title">Export</div>
+          <div class="step-desc">One-click ship to PPTX, Keynote, PDF, Canva, or web.</div>
+        </div>
+
+      </div>
+      <svg class="intel-connector" id="intelConnector" preserveAspectRatio="none" viewBox="0 0 100 2" style="position:absolute;top:32px;left:0;width:100%;height:2px;z-index:0;">
+        <defs>
+          <linearGradient id="pulseGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#A78BFA"/>
+            <stop offset="50%" stop-color="#F472B6"/>
+            <stop offset="100%" stop-color="#FBBF24"/>
+          </linearGradient>
+        </defs>
+        <line class="track" x1="0" y1="1" x2="100" y2="1"/>
+        <line class="pulse" x1="0" y1="1" x2="100" y2="1"/>
+      </svg>
+
+      <div class="intel-footer">
+        <div class="intel-stat">
+          <span class="v"><em>2.4s</em></span>
+          <span class="l">AVG END-TO-END LATENCY</span>
+        </div>
+        <div class="intel-stat">
+          <span class="v"><em>180k+</em></span>
+          <span class="l">TEMPLATES IN INDEX</span>
+        </div>
+        <div class="intel-stat">
+          <span class="v"><em>98.7%</em></span>
+          <span class="l">BRAND CONSISTENCY SCORE</span>
+        </div>
+        <div class="intel-stat">
+          <span class="v"><em>12</em></span>
+          <span class="l">EXPORT FORMATS SUPPORTED</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== CTA ============== -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-card reveal">
+      <h3>Step into <em>Hexa World.</em></h3>
+      <p>Stop browsing template marketplaces. Describe what you need — Hexa will find it, build it, edit it, and prepare it for export.</p>
+      <div class="cta-actions">
+        <a href="#hero" class="btn btn-accent">
+          Open Hexa Console
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#intelligence" class="btn btn-ghost">See how it works</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <div class="footer-meta">
+      <span class="brand-name" style="font-size:14px">Lazy<b>Dog</b></span>
+      <span class="sep">·</span>
+      <span>Hexa Intelligence v3.2</span>
+    </div>
+    <div class="footer-links">
+      <a href="#">Templates</a>
+      <a href="#">Hexa API</a>
+      <a href="#">Enterprise</a>
+      <a href="#">Changelog</a>
+      <a href="#">Privacy</a>
+    </div>
+    <div>© 2026 LazyDog Templates · Crafted with Hexa</div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   LazyDog Templates · Hexa World
+   Interactions: theme, reveal, prompt, filter, workflow
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ---------- Theme toggle ---------- */
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeToggle');
+  var iconMoon = document.getElementById('iconMoon');
+  var iconSun  = document.getElementById('iconSun');
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    if (iconMoon && iconSun) {
+      iconMoon.style.display = theme === 'dark' ? 'block' : 'none';
+      iconSun.style.display  = theme === 'dark' ? 'none'  : 'block';
+    }
+    try { localStorage.setItem('hexa-theme', theme); } catch (e) {}
+  }
+
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('hexa-theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function () {
+      var current = root.getAttribute('data-theme') || 'dark';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  /* ---------- Prompt box ---------- */
+  var promptInput = document.getElementById('promptInput');
+  var promptSend  = document.getElementById('promptSend');
+
+  function autoGrow() {
+    if (!promptInput) return;
+    promptInput.style.height = 'auto';
+    promptInput.style.height = Math.min(promptInput.scrollHeight, 220) + 'px';
+  }
+  if (promptInput) {
+    promptInput.addEventListener('input', autoGrow);
+    promptInput.addEventListener('focus', autoGrow);
+  }
+
+  /* Example chips → fill prompt */
+  var chips = document.querySelectorAll('.example-chip');
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var text = chip.getAttribute('data-prompt') || chip.textContent.trim();
+      if (!promptInput) return;
+      promptInput.value = text;
+      autoGrow();
+      promptInput.focus();
+      // move cursor to end
+      var len = promptInput.value.length;
+      promptInput.setSelectionRange(len, len);
+    });
+  });
+
+  /* Mode tabs (Create / Edit / Export) */
+  var modeTabs = document.querySelectorAll('.prompt-mode-tabs button');
+  modeTabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      modeTabs.forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      if (!promptInput) return;
+      var mode = tab.getAttribute('data-mode');
+      var placeholders = {
+        create: 'Describe what you want to create...',
+        edit:   'Paste a URL or describe what to edit...',
+        export: 'Describe your export target — PPTX, PDF, Keynote, Canva...'
+      };
+      promptInput.placeholder = placeholders[mode] || placeholders.create;
+    });
+  });
+
+  /* Send button — visual feedback (no real backend) */
+  if (promptSend && promptInput) {
+    promptSend.addEventListener('click', function () {
+      var value = promptInput.value.trim();
+      if (!value) {
+        promptInput.focus();
+        // subtle shake
+        promptInput.animate(
+          [
+            { transform: 'translateX(0)' },
+            { transform: 'translateX(-6px)' },
+            { transform: 'translateX(6px)' },
+            { transform: 'translateX(-4px)' },
+            { transform: 'translateX(0)' }
+          ],
+          { duration: 320, easing: 'ease-in-out' }
+        );
+        return;
+      }
+      // Success ripple
+      var original = promptSend.innerHTML;
+      promptSend.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Hexa is generating';
+      promptSend.style.opacity = '0.85';
+      promptSend.style.pointerEvents = 'none';
+      setTimeout(function () {
+        promptSend.innerHTML = original;
+        promptSend.style.opacity = '';
+        promptSend.style.pointerEvents = '';
+      }, 2600);
+    });
+
+    // Cmd/Ctrl + Enter to send
+    promptInput.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        promptSend.click();
+      }
+    });
+  }
+
+  /* ---------- Filter panel — placeholder toggles ---------- */
+  var filterPills = document.querySelectorAll('#lazydogFilterSlot .pill');
+  var applyBtn = document.querySelector('.filter-apply');
+  function updateApplyCount() {
+    if (!applyBtn) return;
+    var activeCount = document.querySelectorAll('#lazydogFilterSlot .pill.active').length;
+    var svg = applyBtn.querySelector('svg');
+    applyBtn.textContent = '';
+    if (svg) applyBtn.appendChild(svg);
+    applyBtn.appendChild(document.createTextNode(' Apply ' + activeCount + ' filter' + (activeCount === 1 ? '' : 's')));
+  }
+  filterPills.forEach(function (pill) {
+    pill.addEventListener('click', function () {
+      var row = pill.closest('.filter-placeholder-row');
+      var label = row ? row.querySelector('.label') : null;
+      var labelText = label ? label.textContent.trim() : '';
+      var singleSelect = (labelText === 'Category' || labelText === 'License' || labelText === 'Palette');
+      var siblings = pill.parentElement.querySelectorAll('.pill');
+      if (singleSelect) {
+        siblings.forEach(function (s) { s.classList.remove('active'); });
+        pill.classList.add('active');
+      } else {
+        pill.classList.toggle('active');
+      }
+      updateApplyCount();
+    });
+  });
+
+  /* ---------- Intel step hover ripple ---------- */
+  var intelSteps = document.querySelectorAll('.intel-step');
+  intelSteps.forEach(function (step, i) {
+    step.addEventListener('mouseenter', function () {
+      var node = step.querySelector('.intel-node');
+      if (!node) return;
+      node.animate(
+        [
+          { boxShadow: '0 0 0 0 rgba(167,139,250,0.0)' },
+          { boxShadow: '0 0 0 12px rgba(167,139,250,0.18)' },
+          { boxShadow: '0 0 0 0 rgba(167,139,250,0.0)' }
+        ],
+        { duration: 900, easing: 'ease-out' }
+      );
+    });
+  });
+
+  /* ---------- Capability card cursor spotlight ---------- */
+  var capCards = document.querySelectorAll('.cap-card');
+  capCards.forEach(function (card) {
+    card.addEventListener('mousemove', function (e) {
+      var rect = card.getBoundingClientRect();
+      var x = ((e.clientX - rect.left) / rect.width) * 100;
+      var y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mx', x.toFixed(1) + '%');
+      card.style.setProperty('--my', y.toFixed(1) + '%');
+    });
+  });
+
+  /* ---------- Feature card cursor spotlight ---------- */
+  var featCards = document.querySelectorAll('.feature-card');
+  featCards.forEach(function (card) {
+    card.addEventListener('mousemove', function (e) {
+      var rect = card.getBoundingClientRect();
+      var x = ((e.clientX - rect.left) / rect.width) * 100;
+      var y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mx', x.toFixed(1) + '%');
+      card.style.setProperty('--my', y.toFixed(1) + '%');
+    });
+  });
+
+  /* ---------- Subtle parallax on background orbs ---------- */
+  var orbs = document.querySelectorAll('.orb');
+  if (orbs.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var tx = 0, ty = 0, cx = 0, cy = 0;
+    window.addEventListener('mousemove', function (e) {
+      var w = window.innerWidth, h = window.innerHeight;
+      tx = (e.clientX / w - 0.5) * 2;
+      ty = (e.clientY / h - 0.5) * 2;
+    });
+    function raf() {
+      cx += (tx - cx) * 0.06;
+      cy += (ty - cy) * 0.06;
+      orbs.forEach(function (orb, i) {
+        var depth = (i + 1) * 14;
+        orb.style.setProperty('--px', (-cx * depth).toFixed(2) + 'px');
+        orb.style.setProperty('--py', (-cy * depth).toFixed(2) + 'px');
+      });
+      requestAnimationFrame(raf);
+    }
+    raf();
+  }
+
+  /* ---------- Nav: shrink on scroll ---------- */
+  var nav = document.querySelector('.nav');
+  var lastY = 0;
+  window.addEventListener('scroll', function () {
+    var y = window.scrollY;
+    if (nav) {
+      if (y > 40) {
+        nav.style.boxShadow = 'var(--shadow-md)';
+        nav.style.background = 'var(--glass-bg-strong)';
+      } else {
+        nav.style.boxShadow = '';
+        nav.style.background = '';
+      }
+    }
+    lastY = y;
+  }, { passive: true });
+
+  /* ---------- Console signature ---------- */
+  try {
+    console.log(
+      '%c LazyDog · Hexa World %c v3.2 ',
+      'background: linear-gradient(135deg,#A78BFA,#F472B6,#FBBF24); color:#0A0A0F; font-weight:700; padding:4px 8px; border-radius:4px 0 0 4px;',
+      'background:#0A0A0F; color:#F5F5F7; padding:4px 8px; border-radius:0 4px 4px 0; font-family: monospace;'
+    );
+  } catch (e) {}
+
+})();
+</script>
+
+<!-- ============================================================
+     HEXA BRIDGE (Opus) — auth + owner lock + seed prefill.
+     Standalone page (no navbar.js), so we init Firebase once with the
+     getApps() reuse pattern to avoid the duplicate-app error.
+     Deck building is OWNER-ONLY for now: paste your UID into LD_ADMIN_UIDS
+     (same value as in navbar.js). Empty list = locked for everyone.
+     ============================================================ -->
+<script type="module">
+  import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.LD_ADMIN_UIDS = window.LD_ADMIN_UIDS || [];   // ← paste your owner UID here (same as navbar.js)
+  window.ldMyUid  = function(){ try{ return auth.currentUser ? auth.currentUser.uid : null; }catch(e){ return null; } };
+  window.ldIsAdmin = function(){ try{ return !!auth.currentUser && window.LD_ADMIN_UIDS.indexOf(auth.currentUser.uid) !== -1; }catch(e){ return false; } };
+
+  function blockPage(){
+    if (document.getElementById('hexaOwnerGate')) return;
+    var g = document.createElement('div');
+    g.id = 'hexaOwnerGate';
+    g.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;'
+      + 'background:rgba(10,10,15,0.92);backdrop-filter:blur(6px);text-align:center;font-family:Inter,sans-serif;';
+    g.innerHTML = '<div style="max-width:440px;padding:24px;">'
+      + '<div style="font-size:38px;">🔒</div>'
+      + '<h1 style="color:#fff;font-weight:800;margin:10px 0 6px;">Owner only</h1>'
+      + '<p style="color:#b9bcd0;margin:0 0 20px;">Deck generating isn\'t open yet — you can chat with Hexa and browse templates. This opens to buyers later.</p>'
+      + '<a href="main.html" style="display:inline-block;padding:11px 22px;border-radius:12px;color:#fff;font-weight:700;text-decoration:none;background:linear-gradient(135deg,#5b7fff,#b464ff);">Back to store</a>'
+      + '</div>';
+    document.body.appendChild(g);
+  }
+  function applyGate(){ if (!(window.ldIsAdmin && window.ldIsAdmin())) blockPage(); }
+
+  onAuthStateChanged(auth, function(){ applyGate(); });
+  setTimeout(applyGate, 4500);   // fallback if auth never resolves (e.g. logged-out visitor)
+
+  // seed the prompt box from ?seed= (Hexa passes the owner's original sentence)
+  (function(){
+    var s = new URLSearchParams(location.search).get('seed');
+    if (!s) return;
+    var clean = s.replace(/\b(make|create|generate|prepare|build|design|compose|do|me|a|an|new|please|hexa)\b/gi,' ').replace(/\s+/g,' ').trim();
+    var t = document.getElementById('promptInput');
+    if (t && clean.length > 2) t.value = clean;
+  })();
+</script>
+</body>
+</html>
