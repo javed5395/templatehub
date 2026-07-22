@@ -64,7 +64,10 @@
   // TRUSTED_UIDS, which 403s non-admins on the actual build.)
   // ONE-TIME SETUP: sign in → ask Hexa "what's my uid" → paste it below → git push.
   //   e.g.  window.LD_ADMIN_UIDS = ['abc123YourOwnerUidHere'];
-  window.LD_ADMIN_UIDS = window.LD_ADMIN_UIDS || [];
+  window.LD_ADMIN_UIDS = window.LD_ADMIN_UIDS || [
+    'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',   // javed5395@gmail.com — site owner
+    'FvcmbFk2AsXCIq1L2uog7t5erfp1'    // lazydogtemplates@gmail.com — business account
+  ];
   window.ldIsAdmin = function(){
     try{
       if(!(auth && auth.currentUser)) return false;

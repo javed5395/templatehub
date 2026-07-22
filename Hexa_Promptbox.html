@@ -2192,7 +2192,10 @@ footer {
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  window.LD_ADMIN_UIDS = window.LD_ADMIN_UIDS || [];   // ← paste your owner UID here (same as navbar.js)
+  window.LD_ADMIN_UIDS = window.LD_ADMIN_UIDS || [
+    'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',   // javed5395@gmail.com — site owner
+    'FvcmbFk2AsXCIq1L2uog7t5erfp1'    // lazydogtemplates@gmail.com — business account
+  ];
   window.ldMyUid  = function(){ try{ return auth.currentUser ? auth.currentUser.uid : null; }catch(e){ return null; } };
   window.ldIsAdmin = function(){ try{ return !!auth.currentUser && window.LD_ADMIN_UIDS.indexOf(auth.currentUser.uid) !== -1; }catch(e){ return false; } };
 
