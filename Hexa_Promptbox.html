@@ -1273,62 +1273,77 @@ footer {
       </div>
 
       <!-- ===== Method B: Advanced Filter Panel (integration slot) ===== -->
-      <aside class="filter-panel" aria-label="Advanced filters">
-        <div class="filter-panel-head">
-          <span class="filter-panel-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-            Advanced Filters
-          </span>
-          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-tertiary);letter-spacing:0.1em">METHOD · B</span>
-        </div>
-        <p class="filter-panel-hint">
-          Prefer precision over prose? Use the LazyDog advanced filter card to dial in category, format, palette, industry, and license.
-        </p>
-
-        <!-- Reserved integration slot for existing LazyDog advanced filter card.
-             Container only — do NOT redesign the embedded card. -->
-        <div class="filter-integration-slot" id="lazydogFilterSlot">
-          <div class="filter-placeholder-row">
-            <span class="label">Category</span>
-            <div class="pill-row">
-              <span class="pill active">Media Kit</span>
-              <span class="pill">Pitch Deck</span>
-              <span class="pill">Keynote</span>
-            </div>
+      <!-- ===== Method B: LazyDog "Filter by field" card (exact site card, mounted by Opus) ===== -->
+      <aside class="filter-panel" aria-label="Advanced filters" style="background:transparent;border:0;box-shadow:none;padding:0;">
+        <style>
+          #ldFilterCard{width:100%;background:#fff;border-radius:28px;box-shadow:0 10px 40px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);overflow:hidden;font-family:'Inter','Segoe UI',sans-serif;}
+          #ldFilterCard .lf-inner{padding:24px 30px;}
+          #ldFilterCard h3{font-size:13px;color:#d4af37;margin:0 0 14px;font-family:'Poppins','Inter',sans-serif;font-weight:600;}
+          #ldFilterCard .lf-block{background:#F4F6FB;border:1px solid #e5e8f0;border-radius:14px;padding:16px;}
+          #ldFilterCard .lf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;}
+          #ldFilterCard .lf-field{display:flex;flex-direction:column;gap:4px;}
+          #ldFilterCard .lf-field.full{grid-column:1 / -1;}
+          #ldFilterCard .lf-field label{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em;}
+          #ldFilterCard select,#ldFilterCard input{background:#fff;color:#1a1a2e;border:1px solid #d8dce6;border-radius:10px;padding:6px 8px;font-size:12px;font-family:inherit;}
+          #ldFilterCard select[multiple]{height:56px;}
+          #ldFilterCard .lf-clear{margin-top:12px;background:transparent;border:1px solid #e0a0a0;color:#b23a3a;border-radius:10px;padding:5px 12px;cursor:pointer;font-size:11px;}
+          #ldFilterSummary{display:none;margin-top:12px;background:#fff;border:1px solid #e5e8f0;border-radius:12px;padding:11px 13px;font-size:12px;line-height:1.55;color:#1a1a2e;}
+        </style>
+        <div id="ldFilterCard"><div class="lf-inner">
+          <h3>&#127899;&#65039; Filter by field</h3>
+          <div class="lf-block"><div class="lf-grid">
+            <div class="lf-field"><label>Content Type</label><select id="lf_contentType"><option value="">Any</option><option value="pitch-deck">Pitch Deck</option><option value="media-kit">Media Kit</option><option value="web-kit">Web Kit</option><option value="resume-cv">Resume / CV</option><option value="digital-keynotes">Digital Keynotes</option></select></div>
+            <div class="lf-field"><label>No. of Slides</label><input type="number" id="lf_slides" min="2" max="30" placeholder="e.g. 15"/></div>
+            <div class="lf-field"><label>Aspect Ratio</label><select id="lf_aspect"><option value="">Any</option><option value="16 9">16:9</option><option value="4 3">4:3</option><option value="1 1">1:1 Square</option><option value="9 16">9:16 Vertical</option></select></div>
+            <div class="lf-field"><label>Formality</label><select id="lf_formality"><option value="">Any</option><option value="very high">Very High</option><option value="high">High</option><option value="medium high">Medium-High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
+            <div class="lf-field"><label>Color Family</label><select id="lf_colorFamily" multiple><option value="blue">Blue</option><option value="navy">Navy</option><option value="black">Black</option><option value="white">White</option><option value="grey">Grey</option><option value="red">Red</option><option value="terracotta">Terracotta</option><option value="orange">Orange</option><option value="yellow">Yellow</option><option value="gold">Gold</option><option value="green">Green</option><option value="purple">Purple</option><option value="pink">Pink</option><option value="brown">Brown</option><option value="neutral">Neutral</option><option value="warm">Warm Tones</option><option value="cool">Cool Tones</option><option value="dark">Dark</option><option value="light">Light</option><option value="multicolor">Multicolor</option></select></div>
+            <div class="lf-field"><label>Style</label><select id="lf_style" multiple><option value="minimal">Minimal</option><option value="bold">Bold</option><option value="modern">Modern</option><option value="elegant">Elegant</option><option value="professional">Professional</option><option value="playful">Playful</option><option value="editorial">Editorial</option><option value="corporate">Corporate</option><option value="creative">Creative</option><option value="luxury">Luxury</option><option value="clean">Clean</option><option value="dark">Dark</option><option value="colorful">Colorful</option><option value="vintage">Vintage</option><option value="futuristic">Futuristic</option></select></div>
+            <div class="lf-field"><label>Industry</label><select id="lf_industry" multiple><option value="tech">Tech & AI</option><option value="healthcare">Healthcare & Medical</option><option value="finance">Finance & Banking</option><option value="construction">Construction</option><option value="retail">Retail & E-commerce</option><option value="education">Education</option><option value="realestate">Real Estate</option><option value="fashion">Fashion & Beauty</option><option value="food">Food & Restaurant</option><option value="agriculture">Agriculture & Farming</option><option value="travel_hospitality">Travel & Hospitality</option><option value="sports_fitness">Sports & Fitness</option><option value="nonprofit">Non-profit / NGO</option><option value="legal_professional">Legal & Professional Services</option><option value="general">General / Business</option><option value="media_entertainment">Media & Entertainment</option><option value="other">Other</option></select></div>
+            <div class="lf-field"><label>Tone</label><select id="lf_tone" multiple><option value="professional">Professional</option><option value="confident">Confident</option><option value="friendly">Friendly</option><option value="inspiring">Inspiring</option><option value="bold">Bold</option><option value="calm">Calm</option><option value="authoritative">Authoritative</option><option value="playful">Playful</option><option value="elegant">Elegant</option><option value="editorial">Editorial</option></select></div>
+            <div class="lf-field"><label>Audience</label><select id="lf_audience" multiple><option value="investors">Investors</option><option value="clients">Clients</option><option value="media">Media & Press</option><option value="partners">Brand Partners</option><option value="retail_buyers">Retail Buyers</option><option value="influencers">Influencers</option><option value="recruiters">Recruiters</option><option value="students">Students</option><option value="customers">Customers</option><option value="general">General Public</option></select></div>
+            <div class="lf-field"><label>Best For</label><select id="lf_bestFor" multiple><option value="pitch">Pitching Investors</option><option value="launch">Product / Collection Launch</option><option value="press">Press & Media Distribution</option><option value="partnership">Partnership Proposals</option><option value="job_application">Job Applications</option><option value="brand_identity">Brand Identity</option><option value="social_campaign">Social Media Campaigns</option><option value="sales">Sales Presentations</option><option value="internal">Internal Presentations</option><option value="portfolio">Portfolio Showcase</option></select></div>
+            <div class="lf-field full"><label>Inspired by / base layout on</label><input type="text" id="lf_inspired" placeholder="e.g. use the layout of the &#8216;Aurora Skincare&#8217; kit"/></div>
           </div>
-          <div class="filter-placeholder-row">
-            <span class="label">Format</span>
-            <div class="field"></div>
+          <button class="lf-clear" id="lf_clear" type="button">Clear all filters</button>
+          <div id="ldFilterSummary"></div>
           </div>
-          <div class="filter-placeholder-row">
-            <span class="label">Palette</span>
-            <div class="pill-row">
-              <span class="pill">Dark</span>
-              <span class="pill active">Gold</span>
-              <span class="pill">Mono</span>
-              <span class="pill">Pastel</span>
-            </div>
-          </div>
-          <div class="filter-placeholder-row">
-            <span class="label">Industry</span>
-            <div class="field"></div>
-          </div>
-          <div class="filter-placeholder-row">
-            <span class="label">License</span>
-            <div class="pill-row">
-              <span class="pill">Free</span>
-              <span class="pill active">Pro</span>
-              <span class="pill">Enterprise</span>
-            </div>
-          </div>
-
-          <button class="filter-apply">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Apply 5 filters
-          </button>
-          <div class="filter-apply-note">// lazydog.filterCard.mount(#lazydogFilterSlot)</div>
-        </div>
+        </div></div>
       </aside>
+      <script>
+        (function(){
+          var card=document.getElementById('ldFilterCard'); if(!card) return;
+          function val(id){var e=document.getElementById(id);return e?String(e.value||'').trim():'';}
+          function multi(id){var e=document.getElementById(id);if(!e)return[];return Array.prototype.slice.call(e.selectedOptions||[]).map(function(o){return o.value;});}
+          window.hexaCollectOrder=function(){
+            var pi=document.getElementById('promptInput');
+            var o={contentType:val('lf_contentType'),slides:val('lf_slides'),aspect:val('lf_aspect'),formality:val('lf_formality'),
+              colorFamily:multi('lf_colorFamily'),style:multi('lf_style'),industry:multi('lf_industry'),tone:multi('lf_tone'),
+              audience:multi('lf_audience'),bestFor:multi('lf_bestFor'),inspiredBy:val('lf_inspired'),
+              describe:pi?String(pi.value||'').trim():''};
+            var L={contentType:'content type',slides:'slide count',aspect:'aspect ratio',formality:'formality',colorFamily:'colour',style:'style',industry:'industry',tone:'tone',audience:'audience',bestFor:'best-for'};
+            o.hexaChoice=Object.keys(L).filter(function(k){var v=o[k];return !v||v.length===0;}).map(function(k){return L[k];});
+            return o;
+          };
+          document.getElementById('lf_clear').addEventListener('click',function(){
+            ['lf_contentType','lf_slides','lf_aspect','lf_formality','lf_inspired'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+            ['lf_colorFamily','lf_style','lf_industry','lf_tone','lf_audience','lf_bestFor'].forEach(function(id){var e=document.getElementById(id);if(e)Array.prototype.forEach.call(e.options,function(op){op.selected=false;});});
+            var b=document.getElementById('ldFilterSummary');if(b)b.style.display='none';
+          });
+          function lineItem(n,v){if(!v||v.length===0)return '';return '<div><b>'+n+':</b> '+(Array.isArray(v)?v.join(', '):v)+'</div>';}
+          var gen=document.getElementById('promptSend');
+          if(gen) gen.addEventListener('click',function(){
+            var o=window.hexaCollectOrder(); window.hexaLastOrder=o;
+            var box=document.getElementById('ldFilterSummary'); box.style.display='block';
+            box.innerHTML='<div style="font-weight:800;margin-bottom:6px;">Order ready \u2713</div>'
+              +lineItem('Content type',o.contentType)+lineItem('Slides',o.slides)+lineItem('Aspect',o.aspect)+lineItem('Formality',o.formality)
+              +lineItem('Colour',o.colorFamily)+lineItem('Style',o.style)+lineItem('Industry',o.industry)+lineItem('Tone',o.tone)
+              +lineItem('Audience',o.audience)+lineItem('Best for',o.bestFor)+lineItem('Inspired by',o.inspiredBy)+lineItem('Prompt',o.describe)
+              +(o.hexaChoice.length?'<div style="color:#8a90ad;margin-top:6px;"><em>My choice:</em> '+o.hexaChoice.join(', ')+'</div>':'');
+            console.log('[Hexa compose] order ->',o);
+            // STAGE 4 HOOK (needs composer redeploy): POST { order:o } with the admin token -> build the deck.
+          });
+        })();
+      </script>
 
     </div>
   </div>
@@ -2179,45 +2194,12 @@ footer {
 </script>
 
 <!-- ============================================================
-     HEXA BRIDGE (Opus) — auth + owner lock + seed prefill.
-     Standalone page (no navbar.js), so we init Firebase once with the
-     getApps() reuse pattern to avoid the duplicate-app error.
-     Deck building is OWNER-ONLY for now: paste your UID into LD_ADMIN_UIDS
-     (same value as in navbar.js). Empty list = locked for everyone.
+     HEXA BRIDGE (Opus) — seed prefill only. NO lock here on purpose:
+     the page is open so you can open the HTML directly to test. Access
+     control lives at the ENTRY POINTS instead (the navbar "Generate Designs"
+     button + Hexa's "prepare a deck" trigger, both owner-gated in navbar.js).
      ============================================================ -->
-<script type="module">
-  import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  window.LD_ADMIN_UIDS = window.LD_ADMIN_UIDS || [
-    'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',   // javed5395@gmail.com — site owner
-    'FvcmbFk2AsXCIq1L2uog7t5erfp1'    // lazydogtemplates@gmail.com — business account
-  ];
-  window.ldMyUid  = function(){ try{ return auth.currentUser ? auth.currentUser.uid : null; }catch(e){ return null; } };
-  window.ldIsAdmin = function(){ try{ return !!auth.currentUser && window.LD_ADMIN_UIDS.indexOf(auth.currentUser.uid) !== -1; }catch(e){ return false; } };
-
-  function blockPage(){
-    if (document.getElementById('hexaOwnerGate')) return;
-    var g = document.createElement('div');
-    g.id = 'hexaOwnerGate';
-    g.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;'
-      + 'background:rgba(10,10,15,0.92);backdrop-filter:blur(6px);text-align:center;font-family:Inter,sans-serif;';
-    g.innerHTML = '<div style="max-width:440px;padding:24px;">'
-      + '<div style="font-size:38px;">🔒</div>'
-      + '<h1 style="color:#fff;font-weight:800;margin:10px 0 6px;">Owner only</h1>'
-      + '<p style="color:#b9bcd0;margin:0 0 20px;">Deck generating isn\'t open yet — you can chat with Hexa and browse templates. This opens to buyers later.</p>'
-      + '<a href="main.html" style="display:inline-block;padding:11px 22px;border-radius:12px;color:#fff;font-weight:700;text-decoration:none;background:linear-gradient(135deg,#5b7fff,#b464ff);">Back to store</a>'
-      + '</div>';
-    document.body.appendChild(g);
-  }
-  function applyGate(){ if (!(window.ldIsAdmin && window.ldIsAdmin())) blockPage(); }
-
-  onAuthStateChanged(auth, function(){ applyGate(); });
-  setTimeout(applyGate, 4500);   // fallback if auth never resolves (e.g. logged-out visitor)
-
+<script>
   // seed the prompt box from ?seed= (Hexa passes the owner's original sentence)
   (function(){
     var s = new URLSearchParams(location.search).get('seed');
