@@ -626,11 +626,8 @@
     widgetEl.addEventListener('mouseenter', function() {
       widgetEl.classList.remove('force-collapsed');
     });
-    // Click anywhere on card (when not locked) → lock open
-    widgetEl.addEventListener('click', function(e) {
-      if (e.target && e.target.id === 'widgetLockBtn') return;
-      if (!widgetLocked) setLocked(true);
-    });
+    // Lock is controlled ONLY by the button (like the left card), so clicking
+    // inside the card no longer auto-locks and desyncs the button.
     var lockBtn = document.getElementById('widgetLockBtn');
     if (lockBtn) {
       lockBtn.addEventListener('click', function(e) {
