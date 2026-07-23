@@ -424,6 +424,17 @@
 
   // Render top matches as real deck cards (identical to page cards) with match % badge.
   function renderFilteredResults(scored) {
+    // Preferred path: the host page exposes _ldtRenderFiltered, which inserts the
+    // top matches as real deck cards ABOVE the folder grid (#deckGrid) — so the
+    // searched designs sit on top and the rest of the folder is pushed below.
+    // Cap at the 10 best, per the requirement.
+    if (typeof window._ldtRenderFiltered === 'function') {
+      var sec0 = document.getElementById('swResultsSection');
+      if (sec0) sec0.style.display = 'none';   // don't double-render inside the widget
+      if (!scored || !scored.length) window._ldtRenderFiltered(null);
+      else window._ldtRenderFiltered(scored.slice(0, 10).map(function (s) { return s.deck; }));
+      return;
+    }
     var section = document.getElementById('swResultsSection');
     if (!section) return;
     if (!scored || !scored.length) { section.style.display = 'none'; return; }
