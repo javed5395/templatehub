@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Template Upload — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root{--accent:#d4af37;--bg:#070714;--card:#0d0d2b;--text:#e8eaf0;--muted:#8899aa;--border:rgba(212,175,55,0.2);--green:#22c55e;--red:#ef4444;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:40px 20px;}
+  .wrap{max-width:720px;margin:0 auto;}
+  .logo{font-size:22px;font-weight:900;background:linear-gradient(90deg,#64c8ff,#b464ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+  h1{font-size:24px;font-weight:800;margin-bottom:4px;}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:28px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px;margin-bottom:20px;}
+  label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;}
+  input[type=email],input[type=password]{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-family:inherit;font-size:14px;outline:none;margin-bottom:16px;}
+  input:focus{border-color:var(--accent);}
+  .btn{background:var(--accent);color:#1a1400;border:none;border-radius:10px;padding:13px 22px;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .drop{border:2px dashed var(--border);border-radius:14px;padding:34px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;}
+  .drop:hover,.drop.drag{border-color:var(--accent);background:rgba(212,175,55,0.05);}
+  .drop .big{font-size:15px;font-weight:700;margin-bottom:6px;}
+  .drop .small{font-size:12px;color:var(--muted);}
+  .hidden{display:none!important;}
+  .msg{font-size:13px;padding:11px 15px;border-radius:9px;margin-top:14px;display:none;}
+  .msg.show{display:block;}
+  .msg.ok{background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+  .msg.err{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+  .msg.info{background:rgba(212,175,55,0.1);color:var(--accent);border:1px solid var(--border);}
+  .row{display:flex;align-items:center;gap:12px;justify-content:space-between;}
+  .who{font-size:12px;color:var(--muted);}
+  h2{font-size:14px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
+  .tpl{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;}
+  .swatch{width:60px;height:42px;border-radius:6px;flex-shrink:0;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.8);}
+  .tpl .meta{flex:1;min-width:0;}
+  .tpl .nm{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tpl .dt{font-size:11px;color:var(--muted);}
+  .del{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(0,0,0,0.3);border-top-color:#1a1400;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">LazyDog Templates</div>
+  <h1>Template Upload</h1>
+  <p class="sub">Admin only. Upload a PowerPoint (.pptx) — it becomes a free template in the editor's Templates panel.</p>
+
+  <!-- SIGN IN -->
+  <div class="card" id="signinCard">
+    <h2>Admin sign in</h2>
+    <label>Email</label>
+    <input type="email" id="email" autocomplete="username" placeholder="lazydogtemplates@gmail.com"/>
+    <label>Password</label>
+    <input type="password" id="password" autocomplete="current-password" placeholder="••••••••"/>
+    <button class="btn" id="signinBtn">Sign in</button>
+    <div class="msg" id="signinMsg"></div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="card hidden" id="uploadCard">
+    <div class="row" style="margin-bottom:18px;">
+      <h2 style="margin:0;">Upload a template</h2>
+      <div class="who">Signed in: <span id="whoEmail"></span> · <a href="#" id="signout" style="color:var(--accent);">sign out</a></div>
+    </div>
+    <div class="drop" id="drop">
+      <div class="big">Click or drop a .pptx here</div>
+      <div class="small">PowerPoint only · one deck = one template</div>
+      <input type="file" id="file" accept=".pptx" class="hidden"/>
+    </div>
+    <div class="msg" id="upMsg"></div>
+  </div>
+
+  <!-- EXISTING -->
+  <div class="card hidden" id="listCard">
+    <h2>Templates in the editor (<span id="count">0</span>)</h2>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+  authDomain: "templatehub-16cd7.firebaseapp.com",
+  projectId: "templatehub-16cd7",
+  storageBucket: "templatehub-16cd7.firebasestorage.app",
+  messagingSenderId: "143000893683",
+  appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+};
+const ADMIN_EMAIL = "lazydogtemplates@gmail.com";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Same parse backend the editor uses. Only a real localhost dev server uses
+// the local parser; opening the file directly or running live uses the cloud.
+const LD_BACKEND = /^(localhost|127\.)/.test(location.hostname)
+  ? 'http://localhost:8080'
+  : 'https://composer-proxy-irosbvpq7q-uc.a.run.app';
+
+const $ = id => document.getElementById(id);
+function show(el, cls, text){ el.className = 'msg show ' + cls; el.textContent = text; }
+function hide(el){ el.className = 'msg'; }
+
+// ---- AUTH ----
+$('signinBtn').addEventListener('click', async () => {
+  hide($('signinMsg'));
+  const email = $('email').value.trim(), pw = $('password').value;
+  if (!email || !pw) { show($('signinMsg'),'err','Enter email and password.'); return; }
+  $('signinBtn').disabled = true;
+  try { await signInWithEmailAndPassword(auth, email, pw); }
+  catch (e) { show($('signinMsg'),'err','Sign-in failed: ' + (e.code || e.message)); }
+  $('signinBtn').disabled = false;
+});
+$('signout').addEventListener('click', e => { e.preventDefault(); signOut(auth); });
+
+onAuthStateChanged(auth, user => {
+  const isAdmin = user && user.email === ADMIN_EMAIL;
+  $('signinCard').classList.toggle('hidden', isAdmin);
+  $('uploadCard').classList.toggle('hidden', !isAdmin);
+  $('listCard').classList.toggle('hidden', !isAdmin);
+  if (isAdmin) { $('whoEmail').textContent = user.email; loadList(); }
+  else if (user) { show($('signinMsg'),'err','That account is not the admin. Sign in as ' + ADMIN_EMAIL + '.'); signOut(auth); }
+});
+
+// ---- UPLOAD ----
+const drop = $('drop'), fileInput = $('file');
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); fileInput.value=''; });
+
+async function handleFile(file){
+  const upMsg = $('upMsg');
+  if (!/\.pptx$/i.test(file.name)) { show(upMsg,'err','Please choose a .pptx file.'); return; }
+  if (typeof JSZip === 'undefined') { show(upMsg,'err','JSZip failed to load — check your connection and reload.'); return; }
+  show(upMsg,'info','<span class="spin"></span>Parsing “' + file.name + '” …');
+  try {
+    const token = await auth.currentUser.getIdToken();
+    const buf = await file.arrayBuffer();
+    let resp;
+    try {
+      resp = await fetch(LD_BACKEND + '/parse', { method:'POST', headers:{ 'Content-Type':'application/octet-stream', 'Authorization':'Bearer ' + token }, body: buf });
+    } catch(net){ throw new Error('Could not reach the parse service. Check your connection.'); }
+    if (resp.status === 401 || resp.status === 403) throw new Error('Not authorised — sign in as the admin account.');
+    if (!resp.ok) throw new Error('Parse service error (' + resp.status + '). Try again in a moment.');
+    const deckIR = await resp.json();
+    if (!deckIR || !deckIR.slides || !deckIR.slides.length) throw new Error('No slides found in this file.');
+
+    const id = 'tpl_' + Date.now();
+    const name = file.name.replace(/\.pptx$/i,'').slice(0,80);
+    show(upMsg,'info','<span class="spin"></span>Saving “' + name + '” …');
+
+    // Store the full design JSON in Storage (decks can exceed Firestore's 1MB doc limit).
+    const jsonRef = ref(storage, 'editor_templates/' + id + '.json');
+    await uploadString(jsonRef, JSON.stringify(deckIR), 'raw', { contentType:'application/json' });
+    const jsonUrl = await getDownloadURL(jsonRef);
+
+    // Small preview hint from the first slide's background.
+    let bg = '#5b6cf0'; const b0 = deckIR.slides[0].background;
+    if (b0 && b0.type === 'solid' && b0.color) bg = b0.color;
+    else if (b0 && b0.type === 'gradient' && b0.stops && b0.stops[0]) bg = b0.stops[0].color;
+
+    await setDoc(doc(db, 'editor_templates', id), {
+      name, jsonUrl,
+      slideCount: deckIR.slides.length,
+      bg,
+      w: deckIR.size ? deckIR.size.w : 0,
+      h: deckIR.size ? deckIR.size.h : 0,
+      createdAt: serverTimestamp()
+    });
+
+    show(upMsg,'ok','✓ “' + name + '” added — ' + deckIR.slides.length + ' slide(s). It now shows in the editor Templates panel.');
+    loadList();
+  } catch(e){
+    console.error(e);
+    show(upMsg,'err','Upload failed: ' + e.message);
+  }
+}
+
+// ---- LIST + DELETE ----
+async function loadList(){
+  const listEl = $('list');
+  try {
+    const snap = await getDocs(query(collection(db,'editor_templates'), orderBy('createdAt','desc')));
+    $('count').textContent = snap.size;
+    if (snap.empty) { listEl.innerHTML = '<div class="who">No templates yet. Upload your first .pptx above.</div>'; return; }
+    listEl.innerHTML = '';
+    snap.forEach(d => {
+      const t = d.data();
+      const el = document.createElement('div');
+      el.className = 'tpl';
+      el.innerHTML = '<div class="swatch" style="background:'+(t.bg||'#5b6cf0')+'">'+(t.slideCount||'')+'</div>'
+        + '<div class="meta"><div class="nm"></div><div class="dt">'+(t.slideCount||0)+' slide(s)</div></div>'
+        + '<button class="del">Delete</button>';
+      el.querySelector('.nm').textContent = t.name || d.id;
+      el.querySelector('.del').addEventListener('click', async () => {
+        if (!confirm('Delete “'+(t.name||d.id)+'” from the editor templates?')) return;
+        try {
+          try { await deleteObject(ref(storage,'editor_templates/'+d.id+'.json')); } catch(_){}
+          await deleteDoc(doc(db,'editor_templates',d.id));
+          loadList();
+        } catch(e){ alert('Delete failed: ' + e.message); }
+      });
+      listEl.appendChild(el);
+    });
+  } catch(e){
+    console.error(e);
+    listEl.innerHTML = '<div class="msg show err">Could not load templates: ' + e.message + '</div>';
+  }
+}
+</script>
+</body>
+</html>

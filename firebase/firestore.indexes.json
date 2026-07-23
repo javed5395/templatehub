@@ -1,19 +1,75 @@
 {
   "indexes": [
     {
-      "collectionGroup": "kits",
+      "collectionGroup": "templates",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "metadata.industry", "order": "ASCENDING" },
-        { "fieldPath": "metadata.style",    "order": "ASCENDING" }
+        { "fieldPath": "status",      "order": "ASCENDING" },
+        { "fieldPath": "contentType", "order": "ASCENDING" }
       ]
     },
     {
-      "collectionGroup": "kits",
+      "collectionGroup": "templates",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "metadata.content_type", "order": "ASCENDING" },
-        { "fieldPath": "metadata.color_family",  "order": "ASCENDING" }
+        { "fieldPath": "status",   "order": "ASCENDING" },
+        { "fieldPath": "industry", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",      "order": "ASCENDING" },
+        { "fieldPath": "colorFamily", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "style",  "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "tone",   "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",   "order": "ASCENDING" },
+        { "fieldPath": "audience", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",     "order": "ASCENDING" },
+        { "fieldPath": "bestFor",    "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",     "order": "ASCENDING" },
+        { "fieldPath": "formality",  "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "templates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",      "order": "ASCENDING" },
+        { "fieldPath": "slides",      "order": "ASCENDING" }
       ]
     }
   ],

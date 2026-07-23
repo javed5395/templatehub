@@ -2239,23 +2239,25 @@ const panelData = {
     tabs: ['All', 'Social Media', 'Presentations', 'Posters', 'Flyers'],
     activeTab: 'All',
     generate() {
-      const cards = [
-        { bg: 'linear-gradient(135deg,#667eea,#764ba2)', lines: [{w:55,h:8,y:38,x:15,c:'rgba(255,255,255,0.8)'},{w:35,h:5,y:48,x:15,c:'rgba(255,255,255,0.4)'}], label:'Pitch Deck' },
-        { bg: 'linear-gradient(135deg,#f093fb,#f5576c)', lines: [{w:50,h:8,y:35,x:20,c:'rgba(255,255,255,0.8)'},{w:60,h:5,y:45,x:20,c:'rgba(255,255,255,0.4)'},{w:40,h:5,y:53,x:20,c:'rgba(255,255,255,0.3)'}], label:'Social Post' },
-        { bg: 'linear-gradient(135deg,#4facfe,#00f2fe)', lines: [{w:45,h:10,y:30,x:12,c:'#fff'},{w:70,h:4,y:44,x:12,c:'rgba(255,255,255,0.5)'}], label:'Minimal Report' },
-        { bg: 'linear-gradient(135deg,#43e97b,#38f9d7)', lines: [{w:60,h:8,y:40,x:18,c:'rgba(0,0,0,0.5)'},{w:40,h:5,y:50,x:18,c:'rgba(0,0,0,0.25)'}], label:'Event Flyer' },
-        { bg: 'linear-gradient(135deg,#fa709a,#fee140)', lines: [{w:55,h:8,y:25,x:15,c:'#fff'},{w:65,h:4,y:36,x:15,c:'rgba(255,255,255,0.5)'}], block:{w:70,h:30,y:48,x:15,c:'rgba(255,255,255,0.2)',r:4}, label:'Photo Layout' },
-        { bg: '#1a1a2e', lines: [{w:50,h:8,y:35,x:18,c:'#e94560'},{w:35,h:5,y:47,x:18,c:'rgba(255,255,255,0.4)'}], label:'Dark Portfolio' },
-        { bg: 'linear-gradient(135deg,#a18cd1,#fbc2eb)', lines: [{w:40,h:8,y:30,x:30,c:'rgba(255,255,255,0.9)'},{w:55,h:4,y:42,x:22,c:'rgba(255,255,255,0.5)'}], block:{w:55,h:25,y:52,x:22,c:'rgba(255,255,255,0.2)',r:6}, label:'Newsletter' },
-        { bg: 'linear-gradient(135deg,#ffecd2,#fcb69f)', lines: [{w:60,h:10,y:40,x:15,c:'#8B4513'},{w:40,h:5,y:54,x:15,c:'rgba(139,69,19,0.4)'}], label:'Recipe Card' },
-      ];
-      return `<div class="template-grid">${cards.map((c, i) => {
-        let inner = '';
-        c.lines.forEach(l => { inner += `<div class="tpl-line" style="width:${l.w}%;height:${l.h}px;top:${l.y}%;left:${l.x}%;background:${l.c}"></div>`; });
-        if (c.block) inner += `<div class="tpl-line" style="width:${c.block.w}%;height:${c.block.h}%;top:${c.block.y}%;left:${c.block.x}%;background:${c.block.c};border-radius:${c.block.r}px"></div>`;
-        return `<div class="template-card" style="animation-delay:${i*0.04}s" data-action="use-template" data-name="${c.label}">
-          <div class="template-preview" style="background:${c.bg}">${inner}</div>
-          <span class="template-label">${c.label}</span>
+      /* Real templates come from Firestore (editor_templates), uploaded by the
+         admin via the Template Upload page. window._editorTemplates is the
+         cache; the loader module at the bottom of this file fills it and
+         re-renders this panel when ready. */
+      var list = window._editorTemplates;
+      if (typeof list === 'undefined') {
+        if (window.LD_loadEditorTemplates) window.LD_loadEditorTemplates();
+        return '<div style="padding:16px;color:var(--text-secondary);font-size:13px;">Loading templates…</div>';
+      }
+      if (!list || !list.length) {
+        return '<div style="padding:16px;color:var(--text-secondary);font-size:13px;line-height:1.6;">No templates yet.<br>Add one from the <strong>Template Upload</strong> page.</div>';
+      }
+      return `<div class="template-grid">${list.map((c, i) => {
+        var bg = c.bg || 'linear-gradient(135deg,#667eea,#764ba2)';
+        var nm = (c.name || 'Template').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+        var n = c.slideCount || 0;
+        return `<div class="template-card" style="animation-delay:${i*0.04}s" data-action="use-template" data-id="${c.id}" data-json="${encodeURIComponent(c.jsonUrl||'')}" data-name="${nm}">
+          <div class="template-preview" style="background:${bg};display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.85);font-weight:700;font-size:11px;">${n} slide${n===1?'':'s'}</div>
+          <span class="template-label">${nm}</span>
         </div>`;
       }).join('')}</div>`;
     }
@@ -2647,6 +2649,27 @@ function renderPanelContent(toolId) {
     const tools = state.mode === 'design' ? designTools : editingTools;
     const tool = tools.find(t => t.id === toolId);
     dom.panelContent.innerHTML = genericPanelContent(toolId, tool ? tool.label : toolId);
+  }
+}
+
+/* Load a real template (uploaded via the Template Upload page) onto the
+   canvas. The card carries the design's JSON URL; we fetch it and hand the
+   parsed deck to the existing loadDeckIRIntoEditor engine. */
+async function applyEditorTemplate(ds) {
+  var url = ds && ds.json ? decodeURIComponent(ds.json) : '';
+  if (!url) { showToast('This template has no design data'); return; }
+  showToast('Loading template…');
+  try {
+    var r = await fetch(url);
+    if (!r.ok) throw new Error('fetch ' + r.status);
+    var deck = await r.json();
+    if (!window.loadDeckIRIntoEditor) throw new Error('editor not ready');
+    await window.loadDeckIRIntoEditor(deck);
+    showToast('Template applied: ' + (ds.name || ''));
+    if (typeof closePanel === 'function') closePanel();
+  } catch (e) {
+    console.error('template load failed', e);
+    showToast('Could not load this template');
   }
 }
 
@@ -13507,7 +13530,7 @@ function initEvents() {
         addPage();
         break;
       case 'use-template':
-        showToast(`Applied template: ${action.dataset.name}`);
+        applyEditorTemplate(action.dataset);
         break;
       case 'add-element':
         addShape(action.dataset.shape);
@@ -15070,6 +15093,32 @@ const _app = getApps().length ? getApp() : initializeApp({ apiKey:"AIzaSyDIiOl6a
 const _auth = getAuth(_app);
 onAuthStateChanged(_auth, async (u) => { window.LD_AUTH_TOKEN = u ? await u.getIdToken() : null; });
 setInterval(async () => { try { if (_auth.currentUser) window.LD_AUTH_TOKEN = await _auth.currentUser.getIdToken(); } catch(e){} }, 600000);
+</script>
+
+<!-- Editor templates loader: reads the admin-uploaded free templates from
+     Firestore (editor_templates) and re-renders the Templates panel. -->
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+const _tApp = getApps().length ? getApp() : initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app" });
+const _tDb = getFirestore(_tApp);
+window.LD_loadEditorTemplates = async function () {
+  try {
+    const snap = await getDocs(query(collection(_tDb, 'editor_templates'), orderBy('createdAt', 'desc')));
+    const out = [];
+    snap.forEach(d => { const t = d.data(); out.push({ id: d.id, name: t.name, jsonUrl: t.jsonUrl, slideCount: t.slideCount, bg: t.bg }); });
+    window._editorTemplates = out;
+  } catch (e) {
+    console.error('editor templates load failed', e);
+    window._editorTemplates = [];
+  }
+  try {
+    if (window.state && window.state.activeTool === 'templates' && window.renderPanelContent) {
+      window.renderPanelContent('templates');
+    }
+  } catch (_) {}
+  return window._editorTemplates;
+};
 </script>
 </body>
 </html>

@@ -10,6 +10,20 @@ service cloud.firestore {
       allow write: if false;        // only Firebase Function writes via Admin SDK
     }
 
+    // ── templates collection (PUBLIC READ) ───────────────────────────────
+    // Decoded plain-field documents read by search_widget.js.
+    // Written by Cloud Function (Admin SDK) OR by trusted admin UIDs via admin panel.
+    match /templates/{kitId} {
+      allow read: if true;
+      // Any logged-in seller can CREATE (submit), only admin UIDs can UPDATE/DELETE
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+                      request.auth.uid in [
+                        'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',
+                        'FvcmbFk2AsXCIq1L2uog7t5erfp1'
+                      ];
+    }
+
     // ── kit_slots collection (PRIVATE) ────────────────────────────────────
     // The full per-slide capacity map. Read ONLY by the fit_content callable
     // via the Admin SDK (which bypasses these rules). Never readable by the
@@ -17,6 +31,27 @@ service cloud.firestore {
     match /kit_slots/{kitId} {
       allow read: if false;
       allow write: if false;
+    }
+
+    // ── sellers collection ────────────────────────────────────────────────────
+    // Each seller can read/write only their own profile doc.
+    match /sellers/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ── templates_internal collection ─────────────────────────────────────────
+    // Sellers write their own internal submission data.
+    match /templates_internal/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ── editor_templates (free editable templates shown in the editor) ────
+    // Public can READ (the editor's Templates panel reads this for everyone).
+    // Only the admin account may WRITE (via the Template Upload page).
+    match /editor_templates/{id} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+                      request.auth.token.email == 'lazydogtemplates@gmail.com';
     }
 
     // Block everything else

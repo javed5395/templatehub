@@ -15,6 +15,12 @@ firebase/functions/meta_codec.py
 __pycache__/
 *.pyc
 
+# FULL editor source (parser+writer+all) — THE BRAIN. Never ever public.
+editor_test.html
+
+# User data export — private
+firebase/users.json
+
 # Backend function source — deploys via `firebase deploy`, git never needs it.
 firebase/functions/main.py
 firebase/functions/venv/

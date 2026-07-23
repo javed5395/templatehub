@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — LazyDogTemplates</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --accent: #d4af37; --bg: #070714; --card: #0d0d2b; --text: #e8eaf0; --muted: #8899aa; --border: rgba(212,175,55,0.2); --green: #4ade80; --red: #f87171; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* LOGIN */
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; max-width: 380px; width: 100%; text-align: center; }
+    .login-box .logo { font-size: 24px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+    .login-box h2 { font-size: 18px; margin-bottom: 24px; color: var(--muted); font-weight: 500; }
+    .login-box input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; margin-bottom: 14px; }
+    .login-box input:focus { border-color: var(--accent); }
+    .login-box button { width: 100%; padding: 14px; background: var(--accent); color: #070714; border: none; border-radius: 10px; font-weight: 800; font-size: 15px; cursor: pointer; }
+    .login-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; }
+
+    /* PANEL */
+    .admin-panel { display: none; padding: 30px 40px; max-width: 1400px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
+    .header .logo { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, #64c8ff, #b464ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header h1 { font-size: 24px; font-weight: 800; margin-top: 4px; }
+    .stats { display: flex; gap: 16px; }
+    .stat-pill { background: var(--card); border: 1px solid var(--border); border-radius: 30px; padding: 8px 18px; font-size: 13px; font-weight: 600; }
+    .stat-pill .num { color: var(--accent); font-weight: 800; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 24px; }
+    .tab { padding: 10px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--muted); transition: all 0.2s; }
+    .tab.active { background: var(--accent); color: #070714; border-color: var(--accent); }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+    .submission-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .card-thumb { height: 170px; background: #1a1a3a; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; }
+    .card-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+    .card-thumb:hover img { transform: scale(1.04); }
+    .card-thumb-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+    .card-thumb:hover .card-thumb-overlay { opacity: 1; }
+    .card-thumb-overlay span { background: var(--accent); color: #070714; font-weight: 800; font-size: 13px; padding: 8px 18px; border-radius: 20px; }
+    .card-body { padding: 18px; }
+    .card-body h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .card-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); color: var(--muted); }
+    .badge.cat { background: rgba(100,200,255,0.15); color: #64c8ff; }
+    .uploader-info { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.7; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; }
+    .status-tag { font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
+    .status-tag.pending { background: rgba(212,175,55,0.2); color: var(--accent); }
+    .status-tag.approved { background: rgba(74,222,128,0.2); color: var(--green); }
+    .status-tag.rejected { background: rgba(248,113,113,0.2); color: var(--red); }
+
+    /* NOTES PREVIEW */
+    .notes-preview { background: rgba(100,200,255,0.05); border: 1px solid rgba(100,200,255,0.15); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px; color: #a0d8ef; line-height: 1.6; display: none; }
+    .notes-preview.has-notes { display: block; }
+    .notes-toggle { font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: 'Poppins', sans-serif; margin-bottom: 12px; display: block; }
+    .notes-toggle:hover { color: var(--accent); }
+
+    /* ACTION BUTTONS */
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .card-actions-row2 { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-approve, .btn-reject, .btn-view, .btn-slides, .btn-doc, .btn-unpublish, .btn-republish, .btn-remove, .btn-edit { flex: 1; padding: 9px 6px; border: none; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: 'Poppins', sans-serif; white-space: nowrap; }
+    .btn-edit { background: rgba(180,100,255,0.18); color: #c87fff; border: 1px solid rgba(180,100,255,0.3); }
+    .btn-approve    { background: var(--green); color: #070714; }
+    .btn-reject     { background: var(--red);   color: #070714; }
+    .btn-view       { background: rgba(255,255,255,0.08); color: var(--text); }
+    .btn-slides     { background: rgba(212,175,55,0.15); color: var(--accent); border: 1px solid var(--border); }
+    .btn-doc        { background: rgba(100,200,255,0.1); color: #64c8ff; border: 1px solid rgba(100,200,255,0.2); }
+    .btn-doc:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-unpublish  { background: rgba(255,165,0,0.2); color: #ffb347; border: 1px solid rgba(255,165,0,0.3); }
+    .btn-republish  { background: rgba(74,222,128,0.15); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+    .btn-remove     { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+    .status-tag.unpublished { background: rgba(255,165,0,0.15); color: #ffb347; }
+
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .empty-state .icon { font-size: 50px; margin-bottom: 16px; }
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+
+    /* ── SLIDE LIGHTBOX ── */
+    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
+    .lightbox.open { display: flex; }
+    .lb-header { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: rgba(7,7,20,0.85); border-bottom: 1px solid var(--border); z-index: 2; }
+    .lb-title { font-size: 15px; font-weight: 700; }
+    .lb-counter { font-size: 13px; color: var(--muted); }
+    .lb-close { background: none; border: none; color: var(--text); font-size: 26px; cursor: pointer; line-height: 1; }
+    .lb-close:hover { color: var(--accent); }
+    .lb-body { margin-top: 60px; margin-bottom: 80px; max-width: 90vw; max-height: 80vh; display: flex; align-items: center; justify-content: center; }
+    .lb-body img { max-width: 100%; max-height: 80vh; border-radius: 8px; object-fit: contain; box-shadow: 0 0 60px rgba(0,0,0,0.8); }
+    .lb-footer { position: absolute; bottom: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 20px; padding: 16px 24px; background: rgba(7,7,20,0.85); border-top: 1px solid var(--border); }
+    .lb-btn { background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: var(--text); padding: 10px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Poppins', sans-serif; }
+    .lb-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .lb-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 0 10px; max-width: 70vw; }
+    .lb-thumb { width: 54px; height: 38px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; opacity: 0.6; transition: all 0.2s; }
+    .lb-thumb.active { border-color: var(--accent); opacity: 1; }
+
+    /* ── DOC VIEWER MODAL ── */
+    .doc-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9999; flex-direction: column; }
+    .doc-modal.open { display: flex; }
+    .doc-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: var(--card); border-bottom: 1px solid var(--border); }
+    .doc-header h3 { font-size: 15px; font-weight: 700; }
+    .doc-close { background: none; border: none; color: var(--text); font-size: 26px; cursor: pointer; }
+    .doc-close:hover { color: var(--accent); }
+    .doc-body { flex: 1; overflow: auto; padding: 30px; display: flex; align-items: flex-start; justify-content: center; }
+    .doc-body iframe { width: 100%; height: 100%; min-height: 75vh; border: none; border-radius: 8px; background: #fff; }
+    .doc-txt { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 800px; width: 100%; font-size: 14px; line-height: 1.8; white-space: pre-wrap; color: var(--text); }
+    .doc-actions { display: flex; gap: 12px; padding: 16px 24px; background: var(--card); border-top: 1px solid var(--border); }
+    .doc-btn { padding: 10px 20px; background: var(--accent); color: #070714; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: 'Poppins', sans-serif; }
+
+    /* ── COLOUR PANEL ── */
+    .colour-panel{display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:999;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);}
+    .colour-panel.open{display:block;}
+    .colour-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Poppins',sans-serif;}
+    .colour-panel canvas{display:block;border-radius:10px;cursor:crosshair;border:1px solid rgba(255,255,255,0.1);}
+    .colour-panel-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
+    .colour-swatch{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);flex-shrink:0;}
+    .colour-hex{font-size:13px;font-weight:700;color:#fff;font-family:'Poppins',sans-serif;}
+    .colour-reset{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;font-family:'Poppins',sans-serif;}
+
+    /* ── EDIT MODAL ── */
+    .edit-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:10000;overflow-y:auto;}
+    .edit-modal.open{display:flex;align-items:flex-start;justify-content:center;padding:30px 20px;}
+    .edit-box{background:var(--card);border:1px solid rgba(180,100,255,0.3);border-radius:20px;width:100%;max-width:720px;box-shadow:0 30px 80px rgba(0,0,0,0.8);}
+    .edit-header{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--border);background:rgba(180,100,255,0.08);}
+    .edit-header h2{font-size:17px;font-weight:800;color:#c87fff;}
+    .edit-close{background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;line-height:1;}
+    .edit-close:hover{color:#c87fff;}
+    .edit-body{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .edit-field{display:flex;flex-direction:column;gap:6px;}
+    .edit-field.full{grid-column:1/-1;}
+    .edit-field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+    .edit-field input,.edit-field select,.edit-field textarea{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Poppins',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+    .edit-field input:focus,.edit-field select:focus,.edit-field textarea:focus{border-color:#c87fff;}
+    .edit-field select option{background:#0d0d2b;}
+    .edit-field textarea{resize:vertical;min-height:80px;}
+    .edit-field input[type="url"]{font-size:11px;}
+    .edit-section-title{grid-column:1/-1;font-size:11px;font-weight:800;color:rgba(180,100,255,0.7);text-transform:uppercase;letter-spacing:1.5px;padding-top:8px;border-top:1px solid var(--border);margin-top:4px;}
+    .edit-footer{display:flex;gap:12px;padding:20px 28px;border-top:1px solid var(--border);background:rgba(255,255,255,0.02);}
+    .edit-save{flex:1;padding:13px;background:#c87fff;color:#070714;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;}
+    .edit-save:hover{background:#b464ff;}
+    .edit-save:disabled{opacity:.5;cursor:not-allowed;}
+    .edit-cancel{padding:13px 24px;background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;}
+    .edit-status-msg{font-size:12px;padding:8px 14px;border-radius:8px;align-self:center;display:none;}
+    .edit-status-msg.success{background:rgba(74,222,128,0.15);color:var(--green);display:block;}
+    .edit-status-msg.error{background:rgba(248,113,113,0.15);color:var(--red);display:block;}
+  </style>
+</head>
+<body data-page="admin_panel">
+
+<!-- NAVBAR injected by navbar.js -->
+<style>.nb-seller{display:none!important;}</style>
+
+<!-- COLOUR PICKER PANEL -->
+<div class="colour-panel" id="colourPanel">
+  <div class="colour-panel-label">🎨 Pick Theme Colour</div>
+  <canvas id="colourCanvas" width="220" height="150"></canvas>
+  <div class="colour-panel-preview">
+    <div class="colour-swatch" id="colourSwatch" style="background:#d4af37;"></div>
+    <span class="colour-hex" id="colourHex">#D4AF37</span>
+    <button class="colour-reset" onclick="resetColour()">Reset</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="logo">LazyDogTemplates</div>
+    <h2>Admin Panel Login</h2>
+    <input type="password" id="adminPassword" placeholder="Enter admin password" onkeypress="if(event.key==='Enter') checkLogin()"/>
+    <button onclick="checkLogin()">Login</button>
+    <p class="login-error" id="loginError">Wrong password. Try again.</p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-panel" id="adminPanel">
+  <div class="header">
+    <div>
+      <div class="logo">LazyDogTemplates</div>
+      <h1>Admin Panel</h1>
+    </div>
+    <div class="stats">
+      <div class="stat-pill">Pending: <span class="num" id="pendingCount">0</span></div>
+      <div class="stat-pill">Approved: <span class="num" id="approvedCount">0</span></div>
+      <div class="stat-pill">Rejected: <span class="num" id="rejectedCount">0</span></div>
+      <div class="stat-pill">Unpublished: <span class="num" id="unpublishedCount">0</span></div>
+      <button onclick="cleanOrphanDriveFiles()" style="margin-left:12px;padding:8px 18px;background:#e53e3e;color:#fff;border:none;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;font-family:Poppins,sans-serif;">🧹 Clean Drive Orphans</button>
+      <button onclick="cleanOrphanCloudinaryFiles()" style="margin-left:8px;padding:8px 18px;background:#e8650a;color:#fff;border:none;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;font-family:Poppins,sans-serif;">☁️ Clean Cloudinary Orphans</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-status="pending" onclick="switchTab('pending')">⏳ Pending</div>
+    <div class="tab" data-status="approved" onclick="switchTab('approved')">✅ Approved</div>
+    <div class="tab" data-status="rejected" onclick="switchTab('rejected')">❌ Rejected</div>
+    <div class="tab" data-status="edit"        onclick="switchTab('edit')">✏️ Edit</div>
+    <div class="tab" data-status="unpublished" onclick="switchTab('unpublished')">🚫 Unpublished</div>
+  </div>
+  <div id="cardsContainer" class="cards-grid">
+    <div class="loading">Loading submissions...</div>
+  </div>
+</div>
+
+<!-- SLIDE LIGHTBOX -->
+<div class="lightbox" id="slideLightbox">
+  <div class="lb-header">
+    <span class="lb-title" id="lbTitle">—</span>
+    <span class="lb-counter" id="lbCounter">1 / 1</span>
+    <button class="lb-close" onclick="closeLightbox()">✕</button>
+  </div>
+  <div class="lb-body">
+    <img id="lbImage" src="" alt="Slide"/>
+  </div>
+  <div class="lb-footer">
+    <button class="lb-btn" onclick="lbPrev()">◀ Prev</button>
+    <div class="lb-thumbs" id="lbThumbs"></div>
+    <button class="lb-btn" onclick="lbNext()">Next ▶</button>
+  </div>
+</div>
+
+<!-- DOC VIEWER MODAL -->
+<div class="doc-modal" id="docModal">
+  <div class="doc-header">
+    <h3 id="docModalTitle">Design Brief</h3>
+    <button class="doc-close" onclick="closeDocModal()">✕</button>
+  </div>
+  <div class="doc-body" id="docModalBody"></div>
+  <div class="doc-actions">
+    <button class="doc-btn" id="docOpenBtn" onclick="openDocExternal()">🔗 Open in New Tab</button>
+    <button class="doc-btn" style="background:rgba(255,255,255,0.08);color:var(--text)" onclick="closeDocModal()">Close</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+  authDomain: "templatehub-16cd7.firebaseapp.com",
+  projectId: "templatehub-16cd7",
+  storageBucket: "templatehub-16cd7.firebasestorage.app",
+  messagingSenderId: "143000893683",
+  appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const auth = getAuth(app);
+
+const ADMIN_PASSWORD = "Poppy33995";
+
+// ── CLOUDINARY DELETE CONFIG ──────────────────────────────────────────────────
+// Paste your Cloudinary API Key and Secret from: cloudinary.com/console → API Keys
+const CLOUDINARY_CLOUD      = 'dsqxuaucz';
+const CLOUDINARY_API_KEY    = '515259555479649';
+const CLOUDINARY_API_SECRET = 'fOB8Kf20EegVXz9ESNNfAQp6HTE';
+const APPS_SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec';
+
+// SHA-1 via Web Crypto (needed to sign Cloudinary delete requests)
+async function sha1Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Delete a single asset from Cloudinary (image or raw)
+async function deleteCloudinaryAsset(publicId, resourceType = 'image') {
+  if (!publicId || publicId.startsWith('http')) return;
+  // Try both 'raw' and 'image' types — PDF uploaded as 'auto' may land in either
+  const types = resourceType === 'raw' ? ['raw', 'image'] : [resourceType];
+  for (const rType of types) {
+    const ts  = Math.round(Date.now() / 1000);
+    const sig = await sha1Hex(`public_id=${publicId}&timestamp=${ts}${CLOUDINARY_API_SECRET}`);
+    const form = new FormData();
+    form.append('public_id', publicId);
+    form.append('api_key',   CLOUDINARY_API_KEY);
+    form.append('timestamp', ts);
+    form.append('signature', sig);
+    const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${rType}/destroy`, {
+      method: 'POST', body: form
+    });
+    const json = await res.json().catch(() => ({}));
+    if (json.result === 'ok') return; // deleted successfully
+  }
+}
+
+// Delete a file from Google Drive via Apps Script
+async function deleteDriveFile(fileId) {
+  if (!fileId) return;
+  try {
+    const res  = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', fileId })
+    });
+    const json = await res.json().catch(() => ({}));
+    if (json.error) console.error('Drive delete error for', fileId, json.error);
+  } catch(e) { console.error('Drive delete failed for', fileId, e.message); }
+}
+
+function extractDriveFileId(url) {
+  if (!url) return null;
+  // Format 1: uc?export=download&id=FILE_ID  (Apps Script upload URL)
+  let m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  // Format 2: /d/FILE_ID/view  (standard share URL)
+  m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+let currentTab = 'pending';
+let allDocs    = [];
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+window.checkLogin = async function() {
+  const pass  = document.getElementById('adminPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  try {
+    // REAL Firebase sign-in as the admin account — required by the locked rules.
+    await signInWithEmailAndPassword(auth, 'lazydogtemplates@gmail.com', pass);
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminPanel').style.display  = 'block';
+    loadSubmissions();
+  } catch (e) {
+    errEl.textContent   = 'Login failed — check your password. (' + e.code + ')';
+    errEl.style.display = 'block';
+  }
+};
+
+window.switchTab = function(status) {
+  currentTab = status;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-status="${status}"]`).classList.add('active');
+  renderCards();
+};
+
+async function loadSubmissions() {
+  const snapshot = await getDocs(collection(db, 'templates'));
+  allDocs = [];
+  snapshot.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
+  window._adminAllDocs    = allDocs;   // expose for edit modal module
+  window._adminRenderCards = renderCards;
+  updateCounts();
+  renderCards();
+}
+
+function updateCounts() {
+  document.getElementById('pendingCount').textContent     = allDocs.filter(d => d.status === 'pending').length;
+  document.getElementById('approvedCount').textContent    = allDocs.filter(d => d.status === 'approved').length;
+  document.getElementById('rejectedCount').textContent    = allDocs.filter(d => d.status === 'rejected').length;
+  document.getElementById('unpublishedCount').textContent = allDocs.filter(d => d.status === 'unpublished').length;
+}
+
+function renderCards() {
+  const container = document.getElementById('cardsContainer');
+  // "Edit" tab shows ALL submissions regardless of status
+  const filtered = currentTab === 'edit'
+    ? [...allDocs].sort((a,b) => (b.submittedAt?.seconds||0)-(a.submittedAt?.seconds||0))
+    : allDocs.filter(d => d.status === currentTab);
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">📭</div><p>No ${currentTab} submissions</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(d => {
+    const t       = d.template  || {};
+    const u       = d.uploader  || {};
+    const cover   = t.coverImage || (t.slides && t.slides[0]) || '';
+    const slides  = t.slides    || [];
+    const hasDoc  = !!t.designDocUrl;
+    const hasNotes= !!(t.designNotes && t.designNotes.trim());
+    const slidesJson = JSON.stringify(slides).replace(/"/g, '&quot;');
+    const nameEsc    = (t.name || 'Untitled').replace(/'/g, "\\'");
+    const docUrl     = t.designDocUrl || '';
+
+    return `
+      <div class="submission-card">
+        <div class="card-thumb" onclick="openLightbox('${nameEsc}', '${slidesJson}', 0)">
+          ${cover ? `<img src="${cover}" loading="lazy"/>` : '<span style="font-size:40px">🖼️</span>'}
+          <div class="card-thumb-overlay"><span>👁 View ${slides.length} Slides</span></div>
+        </div>
+        <div class="card-body">
+          <span class="status-tag ${d.status}">${d.status.toUpperCase()}</span>
+          <h3>${t.name || 'Untitled'}</h3>
+          <div class="card-meta">
+            <span class="badge cat">${({pitch_deck:'📊 Pitch Deck', media_kit:'📰 Media Kit', web_kit:'🌐 Website Kit', resume_cv:'📄 Resume / CV', social_media_kit:'📱 Social Media Kit', digital_keynotes:'🎨 Digital Keynotes'})[t.category] || (t.category || 'Uncategorized')}</span>
+            <span class="badge">${t.slideCount || slides.length} slides</span>
+            <span class="badge">${t.industry || 'N/A'}</span>
+            <span class="badge">${t.price === 'free' ? 'FREE' : 'PRO'}</span>
+          </div>
+          <div class="uploader-info">
+            👤 ${u.shopName ? `<strong>${u.shopName}</strong> (${u.name || ''})` : (u.name || 'Unknown')}<br/>
+            📧 ${u.email || 'N/A'}<br/>
+            📱 ${u.phone || 'N/A'}
+          </div>
+
+          ${hasNotes ? `
+            <button class="notes-toggle" onclick="toggleNotes(this)">📝 Show design notes</button>
+            <div class="notes-preview" style="display:none">${(t.designNotes||'').replace(/\n/g,'<br/>')}</div>
+          ` : ''}
+
+          <div class="card-actions">
+            ${currentTab === 'pending' ? `
+              <button class="btn-approve" onclick="approveDoc('${d.id}')">✓ Approve</button>
+              <button class="btn-reject"  onclick="rejectDoc('${d.id}')">✕ Reject</button>
+              <button class="btn-edit"    onclick="openEditModal('${d.id}')">✏️ Edit</button>
+            ` : currentTab === 'approved' ? `
+              <button class="btn-view"      onclick="window.open('${t.pptxUrl||''}','_blank')">📊 PPTX</button>
+              <button class="btn-edit"      onclick="openEditModal('${d.id}')">✏️ Edit</button>
+              <button class="btn-unpublish" onclick="unpublishDoc('${d.id}')">🚫 Unpublish</button>
+              <button class="btn-remove"    onclick="removeDoc('${d.id}')">🗑 Delete</button>
+            ` : currentTab === 'unpublished' ? `
+              <button class="btn-republish" onclick="republishDoc('${d.id}')">✅ Republish</button>
+              <button class="btn-edit"      onclick="openEditModal('${d.id}')">✏️ Edit</button>
+              <button class="btn-remove"    onclick="removeDoc('${d.id}')">🗑 Delete Forever</button>
+            ` : currentTab === 'edit' ? `
+              <button class="btn-edit"   style="flex:none;padding:9px 18px;" onclick="openEditModal('${d.id}')">✏️ Edit This Kit</button>
+              ${ t.category === 'resume_cv' ? `<button class="btn-remove" style="flex:none;padding:9px 18px;" onclick="permanentDeleteDoc('${d.id}')">🗑 Delete Forever</button>` : `` }
+            ` : `
+              <button class="btn-approve" onclick="approveDoc('${d.id}')">↺ Re-approve</button>
+              <button class="btn-edit"    onclick="openEditModal('${d.id}')">✏️ Edit</button>
+              <button class="btn-remove"  onclick="permanentDeleteDoc('${d.id}')">🗑 Delete Forever</button>
+            `}
+          </div>
+          <div class="card-actions-row2">
+            <button class="btn-slides" onclick="openLightbox('${nameEsc}', '${slidesJson}', 0)">🖼 Review All Slides (${slides.length})</button>
+            <button class="btn-doc" ${!hasDoc ? 'disabled title="No document uploaded"' : `onclick="openDocModal('${docUrl}','${nameEsc}')"`}>
+              ${hasDoc ? '📄 Read Brief' : '📄 No Brief'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── APPROVE / REJECT ─────────────────────────────────────────────────────────
+window.approveDoc = async function(docId) {
+  if (!confirm('Approve this submission? It will become visible on the site.')) return;
+  try {
+    await updateDoc(doc(db, 'templates', docId), { status: 'approved' });
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs[idx].status = 'approved';
+    updateCounts(); renderCards();
+  } catch(e) { alert('Approve failed: ' + e.message); }
+};
+
+// ── UNPUBLISH (hide from site, files stay safe — reversible) ─────────────────
+window.unpublishDoc = async function(docId) {
+  if (!confirm('Unpublish this template?\n\nIt will be hidden from the site immediately.\nFiles are kept safe — you can republish anytime.')) return;
+  try {
+    await updateDoc(doc(db, 'templates', docId), { status: 'unpublished' });
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs[idx].status = 'unpublished';
+    updateCounts(); renderCards();
+  } catch(e) { alert('Unpublish failed: ' + e.message); }
+};
+
+// ── REPUBLISH (bring back live from unpublished) ───────────────────────────
+window.republishDoc = async function(docId) {
+  if (!confirm('Republish this template?\n\nIt will go live on the site immediately.')) return;
+  try {
+    await updateDoc(doc(db, 'templates', docId), { status: 'approved' });
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs[idx].status = 'approved';
+    updateCounts(); renderCards();
+  } catch(e) { alert('Republish failed: ' + e.message); }
+};
+
+window.rejectDoc = async function(docId) {
+  if (!confirm('Reject this submission?\n\nThis will permanently DELETE all files from Cloudinary and Google Drive. This cannot be undone.')) return;
+
+  const entry = allDocs.find(d => d.id === docId);
+  const t     = entry?.template    || {};
+  const cIds  = entry?.cloudinaryIds || {};
+  const dIds  = entry?.driveFileIds  || {};
+
+  // Disable the reject button to prevent double-click
+  const btn = document.querySelector(`[onclick="rejectDoc('${docId}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Deleting...'; }
+
+  try {
+    // 1. Delete PNG slides from Cloudinary
+    const slidePubIds = cIds.slides || [];
+    for (const pid of slidePubIds) {
+      await deleteCloudinaryAsset(pid, 'image');
+    }
+
+    // 2. Delete PDF from Cloudinary (raw resource type)
+    if (cIds.pdf) await deleteCloudinaryAsset(cIds.pdf, 'raw');
+
+    // 2b. Delete PDF from Google Drive (when PDF was too large for Cloudinary)
+    if (dIds.pdf) await deleteDriveFile(dIds.pdf);
+
+    // 3. Delete PPTX from Google Drive
+    const pptxId = dIds.pptx || extractDriveFileId(t.pptxUrl);
+    await deleteDriveFile(pptxId);
+
+    // 4. Delete Keynote from Google Drive
+    const keyId = dIds.key || extractDriveFileId(t.keyUrl);
+    await deleteDriveFile(keyId);
+
+    // 5. Delete design doc from Google Drive
+    const docFileId = dIds.designDoc || extractDriveFileId(t.designDocUrl);
+    await deleteDriveFile(docFileId);
+
+    // 6. Delete extra format files from Google Drive
+    const extraIds = dIds.extraFiles || [];
+    for (const fid of extraIds) await deleteDriveFile(fid);
+
+    // 7. Update Firestore status
+    await updateDoc(doc(db, 'templates', docId), { status: 'rejected' });
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs[idx].status = 'rejected';
+    updateCounts(); renderCards();
+
+  } catch(err) {
+    console.error('Rejection error:', err);
+    alert('Error during rejection: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '✕ Reject'; }
+  }
+};
+
+// ── REMOVE A LIVE (APPROVED) TEMPLATE ────────────────────────────────────────
+// Same auto-purge as Reject (deletes every file from Cloudinary + Google Drive),
+// then takes it off the site by moving its status to 'rejected'.
+window.removeDoc = async function(docId) {
+  if (!confirm('Remove this LIVE template?\n\nThis permanently DELETES all its files from Cloudinary and Google Drive, and takes it OFF the site. This cannot be undone.')) return;
+
+  const entry = allDocs.find(d => d.id === docId);
+  const t     = entry?.template      || {};
+  const cIds  = entry?.cloudinaryIds || {};
+  const dIds  = entry?.driveFileIds  || {};
+
+  const btn = document.querySelector(`[onclick="removeDoc('${docId}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Removing...'; }
+
+  try {
+    // 1. PNG slides from Cloudinary
+    for (const pid of (cIds.slides || [])) await deleteCloudinaryAsset(pid, 'image');
+    // 2. PDF from Cloudinary
+    if (cIds.pdf) await deleteCloudinaryAsset(cIds.pdf, 'raw');
+    // 2b. PDF from Google Drive (if it was too large for Cloudinary)
+    if (dIds.pdf) await deleteDriveFile(dIds.pdf);
+    // 3. PPTX from Google Drive
+    await deleteDriveFile(dIds.pptx || extractDriveFileId(t.pptxUrl));
+    // 4. Keynote from Google Drive
+    await deleteDriveFile(dIds.key || extractDriveFileId(t.keyUrl));
+    // 5. Design doc from Google Drive
+    await deleteDriveFile(dIds.designDoc || extractDriveFileId(t.designDocUrl));
+    // 6. Extra format files from Google Drive
+    for (const fid of (dIds.extraFiles || [])) await deleteDriveFile(fid);
+
+    // 7. Take it off the site
+    await updateDoc(doc(db, 'templates', docId), { status: 'rejected' });
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs[idx].status = 'rejected';
+    updateCounts(); renderCards();
+
+  } catch(err) {
+    console.error('Remove error:', err);
+    alert('Error during removal: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '🗑 Remove'; }
+  }
+};
+
+// ── PERMANENT DELETE (removes files + Firestore doc entirely) ────────────────
+window.permanentDeleteDoc = async function(docId) {
+  if (!confirm('Permanently DELETE this submission?\n\nThis will delete ALL files (Cloudinary + Google Drive) AND remove it from Firestore completely. Cannot be undone.')) return;
+
+  const entry = allDocs.find(d => d.id === docId);
+  const t     = entry?.template      || {};
+  const cIds  = entry?.cloudinaryIds || {};
+  const dIds  = entry?.driveFileIds  || {};
+
+  const btn = document.querySelector(`[onclick="permanentDeleteDoc('${docId}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Deleting...'; }
+
+  try {
+    // Delete all Cloudinary assets
+    for (const pid of (cIds.slides || [])) await deleteCloudinaryAsset(pid, 'image');
+    if (cIds.pdf) await deleteCloudinaryAsset(cIds.pdf, 'raw');
+    // Delete all Drive files
+    if (dIds.pdf)       await deleteDriveFile(dIds.pdf);
+    await deleteDriveFile(dIds.pptx      || extractDriveFileId(t.pptxUrl));
+    await deleteDriveFile(dIds.key       || extractDriveFileId(t.keyUrl));
+    await deleteDriveFile(dIds.designDoc || extractDriveFileId(t.designDocUrl));
+    for (const fid of (dIds.extraFiles || [])) await deleteDriveFile(fid);
+    // Delete Firestore document entirely
+    const { deleteDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+    await deleteDoc(fsDoc(db, 'templates', docId));
+    // Remove from local cache
+    const idx = allDocs.findIndex(d => d.id === docId);
+    if (idx > -1) allDocs.splice(idx, 1);
+    updateCounts(); renderCards();
+  } catch(err) {
+    console.error('Permanent delete error:', err);
+    alert('Error: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '🗑 Delete Forever'; }
+  }
+};
+
+// ── NOTES TOGGLE ─────────────────────────────────────────────────────────────
+window.toggleNotes = function(btn) {
+  const box = btn.nextElementSibling;
+  const show = box.style.display === 'none';
+  box.style.display  = show ? 'block' : 'none';
+  btn.textContent    = show ? '📝 Hide design notes' : '📝 Show design notes';
+};
+
+// ── SLIDE LIGHTBOX ────────────────────────────────────────────────────────────
+let lbSlides = [];
+let lbIndex  = 0;
+
+window.openLightbox = function(name, slidesJson, startIdx) {
+  try { lbSlides = JSON.parse(slidesJson.replace(/&quot;/g, '"')); } catch(e) { lbSlides = []; }
+  if (!lbSlides.length) { alert('No slides available.'); return; }
+  lbIndex = startIdx || 0;
+  document.getElementById('lbTitle').textContent = name + ' — Slides';
+  buildThumbs();
+  showSlide(lbIndex);
+  document.getElementById('slideLightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeLightbox = function() {
+  document.getElementById('slideLightbox').classList.remove('open');
+  document.body.style.overflow = '';
+};
+
+function buildThumbs() {
+  const container = document.getElementById('lbThumbs');
+  container.innerHTML = lbSlides.map((url, i) =>
+    `<img class="lb-thumb ${i === lbIndex ? 'active' : ''}" src="${url}" onclick="showSlide(${i})" title="Slide ${i+1}"/>`
+  ).join('');
+}
+
+window.showSlide = function(idx) {
+  lbIndex = Math.max(0, Math.min(idx, lbSlides.length - 1));
+  document.getElementById('lbImage').src = lbSlides[lbIndex];
+  document.getElementById('lbCounter').textContent = `${lbIndex + 1} / ${lbSlides.length}`;
+  document.querySelectorAll('.lb-thumb').forEach((t, i) => t.classList.toggle('active', i === lbIndex));
+  // scroll active thumb into view
+  const thumbs = document.querySelectorAll('.lb-thumb');
+  if (thumbs[lbIndex]) thumbs[lbIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+};
+
+window.lbNext = function() { showSlide(lbIndex + 1); };
+window.lbPrev = function() { showSlide(lbIndex - 1); };
+
+// keyboard nav
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('slideLightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowRight') lbNext();
+  if (e.key === 'ArrowLeft')  lbPrev();
+  if (e.key === 'Escape')     closeLightbox();
+});
+
+// ── DOC VIEWER ────────────────────────────────────────────────────────────────
+let currentDocUrl = '';
+
+window.openDocModal = function(url, name) {
+  currentDocUrl = url;
+  document.getElementById('docModalTitle').textContent = `📄 Design Brief — ${name}`;
+  const body = document.getElementById('docModalBody');
+
+  const ext = url.split('?')[0].split('.').pop().toLowerCase();
+
+  if (ext === 'pdf') {
+    // Embed PDF directly
+    body.innerHTML = `<iframe src="${url}" title="Design Brief"></iframe>`;
+  } else if (ext === 'docx' || ext === 'doc') {
+    // Use Google Docs viewer for Word files
+    body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true" title="Design Brief"></iframe>`;
+  } else if (ext === 'txt' || ext === '') {
+    // Fetch and display text inline
+    body.innerHTML = `<div class="doc-txt">Loading document...</div>`;
+    fetch(url)
+      .then(r => r.text())
+      .then(txt => { body.querySelector('.doc-txt').textContent = txt; })
+      .catch(() => { body.querySelector('.doc-txt').textContent = 'Could not load document. Click "Open in New Tab" to view it.'; });
+  } else {
+    // Generic: try Google Docs viewer
+    body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true" title="Design Brief"></iframe>`;
+  }
+
+  document.getElementById('docModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeDocModal = function() {
+  document.getElementById('docModal').classList.remove('open');
+  document.getElementById('docModalBody').innerHTML = '';
+  document.body.style.overflow = '';
+};
+
+window.openDocExternal = function() {
+  if (currentDocUrl) window.open(currentDocUrl, '_blank');
+};
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('docModal').classList.contains('open') && e.key === 'Escape') closeDocModal();
+});
+
+// ── CLEAN ORPHAN DRIVE FILES ──
+window.cleanOrphanDriveFiles = async function() {
+  if (!confirm('This will scan Google Drive folder, compare with Firestore records, and DELETE all orphan files not linked to any submission.\n\nContinue?')) return;
+
+  try {
+    // Step 1: Collect all valid fileIds from Firestore
+    const validIds = new Set();
+    allDocs.forEach(function(d) {
+      var dIds = d.driveFileIds || {};
+      if (dIds.pptx)      validIds.add(dIds.pptx);
+      if (dIds.pdf)       validIds.add(dIds.pdf);
+      if (dIds.key)       validIds.add(dIds.key);
+      if (dIds.designDoc) validIds.add(dIds.designDoc);
+      (dIds.extraFiles || []).forEach(function(id) { if(id) validIds.add(id); });
+    });
+
+    // Step 2: List all files in Drive folder via Apps Script
+    const res  = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'listFolder' })
+    });
+    const data = await res.json();
+    if (!data.success) { alert('Could not list Drive files: ' + (data.error || 'Unknown error')); return; }
+
+    const driveFiles = data.files || [];
+    const orphans    = driveFiles.filter(function(f) { return !validIds.has(f.id); });
+
+    if (orphans.length === 0) { alert('✅ No orphan files found. Drive is clean!'); return; }
+
+    if (!confirm(`Found ${orphans.length} orphan file(s) not linked to any submission:\n\n${orphans.map(f=>f.name).join('\n')}\n\nDelete all?`)) return;
+
+    // Step 3: Delete orphans
+    let deleted = 0, failed = 0;
+    for (const f of orphans) {
+      try {
+        await deleteDriveFile(f.id);
+        deleted++;
+      } catch(e) { failed++; }
+    }
+
+    alert(`🧹 Done!\nDeleted: ${deleted}\nFailed: ${failed}`);
+
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+};
+
+window.cleanOrphanCloudinaryFiles = async function() {
+  if (!confirm('This will scan ALL Cloudinary assets via Apps Script, compare with Firestore, and DELETE orphans.\n\nContinue?')) return;
+
+  try {
+    // Step 1: Collect valid Cloudinary public_ids from ALL Firestore docs
+    const validIds = new Set();
+    allDocs.forEach(function(d) {
+      var cIds = d.cloudinaryIds || {};
+      if (cIds.pdf) validIds.add(cIds.pdf);
+      const slides = Array.isArray(cIds.slides) ? cIds.slides : (cIds.slides ? [cIds.slides] : []);
+      slides.forEach(function(id) { if (id) validIds.add(id); });
+    });
+
+    // Step 2: List all Cloudinary assets via Apps Script (server-side, no CORS)
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action:    'listCloudinary',
+        cloudName: CLOUDINARY_CLOUD,
+        apiKey:    CLOUDINARY_API_KEY,
+        apiSecret: CLOUDINARY_API_SECRET
+      })
+    });
+    const data = await res.json();
+    if (!data.success) { alert('Could not list Cloudinary assets: ' + (data.error || 'Unknown')); return; }
+
+    const allAssets = data.assets || [];
+    if (allAssets.length === 0) { alert('No Cloudinary assets found.'); return; }
+
+    const orphans = allAssets.filter(function(a) { return !validIds.has(a.id); });
+
+    if (orphans.length === 0) { alert('✅ Cloudinary is clean! No orphans found.'); return; }
+
+    if (!confirm(`Found ${orphans.length} orphan Cloudinary asset(s):\n\n${orphans.slice(0,15).map(a=>a.id).join('\n')}${orphans.length>15?'\n...and more':''}\n\nDelete all?`)) return;
+
+    let deleted = 0, failed = 0;
+    for (const asset of orphans) {
+      try {
+        await deleteCloudinaryAsset(asset.id, asset.type);
+        deleted++;
+      } catch(e) { failed++; }
+    }
+
+    alert(`☁️ Done!\nDeleted: ${deleted}\nFailed: ${failed}`);
+
+  } catch(err) {
+    alert('Error: ' + err.message);
+  }
+};
+</script>
+<script>
+// ── COLOUR PANEL ──
+var panelOpen = false;
+window.toggleColourPanel = function() {
+  panelOpen = !panelOpen;
+  var panel = document.getElementById('colourPanel');
+  if (panelOpen) { panel.classList.add('open'); drawSpectrum(); }
+  else { panel.classList.remove('open'); }
+};
+document.addEventListener('click', function(e) {
+  var panel = document.getElementById('colourPanel');
+  var btn = document.getElementById('colourBtn');
+  if (panelOpen && !panel.contains(e.target) && e.target !== btn) { panel.classList.remove('open'); panelOpen = false; }
+});
+function drawSpectrum() {
+  var canvas = document.getElementById('colourCanvas');
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  var hueGrad = ctx.createLinearGradient(0,0,w,0);
+  hueGrad.addColorStop(0,'hsl(0,100%,50%)'); hueGrad.addColorStop(0.17,'hsl(60,100%,50%)');
+  hueGrad.addColorStop(0.33,'hsl(120,100%,50%)'); hueGrad.addColorStop(0.5,'hsl(180,100%,50%)');
+  hueGrad.addColorStop(0.67,'hsl(240,100%,50%)'); hueGrad.addColorStop(0.83,'hsl(300,100%,50%)');
+  hueGrad.addColorStop(1,'hsl(360,100%,50%)');
+  ctx.fillStyle = hueGrad; ctx.fillRect(0,0,w,h);
+  var vGrad = ctx.createLinearGradient(0,0,0,h);
+  vGrad.addColorStop(0,'rgba(255,255,255,0.85)'); vGrad.addColorStop(0.45,'rgba(255,255,255,0)');
+  vGrad.addColorStop(0.55,'rgba(0,0,0,0)'); vGrad.addColorStop(1,'rgba(0,0,0,0.85)');
+  ctx.fillStyle = vGrad; ctx.fillRect(0,0,w,h);
+}
+var committedR = null, committedG = null, committedB = null;
+document.getElementById('colourCanvas').addEventListener('mousemove', function(e) {
+  var c = document.getElementById('colourCanvas'), r = c.getBoundingClientRect();
+  var x = Math.max(0,Math.min(e.clientX-r.left,c.width-1)), y = Math.max(0,Math.min(e.clientY-r.top,c.height-1));
+  var p = c.getContext('2d').getImageData(x,y,1,1).data; applyBgColour(p[0],p[1],p[2]);
+});
+document.getElementById('colourCanvas').addEventListener('mouseleave', function() {
+  if (committedR !== null) applyBgColour(committedR,committedG,committedB); else resetColour();
+});
+document.getElementById('colourCanvas').addEventListener('click', function(e) {
+  var c = document.getElementById('colourCanvas'), r = c.getBoundingClientRect();
+  var x = Math.max(0,Math.min(e.clientX-r.left,c.width-1)), y = Math.max(0,Math.min(e.clientY-r.top,c.height-1));
+  var p = c.getContext('2d').getImageData(x,y,1,1).data;
+  committedR=p[0]; committedG=p[1]; committedB=p[2]; applyBgColour(p[0],p[1],p[2]);
+});
+function applyBgColour(r,g,b) {
+  var hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
+  document.body.style.backgroundColor = hex;
+  document.getElementById('colourSwatch').style.background = hex;
+  document.getElementById('colourHex').textContent = hex.toUpperCase();
+}
+function resetColour() {
+  committedR=null; committedG=null; committedB=null;
+  document.body.style.backgroundColor = '#070714';
+  document.getElementById('colourSwatch').style.background = '#d4af37';
+  document.getElementById('colourHex').textContent = '#D4AF37';
+}
+</script>
+<!-- ✏️ EDIT MODAL -->
+<div class="edit-modal" id="editModal">
+  <div class="edit-box">
+    <div class="edit-header">
+      <h2>✏️ Edit Submission</h2>
+      <button class="edit-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="edit-body">
+      <div class="edit-section-title" style="border-top:none;padding-top:0;">Basic Info</div>
+      <div class="edit-field full"><label>Kit / Template Name</label><input type="text" id="ef_name" placeholder="e.g. Modern Pitch Deck Pro"/></div>
+      <div class="edit-field"><label>Category</label>
+        <select id="ef_category">
+          <option value="pitch_deck">📊 Pitch Deck</option>
+          <option value="media_kit">📰 Media Kit</option>
+          <option value="web_kit">🌐 Website Kit</option>
+          <option value="resume_cv">📄 Resume / CV</option>
+          <option value="social_media_kit">📱 Social Media Kit</option>
+          <option value="digital_keynotes">🎨 Digital Keynotes</option>
+        </select>
+      </div>
+      <div class="edit-field"><label>Price</label>
+        <select id="ef_price"><option value="free">Free</option><option value="pro">Pro (paid)</option></select>
+      </div>
+      <div class="edit-field"><label>Number of Slides</label><input type="number" id="ef_slideCount" min="1"/></div>
+      <div class="edit-field"><label>Aspect Ratio</label>
+        <select id="ef_aspectRatio">
+          <option value="">— Not set —</option><option value="16:9">16:9 Widescreen</option>
+          <option value="4:3">4:3 Standard</option><option value="1:1">1:1 Square</option>
+          <option value="9:16">9:16 Vertical</option><option value="A4">A4 Document</option>
+        </select>
+      </div>
+      <div class="edit-section-title">Upload / Upgrade Kit PDF</div>
+      <div class="edit-field full"><label>Coded form — the <b>*_SYSTEM.pdf</b> (carries the metadata codes)</label>
+        <input type="file" id="ef_systemPdf" accept="application/pdf,.pdf"/></div>
+      <div class="edit-field full"><label>Capacity map (optional) — the paired <b>.slots.json</b></label>
+        <input type="file" id="ef_slotsJson" accept="application/json,.json"/></div>
+      <div class="edit-field full">
+        <button type="button" id="uploadKitBtn" onclick="uploadKitPdf()" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;">⬆️ Upload / Upgrade Kit on Site</button>
+        <div id="uploadKitStatus" style="margin-top:10px;font-size:13px;line-height:1.5;color:var(--muted);"></div>
+      </div>
+      <div class="edit-section-title">File URLs (override if needed)</div>
+      <div class="edit-field full"><label>PPTX Download URL</label><input type="url" id="ef_pptxUrl"/></div>
+      <div class="edit-field full"><label>Keynote (.key) Download URL</label><input type="url" id="ef_keyUrl"/></div>
+      <div class="edit-field full"><label>PDF Brief URL</label><input type="url" id="ef_pdfUrl"/></div>
+      <div class="edit-field full"><label>💳 Whop link for THIS design — paste it once, buyers pay on Whop & get instant download</label><input type="text" id="ef_whopUrl" placeholder="https://whop.com/lazydog-templates-ab73/your-product/"/></div>
+      <div class="edit-field full"><label>Preview Video URL</label><input type="url" id="ef_previewVideoUrl"/></div>
+    </div>
+    <div class="edit-footer">
+      <button class="edit-cancel" onclick="closeEditModal()">Cancel</button>
+      <span class="edit-status-msg" id="editStatusMsg"></span>
+      <button class="edit-save" id="editSaveBtn" onclick="saveEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ── ✏️ EDIT MODAL — needs access to db from the main module scope ──
+// We bridge via a custom event so this separate module can call Firestore.
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getStorage, ref as sref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+  authDomain: "templatehub-16cd7.firebaseapp.com",
+  projectId: "templatehub-16cd7",
+  storageBucket: "templatehub-16cd7.firebasestorage.app",
+  messagingSenderId: "143000893683",
+  appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+};
+const app2 = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+
+// ── Upload / upgrade a kit PDF straight into the metadata pipeline ──
+const kitStorage = getStorage(app2, 'gs://lazydog-studio-private');
+function _kitSlug(fn){
+  let s = fn.replace(/\.[^.]+$/,'').replace(/_SYSTEM$/i,'');
+  return s.toLowerCase().replace(/[^a-z0-9\-_]/g,'-').replace(/^-+|-+$/g,'') || 'kit';
+}
+window.uploadKitPdf = async function(){
+  const st = document.getElementById('uploadKitStatus');
+  const pdf = document.getElementById('ef_systemPdf').files[0];
+  const slots = document.getElementById('ef_slotsJson').files[0];
+  if(!pdf){ st.textContent='Pick the *_SYSTEM.pdf first.'; return; }
+  if(!/_SYSTEM\.pdf$/i.test(pdf.name)){ st.innerHTML='\u26a0\ufe0f The file must be the <b>*_SYSTEM.pdf</b> (the coded form). The public form is created automatically.'; return; }
+  const slug=_kitSlug(pdf.name), folder='kits/'+slug+'/';
+  try{
+    st.textContent='Uploading\u2026';
+    if(slots){ await uploadBytes(sref(kitStorage, folder+slots.name), slots); st.textContent='Capacity map uploaded\u2026'; }
+    await uploadBytes(sref(kitStorage, folder+pdf.name), pdf);
+    st.innerHTML='\u2705 Uploaded to <b>kits/'+slug+'/</b>. The pipeline is extracting codes \u2192 Firebase and publishing the clean form to the live site (~30s). Buyers see only the PDF.';
+    document.getElementById('ef_systemPdf').value=''; document.getElementById('ef_slotsJson').value='';
+  }catch(e){ st.innerHTML='\u274c Upload failed: '+(e.code||e.message); }
+};
+const db2  = getFirestore(app2);
+
+let _editDocId = null;
+
+function _v(id) { return (document.getElementById(id)||{}).value || ''; }
+function _setV(id, val) { const el = document.getElementById(id); if (el) el.value = val||''; }
+
+window.openEditModal = function(docId) {
+  // allDocs is defined in the main module — access via window reference stored there
+  const entry = (window._adminAllDocs || []).find(d => d.id === docId);
+  if (!entry) { alert('Submission not found.'); return; }
+  _editDocId = docId;
+  const t = entry.template || {};
+  _setV('ef_name',           t.name);
+  _setV('ef_category',       t.category      || 'pitch_deck');
+  _setV('ef_price',          t.price === 'free' ? 'free' : 'pro');
+  _setV('ef_slideCount',     t.slideCount    || (t.slides ? t.slides.length : ''));
+  _setV('ef_aspectRatio',    t.aspectRatio);
+  _setV('ef_pptxUrl',        t.pptxUrl);
+  _setV('ef_keyUrl',         t.keyUrl);
+  _setV('ef_pdfUrl',         t.pdfUrl);
+  _setV('ef_previewVideoUrl',t.previewVideoUrl);
+  _setV('ef_whopUrl',        t.whopPlanId || t.whopUrl || '');
+  const msg = document.getElementById('editStatusMsg');
+  msg.textContent = ''; msg.className = 'edit-status-msg';
+  document.getElementById('editSaveBtn').disabled = false;
+  document.getElementById('editModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeEditModal = function() {
+  document.getElementById('editModal').classList.remove('open');
+  document.body.style.overflow = '';
+  _editDocId = null;
+};
+
+window.saveEdit = async function() {
+  if (!_editDocId) return;
+  const saveBtn = document.getElementById('editSaveBtn');
+  const msg     = document.getElementById('editStatusMsg');
+  saveBtn.disabled = true; saveBtn.textContent = '⏳ Saving...';
+  msg.className = 'edit-status-msg'; msg.textContent = '';
+  try {
+    const updates = {
+      'template.name':              _v('ef_name'),
+      'template.category':          _v('ef_category'),
+      'template.price':             _v('ef_price'),
+      'template.slideCount':        parseInt(_v('ef_slideCount')) || null,
+      'template.aspectRatio':       _v('ef_aspectRatio') || null,
+      'template.pptxUrl':           _v('ef_pptxUrl') || null,
+      'template.keyUrl':            _v('ef_keyUrl') || null,
+      'template.pdfUrl':            _v('ef_pdfUrl') || null,
+      'template.previewVideoUrl':   _v('ef_previewVideoUrl') || null,
+      'template.whopPlanId':        _v('ef_whopUrl') || null,
+    };
+    await updateDoc(doc(db2, 'templates', _editDocId), updates);
+    // Update local cache in main module
+    const entry = (window._adminAllDocs||[]).find(d => d.id === _editDocId);
+    if (entry) {
+      const t = entry.template || {};
+      Object.keys(updates).forEach(k => {
+        if (k.startsWith('template.')) t[k.replace('template.','')] = updates[k];
+      });
+      entry.template = t;
+    }
+    msg.textContent = '✅ Saved!'; msg.className = 'edit-status-msg success';
+    saveBtn.textContent = '💾 Save Changes'; saveBtn.disabled = false;
+    setTimeout(() => { if (window._adminRenderCards) window._adminRenderCards(); }, 600);
+  } catch(err) {
+    msg.textContent = '❌ ' + err.message; msg.className = 'edit-status-msg error';
+    saveBtn.textContent = '💾 Save Changes'; saveBtn.disabled = false;
+  }
+};
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('editModal').classList.contains('open') && e.key === 'Escape') closeEditModal();
+});
+</script>
+
+<script src="footerbar.js"></script>
+<script src="va_dictionary.js"></script>
+<script src="navbar.js"></script>
+</body>
+</html>
