@@ -91,9 +91,17 @@
     }, true);
 
     // wiring
-    var deckFile=null, designRef=null;
+    var deckFile=null, designRef=null, isAdmin=false;
     var goBtn=document.getElementById('fwGo');
-    function refresh(){ goBtn.disabled = !(deckFile || designRef); }
+    function refresh(){ goBtn.disabled = !isAdmin || !(deckFile || designRef); }
+    // Admin-only: filling content + generating a deck is restricted to the admin
+    // account. Buyers and visitors see it locked.
+    function applyAdmin(){
+      refresh();
+      var note=document.getElementById('fwAdminNote');
+      if(!note && goBtn && goBtn.parentNode){ note=document.createElement('div'); note.id='fwAdminNote'; note.className='fw-note'; note.style.marginTop='8px'; goBtn.parentNode.appendChild(note); }
+      if(note){ note.textContent = isAdmin ? '' : '🔒 Only the admin can fill content and generate decks.'; note.style.color = isAdmin ? '' : '#b23a3a'; }
+    }
     function wireDrop(dropId, inputId, noteId, cb){
       var d=document.getElementById(dropId), i=document.getElementById(inputId), n=document.getElementById(noteId);
       d.addEventListener('click', function(){ i.click(); });
@@ -128,6 +136,7 @@
     })();
 
     goBtn.addEventListener('click', async function(){
+      if(!isAdmin){ alert('Only the admin can fill content and generate decks. Please sign in as the admin account.'); return; }
       var content=document.getElementById('fwContent').value.trim();
       // A design chosen FROM THE SITE — there's no local file to stash, just its reference.
       if(designRef){
@@ -153,6 +162,22 @@
         window.location.assign('/editor.html');
       }catch(e){ alert('Could not prepare: '+e.message); goBtn.disabled=false; goBtn.textContent='Prepare my deck →'; }
     });
+    // Resolve admin status from Firebase auth (reuses the page's app).
+    (function checkAdmin(){
+      var ADMINS=['javed5395@gmail.com','lazydogtemplates@gmail.com'];
+      Promise.all([
+        import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
+      ]).then(function(m){
+        var A=m[0], B=m[1];
+        var app = A.getApps().length ? A.getApp() : A.initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" });
+        B.onAuthStateChanged(B.getAuth(app), function(u){
+          isAdmin = !!(u && ADMINS.indexOf((((u&&u.email)||'')).toLowerCase())>-1);
+          applyAdmin();
+        });
+      }).catch(function(){ applyAdmin(); });
+    })();
+    applyAdmin();
     return true;
   }
   var tries=0, t=setInterval(function(){ tries++; if(boot()||tries>100) clearInterval(t); }, 100);

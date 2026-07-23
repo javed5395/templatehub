@@ -8591,6 +8591,7 @@ function aiRevert() {
 
 /* Deck + slide generation reuse the composer that already exists. */
 function aiGenerateDeck(oneSlide) {
+  if (window.LD_IS_ADMIN === false) { showToast('Only the admin can generate decks'); return; }
   if (typeof window.ldCompose !== 'function') {
     showToast('Designer backend not reachable from here');
     return;
@@ -15931,16 +15932,48 @@ window.ldCompose = async function (sentence) {
     ? ('Create a presentation from this content' + hint + ':\n\n' + content).slice(0, 4000)
     : ('Create a professional presentation' + hint);
 
-  var tries = 0;
-  var t = setInterval(function () {
-    tries++;
-    if (window.ldCompose && typeof fc !== 'undefined' && fc) {
-      clearInterval(t);
-      try { if (typeof showToast === 'function') showToast('Preparing your deck…'); } catch (e) {}
-      window.ldCompose(sentence);
-    } else if (tries > 120) { clearInterval(t); }
-  }, 300);
+  function generate() {
+    var tries = 0;
+    var t = setInterval(function () {
+      tries++;
+      if (window.ldCompose && typeof fc !== 'undefined' && fc) {
+        clearInterval(t);
+        try { if (typeof showToast === 'function') showToast('Preparing your deck…'); } catch (e) {}
+        window.ldCompose(sentence);
+      } else if (tries > 120) { clearInterval(t); }
+    }, 300);
+  }
+  /* ADMIN ONLY — filling content / generating a deck is restricted to the admin
+     account; buyers and visitors cannot. window.LD_IS_ADMIN is set by the auth
+     module below once Firebase auth resolves. The backend (compose_ir /
+     TRUSTED_UIDS) enforces this too — this is the friendly client gate. */
+  function gate() {
+    if (window.LD_IS_ADMIN) { generate(); return; }
+    try { if (typeof showToast === 'function') showToast('Only the admin can fill content and generate decks', 7000); } catch (e) {}
+  }
+  if (typeof window.LD_IS_ADMIN !== 'undefined') { gate(); return; }
+  var waited = 0;
+  var w = setInterval(function () {
+    waited++;
+    if (typeof window.LD_IS_ADMIN !== 'undefined') { clearInterval(w); gate(); }
+    else if (waited > 40) { clearInterval(w); gate(); }   /* auth never resolved → treat as non-admin */
+  }, 250);
 })();
+</script>
+
+<script type="module">
+/* Admin gate — exposes window.LD_IS_ADMIN so the fill receiver and the AI
+   generation entries can restrict filling + generating to the admin account
+   only. Reuses the page's Firebase app (getApps/getApp) — never a second init. */
+import { getApps, getApp, initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+const LD_ADMINS = ["javed5395@gmail.com", "lazydogtemplates@gmail.com"];
+const _aApp = getApps().length ? getApp() : initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" });
+onAuthStateChanged(getAuth(_aApp), (u) => {
+  window.LD_USER_EMAIL = u ? (u.email || '') : '';
+  window.LD_IS_ADMIN = !!(u && LD_ADMINS.indexOf((u.email || '').toLowerCase()) > -1);
+  try { window.dispatchEvent(new CustomEvent('ld:auth', { detail: { admin: window.LD_IS_ADMIN } })); } catch (e) {}
+});
 </script>
 
 <script type="module">
