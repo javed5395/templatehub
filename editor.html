@@ -373,18 +373,42 @@ input, textarea { font-family: inherit; }
 .template-card:active { transform: scale(0.97); }
 .template-preview {
   width: 100%;
-  aspect-ratio: 4/3;
+  aspect-ratio: 16/10;
   position: relative;
   overflow: hidden;
+  background: #eef0f4 center/cover no-repeat;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.template-preview.loading::after {
+  content: '';
+  width: 22px; height: 22px;
+  border: 3px solid rgba(0,0,0,0.12);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: tplspin .7s linear infinite;
+}
+@keyframes tplspin { to { transform: rotate(360deg); } }
+.template-badge {
+  position: absolute;
+  bottom: 6px; right: 6px;
+  background: rgba(0,0,0,0.62);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: .3px;
 }
 .template-label {
   display: block;
-  padding: 6px 8px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border);
+  padding: 8px 6px 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
 }
 .tpl-line {
   position: absolute;
@@ -2236,8 +2260,6 @@ const editingTools = [
 const panelData = {
   scissor: { tabs: null, generate: function(){ return scissorPanelContent(); } },
   templates: {
-    tabs: ['All', 'Social Media', 'Presentations', 'Posters', 'Flyers'],
-    activeTab: 'All',
     generate() {
       /* Real templates come from Firestore (editor_templates), uploaded by the
          admin via the Template Upload page. window._editorTemplates is the
@@ -2252,11 +2274,12 @@ const panelData = {
         return '<div style="padding:16px;color:var(--text-secondary);font-size:13px;line-height:1.6;">No templates yet.<br>Add one from the <strong>Template Upload</strong> page.</div>';
       }
       return `<div class="template-grid">${list.map((c, i) => {
-        var bg = c.bg || 'linear-gradient(135deg,#667eea,#764ba2)';
         var nm = (c.name || 'Template').replace(/</g,'&lt;').replace(/"/g,'&quot;');
         var n = c.slideCount || 0;
+        var thumbStyle = c.thumb ? `background-image:url('${c.thumb}')` : '';
+        var cls = c.thumb ? 'template-preview' : 'template-preview loading';
         return `<div class="template-card" style="animation-delay:${i*0.04}s" data-action="use-template" data-id="${c.id}" data-json="${encodeURIComponent(c.jsonUrl||'')}" data-name="${nm}">
-          <div class="template-preview" style="background:${bg};display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.85);font-weight:700;font-size:11px;">${n} slide${n===1?'':'s'}</div>
+          <div class="${cls}" style="${thumbStyle}"><span class="template-badge">${n} slide${n===1?'':'s'}</span></div>
           <span class="template-label">${nm}</span>
         </div>`;
       }).join('')}</div>`;
@@ -2645,6 +2668,7 @@ function renderPanelContent(toolId) {
     /* canvas-based previews must be painted after the markup lands */
     if (toolId === 'charts' && typeof paintChartThumbs === 'function') paintChartThumbs();
     if (toolId === 'backgrounds' && typeof paintPatternThumbs === 'function') paintPatternThumbs();
+    if (toolId === 'templates' && typeof paintTemplateThumbs === 'function') paintTemplateThumbs();
   } else {
     const tools = state.mode === 'design' ? designTools : editingTools;
     const tool = tools.find(t => t.id === toolId);
@@ -2659,18 +2683,69 @@ async function applyEditorTemplate(ds) {
   var url = ds && ds.json ? decodeURIComponent(ds.json) : '';
   if (!url) { showToast('This template has no design data'); return; }
   showToast('Loading template…');
+  var deck;
   try {
     var r = await fetch(url);
     if (!r.ok) throw new Error('fetch ' + r.status);
-    var deck = await r.json();
+    deck = await r.json();
+  } catch (e) {
+    console.error('template fetch failed', e);
+    showToast('Could not load this template');
+    return;
+  }
+  /* The design data is in hand — from here a hiccup in thumbnail/font work
+     must NOT surface as "could not load", because the slide has rendered. */
+  try {
     if (!window.loadDeckIRIntoEditor) throw new Error('editor not ready');
     await window.loadDeckIRIntoEditor(deck);
-    showToast('Template applied: ' + (ds.name || ''));
-    if (typeof closePanel === 'function') closePanel();
   } catch (e) {
-    console.error('template load failed', e);
-    showToast('Could not load this template');
+    console.warn('template rendered with a minor issue', e);
   }
+  showToast('Template applied: ' + (ds.name || ''));
+  if (typeof closePanel === 'function') closePanel();
+}
+
+/* Render a REAL preview of each template card's first slide, off-screen,
+   reusing the same engine the canvas uses. The image is cached on the
+   template object so re-opening the panel is instant. */
+async function renderDeckThumb(deck) {
+  try {
+    if (!deck || !deck.slides || !deck.slides[0] || typeof fabric === 'undefined' || !deck.size) return null;
+    var W = 280, H = Math.max(80, Math.round(W * (deck.size.h || 3) / (deck.size.w || 4)));
+    var tf = new fabric.StaticCanvas(null, { width: W, height: H });
+    tf._baseWidth = W; tf._baseHeight = H;
+    await renderSlideIR(deck.slides[0], deck, tf);
+    tf.renderAll();
+    var url = tf.toDataURL({ format: 'jpeg', quality: 0.72 });
+    try { tf.dispose(); } catch (_) {}
+    return url;
+  } catch (e) { console.warn('thumb render failed', e); return null; }
+}
+
+function paintTemplateThumbs() {
+  var list = window._editorTemplates || [];
+  var cards = document.querySelectorAll('#panel-content .template-card');
+  cards.forEach(function (card) {
+    var id = card.dataset.id;
+    var tpl = list.find(function (t) { return t.id === id; });
+    if (!tpl) return;
+    var preview = card.querySelector('.template-preview');
+    var badge = preview ? preview.querySelector('.template-badge') : null;
+    function apply(url) {
+      if (!preview || !url) return;
+      preview.classList.remove('loading');
+      preview.style.backgroundImage = "url('" + url + "')";
+    }
+    if (tpl.thumb) { apply(tpl.thumb); return; }
+    var jurl = card.dataset.json ? decodeURIComponent(card.dataset.json) : '';
+    if (!jurl) { if (preview) preview.classList.remove('loading'); return; }
+    fetch(jurl).then(function (r) { return r.json(); }).then(function (deck) {
+      return renderDeckThumb(deck);
+    }).then(function (url) {
+      if (url) { tpl.thumb = url; apply(url); }
+      else if (preview) preview.classList.remove('loading');
+    }).catch(function () { if (preview) preview.classList.remove('loading'); });
+  });
 }
 
 /* ============================================
