@@ -2703,7 +2703,7 @@ async function applyEditorTemplate(ds) {
     deck = await r.json();
   } catch (e) {
     console.error('template fetch failed', e);
-    showToast('Could not load this template');
+    showToast('Load failed: ' + (e && e.message ? e.message : e), 8000);
     return;
   }
   /* The design data is in hand — from here a hiccup in thumbnail/font work

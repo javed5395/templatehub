@@ -1,0 +1,11 @@
+[
+  {
+    "origin": [
+      "https://www.lazydogtemplates.com",
+      "https://lazydogtemplates.com"
+    ],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type"]
+  }
+]
