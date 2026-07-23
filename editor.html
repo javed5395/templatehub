@@ -2631,6 +2631,9 @@ function openPanel(toolId) {
   if (!tool) return;
 
   dom.panelTitle.textContent = tool.label;
+  /* Templates panel is Canva-clean: no repeated "Templates" heading (the
+     left tab already says it) — just the search bar and the preview grid. */
+  dom.panelTitle.style.display = (toolId === 'templates') ? 'none' : '';
   dom.panelSearch.value = '';
 
   // Show/hide search and tabs based on tool
