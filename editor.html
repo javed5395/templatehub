@@ -15906,7 +15906,42 @@ window.ldCompose = async function (sentence) {
      Loads the dragged deck, fills single-region by rule, multi-region via
      /smart_fill (Haiku->check->Sonnet), then /qa_deck (Opus) on key pages.
      ============================================================ -->
-<!-- bridge omitted in test build -->
+<script>
+/* Fill-plan receiver — the missing link. fill_widget.js stashes a plan in
+   localStorage and opens this editor; without a reader the deck was never
+   built. This drives the SAME proven path Hexa uses (window.ldCompose →
+   compose_ir), i.e. the engine's "make a presentation" command line. The
+   exact-template fill (private ai_fill / content_fitter cascade) is not wired
+   into the public editor, so this generates the deck from the buyer's content
+   (plus a style hint from the chosen design). */
+(function () {
+  var raw;
+  try { raw = localStorage.getItem('lazydog_fill_plan'); } catch (e) { return; }
+  if (!raw) return;
+  /* if a ?compose sentence is present, that bootstrap already handles it */
+  try { if (new URLSearchParams(location.search).get('compose')) return; } catch (e) {}
+  var plan;
+  try { plan = JSON.parse(raw); } catch (e) { plan = null; }
+  try { localStorage.removeItem('lazydog_fill_plan'); } catch (e) {}   /* one-shot */
+  if (!plan) return;
+
+  var content = String(plan.content || '').trim();
+  var hint = plan.deck ? (' in the style of "' + String(plan.deck).slice(0, 80) + '"') : '';
+  var sentence = content
+    ? ('Create a presentation from this content' + hint + ':\n\n' + content).slice(0, 4000)
+    : ('Create a professional presentation' + hint);
+
+  var tries = 0;
+  var t = setInterval(function () {
+    tries++;
+    if (window.ldCompose && typeof fc !== 'undefined' && fc) {
+      clearInterval(t);
+      try { if (typeof showToast === 'function') showToast('Preparing your deck…'); } catch (e) {}
+      window.ldCompose(sentence);
+    } else if (tries > 120) { clearInterval(t); }
+  }, 300);
+})();
+</script>
 
 <script type="module">
 /* Designer sign-in: reuse the site's Firebase session so the locked cloud
