@@ -15916,6 +15916,15 @@ window.ldCompose = async function (sentence) {
    into the public editor, so this generates the deck from the buyer's content
    (plus a style hint from the chosen design). */
 (function () {
+  /* Flow 3 now runs THROUGH HEXA: the fill card hands its material to Hexa,
+     Hexa builds the engine command (editor.html?compose=…), and the engine
+     opens on that command. This old auto-generate receiver is retired so a
+     normal editor open never composes from a stale plan. Just clear any legacy
+     key. The buyer's full material lives under 'lazydog_fill_material' for the
+     future content-fill (ai_fill) wire. */
+  try { localStorage.removeItem('lazydog_fill_plan'); } catch (e) {}
+  return;
+  /* --- retired below --- */
   var raw;
   try { raw = localStorage.getItem('lazydog_fill_plan'); } catch (e) { return; }
   if (!raw) return;

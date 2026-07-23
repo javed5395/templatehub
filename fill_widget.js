@@ -137,30 +137,31 @@
 
     goBtn.addEventListener('click', async function(){
       if(!isAdmin){ alert('Only the admin can fill content and generate decks. Please sign in as the admin account.'); return; }
+      if(!(deckFile || designRef)){ alert('Drag a design from the page, or drop a .pptx here, first.'); return; }
       var content=document.getElementById('fwContent').value.trim();
-      // A design chosen FROM THE SITE — there's no local file to stash, just its reference.
-      if(designRef){
-        try{ localStorage.setItem('lazydog_fill_plan', JSON.stringify({
-          deck: designRef.name || 'design', source:'fill_widget', mode:'site-design',
-          designId: designRef.id || '', designHref: designRef.href || '', content: content, slides: []
-        })); }catch(e){}
-        window.location.assign('/editor.html');
-        return;
-      }
-      if(!deckFile){ alert('Drag a design from the page, or drop a .pptx here, first.'); return; }
+      var designName = (designRef && designRef.name) ? designRef.name
+                     : (deckFile ? String(deckFile.name||'').replace(/\.pptx$/i,'') : '');
+
+      // Stash the FULL material for the (future) content-fill engine wire.
+      // Under its OWN key — NOT the one the editor auto-fires on — so the deck
+      // is generated only by Hexa's command below, never by a stale plan.
+      try{ localStorage.setItem('lazydog_fill_material', JSON.stringify({
+        deck: designName || 'design', source:'fill_widget',
+        mode: designRef ? 'site-design' : (deckFile ? 'file' : 'content'),
+        designId: (designRef&&designRef.id)||'', designHref:(designRef&&designRef.href)||'',
+        content: content, slides: []
+      })); }catch(e){}
+
       goBtn.disabled=true; goBtn.textContent='Preparing…';
-      try{
-        // stash the deck for the editor (same channel the editor reads)
-        await new Promise(function(res,rej){
-          var rq=indexedDB.open('lazydog',1);
-          rq.onupgradeneeded=function(){ try{ rq.result.createObjectStore('files'); }catch(e){} };
-          rq.onsuccess=function(){ var db=rq.result; var tx=db.transaction('files','readwrite'); tx.objectStore('files').put(deckFile,'deck_pptx'); tx.oncomplete=function(){res();}; tx.onerror=function(){rej(tx.error);}; };
-          rq.onerror=function(){ rej(rq.error); };
-        });
-        var plan={ deck:(deckFile.name||'deck').replace(/\.pptx$/i,''), source:'fill_widget', content:content, slides:[] };
-        try{ localStorage.setItem('lazydog_fill_plan', JSON.stringify(plan)); }catch(e){}
-        window.location.assign('/editor.html');
-      }catch(e){ alert('Could not prepare: '+e.message); goBtn.disabled=false; goBtn.textContent='Prepare my deck →'; }
+
+      // HAND OFF TO HEXA — Hexa turns this into the engine command; the card
+      // never talks to the engine itself. The client only sees the finished deck.
+      var intent = 'Prepare a presentation'
+        + (designName ? ' in the style of "' + String(designName).slice(0,60) + '"' : '')
+        + (content ? ' using my content: ' + content.slice(0,120) : '');
+      var target = 'editor.html?compose=' + encodeURIComponent(intent.slice(0,200));
+      try { if (typeof window.hexaDesign === 'function') { var r = window.hexaDesign(intent); if (r && r.target) target = r.target; } } catch(e){}
+      window.location.assign(target);
     });
     // Resolve admin status from Firebase auth (reuses the page's app).
     (function checkAdmin(){
