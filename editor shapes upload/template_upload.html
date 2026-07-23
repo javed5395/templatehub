@@ -38,7 +38,9 @@
   .tpl .meta{flex:1;min-width:0;}
   .tpl .nm{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .tpl .dt{font-size:11px;color:var(--muted);}
-  .del{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
+  .del,.edit{border-radius:8px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0;}
+  .del{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+  .edit{background:rgba(212,175,55,0.15);color:var(--accent);border:1px solid var(--border);margin-right:8px;}
   .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(0,0,0,0.3);border-top-color:#1a1400;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px;}
   @keyframes sp{to{transform:rotate(360deg);}}
 </style>
@@ -67,8 +69,9 @@
       <div class="who">Signed in: <span id="whoEmail"></span> · <a href="#" id="signout" style="color:var(--accent);">sign out</a></div>
     </div>
     <div class="drop" id="drop">
-      <div class="big">Click or drop a .pptx here</div>
-      <div class="small">PowerPoint only · one deck = one template</div>
+      <div class="big">Drop a .pptx here</div>
+      <div class="small" style="margin-bottom:14px;">PowerPoint only · one deck = one template</div>
+      <button class="btn" id="pickBtn" type="button">Choose PowerPoint &amp; Upload</button>
       <input type="file" id="file" accept=".pptx" class="hidden"/>
     </div>
     <div class="msg" id="upMsg"></div>
@@ -111,7 +114,7 @@ const LD_BACKEND = /^(localhost|127\.)/.test(location.hostname)
   : 'https://composer-proxy-irosbvpq7q-uc.a.run.app';
 
 const $ = id => document.getElementById(id);
-function show(el, cls, text){ el.className = 'msg show ' + cls; el.textContent = text; }
+function show(el, cls, text){ el.className = 'msg show ' + cls; el.innerHTML = text; }
 function hide(el){ el.className = 'msg'; }
 
 // ---- AUTH ----
@@ -205,8 +208,19 @@ async function loadList(){
       el.className = 'tpl';
       el.innerHTML = '<div class="swatch" style="background:'+(t.bg||'#5b6cf0')+'">'+(t.slideCount||'')+'</div>'
         + '<div class="meta"><div class="nm"></div><div class="dt">'+(t.slideCount||0)+' slide(s)</div></div>'
+        + '<button class="edit">Edit name</button>'
         + '<button class="del">Delete</button>';
       el.querySelector('.nm').textContent = t.name || d.id;
+      el.querySelector('.edit').addEventListener('click', async () => {
+        var newName = prompt('Rename this template:', t.name || '');
+        if (newName === null) return;
+        newName = newName.trim();
+        if (!newName) { alert('Name cannot be empty.'); return; }
+        try {
+          await setDoc(doc(db,'editor_templates',d.id), { name: newName.slice(0,80) }, { merge:true });
+          loadList();
+        } catch(e){ alert('Rename failed: ' + e.message); }
+      });
       el.querySelector('.del').addEventListener('click', async () => {
         if (!confirm('Delete “'+(t.name||d.id)+'” from the editor templates?')) return;
         try {
