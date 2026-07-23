@@ -96,7 +96,8 @@ const firebaseConfig = {
   messagingSenderId: "143000893683",
   appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
 };
-const ADMIN_EMAIL = "lazydogtemplates@gmail.com";
+const ADMIN_EMAILS = ["javed5395@gmail.com", "lazydogtemplates@gmail.com"];
+const isAdminEmail = e => ADMIN_EMAILS.includes((e || "").toLowerCase());
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -126,12 +127,12 @@ $('signinBtn').addEventListener('click', async () => {
 $('signout').addEventListener('click', e => { e.preventDefault(); signOut(auth); });
 
 onAuthStateChanged(auth, user => {
-  const isAdmin = user && user.email === ADMIN_EMAIL;
+  const isAdmin = user && isAdminEmail(user.email);
   $('signinCard').classList.toggle('hidden', isAdmin);
   $('uploadCard').classList.toggle('hidden', !isAdmin);
   $('listCard').classList.toggle('hidden', !isAdmin);
   if (isAdmin) { $('whoEmail').textContent = user.email; loadList(); }
-  else if (user) { show($('signinMsg'),'err','That account is not the admin. Sign in as ' + ADMIN_EMAIL + '.'); signOut(auth); }
+  else if (user) { show($('signinMsg'),'err','That account is not an admin. Sign in as ' + ADMIN_EMAILS.join(' or ') + '.'); signOut(auth); }
 });
 
 // ---- UPLOAD ----
