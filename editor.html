@@ -13360,9 +13360,28 @@ async function handlePPTXUpload(input) {
   showToast('Parsing PPTX…');
   try {
     var _buf = await file.arrayBuffer();
-    var _resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
-      method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: _buf });
-    if (!_resp.ok) throw new Error('cloud parse ' + _resp.status);
+
+    /* The /parse backend is behind a locked cloud gate that needs the
+       designer's Firebase token. On a cold page load onAuthStateChanged
+       may not have resolved yet, so — like ldCompose — give the token a
+       few moments to arrive before firing the request. Without this the
+       first click after load races auth and the import silently fails. */
+    for (var _w = 0; _w < 10 && !window.LD_AUTH_TOKEN; _w++) {
+      await new Promise(function (res) { setTimeout(res, 500); });
+    }
+
+    var _resp;
+    try {
+      _resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
+        method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: _buf });
+    } catch (netErr) {
+      /* fetch() only throws for network/CORS failures, never for HTTP errors */
+      throw new Error('Could not reach the import service. Check your internet connection and try again.');
+    }
+    if (_resp.status === 401 || _resp.status === 403) {
+      throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
+    }
+    if (!_resp.ok) throw new Error('Import service error (' + _resp.status + '). Please try again in a moment.');
     var deckIR = await _resp.json();
     window._deckIR = deckIR;
 
@@ -13409,8 +13428,14 @@ async function handlePPTXUpload(input) {
     renderPageThumbs();
     showToast('Loaded ' + state.pages.length + ' slide(s) ✓');
   } catch (e) {
-    console.error(e);
-    alert('PPTX error: ' + e.message);
+    console.error('PPTX import failed:', e);
+    /* Our thrown messages are already user-friendly; only prefix the raw
+       low-level ones (e.g. JSON parse) so the dialog still makes sense. */
+    var msg = /sign in|internet|import service|reach the import/i.test(e.message)
+      ? e.message
+      : 'Could not import this PowerPoint file: ' + e.message;
+    alert(msg);
+    showToast('PPTX import failed');
   }
 }
 
@@ -13792,7 +13817,7 @@ function initEvents() {
 
   // --- Close dropdowns on outside click ---
   document.addEventListener('click', e => {
-    if (state.openDropdown && !e.target.closest('[data-action="share"]') && !e.target.closest('#share-dropdown') && !e.target.closest('[data-action="more-menu"]') && !e.target.closest('#more-dropdown')) {
+    if (state.openDropdown && !e.target.closest('[data-action="share"]') && !e.target.closest('#share-dropdown') && !e.target.closest('[data-action="more-menu"]') && !e.target.closest('#more-dropdown') && !e.target.closest('[data-action="upload-menu"]') && !e.target.closest('#upload-dropdown')) {
       closeDropdowns();
     }
   });
