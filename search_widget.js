@@ -227,6 +227,11 @@
     '| resultsSection:', document.getElementById('swResultsSection'),
     '| row:', document.getElementById('metaSearchRow'));
 
+  // Wire the Lock button NOW (same as fill_widget.js), not after the async
+  // Firestore load — otherwise the lock never binds when Firestore is slow or
+  // unavailable, which is why the left card locked but this one didn't.
+  initWidgetBehavior();
+
   // ---------------------------------------------------------
   // DATA — loaded from Firestore `templates` collection.
   // realDecks is removed — allDecks is the single source of truth.
@@ -700,7 +705,6 @@
         ARRAY_FIELDS.concat(['contentType']).forEach(function(f) { VOCAB[f] = buildVocab(f); });
         populateFilterOptions();
         applyPageContext();
-        initWidgetBehavior();
         wireEvents();
         renderTieredResults(requirements);
       });
