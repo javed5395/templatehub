@@ -41,7 +41,7 @@
   --radius-lg: 12px;
   --radius-full: 9999px;
   --sidebar-w: 72px;
-  --panel-w: 300px;
+  --panel-w: 324px;
   --header-h: 56px;
   --bottom-h: 60px;
   --font: 'DM Sans', system-ui, sans-serif;
@@ -331,9 +331,9 @@ input, textarea { font-family: inherit; }
 
 .panel-tabs {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;          /* wrap onto more rows so no label is ever half-cut */
+  gap: 6px;
   padding: 0 16px 10px;
-  overflow-x: auto;
   flex-shrink: 0;
 }
 .panel-tabs::-webkit-scrollbar { height:0; }
@@ -440,7 +440,7 @@ input, textarea { font-family: inherit; }
 }
 .element-card:hover { border-color: var(--accent); background: var(--accent-subtle); transform: scale(1.05); }
 .element-card:active { transform: scale(0.95); }
-.element-card svg { width:40%; height:40%; }
+.element-card svg { width:80%; height:80%; }
 
 /* Text Options */
 .text-option {
@@ -939,11 +939,17 @@ body.ld-resizing .side-panel { transition: none; }
 }
 .panel-subhead:first-child { margin-top: 4px; }
 .panel-subhead span { font-size: 10px; font-weight: 500; color: var(--text-muted); }
-/* Catalog cards colour themselves via currentColor, so hover tints the art. */
-.element-card { color: #64748B; transition: color var(--fast), background var(--fast); }
-.element-card:hover { color: var(--accent); }
+/* Catalog cards colour themselves via currentColor, per-card via --ec so
+   each shape gets its own vivid colour; hover darkens the art. */
+.element-card { color: var(--ec, #7C3AED); transition: filter var(--fast), background var(--fast); }
+.element-card:hover { filter: brightness(0.88); }
 .element-card.frame-card { color: #C3C7D1; }
 .element-card.frame-card:hover { color: var(--accent); }
+/* frame previews carry real artwork now — fill ~80% of the card instead of
+   the 40% reserved for plain shape glyphs */
+.element-card.frame-card svg { width: 80%; height: 80%; }
+/* the Frames group gets its own bigger 2-up layout */
+.element-grid-frames { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
 /* --- Icons panel --- */
 .msym {
@@ -1462,6 +1468,76 @@ body.show-ruler .canvas-area::after {
 .anim-ordbtns button:hover { border-color: var(--accent); color: var(--accent); }
 .anim-ordbtns .material-icons-outlined { font-size: 14px; }
 
+/* --- Animate panel: live motion previews (PowerPoint/Canva-style cards) --- */
+.animx-none { width:100%; display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:9px 0; margin-bottom:6px; border:1px solid var(--border); border-radius:var(--radius-md);
+  font-size:12.5px; font-weight:600; color:var(--text-secondary); transition:all var(--fast); }
+.animx-none:hover { border-color:var(--accent); color:var(--accent); }
+.animx-none.on { border-color:var(--accent); background:var(--accent-light); color:var(--accent); }
+.animx-none .material-icons-outlined { font-size:17px; }
+.animx-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:8px; }
+.animx-card { display:flex; flex-direction:column; align-items:center; gap:6px; padding:7px 5px 6px;
+  border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-surface);
+  transition:border-color var(--fast), background var(--fast); }
+.animx-card:hover { border-color:var(--accent); background:var(--accent-subtle); }
+.animx-card.on { border-color:var(--accent); background:var(--accent-light); }
+.animx-stage { position:relative; width:100%; height:66px; overflow:hidden;
+  border-radius:8px; background:#F5F3FB; }
+/* demo + a faded ghost that trails it, so the motion reads at a glance.
+   inset+margin auto centres them so the transform keyframes stay relative. */
+.animx-demo, .animx-ghost { position:absolute; inset:0; margin:auto; width:28px; height:28px;
+  border-radius:7px; background:var(--ac, #7C3AED); }
+.animx-ghost { opacity:.3; animation-delay:-.26s !important; }
+.animx-name { font-size:11px; font-weight:600; color:var(--text-primary); line-height:1.15; text-align:center; }
+@keyframes ax-appear{0%,49%{opacity:0}50%,90%{opacity:1}100%{opacity:0}}
+.demo-appear{animation:ax-appear 2s steps(1,end) infinite}
+@keyframes ax-fade{0%,10%{opacity:0}35%,75%{opacity:1}100%{opacity:0}}
+.demo-fade,.demo-bars{animation:ax-fade 2s ease infinite}
+@keyframes ax-slide{0%{opacity:0;transform:translateX(-16px)}35%,75%{opacity:1;transform:none}100%{opacity:0;transform:translateX(-16px)}}
+.demo-slide,.demo-drift,.demo-wipe{animation:ax-slide 2s ease infinite}
+@keyframes ax-float{0%{opacity:0;transform:translateY(10px)}40%,80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(10px)}}
+.demo-float,.demo-rise,.demo-baseline{animation:ax-float 2.1s ease infinite}
+@keyframes ax-zoom{0%{opacity:0;transform:scale(.3)}40%,78%{opacity:1;transform:none}100%{opacity:0;transform:scale(.3)}}
+.demo-zoom,.demo-shape{animation:ax-zoom 2s ease infinite}
+@keyframes ax-pop{0%{opacity:0;transform:scale(.2)}45%{opacity:1;transform:scale(1.18)}60%,78%{transform:scale(1)}100%{opacity:0;transform:scale(.2)}}
+.demo-pop{animation:ax-pop 2s ease infinite}
+@keyframes ax-stomp{0%{opacity:0;transform:scale(2)}40%{opacity:1;transform:scale(.9)}52%,78%{transform:scale(1)}100%{opacity:0;transform:scale(2)}}
+.demo-stomp{animation:ax-stomp 2s ease infinite}
+@keyframes ax-split{0%{opacity:0;transform:scaleX(.05)}40%,78%{opacity:1;transform:none}100%{opacity:0;transform:scaleX(.05)}}
+.demo-split,.demo-swivel{animation:ax-split 2s ease infinite}
+@keyframes ax-wheel{0%{opacity:0;transform:rotate(-160deg)}45%,78%{opacity:1;transform:none}100%{opacity:0;transform:rotate(-160deg)}}
+.demo-wheel{animation:ax-wheel 2.2s ease infinite}
+@keyframes ax-growturn{0%{opacity:0;transform:rotate(-120deg) scale(.3)}45%,78%{opacity:1;transform:none}100%{opacity:0;transform:rotate(-120deg) scale(.3)}}
+.demo-growturn{animation:ax-growturn 2.2s ease infinite}
+@keyframes ax-bounce{0%{opacity:0;transform:translateY(-16px)}45%{opacity:1;transform:translateY(3px)}60%{transform:translateY(-2px)}72%,80%{transform:none}100%{opacity:0;transform:translateY(-16px)}}
+.demo-bounce{animation:ax-bounce 2s ease infinite}
+@keyframes ax-blur{0%{opacity:0;filter:blur(5px)}40%,78%{opacity:1;filter:blur(0)}100%{opacity:0;filter:blur(5px)}}
+.demo-blur{animation:ax-blur 2s ease infinite}
+@keyframes ax-tectonic{0%{opacity:0;transform:translateX(-16px)}30%{opacity:1;transform:translateX(3px)}38%{transform:translateX(-2px)}46%,80%{transform:none}100%{opacity:0;transform:translateX(-16px)}}
+.demo-tectonic{animation:ax-tectonic 2s ease infinite}
+@keyframes ax-tumble{0%{opacity:0;transform:rotate(-200deg) scale(.5)}45%,78%{opacity:1;transform:none}100%{opacity:0;transform:rotate(-200deg) scale(.5)}}
+.demo-tumble{animation:ax-tumble 2.2s ease infinite}
+@keyframes ax-scrapbook{0%{opacity:0;transform:rotate(16deg) translateY(-12px)}45%,78%{opacity:1;transform:none}100%{opacity:0;transform:rotate(16deg) translateY(-12px)}}
+.demo-scrapbook{animation:ax-scrapbook 2.2s ease infinite}
+@keyframes ax-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+.demo-pulse,.demo-growshrink,.demo-breathe{animation:ax-pulse 1.5s ease-in-out infinite}
+@keyframes ax-spin{to{transform:rotate(360deg)}}
+.demo-spin{animation:ax-spin 1.8s linear infinite}
+@keyframes ax-teeter{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+.demo-teeter,.demo-wiggle{animation:ax-teeter .9s ease-in-out infinite}
+@keyframes ax-wave{0%,100%{transform:translateY(-6px) rotate(-4deg)}50%{transform:translateY(6px) rotate(4deg)}}
+.demo-wave{animation:ax-wave 1.4s ease-in-out infinite}
+@keyframes ax-flick{0%,18%,22%,60%,64%,100%{opacity:1}20%,62%{opacity:.2}}
+.demo-flick{animation:ax-flick 1.8s steps(1,end) infinite}
+@keyframes ax-tint{0%,100%{opacity:1}50%{opacity:.45}}
+.demo-tint,.demo-trans,.demo-dark,.demo-light{animation:ax-tint 1.6s ease-in-out infinite}
+@keyframes ax-plines{0%,100%{transform:translateY(9px)}50%{transform:translateY(-9px)}}
+.demo-plines{animation:ax-plines 1.6s ease-in-out infinite}
+@keyframes ax-parcs{0%,100%{transform:translate(-10px,6px)}50%{transform:translate(10px,-8px)}}
+.demo-parcs,.demo-pturns{animation:ax-parcs 1.8s ease-in-out infinite}
+@keyframes ax-ploops{0%{transform:rotate(0) translateX(8px) rotate(0)}100%{transform:rotate(360deg) translateX(8px) rotate(-360deg)}}
+.demo-ploops,.demo-pshapes{animation:ax-ploops 2s linear infinite}
+
 /* Slide transitions — CSS only, so canvas content is never disturbed */
 .slide-frame { --trans-ms: 500ms; }
 .trans-fade     { animation: tr-fade     var(--trans-ms) ease both; }
@@ -1819,7 +1895,7 @@ body.show-ruler .canvas-area::after {
 .grid-card:hover span { color: var(--accent); }
 
 /* --- Frames panel --- */
-.frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.frame-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .frame-card {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 8px 4px 6px;
@@ -1831,7 +1907,7 @@ body.show-ruler .canvas-area::after {
 }
 .frame-card:active { cursor: grabbing; }
 .frame-card:hover { border-color: var(--accent); background: var(--accent-subtle); }
-.frame-card svg { display: block; max-height: 62px; width: auto; }
+.frame-card svg { display: block; max-height: 168px; width: auto; }
 .frame-card span { font-size: 10px; font-weight: 500; color: var(--text-secondary); }
 .frame-card:hover span { color: var(--accent); }
 
@@ -2235,9 +2311,6 @@ const designTools = [
   { id: 'assets',     icon: 'inventory_2',     label: 'Assets' },
   { id: 'components', icon: 'widgets',         label: 'Compon.' },
   { id: 'themes',     icon: 'style',           label: 'Themes' },
-  { id: 'history',    icon: 'history',         label: 'History' },
-  { id: 'presenter',  icon: 'co_present',      label: 'Present' },
-  { id: 'a11y',       icon: 'accessibility_new', label: 'Access.' },
   { id: 'text',       icon: 'title',           label: 'Text' },
   /* Uploads moved to the Upload button beside Download in the top bar */
   { id: 'draw',       icon: 'gesture',         label: 'Draw' },
@@ -2638,6 +2711,8 @@ function openPanel(toolId) {
   const tools = state.mode === 'design' ? designTools : editingTools;
   const tool = tools.find(t => t.id === toolId);
   if (!tool) return;
+  /* leaving Draw must switch freehand drawing off */
+  if (toolId !== 'draw' && typeof drawExit === 'function') drawExit();
 
   dom.panelTitle.textContent = tool.label;
   /* Templates panel is Canva-clean: hide the whole header (no repeated
@@ -2669,6 +2744,7 @@ function openPanel(toolId) {
 }
 
 function closePanel() {
+  if (typeof drawExit === 'function') drawExit();
   dom.sidePanel.classList.remove('open');
   state.activeTool = null;
   $$('.tool-btn', dom.sidebarRail).forEach(btn => btn.classList.remove('active'));
@@ -3996,14 +4072,16 @@ var CHART_SAMPLE = {
 function drawChart(ctx, w, h, type, def) {
   var d = def || CHART_SAMPLE;
   var s0 = d.series[0].data, s1 = (d.series[1] || d.series[0]).data;
-  var pad = { l: 38, r: 14, t: 16, b: 26 };
+  /* labels sized to the chart so a big placed chart reads clearly */
+  var F = Math.max(12, Math.round(h * 0.055));
+  var pad = { l: Math.max(40, F * 2.6), r: 16, t: F + 6, b: F * 2 };
   var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
   var maxV = Math.max.apply(null, s0.concat(s1)) * 1.15;
   var P = CHART_PALETTE;
 
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, w, h);
-  ctx.font = '11px "Segoe UI", sans-serif';
+  ctx.font = 'bold ' + F + 'px Arial, sans-serif';
   ctx.textBaseline = 'middle';
 
   function axes(vertical) {
@@ -4011,13 +4089,13 @@ function drawChart(ctx, w, h, type, def) {
     for (var i = 0; i <= 4; i++) {
       var y = pad.t + ih * i / 4;
       ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + iw, y); ctx.stroke();
-      ctx.fillStyle = '#94A3B8'; ctx.textAlign = 'right';
-      ctx.fillText(Math.round(maxV * (1 - i / 4)), pad.l - 6, y);
+      ctx.fillStyle = '#000000'; ctx.textAlign = 'right';
+      ctx.fillText(Math.round(maxV * (1 - i / 4)), pad.l - 8, y);
     }
     if (vertical !== false) {
-      ctx.fillStyle = '#64748B'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#000000'; ctx.textAlign = 'center';
       d.cats.forEach(function (c, i) {
-        ctx.fillText(c, pad.l + iw * (i + 0.5) / d.cats.length, h - pad.b + 11);
+        ctx.fillText(c, pad.l + iw * (i + 0.5) / d.cats.length, h - pad.b + F);
       });
     }
   }
@@ -4131,8 +4209,8 @@ function drawChart(ctx, w, h, type, def) {
       ctx.beginPath();
       ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct);
       ctx.strokeStyle = P[0]; ctx.stroke();
-      ctx.fillStyle = '#1B1B1B'; ctx.textAlign = 'center';
-      ctx.font = '600 ' + Math.round(r * 0.5) + 'px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#000000'; ctx.textAlign = 'center';
+      ctx.font = 'bold ' + Math.round(r * 0.5) + 'px Arial, sans-serif';
       ctx.fillText(Math.round(pct * 100) + '%', cx, cy);
       break;
     }
@@ -4191,8 +4269,8 @@ function drawChart(ctx, w, h, type, def) {
       ctx.strokeStyle = '#EDE9FE'; ctx.stroke();
       ctx.beginPath(); ctx.arc(cx, gcy, r, Math.PI, Math.PI + Math.PI * 0.72);
       ctx.strokeStyle = P[0]; ctx.stroke();
-      ctx.fillStyle = '#1B1B1B'; ctx.textAlign = 'center';
-      ctx.font = '600 ' + Math.round(r * 0.34) + 'px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#000000'; ctx.textAlign = 'center';
+      ctx.font = 'bold ' + Math.round(r * 0.34) + 'px Arial, sans-serif';
       ctx.fillText('72', cx, gcy - r * 0.28);
       break;
     }
@@ -4430,6 +4508,424 @@ function applyBgPattern(i) {
   saveState();
   showToast(p.n + ' background');
 }
+
+/* ════════════════════════════════════════════════════════════
+   DRAW — freehand tools (PowerPoint-style): Pen, Marker (highlighter),
+   Eraser, Select. Uses fabric's free-drawing; strokes are ordinary paths
+   tagged _isDrawn so Clear and the eraser can find them.
+   ════════════════════════════════════════════════════════════ */
+var DRAW_COLORS = ['#1B1B1B','#DC2626','#2563EB','#059669','#EAB308','#7C3AED',
+                   '#E8590C','#DB2777','#12A5A0','#64748B','#FFFFFF'];
+var _draw = { tool:'select', color:'#1B1B1B', size:4, erasing:false };
+
+function drawRgba(hex, a) {
+  var m = /^#?(..)(..)(..)/.exec(String(hex).replace('#',''));
+  if (!m) return hex;
+  return 'rgba(' + parseInt(m[1],16) + ',' + parseInt(m[2],16) + ',' + parseInt(m[3],16) + ',' + a + ')';
+}
+
+function drawEraseAt(opt) {
+  if (!fc) return;
+  var p = fc.getPointer(opt.e), pt = new fabric.Point(p.x, p.y);
+  fc.getObjects().slice().forEach(function (o) {
+    if (o._isDrawn && o.containsPoint && o.containsPoint(pt)) fc.remove(o);
+  });
+  fc.requestRenderAll();
+}
+
+function drawEnsureHooks() {
+  if (!fc || fc._drawHooked) return;
+  fc._drawHooked = true;
+  fc.on('path:created', function (e) { if (e.path) e.path._isDrawn = true; });
+  fc.on('mouse:down', function (opt) { if (_draw.tool === 'eraser') { _draw.erasing = true; drawEraseAt(opt); } });
+  fc.on('mouse:move', function (opt) { if (_draw.erasing) drawEraseAt(opt); });
+  fc.on('mouse:up',   function () { if (_draw.erasing) { _draw.erasing = false; saveState(); } });
+}
+
+function drawApplyBrush() {
+  if (!fc) return;
+  if (_draw.tool === 'pen' || _draw.tool === 'highlighter') {
+    fc.isDrawingMode = true;
+    var b = new fabric.PencilBrush(fc);
+    if (_draw.tool === 'highlighter') { b.color = drawRgba(_draw.color, 0.4); b.width = _draw.size * 3; }
+    else { b.color = _draw.color; b.width = _draw.size; }
+    fc.freeDrawingBrush = b;
+  } else {
+    fc.isDrawingMode = false;
+  }
+  fc.defaultCursor = _draw.tool === 'eraser' ? 'cell' : 'default';
+}
+
+function drawSetTool(t) {
+  drawEnsureHooks();
+  _draw.tool = t;
+  drawApplyBrush();
+  renderPanelContent('draw');
+}
+function drawSetColour(c) {
+  _draw.color = c;
+  if (_draw.tool === 'select' || _draw.tool === 'eraser') _draw.tool = 'pen';
+  drawApplyBrush();
+  renderPanelContent('draw');
+}
+function drawSetSize(v) { _draw.size = Math.max(1, Math.min(40, parseInt(v, 10) || 4)); drawApplyBrush(); }
+function drawClear() {
+  if (!fc) return;
+  fc.getObjects().slice().forEach(function (o) { if (o._isDrawn) fc.remove(o); });
+  fc.requestRenderAll(); saveState(); showToast('Drawings cleared');
+}
+function drawExit() { if (fc) { fc.isDrawingMode = false; _draw.erasing = false; } }
+
+function renderDrawPanel() {
+  var tool = _draw.tool;
+  var tbtn = function (id, icon, label) {
+    return '<button class="anim-card' + (tool === id ? ' on' : '') + '" data-action="draw-tool" data-t="' + id + '">'
+      + '<span class="material-icons-outlined">' + icon + '</span><span>' + label + '</span></button>';
+  };
+  return '<div class="panel-subhead">Tools</div>'
+    + '<div class="anim-grid four">'
+      + tbtn('select','near_me','Select')
+      + tbtn('pen','create','Pen')
+      + tbtn('highlighter','brush','Marker')
+      + tbtn('eraser','backspace','Eraser')
+    + '</div>'
+    + '<div class="panel-subhead">Colour</div>'
+    + '<div class="bg-grid">' + DRAW_COLORS.map(function (c) {
+        return '<button class="bg-card' + (_draw.color === c ? ' on' : '') + '" data-action="draw-color" data-c="' + c
+          + '" title="' + c + '" style="background:' + c + ';box-shadow:' + (c === '#FFFFFF' ? 'inset 0 0 0 1px var(--border-strong)' : 'none') + '"></button>';
+      }).join('') + '</div>'
+    + '<label class="brand-lbl">Thickness — ' + _draw.size + 'px</label>'
+    + '<input type="range" class="anim-range" min="1" max="30" value="' + _draw.size + '" data-drawsize="1">'
+    + '<button class="anim-play" data-action="draw-clear"><span class="material-icons-outlined">delete_sweep</span>Clear drawings</button>'
+    + '<div class="panel-hint">Pen draws solid, Marker is a translucent highlighter, Eraser removes whole strokes. '
+      + 'Pick Select to go back to normal editing. Strokes save with the slide.</div>';
+}
+
+panelData.draw = { tabs: null, generate: renderDrawPanel };
+
+/* ════════════════════════════════════════════════════════════
+   PHOTOS — the user's own image library. Uploaded from the device,
+   downscaled for storage, kept in IndexedDB so they persist across
+   sessions. Click a photo to place it on the slide (then drag it onto a
+   frame to fit it inside). Exports cleanly because everything is a data URL.
+   ════════════════════════════════════════════════════════════ */
+var PHOTO_STORE = 'photos';
+var _photoLib = [], _photoLoaded = false;
+
+function photoPut(rec) {
+  return projOpenDb().then(function (db) {
+    if (!db) { _photoLib = _photoLib.filter(function (p) { return p.id !== rec.id; }); _photoLib.unshift(rec); return true; }
+    return new Promise(function (res) {
+      var tx = db.transaction(PHOTO_STORE, 'readwrite');
+      tx.objectStore(PHOTO_STORE).put(rec);
+      tx.oncomplete = function () { res(true); };
+      tx.onerror = function () { res(false); };
+    });
+  });
+}
+function photoAll() {
+  return projOpenDb().then(function (db) {
+    if (!db) return _photoLib;
+    return new Promise(function (res) {
+      var out = [];
+      var tx = db.transaction(PHOTO_STORE, 'readonly');
+      var cur = tx.objectStore(PHOTO_STORE).openCursor();
+      cur.onsuccess = function (e) { var c = e.target.result; if (c) { out.push(c.value); c.continue(); } else res(out); };
+      cur.onerror = function () { res([]); };
+    });
+  });
+}
+function photoDelRec(id) {
+  return projOpenDb().then(function (db) {
+    if (!db) { _photoLib = _photoLib.filter(function (p) { return p.id !== id; }); return true; }
+    return new Promise(function (res) {
+      var tx = db.transaction(PHOTO_STORE, 'readwrite');
+      tx.objectStore(PHOTO_STORE).delete(id);
+      tx.oncomplete = function () { res(true); };
+      tx.onerror = function () { res(false); };
+    });
+  });
+}
+function photoRefresh() {
+  return photoAll().then(function (list) {
+    _photoLib = list.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+    _photoLoaded = true;
+    if (state && state.activeTool === 'photos') renderPanelContent('photos');
+    return _photoLib;
+  });
+}
+
+function photoUploadClick() {
+  var inp = document.getElementById('ld-photo-input');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+    inp.id = 'ld-photo-input'; inp.style.display = 'none';
+    document.body.appendChild(inp);
+    inp.addEventListener('change', function () { photoHandleFiles(inp.files); inp.value = ''; });
+  }
+  inp.click();
+}
+function photoHandleFiles(files) {
+  var arr = Array.prototype.slice.call(files || []);
+  if (!arr.length) return;
+  showToast('Adding ' + arr.length + ' photo' + (arr.length === 1 ? '' : 's') + '…');
+  var pending = arr.length, added = 0;
+  var doneOne = function () { if (--pending === 0) { photoRefresh(); if (added) showToast(added + ' photo' + (added === 1 ? '' : 's') + ' added'); } };
+  arr.forEach(function (f) {
+    if (!/^image\//.test(f.type)) { doneOne(); return; }
+    var rd = new FileReader();
+    rd.onload = function (e) {
+      brandShrinkImage(e.target.result, 1600).then(function (img) {
+        if (!img) { doneOne(); return; }
+        photoPut({ id: 'ph' + Date.now() + Math.random().toString(36).slice(2, 6), src: img.src, ts: Date.now() })
+          .then(function (ok) { if (ok) added++; doneOne(); });
+      });
+    };
+    rd.onerror = doneOne;
+    rd.readAsDataURL(f);
+  });
+}
+function photoAddToCanvas(id) {
+  var p = _photoLib.filter(function (x) { return x.id === id; })[0];
+  if (!p || !fc) return;
+  fabric.Image.fromURL(p.src, function (img) {
+    var W = fc.getWidth() / fc.getZoom(), H = fc.getHeight() / fc.getZoom();
+    img.scaleToWidth(Math.min(img.width, W * 0.6));
+    img.set({ left: (W - img.getScaledWidth()) / 2, top: (H - img.getScaledHeight()) / 2 });
+    fc.add(img).setActiveObject(img);
+    fc.renderAll(); saveState();
+    showToast('Photo placed — drag it onto a frame to fit it inside');
+  });
+}
+function photoRemove(id) {
+  photoDelRec(id).then(function () { showToast('Removed'); photoRefresh(); });
+}
+
+function renderPhotosPanel() {
+  if (!_photoLoaded) photoRefresh();
+  var head = '<button class="brand-btn primary" style="width:100%" data-action="photo-upload">'
+    + '<span class="material-icons-outlined">add_photo_alternate</span>Upload photos</button>'
+    + '<div class="panel-hint">Add photos from your device. Click one to place it on the slide, '
+    + 'then drag it onto a frame to fit it inside. Photos are saved on this device.</div>';
+  if (!_photoLib.length) {
+    return head + '<div class="panel-placeholder"><span class="material-icons-outlined">image</span>'
+      + '<p><strong>No photos yet</strong><br>Upload from your device to start.</p></div>';
+  }
+  return head + '<div class="asset-grid">' + _photoLib.map(function (p) {
+    return '<div class="asset-card" data-action="photo-add" data-id="' + p.id + '" title="Click to place">'
+      + '<div class="asset-thumb"><img src="' + p.src + '" alt=""></div>'
+      + '<span class="asset-tools"><button data-action="photo-del" data-id="' + p.id + '" class="danger" title="Remove">'
+      + '<span class="material-icons-outlined">close</span></button></span></div>';
+  }).join('') + '</div>';
+}
+
+panelData.photos = { tabs: null, generate: renderPhotosPanel };
+
+/* ════════════════════════════════════════════════════════════
+   VIDEOS + AUDIO — the user's own media, uploaded from the device and kept
+   in IndexedDB. A placed video shows a poster tile with a play button; a
+   placed audio shows a chip. Both carry mediaSrc/mediaKind, so double-click
+   plays them via the existing media player.
+   ════════════════════════════════════════════════════════════ */
+var MEDIA_STORE = 'media';
+var _mediaLib = [], _mediaLoaded = false;
+
+function mediaPut(rec) {
+  return projOpenDb().then(function (db) {
+    if (!db) { _mediaLib = _mediaLib.filter(function (m) { return m.id !== rec.id; }); _mediaLib.unshift(rec); return true; }
+    return new Promise(function (res) {
+      var tx = db.transaction(MEDIA_STORE, 'readwrite');
+      tx.objectStore(MEDIA_STORE).put(rec);
+      tx.oncomplete = function () { res(true); };
+      tx.onerror = function () { res(false); };
+    });
+  });
+}
+function mediaAll() {
+  return projOpenDb().then(function (db) {
+    if (!db) return _mediaLib;
+    return new Promise(function (res) {
+      var out = [];
+      var tx = db.transaction(MEDIA_STORE, 'readonly');
+      var cur = tx.objectStore(MEDIA_STORE).openCursor();
+      cur.onsuccess = function (e) { var c = e.target.result; if (c) { out.push(c.value); c.continue(); } else res(out); };
+      cur.onerror = function () { res([]); };
+    });
+  });
+}
+function mediaDelRec(id) {
+  return projOpenDb().then(function (db) {
+    if (!db) { _mediaLib = _mediaLib.filter(function (m) { return m.id !== id; }); return true; }
+    return new Promise(function (res) {
+      var tx = db.transaction(MEDIA_STORE, 'readwrite');
+      tx.objectStore(MEDIA_STORE).delete(id);
+      tx.oncomplete = function () { res(true); };
+      tx.onerror = function () { res(false); };
+    });
+  });
+}
+function mediaRefresh() {
+  return mediaAll().then(function (list) {
+    _mediaLib = list.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+    _mediaLoaded = true;
+    if (state && (state.activeTool === 'videos' || state.activeTool === 'audio')) renderPanelContent(state.activeTool);
+    return _mediaLib;
+  });
+}
+
+/* Grab a poster frame from a video file (first ~0.1s), downscaled. */
+function makeVideoPoster(src) {
+  return new Promise(function (res) {
+    try {
+      var v = document.createElement('video');
+      v.muted = true; v.preload = 'metadata'; v.src = src;
+      var settled = false;
+      var finish = function (u) { if (settled) return; settled = true; res(u); };
+      var draw = function () {
+        try {
+          var w = v.videoWidth || 320, h = v.videoHeight || 180;
+          var sc = Math.min(1, 480 / Math.max(w, h));
+          var c = document.createElement('canvas');
+          c.width = Math.max(2, Math.round(w * sc)); c.height = Math.max(2, Math.round(h * sc));
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          finish(c.toDataURL('image/jpeg', 0.8));
+        } catch (e) { finish(null); }
+      };
+      v.onloadeddata = function () { try { v.currentTime = Math.min(0.1, (v.duration || 1) / 2); } catch (e) { draw(); } };
+      v.onseeked = draw;
+      v.onerror = function () { finish(null); };
+      setTimeout(function () { finish(null); }, 6000);
+    } catch (e) { res(null); }
+  });
+}
+
+function _roundRect(g, x, y, w, h, r) {
+  if (g.roundRect) { g.beginPath(); g.roundRect(x, y, w, h, r); return; }
+  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+
+/* Video tile: poster (or dark fill) + dim + play button + filename. */
+function mediaVideoTileURL(poster, name) {
+  return new Promise(function (res) {
+    var W = 480, H = 270;
+    var draw = function (im) {
+      var c = document.createElement('canvas'); c.width = W; c.height = H;
+      var g = c.getContext('2d');
+      if (im) { var sc = Math.max(W / im.width, H / im.height);
+        g.drawImage(im, (W - im.width * sc) / 2, (H - im.height * sc) / 2, im.width * sc, im.height * sc); }
+      else { g.fillStyle = '#1E293B'; g.fillRect(0, 0, W, H); }
+      g.fillStyle = 'rgba(0,0,0,0.32)'; g.fillRect(0, 0, W, H);
+      g.beginPath(); g.arc(W / 2, H / 2, 42, 0, Math.PI * 2); g.fillStyle = 'rgba(255,255,255,0.92)'; g.fill();
+      g.beginPath(); g.moveTo(W / 2 - 14, H / 2 - 22); g.lineTo(W / 2 + 24, H / 2); g.lineTo(W / 2 - 14, H / 2 + 22);
+      g.closePath(); g.fillStyle = '#1E293B'; g.fill();
+      if (name) { g.fillStyle = 'rgba(255,255,255,0.92)'; g.font = '16px sans-serif'; g.textBaseline = 'bottom';
+        g.fillText(String(name).slice(0, 42), 14, H - 12); }
+      res(c.toDataURL('image/jpeg', 0.85));
+    };
+    if (poster) { var i = new Image(); i.onload = function () { draw(i); }; i.onerror = function () { draw(null); }; i.src = poster; }
+    else draw(null);
+  });
+}
+
+/* Audio chip: violet pill with a note glyph + filename. */
+function mediaAudioTileURL(name) {
+  var W = 360, H = 88, c = document.createElement('canvas'); c.width = W; c.height = H;
+  var g = c.getContext('2d');
+  g.fillStyle = '#7C3AED'; _roundRect(g, 0, 0, W, H, 14); g.fill();
+  g.fillStyle = 'rgba(255,255,255,0.95)';
+  g.beginPath(); g.arc(40, 56, 11, 0, Math.PI * 2); g.fill();
+  g.fillRect(49, 24, 5, 34);
+  g.beginPath(); g.moveTo(49, 24); g.lineTo(70, 20); g.lineTo(70, 30); g.lineTo(49, 34); g.closePath(); g.fill();
+  g.fillStyle = '#FFFFFF'; g.font = '600 17px sans-serif'; g.textBaseline = 'middle';
+  g.fillText(String(name || 'Audio').slice(0, 26), 92, 40);
+  g.fillStyle = 'rgba(255,255,255,0.75)'; g.font = '13px sans-serif';
+  g.fillText('double-click to play', 92, 62);
+  return c.toDataURL('image/png');
+}
+
+function mediaUploadClick(kind) {
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.multiple = true;
+  inp.accept = kind === 'audio' ? 'audio/*' : 'video/*';
+  inp.style.display = 'none';
+  document.body.appendChild(inp);
+  inp.onchange = function () { mediaHandleFiles(inp.files, kind); setTimeout(function () { try { inp.remove(); } catch (e) {} }, 0); };
+  inp.click();
+}
+function mediaHandleFiles(files, kind) {
+  var arr = Array.prototype.slice.call(files || []);
+  if (!arr.length) return;
+  showToast('Adding ' + arr.length + ' ' + kind + (arr.length === 1 ? '' : 's') + '…');
+  var pending = arr.length, added = 0;
+  var doneOne = function () { if (--pending === 0) { mediaRefresh(); if (added) showToast(added + ' added'); } };
+  var VIDEO_MAX = 10 * 1024 * 1024;   /* 10 MB cap on videos */
+  arr.forEach(function (f) {
+    var typeOk = kind === 'audio' ? /^audio\//.test(f.type) : /^video\//.test(f.type);
+    if (!typeOk) { doneOne(); return; }
+    if (kind === 'video' && f.size > VIDEO_MAX) {
+      showToast('“' + f.name + '” is ' + (f.size / 1048576).toFixed(1) + ' MB — videos must be 10 MB or less', 6000);
+      doneOne(); return;
+    }
+    var rd = new FileReader();
+    rd.onload = function (e) {
+      var src = e.target.result, name = f.name.replace(/\.[^.]+$/, '');
+      var save = function (poster) {
+        mediaPut({ id: 'md' + Date.now() + Math.random().toString(36).slice(2, 6),
+                   kind: kind, src: src, poster: poster || null, name: name, ts: Date.now() })
+          .then(function (ok) { if (ok) added++; doneOne(); });
+      };
+      if (kind === 'video') makeVideoPoster(src).then(save); else save(null);
+    };
+    rd.onerror = doneOne;
+    rd.readAsDataURL(f);
+  });
+}
+function mediaAddToCanvas(id) {
+  var m = _mediaLib.filter(function (x) { return x.id === id; })[0];
+  if (!m || !fc) return;
+  var W = fc.getWidth() / fc.getZoom(), H = fc.getHeight() / fc.getZoom();
+  var place = function (url, wFrac) {
+    fabric.Image.fromURL(url, function (img) {
+      img.scaleToWidth(Math.min(img.width, W * wFrac));
+      img.set({ left: (W - img.getScaledWidth()) / 2, top: (H - img.getScaledHeight()) / 2,
+                mediaSrc: m.src, mediaKind: m.kind });
+      fc.add(img).setActiveObject(img); fc.renderAll(); saveState();
+      showToast(m.kind === 'audio' ? 'Audio added — double-click to play' : 'Video added — double-click to play');
+    });
+  };
+  if (m.kind === 'video') mediaVideoTileURL(m.poster, m.name).then(function (u) { place(u, 0.55); });
+  else place(mediaAudioTileURL(m.name), 0.5);
+}
+function mediaRemove(id) { mediaDelRec(id).then(function () { showToast('Removed'); mediaRefresh(); }); }
+
+function renderMediaPanel(kind) {
+  if (!_mediaLoaded) mediaRefresh();
+  var list = _mediaLib.filter(function (m) { return m.kind === kind; });
+  var label = kind === 'audio' ? 'audio' : 'videos';
+  var head = '<button class="brand-btn primary" style="width:100%" data-action="media-upload" data-k="' + kind + '">'
+    + '<span class="material-icons-outlined">' + (kind === 'audio' ? 'library_music' : 'video_library') + '</span>Upload ' + (kind === 'audio' ? 'audio' : 'video') + '</button>'
+    + '<div class="panel-hint">Add ' + label + ' from your device. Click to place on the slide, then '
+    + 'double-click it to play. Saved on this device.</div>';
+  if (!list.length) {
+    return head + '<div class="panel-placeholder"><span class="material-icons-outlined">' + (kind === 'audio' ? 'music_note' : 'videocam') + '</span>'
+      + '<p><strong>No ' + label + ' yet</strong><br>Upload from your device to start.</p></div>';
+  }
+  return head + '<div class="asset-grid">' + list.map(function (m) {
+    var thumb = kind === 'video' && m.poster
+      ? '<img src="' + m.poster + '" alt="">'
+      : '<span class="material-icons-outlined">' + (kind === 'audio' ? 'music_note' : 'videocam') + '</span>';
+    return '<div class="asset-card" data-action="media-add" data-id="' + m.id + '" title="Click to place">'
+      + '<div class="asset-thumb">' + thumb + '</div>'
+      + '<span class="asset-name">' + commentEsc(m.name || '') + '</span>'
+      + '<span class="asset-tools"><button data-action="media-del" data-id="' + m.id + '" class="danger" title="Remove">'
+      + '<span class="material-icons-outlined">close</span></button></span></div>';
+  }).join('') + '</div>';
+}
+
+panelData.videos = { tabs: null, generate: function () { return renderMediaPanel('video'); } };
+panelData.audio  = { tabs: null, generate: function () { return renderMediaPanel('audio'); } };
 
 /* ════════════════════════════════════════════════════════════
    CANVA-STYLE SELECTION HANDLES
@@ -4683,9 +5179,6 @@ var RIBBON = [
     { name:'Comments', items:[
       ['add_comment','Add','comment-add','w'],
       ['check_circle','Resolve','comment-resolve','w'],
-    ]},
-    { name:'Accessibility', items:[
-      ['accessibility_new','Run check','a11y-check','w'],
     ]},
   ]},
 
@@ -5240,25 +5733,34 @@ var ELEMENT_CATALOG = [
   ]},
 ];
 
+/* A vivid, harmonious palette so shapes/lines/graphics read multi-coloured
+   rather than a wall of one hue. Cycled per card. */
+var EL_COLORS = ['#7C3AED', '#EA6A52', '#12A5A0', '#2563EB', '#EAB308',
+                 '#DB2777', '#059669', '#E8590C', '#8B5CF6', '#0EA5E9', '#C13327', '#0F766E'];
+
 /* Build the panel HTML for a tab — "All" shows every group. */
 function renderElementCatalog(tab) {
   var html = '';
+  var _ci = 0;
   ELEMENT_CATALOG.forEach(function (grp, gi) {
     if (tab && tab !== 'All' && grp.tab !== tab) return;
     html += '<div class="panel-subhead">' + grp.name
           + (grp.note ? ' <span>' + grp.note + '</span>' : '') + '</div>';
-    html += '<div class="element-grid">' + grp.items.map(function (it, ii) {
+    var _isFrames = grp.items.some(function (it) { return it.frame; });
+    html += '<div class="element-grid' + (_isFrames ? ' element-grid-frames' : '') + '">' + grp.items.map(function (it, ii) {
       var style = it.s
         ? 'fill:none;stroke:currentColor;stroke-width:' + (it.w || 2)
           + ';stroke-linecap:round;stroke-linejoin:round'
           + (it.dash ? ';stroke-dasharray:' + it.dash.join(' ') : '')
         : 'fill:currentColor' + (it.e ? ';fill-rule:evenodd' : '');
+      var ecol = it.frame ? '' : ';--ec:' + EL_COLORS[(_ci++) % EL_COLORS.length];
       return '<div class="element-card' + (it.frame ? ' frame-card' : '')
-        + '" style="animation-delay:' + (ii * 0.02) + 's"'
+        + '" style="animation-delay:' + (ii * 0.02) + 's' + ecol + '"'
         + ' data-action="add-catalog" data-g="' + gi + '" data-i="' + ii + '"'
         + ' title="' + it.n + '">'
         + '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">'
-        + '<path d="' + it.d + '" style="' + style + '"/></svg></div>';
+        + (it.frame ? frameScenePaint(it.d, 50, 50, ii) : '<path d="' + it.d + '" style="' + style + '"/>')
+        + '</svg></div>';
     }).join('') + '</div>';
   });
   return html || '<div class="panel-placeholder">'
@@ -5719,7 +6221,49 @@ var FRAME_GROUPS = [
     kinds:['phone','tablet','laptop','browser','polaroid'] },
 ];
 
-function framePreviewSvg(kind, size) {
+/* Canva-style preview: a soft landscape (sky · sun · cloud · rolling hills)
+   clipped INSIDE the frame's own silhouette, so the panel reads like a real
+   photo peeking through the mask rather than a flat grey box. Pure SVG, no
+   asset — draws to any w x h box against the frame path. */
+/* Colourways for the frame scene — cycled per card so the Frames panel is
+   vivid and varied, not one repeated picture. Deliberately no green (per the
+   brief) and distinct from Canva's blue+green. */
+var FRAME_SCENES = [
+  { s0:'#FFB27A', s1:'#FFD9C2', s2:'#FFF1E8', sun:'#FFC24D', far:'#EA6A52', near:'#C13327', cloud:'#FFF6EF' }, /* sunset */
+  { s0:'#B39DFF', s1:'#DBD2FF', s2:'#F1EEFF', sun:'#FDE68A', far:'#8B5CF6', near:'#5B21B6', cloud:'#FFFFFF' }, /* violet */
+  { s0:'#F7B8D2', s1:'#FBD6E5', s2:'#FDEAF2', sun:'#FFD36E', far:'#DB2777', near:'#831843', cloud:'#FFFFFF' }, /* berry */
+  { s0:'#FFD98A', s1:'#FFE9B8', s2:'#FFF6E4', sun:'#F59E0B', far:'#E8590C', near:'#9A3412', cloud:'#FFFDF5' }, /* amber */
+  { s0:'#7FC5E8', s1:'#BFE3F5', s2:'#EAF6FD', sun:'#FFE08A', far:'#2F8FD6', near:'#12518A', cloud:'#FFFFFF' }, /* sky */
+];
+var _frameClipN = 0;
+function frameScenePaint(pathD, W, H, pi) {
+  var id = ++_frameClipN;
+  var cid = 'fc' + id, sky = 'fs' + id;
+  var P = FRAME_SCENES[(pi || 0) % FRAME_SCENES.length];
+  return '<defs>'
+    + '<linearGradient id="' + sky + '" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0" stop-color="' + P.s0 + '"/>'
+      + '<stop offset="0.55" stop-color="' + P.s1 + '"/>'
+      + '<stop offset="1" stop-color="' + P.s2 + '"/>'
+    + '</linearGradient>'
+    + '<clipPath id="' + cid + '"><path d="' + pathD + '"/></clipPath>'
+    + '</defs>'
+    + '<g clip-path="url(#' + cid + ')">'
+      + '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="url(#' + sky + ')"/>'
+      + '<circle cx="' + (W * 0.74) + '" cy="' + (H * 0.24) + '" r="' + (Math.min(W, H) * 0.11) + '" fill="' + P.sun + '"/>'
+      + '<path d="M0 ' + (H * 0.66) + ' Q ' + (W * 0.32) + ' ' + (H * 0.5) + ' ' + (W * 0.62) + ' ' + (H * 0.64)
+        + ' Q ' + (W * 0.84) + ' ' + (H * 0.72) + ' ' + W + ' ' + (H * 0.6) + ' V ' + H + ' H 0 Z" fill="' + P.far + '"/>'
+      + '<path d="M0 ' + (H * 0.8) + ' Q ' + (W * 0.42) + ' ' + (H * 0.66) + ' ' + W + ' ' + (H * 0.82)
+        + ' V ' + H + ' H 0 Z" fill="' + P.near + '"/>'
+      + '<g fill="' + P.cloud + '" opacity="0.9">'
+        + '<ellipse cx="' + (W * 0.26) + '" cy="' + (H * 0.28) + '" rx="' + (W * 0.14) + '" ry="' + (H * 0.07) + '"/>'
+        + '<ellipse cx="' + (W * 0.37) + '" cy="' + (H * 0.25) + '" rx="' + (W * 0.10) + '" ry="' + (H * 0.06) + '"/>'
+      + '</g>'
+    + '</g>'
+    + '<path d="' + pathD + '" fill="none" stroke="rgba(15,23,42,0.12)" stroke-width="' + (Math.max(W, H) * 0.012) + '"/>';
+}
+
+function framePreviewSvg(kind, size, pi) {
   var def = FRAME_DEFS[kind];
   if (!def) return '';
   var vb = '0 0 ' + def.w + ' ' + def.h;
@@ -5727,20 +6271,21 @@ function framePreviewSvg(kind, size) {
   var parts = '';
   (def.deco || []).filter(function (d) { return d[2] !== 'front'; })
     .forEach(function (d) { parts += '<path d="' + d[0] + '" fill="' + d[1] + '"/>'; });
-  parts += '<path d="' + def.d + '" fill="#C3C7D1"/>';
+  parts += frameScenePaint(def.d, def.w, def.h, pi);
   (def.deco || []).filter(function (d) { return d[2] === 'front'; })
     .forEach(function (d) { parts += '<path d="' + d[0] + '" fill="' + d[1] + '"/>'; });
   return '<svg viewBox="' + vb + '" width="' + size + '" height="' + h + '">' + parts + '</svg>';
 }
 
 function renderFramePanel(tab) {
+  var _fi = 0;
   return FRAME_GROUPS.filter(function (g) { return !tab || tab === 'All' || g.name === tab; })
     .map(function (g) {
       return '<div class="panel-subhead">' + g.name + ' <span>' + g.note + '</span></div>'
         + '<div class="frame-grid">' + g.kinds.map(function (k) {
             return '<div class="frame-card" draggable="true" data-action="add-frame-card"'
               + ' data-frame="' + k + '" title="' + FRAME_DEFS[k].label + '">'
-              + framePreviewSvg(k, 62)
+              + framePreviewSvg(k, 62, _fi++)
               + '<span>' + FRAME_DEFS[k].label + '</span></div>';
           }).join('') + '</div>';
     }).join('');
@@ -7148,6 +7693,49 @@ var THEME_PRESETS = [
     heading:'#4A1B0C', body:'#7A5244', hFont:'Playfair Display', bFont:'Lato' },
   { id:'grape',   name:'Grape',    bg:'#1A0B2E', surface:'#2D1650', accent:'#C4B5FD',
     heading:'#FFFFFF', body:'#C9BEDD', hFont:'Poppins',    bFont:'Poppins' },
+
+  /* ── Designful additions — dark luxe, jewel tones, warm editorial ── */
+  { id:'hexa',    name:'Hexa',     bg:'#140A24', surface:'#271640', accent:'#EC6FA9',
+    heading:'#FBEFFF', body:'#C9BEDD', hFont:'Playfair Display', bFont:'Poppins' },
+  { id:'aurora',  name:'Aurora',   bg:'#0B1026', surface:'#17213F', accent:'#5EE6C6',
+    heading:'#EAF2FF', body:'#AEB9D6', hFont:'Sora',        bFont:'Inter' },
+  { id:'ember',   name:'Ember',    bg:'#160E0A', surface:'#2A1A10', accent:'#F59E0B',
+    heading:'#FFF3E4', body:'#D8C3AC', hFont:'Playfair Display', bFont:'Lato' },
+  { id:'luxe',    name:'Luxe',     bg:'#0C0C0E', surface:'#1C1B1F', accent:'#D4AF37',
+    heading:'#F5EFE0', body:'#BDB6A6', hFont:'Cormorant Garamond', bFont:'Jost' },
+  { id:'plum',    name:'Plum',     bg:'#1A1024', surface:'#2C1B3E', accent:'#C084FC',
+    heading:'#F6EEFF', body:'#CDBDE0', hFont:'Marcellus',   bFont:'Poppins' },
+  { id:'cobalt',  name:'Cobalt',   bg:'#F2F6FF', surface:'#DCE8FF', accent:'#2F5BEA',
+    heading:'#0A1B44', body:'#3C4A72', hFont:'Poppins',     bFont:'Inter' },
+  { id:'blush',   name:'Blush',    bg:'#FFF5F8', surface:'#FCE1EC', accent:'#E84D8A',
+    heading:'#4B1528', body:'#8A5568', hFont:'Playfair Display', bFont:'Lato' },
+  { id:'candy',   name:'Candy',    bg:'#FFF7FB', surface:'#FDE7F4', accent:'#B5179E',
+    heading:'#3B0A46', body:'#7A4E86', hFont:'Poppins',     bFont:'Poppins' },
+  { id:'coral',   name:'Coral',    bg:'#FFF6F2', surface:'#FFE0D3', accent:'#FF6B4A',
+    heading:'#4A1B0C', body:'#8A5A48', hFont:'Fraunces',    bFont:'Nunito Sans' },
+  { id:'sand',    name:'Sand',     bg:'#FBF6EC', surface:'#F0E6D2', accent:'#C2884E',
+    heading:'#3A2A16', body:'#6B5A44', hFont:'DM Serif Display', bFont:'DM Sans' },
+  { id:'nordic',  name:'Nordic',   bg:'#F4F6F8', surface:'#E2E8EF', accent:'#3E6E8E',
+    heading:'#14212B', body:'#3E4E5A', hFont:'Raleway',     bFont:'Open Sans' },
+  { id:'teal',    name:'Teal',     bg:'#F0FBFA', surface:'#CFF3EC', accent:'#12A5A0',
+    heading:'#04342C', body:'#3A5C55', hFont:'Poppins',     bFont:'Inter' },
+
+  /* ── Multi-colour (gradient) backgrounds — bgA → bgB across the slide ── */
+  { id:'citrus',  name:'Citrus',   bgA:'#FEF08A', bgB:'#BBF7D0', bgDeg:135, bg:'#FEF3C7',
+    surface:'#FFFFFF', accent:'#16A34A', heading:'#1A2E05', body:'#3F5A22',
+    hFont:'Poppins', bFont:'Inter' },
+  { id:'dawn',    name:'Dawn',     bgA:'#FDE1D3', bgB:'#E9D5FF', bgDeg:135, bg:'#FBE3E8',
+    surface:'#FFFFFF', accent:'#DB2777', heading:'#3B0A46', body:'#6B4A72',
+    hFont:'Playfair Display', bFont:'Lato' },
+  { id:'lagoon',  name:'Lagoon',   bgA:'#A7F3D0', bgB:'#BAE6FD', bgDeg:135, bg:'#CFF3EC',
+    surface:'#FFFFFF', accent:'#0EA5E9', heading:'#043145', body:'#2C5468',
+    hFont:'Sora', bFont:'Inter' },
+  { id:'nebula',  name:'Nebula',   bgA:'#2A1042', bgB:'#0B1B45', bgDeg:135, bg:'#1A103A',
+    surface:'#2A1B45', accent:'#E879F9', heading:'#F5EEFF', body:'#C6BBDD',
+    hFont:'Marcellus', bFont:'Poppins' },
+  { id:'mango',   name:'Mango',    bgA:'#FDBA74', bgB:'#FCA5A5', bgDeg:135, bg:'#FFE4CC',
+    surface:'#FFFFFF', accent:'#EA580C', heading:'#4A1B0C', body:'#7A3E24',
+    hFont:'Fraunces', bFont:'Nunito Sans' },
 ];
 
 var THEME_SPACING = {
@@ -7176,6 +7764,23 @@ function themeRoleFor(obj, maxFont) {
   var fill = typeof obj.fill === 'string' ? obj.fill.toUpperCase() : '';
   if (fill === '#7C3AED' || fill === '#FFFFFF' || fill === '') return 'accent';
   return null;                       /* deliberately coloured — leave alone */
+}
+
+/* A theme's slide background. Solid by default, or a real two-colour gradient
+   when the theme defines bgA/bgB — returned as fabric's serialised gradient
+   shape so it round-trips through loadFromJSON exactly like the Backgrounds
+   panel's gradients do. */
+function themeBgFill(th) {
+  if (!th.bgA) return th.bg;
+  var w = (typeof fc !== 'undefined' && fc && fc._baseWidth) || 960;
+  var h = (typeof fc !== 'undefined' && fc && fc._baseHeight) || 540;
+  var rad = ((th.bgDeg || 135) - 90) * Math.PI / 180;
+  return {
+    type: 'linear', gradientUnits: 'pixels',
+    coords: { x1: w / 2 - Math.cos(rad) * w / 2, y1: h / 2 - Math.sin(rad) * h / 2,
+              x2: w / 2 + Math.cos(rad) * w / 2, y2: h / 2 + Math.sin(rad) * h / 2 },
+    colorStops: [{ offset: 0, color: th.bgA }, { offset: 1, color: th.bgB }]
+  };
 }
 
 /* Transform ONE serialised slide in place. Used for every page, including
@@ -7209,7 +7814,7 @@ function themeTransformSlide(json, th) {
     /* frames holding photos keep the photo; only empty ones recolour */
     if (o.isFrame && o.frameSrc) { o.frameFill = th.accent; }
   });
-  json.background = th.bg;
+  json.background = themeBgFill(th);
   return n;
 }
 
@@ -7227,7 +7832,7 @@ function themeApply(id) {
     if (!p.canvasJSON) {
       /* a slide never visited yet has only its imported IR — set the
          background so it is at least consistent when opened */
-      p.pendingTheme = th.bg;
+      p.pendingTheme = themeBgFill(th);
       return;
     }
     touched += themeTransformSlide(p.canvasJSON, th);
@@ -7247,16 +7852,37 @@ function themeApply(id) {
   else finish();
 }
 
+/* Native colour picker (a hidden <input type="color">), so users pick a
+   colour visually instead of typing a hex into a prompt. */
+function pickColour(initial, cb) {
+  /* A FRESH input every time (reusing one made it fire only once), kept in the
+     DOM and clicked synchronously inside the user gesture so the browser
+     actually opens its picker. Commit on change; clean up afterwards. */
+  var inp = document.createElement('input');
+  inp.type = 'color';
+  try { inp.value = /^#[0-9a-fA-F]{6}$/.test(initial || '') ? initial : '#7C3AED'; } catch (e) {}
+  inp.style.cssText = 'position:fixed;left:12px;top:12px;width:1px;height:1px;opacity:0;pointer-events:none;';
+  document.body.appendChild(inp);
+  var done = false;
+  var cleanup = function () { setTimeout(function () { try { inp.remove(); } catch (e) {} }, 50); };
+  inp.addEventListener('change', function () {
+    if (done) return; done = true;
+    cb(inp.value.toUpperCase());
+    cleanup();
+  });
+  /* if the user dismisses without choosing, tidy up on the next interaction */
+  inp.addEventListener('blur', cleanup);
+  inp.click();
+}
+
 function themeSetColour(key) {
   var th = themeCurrent();
-  var c = prompt(key + ' colour (hex):', th[key] || '#000000');
-  if (!c || !/^#[0-9A-Fa-f]{6}$/.test(c.trim())) {
-    if (c) showToast('Use a 6-digit hex');
-    return;
-  }
-  th[key] = c.trim().toUpperCase();
-  th.id = 'custom'; th.name = 'Custom';
-  themeRefresh();
+  pickColour(th[key] || '#7C3AED', function (hex) {
+    th[key] = hex;
+    if (key === 'bg') { th.bgA = null; th.bgB = null; }  /* picking a solid bg drops the gradient */
+    th.id = 'custom'; th.name = 'Custom';
+    themeRefresh();
+  });
 }
 
 function themeSetFont(which, name) {
@@ -7276,7 +7902,8 @@ function themeRefresh() {
 }
 
 function themeSwatch(t) {
-  return '<span class="th-sw" style="background:' + t.bg + '">'
+  var bg = t.bgA ? ('linear-gradient(' + (t.bgDeg || 135) + 'deg,' + t.bgA + ',' + t.bgB + ')') : t.bg;
+  return '<span class="th-sw" style="background:' + bg + '">'
     + '<i style="background:' + t.accent + '"></i>'
     + '<i style="background:' + t.heading + '"></i>'
     + '<i style="background:' + t.surface + '"></i></span>';
@@ -8749,13 +9376,49 @@ function renderEffectsPanel(tab) {
    PPTX export drops motion (policy D in the interop notes), so this plays
    in the editor and in Present, and the panel says as much.
    ════════════════════════════════════════════════════════════ */
-var OBJ_ANIMS = [
-  { id:'fade',   name:'Fade',   icon:'gradient',        dirs:false },
-  { id:'zoom',   name:'Zoom',   icon:'zoom_out_map',    dirs:false },
-  { id:'fly',    name:'Fly',    icon:'flight',          dirs:true  },
-  { id:'rise',   name:'Rise',   icon:'arrow_upward',    dirs:false },
-  { id:'bounce', name:'Bounce', icon:'sports_basketball',dirs:false },
+/* Full animation catalogue — PowerPoint's four families merged with Canva's
+   names. Each item is [id, name, demo]; `demo` selects both the panel preview
+   and the playback behaviour (see animGeoState / animLoopSet). */
+var ANIM_GROUPS = [
+  { key:'in', title:'Entrance', items:[
+    ['appear','Appear','appear'], ['fade','Fade','fade'], ['flyin','Fly in','slide'],
+    ['floatin','Float in','float'], ['split','Split','split'], ['wipe','Wipe','wipe'],
+    ['shape','Shape','shape'], ['wheel','Wheel','wheel'], ['randombars','Random bars','bars'],
+    ['growturn','Grow & turn','growturn'], ['zoom','Zoom','zoom'], ['swivel','Swivel','swivel'],
+    ['bounce','Bounce','bounce'], ['rise','Rise','rise'], ['pan','Pan','slide'],
+    ['pop','Pop','pop'], ['blur','Blur','blur'], ['baseline','Baseline','baseline'],
+    ['drift','Drift','drift'], ['tectonic','Tectonic','tectonic'], ['tumble','Tumble','tumble'],
+    ['scrapbook','Scrapbook','scrapbook'], ['stomp','Stomp','stomp']
+  ]},
+  { key:'emph', title:'Emphasis', items:[
+    ['pulse','Pulse','pulse'], ['colorpulse','Color pulse','tint'], ['teeter','Teeter','teeter'],
+    ['spin','Spin','spin'], ['growshrink','Grow/shrink','growshrink'], ['desaturate','Desaturate','tint'],
+    ['darken','Darken','dark'], ['lighten','Lighten','light'], ['transparency','Transparency','trans'],
+    ['objectcolor','Object color','tint'], ['complementary','Complementary','tint'],
+    ['linecolor','Line color','tint'], ['fillcolor','Fill color','tint'], ['fontcolor','Font color','tint'],
+    ['underline','Underline','flick'], ['boldflash','Bold flash','flick'], ['boldreveal','Bold reveal','flick'],
+    ['wave','Wave','wave'], ['breathe','Breathe','breathe'], ['wiggle','Wiggle','wiggle'], ['flicker','Flicker','flick']
+  ]},
+  { key:'out', title:'Exit', items:[
+    ['disappear','Disappear','appear'], ['fadeout','Fade','fade'], ['flyout','Fly out','slide'],
+    ['floatout','Float out','float'], ['splitout','Split','split'], ['wipeout','Wipe','wipe'],
+    ['shapeout','Shape','shape'], ['wheelout','Wheel','wheel'], ['randombarsout','Random bars','bars'],
+    ['shrinkturn','Shrink & turn','growturn'], ['zoomout','Zoom','zoom'], ['swivelout','Swivel','swivel'],
+    ['bounceout','Bounce','bounce']
+  ]},
+  { key:'path', title:'Motion paths', items:[
+    ['lines','Lines','plines'], ['arcs','Arcs','parcs'], ['turns','Turns','pturns'],
+    ['shapes','Shapes','pshapes'], ['loops','Loops','ploops'], ['custompath','Custom path','ploops']
+  ]}
 ];
+var ANIM_MAP = {};
+ANIM_GROUPS.forEach(function (g) { g.items.forEach(function (it) {
+  ANIM_MAP[it[0]] = { kind: g.key, demo: it[2], name: it[1] };
+}); });
+/* which entrance/exit ids expose a direction picker */
+var ANIM_DIR_IDS = { flyin:1, floatin:1, pan:1, flyout:1, floatout:1 };
+/* back-compat alias used by a couple of older call sites */
+var OBJ_ANIMS = ANIM_GROUPS[0].items.map(function (it) { return { id: it[0], name: it[1] }; });
 var ANIM_DIRS = [
   { id:'left',  name:'From left',  icon:'west' },
   { id:'right', name:'From right', icon:'east' },
@@ -8824,25 +9487,84 @@ function animReorder(dir) {
    interrupted preview can always be repaired by restoring the snapshot. */
 var _animPlaying = false;
 
-function animStartState(o, base) {
-  /* a NaN here would move the object to an unreachable position, so fall
-     back to sane slide dimensions rather than trusting the canvas */
+/* The off-screen/start (entrance) or end (exit) state for a geometric demo.
+   Entrance animates start -> base; exit animates base -> this same state. */
+function animGeoState(demo, o, base) {
   var z = fc.getZoom() || 1;
   var W = fc.getWidth() / z, H = fc.getHeight() / z;
   if (!isFinite(W) || W <= 0) W = 960;
   if (!isFinite(H) || H <= 0) H = 540;
-  var s = { opacity: 0 };
-  if (o.animType === 'zoom')   { s.scaleX = base.scaleX * 0.4; s.scaleY = base.scaleY * 0.4; }
-  if (o.animType === 'rise')   { s.top = base.top + Math.min(120, H * 0.18); }
-  if (o.animType === 'bounce') { s.top = base.top - Math.min(160, H * 0.25); s.opacity = 1; }
-  if (o.animType === 'fly') {
-    if (o.animDir === 'left')   s.left = base.left - W * 0.6;
-    if (o.animDir === 'right')  s.left = base.left + W * 0.6;
-    if (o.animDir === 'top')    s.top  = base.top  - H * 0.6;
-    if (o.animDir === 'bottom') s.top  = base.top  + H * 0.6;
-    s.opacity = 1;
+  var dx = Math.min(180, W * 0.4), dxS = Math.min(60, W * 0.12);
+  var dy = Math.min(130, H * 0.22), dyS = Math.min(40, H * 0.08);
+  var d = o.animDir || 'left', s = { opacity: 0 };
+  switch (demo) {
+    case 'appear': case 'fade': case 'bars': break;
+    case 'slide':
+      if (d === 'left')   s.left = base.left - dx;
+      else if (d === 'right')  s.left = base.left + dx;
+      else if (d === 'top')    s.top  = base.top  - dy;
+      else s.top = base.top + dy;
+      s.opacity = 1; break;
+    case 'float':    s.top = base.top + (d === 'top' ? -dyS : dyS); break;
+    case 'drift':    s.left = base.left - dxS; break;
+    case 'rise':     s.top = base.top + dy; break;
+    case 'baseline': s.top = base.top + dyS; break;
+    case 'tectonic': s.left = base.left - dx; break;
+    case 'wipe':     s.left = base.left - dxS; break;
+    case 'split':    s.scaleX = base.scaleX * 0.02; break;
+    case 'shape':    s.scaleX = base.scaleX * 0.2;  s.scaleY = base.scaleY * 0.2; break;
+    case 'zoom':     s.scaleX = base.scaleX * 0.3;  s.scaleY = base.scaleY * 0.3; break;
+    case 'pop':      s.scaleX = base.scaleX * 0.35; s.scaleY = base.scaleY * 0.35; break;
+    case 'stomp':    s.scaleX = base.scaleX * 1.9;  s.scaleY = base.scaleY * 1.9; break;
+    case 'blur':     s.scaleX = base.scaleX * 1.12; s.scaleY = base.scaleY * 1.12; break;
+    case 'wheel':    s.angle = base.angle - 160; break;
+    case 'growturn': s.angle = base.angle - 120; s.scaleX = base.scaleX * 0.3; s.scaleY = base.scaleY * 0.3; break;
+    case 'swivel':   s.scaleX = base.scaleX * 0.02; s.opacity = 1; break;
+    case 'bounce':   s.top = base.top - dy; s.opacity = 1; break;
+    case 'tumble':   s.angle = base.angle - 200; s.scaleX = base.scaleX * 0.5; s.scaleY = base.scaleY * 0.5; break;
+    case 'scrapbook':s.angle = base.angle + 16; s.top = base.top - dyS; break;
+    default: break;
   }
   return s;
+}
+
+/* One frame of a looping emphasis / motion-path demo. el = seconds elapsed.
+   Colour emphases are approximated with opacity, since fabric can't tween a
+   fill live without a filter rebuild per frame. */
+function animLoopSet(demo, o, base, el) {
+  switch (demo) {
+    case 'pulse':      { var k = 1 + Math.sin(el * 4) * 0.12; o.set({ scaleX: base.scaleX * k, scaleY: base.scaleY * k }); break; }
+    case 'growshrink': { var g = 1 + Math.sin(el * 2.4) * 0.18; o.set({ scaleX: base.scaleX * g, scaleY: base.scaleY * g }); break; }
+    case 'breathe':    { var b = 1 + Math.sin(el * 3) * 0.06; o.set({ scaleX: base.scaleX * b, scaleY: base.scaleY * b }); break; }
+    case 'spin':   o.set({ angle: base.angle + (el * 180) % 360 }); break;
+    case 'teeter': o.set({ angle: base.angle + Math.sin(el * 5) * 6 }); break;
+    case 'wiggle': o.set({ angle: base.angle + Math.sin(el * 8) * 6 }); break;
+    case 'wave':   o.set({ top: base.top + Math.sin(el * 4) * 8, angle: base.angle + Math.sin(el * 4) * 3 }); break;
+    case 'flick':  o.set({ opacity: base.opacity * (0.3 + 0.7 * Math.abs(Math.sin(el * 9))) }); break;
+    case 'trans':  o.set({ opacity: base.opacity * (0.35 + 0.4 * (1 + Math.sin(el * 3)) / 2) }); break;
+    case 'tint':   o.set({ opacity: base.opacity * (0.72 + 0.28 * Math.cos(el * 3)) }); break;
+    case 'dark':   o.set({ opacity: base.opacity * (0.55 + 0.25 * (1 + Math.cos(el * 3)) / 2) }); break;
+    case 'light':  o.set({ opacity: base.opacity * (0.82 + 0.18 * Math.sin(el * 3)) }); break;
+    case 'plines': o.set({ top: base.top - Math.abs(Math.sin(el * 2)) * 24 }); break;
+    case 'parcs':  o.set({ left: base.left + Math.sin(el * 2) * 22, top: base.top - Math.abs(Math.sin(el * 2)) * 24 }); break;
+    case 'pturns': o.set({ left: base.left + Math.sin(el * 2) * 22, top: base.top + Math.cos(el * 2) * 10 }); break;
+    case 'pshapes':o.set({ left: base.left + Math.cos(el * 2) * 20, top: base.top + Math.sin(el * 2) * 20 }); break;
+    case 'ploops': o.set({ left: base.left + Math.cos(el * 3) * 22, top: base.top + Math.sin(el * 3) * 22 }); break;
+    default: break;
+  }
+}
+
+/* Run a looping demo (emphasis / motion path) for `dur` ms, then restore. */
+function animRunLoop(o, base, demo, dur, done) {
+  var t0 = Date.now();
+  function step() {
+    var ms = Date.now() - t0;
+    if (ms >= dur) { o.set(base); o.setCoords(); fc.requestRenderAll(); done(); return; }
+    animLoopSet(demo, o, base, ms / 1000);
+    o.setCoords(); fc.requestRenderAll();
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
 function animPlay() {
@@ -8853,8 +9575,9 @@ function animPlay() {
 
   _animPlaying = true;
   var snaps = list.map(function (o) {
-    return { o: o, base: { left:o.left, top:o.top, opacity:(o.opacity==null?1:o.opacity),
-                           scaleX:o.scaleX||1, scaleY:o.scaleY||1 } };
+    return { o: o, base: { left:o.left, top:o.top, angle:o.angle || 0,
+                           opacity:(o.opacity == null ? 1 : o.opacity),
+                           scaleX:o.scaleX || 1, scaleY:o.scaleY || 1 } };
   });
 
   var ease = (fabric.util && fabric.util.ease) || {};
@@ -8869,20 +9592,31 @@ function animPlay() {
   var clock = 0;
   snaps.forEach(function (s) {
     var o = s.o, base = s.base;
+    var info = ANIM_MAP[o.animType] || { kind:'in', demo:'fade' };
+    var dur = o.animMs || 700;
     var delay = clock + (o.animDelay || 0);
-    clock = delay + (o.animMs || 600) * 0.55;   /* slight overlap, like PowerPoint */
-    o.set(animStartState(o, base));
+    clock = delay + dur * 0.5;   /* slight overlap, like PowerPoint */
+    var easing = (info.demo === 'pop' || info.demo === 'stomp' || info.demo === 'bounce')
+      ? (ease.easeOutBack || ease.easeOutCubic) : (ease.easeOutCubic || undefined);
+
+    if (info.kind === 'emph' || info.kind === 'path') {
+      setTimeout(function () { animRunLoop(o, base, info.demo, Math.max(2200, dur * 3), finish); }, delay);
+      return;
+    }
+    if (info.kind === 'out') {
+      setTimeout(function () {
+        o.animate(animGeoState(info.demo, o, base), {
+          duration: dur, easing: easing,
+          onChange: function () { fc.requestRenderAll(); }, onComplete: finish });
+      }, delay);
+      return;
+    }
+    o.set(animGeoState(info.demo, o, base));
     fc.requestRenderAll();
     setTimeout(function () {
-      var easing = o.animType === 'bounce' ? (ease.easeOutBounce || ease.easeOutCubic)
-                 : o.animType === 'zoom'   ? (ease.easeOutBack || ease.easeOutCubic)
-                 : (ease.easeOutCubic || undefined);
       o.animate(base, {
-        duration: o.animMs || 600,
-        easing: easing,
-        onChange: function () { fc.requestRenderAll(); },
-        onComplete: finish
-      });
+        duration: dur, easing: easing,
+        onChange: function () { fc.requestRenderAll(); }, onComplete: finish });
     }, delay);
   });
   showToast('Playing ' + snaps.length + ' animation' + (snaps.length === 1 ? '' : 's'));
@@ -8952,21 +9686,28 @@ function renderAnimPanel(tab) {
   var cur = o && o.animType;
   var list = animObjects();
 
+  var _ac = 0;
+  var animCard = function (it) {
+    var col = EL_COLORS[(_ac++) % EL_COLORS.length];
+    return '<button class="animx-card' + (cur === it[0] ? ' on' : '') + '"'
+      + ' data-action="anim-set" data-t="' + it[0] + '" title="' + it[1] + '" style="--ac:' + col + '">'
+      + '<span class="animx-stage"><i class="animx-ghost demo-' + it[2] + '"></i>'
+      + '<i class="animx-demo demo-' + it[2] + '"></i></span>'
+      + '<span class="animx-name">' + it[1] + '</span></button>';
+  };
+
   var head = '<div class="panel-subhead">Object animation'
     + (o ? '' : ' <span>select something</span>') + '</div>'
-    + '<div class="anim-grid">'
-    + '<button class="anim-card' + (o && !cur ? ' on' : '') + '" data-action="anim-set" data-t="none">'
-      + '<span class="material-icons-outlined">block</span><span>None</span></button>'
-    + OBJ_ANIMS.map(function (a) {
-        return '<button class="anim-card' + (cur === a.id ? ' on' : '') + '"'
-          + ' data-action="anim-set" data-t="' + a.id + '">'
-          + '<span class="material-icons-outlined">' + a.icon + '</span>'
-          + '<span>' + a.name + '</span></button>';
-      }).join('') + '</div>';
+    + '<button class="animx-none' + (o && !cur ? ' on' : '') + '" data-action="anim-set" data-t="none">'
+      + '<span class="material-icons-outlined">block</span>None</button>'
+    + ANIM_GROUPS.map(function (g) {
+        return '<div class="panel-subhead">' + g.title
+          + (g.key === 'emph' ? ' <span>loops</span>' : g.key === 'path' ? ' <span>moves</span>' : '')
+          + '</div><div class="animx-grid">' + g.items.map(animCard).join('') + '</div>';
+      }).join('');
 
   if (cur) {
-    var def = OBJ_ANIMS.filter(function (a) { return a.id === cur; })[0];
-    if (def && def.dirs) {
+    if (ANIM_DIR_IDS[cur]) {
       head += '<label class="brand-lbl">Direction</label><div class="anim-grid four">'
         + ANIM_DIRS.map(function (d) {
             return '<button class="anim-card' + (o.animDir === d.id ? ' on' : '') + '"'
@@ -9630,12 +10371,14 @@ function projOpenDb() {
     var idb = (typeof indexedDB !== 'undefined') ? indexedDB : null;
     if (!idb) return resolve(null);
     var req;
-    try { req = idb.open(PROJ_DB, 3); } catch (e) { return resolve(null); }
+    try { req = idb.open(PROJ_DB, 5); } catch (e) { return resolve(null); }
     req.onupgradeneeded = function (e) {
       var db = e.target.result;
       if (!db.objectStoreNames.contains(PROJ_STORE)) db.createObjectStore(PROJ_STORE, { keyPath: 'id' });
       if (!db.objectStoreNames.contains(ASSET_STORE)) db.createObjectStore(ASSET_STORE, { keyPath: 'id' });
       if (!db.objectStoreNames.contains(SNAP_STORE)) db.createObjectStore(SNAP_STORE, { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('media')) db.createObjectStore('media', { keyPath: 'id' });
     };
     req.onsuccess = function (e) { _projDb = e.target.result; resolve(_projDb); };
     req.onerror = function () { resolve(null); };
@@ -10255,12 +10998,12 @@ var GRID_GAP = 8;      /* px between cells */
 
 function gridPreviewSvg(g, w, h) {
   return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '">'
-    + g.cells.map(function (c) {
-        var pad = 1.2;
+    + g.cells.map(function (c, i) {
+        var pad = 1.4;
         return '<rect x="' + (c[0] * w + pad) + '" y="' + (c[1] * h + pad)
           + '" width="' + Math.max(1, c[2] * w - pad * 2)
           + '" height="' + Math.max(1, c[3] * h - pad * 2)
-          + '" rx="2" fill="currentColor"/>';
+          + '" rx="2.5" fill="' + EL_COLORS[i % EL_COLORS.length] + '"/>';
       }).join('') + '</svg>';
 }
 
@@ -10276,7 +11019,7 @@ function renderGridPanel(tab) {
           + items.map(function (g) {
               return '<button class="grid-card" data-action="add-grid" data-grid="'
                 + GRID_LAYOUTS.indexOf(g) + '" title="' + g.n + ' — ' + g.cells.length + ' cells">'
-                + gridPreviewSvg(g, 74, 46)
+                + gridPreviewSvg(g, 128, 80)
                 + '<span>' + g.n + '</span></button>';
             }).join('') + '</div>';
       }).join('');
@@ -10645,7 +11388,9 @@ var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBod
   /* accessibility: alt text and screen-reader order travel with the object */
   'altText', 'readOrder',
   /* charts remember which dataset feeds them */
-  'datasetId'];
+  'datasetId',
+  /* freehand pen/marker strokes, so Clear and the eraser find them after reload */
+  '_isDrawn'];
 
 function saveState() {
   if (!fc || _restoring || window._bulkLoad) return;
@@ -13824,6 +14569,15 @@ function initEvents() {
       case 'add-text':
         addText(action.dataset.type);
         break;
+      case 'draw-tool':  drawSetTool(action.dataset.t); break;
+      case 'draw-color': drawSetColour(action.dataset.c); break;
+      case 'draw-clear': drawClear(); break;
+      case 'photo-upload': photoUploadClick(); break;
+      case 'photo-add':    photoAddToCanvas(action.dataset.id); break;
+      case 'photo-del':    photoRemove(action.dataset.id); break;
+      case 'media-upload': mediaUploadClick(action.dataset.k); break;
+      case 'media-add':    mediaAddToCanvas(action.dataset.id); break;
+      case 'media-del':    mediaRemove(action.dataset.id); break;
       case 'upload-image':
         dom.uploadImgInput.click();
         break;
@@ -13859,6 +14613,13 @@ function initEvents() {
   });
   /* animation + effect sliders: live while dragging */
   dom.panelContent.addEventListener('input', (e) => {
+    const ds = e.target.closest('[data-drawsize]');
+    if (ds) {
+      drawSetSize(ds.value);
+      const lbl = ds.previousElementSibling;
+      if (lbl && lbl.classList.contains('brand-lbl')) lbl.textContent = 'Thickness — ' + _draw.size + 'px';
+      return;
+    }
     const r = e.target.closest('[data-animrange]');
     if (r) {
       const kind = r.dataset.animrange;
