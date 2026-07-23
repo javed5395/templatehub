@@ -391,6 +391,12 @@ input, textarea { font-family: inherit; }
   animation: tplspin .7s linear infinite;
 }
 @keyframes tplspin { to { transform: rotate(360deg); } }
+.template-skeleton {
+  background: linear-gradient(100deg, #edeff3 30%, #f6f7f9 50%, #edeff3 70%);
+  background-size: 200% 100%;
+  animation: tplshimmer 1.2s ease-in-out infinite;
+}
+@keyframes tplshimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .template-badge {
   position: absolute;
   bottom: 6px; right: 6px;
@@ -2268,10 +2274,13 @@ const panelData = {
       var list = window._editorTemplates;
       if (typeof list === 'undefined') {
         if (window.LD_loadEditorTemplates) window.LD_loadEditorTemplates();
-        return '<div style="padding:16px;color:var(--text-secondary);font-size:13px;">Loading templates…</div>';
+        /* clean skeleton tiles while loading — no raw text */
+        var sk = '';
+        for (var s = 0; s < 6; s++) sk += '<div class="template-card"><div class="template-preview template-skeleton"></div></div>';
+        return '<div class="template-grid">' + sk + '</div>';
       }
       if (!list || !list.length) {
-        return '<div style="padding:16px;color:var(--text-secondary);font-size:13px;line-height:1.6;">No templates yet.<br>Add one from the <strong>Template Upload</strong> page.</div>';
+        return '<div style="padding:28px 16px;color:var(--text-secondary);font-size:13px;text-align:center;line-height:1.6;">No templates yet.</div>';
       }
       return `<div class="template-grid">${list.map((c, i) => {
         var nm = (c.name || 'Template').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -2631,9 +2640,10 @@ function openPanel(toolId) {
   if (!tool) return;
 
   dom.panelTitle.textContent = tool.label;
-  /* Templates panel is Canva-clean: no repeated "Templates" heading (the
-     left tab already says it) — just the search bar and the preview grid. */
-  dom.panelTitle.style.display = (toolId === 'templates') ? 'none' : '';
+  /* Templates panel is Canva-clean: hide the whole header (no repeated
+     "Templates" heading and no close X) — just the search bar + grid. */
+  var _hdr = dom.sidePanel.querySelector('.panel-header');
+  if (_hdr) _hdr.style.display = (toolId === 'templates') ? 'none' : '';
   dom.panelSearch.value = '';
 
   // Show/hide search and tabs based on tool
