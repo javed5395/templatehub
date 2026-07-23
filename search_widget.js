@@ -61,8 +61,9 @@
     #metaSearchCardWrap { flex:0 0 auto; margin-left:auto; margin-top:-70px; pointer-events:none; }
     #metaSearchCardWrap #searchWidget { pointer-events:auto; }
     #searchWidget { width:min(82vw,1000px); background:#ffffff; overflow:hidden; max-height:260px; transition:max-height 0.45s cubic-bezier(0.4,0,0.2,1); cursor:default; border-radius:28px; box-shadow:0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06); font-family:'Inter','Segoe UI',sans-serif; }
-    #searchWidget:hover, #searchWidget.locked { max-height:1300px; cursor:default; }
-    #searchWidget.force-collapsed, #searchWidget.force-collapsed:hover { max-height:260px !important; }
+    #searchWidget:hover { max-height:1300px; cursor:default; }
+    #searchWidget.locked { max-height:1300px !important; cursor:default; }
+    #searchWidget.force-collapsed:not(.locked), #searchWidget.force-collapsed:not(.locked):hover { max-height:260px !important; }
     #widgetTeaser { padding:16px 26px; color:#1a1a2e; font-size:14px; font-weight:600; font-family:'Poppins',sans-serif; position:relative; }
     #widgetTeaser small { display:block; color:#6b7280; font-weight:400; font-size:11.5px; margin-top:3px; font-family:'Inter',sans-serif; }
     /* Explicit lock/unlock toggle — locking keeps the card open even when
@@ -608,34 +609,34 @@
   // ---------------------------------------------------------
   var widgetEl, widgetLocked = false;
   function setLocked(locked) {
-    widgetLocked = locked;
+    widgetLocked = !!locked;
     var btn = document.getElementById('widgetLockBtn');
-    if (locked) {
+    if (widgetLocked) {
       widgetEl.classList.add('locked');
       widgetEl.classList.remove('force-collapsed');
       if (btn) { btn.textContent = '🔒 Unlock'; btn.title = 'Click to unlock and collapse'; btn.classList.add('is-locked'); }
     } else {
       widgetEl.classList.remove('locked');
-      widgetEl.classList.add('force-collapsed'); // collapse immediately even if mouse still hovering
+      widgetEl.classList.add('force-collapsed'); // collapse now even if still hovering
       if (btn) { btn.textContent = '🔓 Lock open'; btn.title = 'Lock the card open'; btn.classList.remove('is-locked'); }
     }
   }
   function initWidgetBehavior() {
     widgetEl = document.getElementById('searchWidget');
-    // CSS :hover handles expand/collapse. JS only removes force-collapsed on re-entry.
+    if (!widgetEl) return;
+    // Re-entering the card clears a prior forced collapse so hover works again.
     widgetEl.addEventListener('mouseenter', function() {
-      widgetEl.classList.remove('force-collapsed');
+      if (!widgetLocked) widgetEl.classList.remove('force-collapsed');
     });
-    // Lock is controlled ONLY by the button (like the left card), so clicking
-    // inside the card no longer auto-locks and desyncs the button.
+    // The Lock button is the ONLY thing that locks/unlocks — a plain toggle.
     var lockBtn = document.getElementById('widgetLockBtn');
     if (lockBtn) {
       lockBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         e.stopPropagation();
         setLocked(!widgetLocked);
       });
     }
-    // No document click handler — card only closes via the Unlock button
   }
 
   function wireEvents() {
