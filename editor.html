@@ -5125,33 +5125,6 @@ var RIBBON = [
     ]},
   ]},
 
-  { id:'animate', name:'Animate', groups:[
-    { name:'Object animation', items:[
-      ['gradient','Fade','anim:fade','sm'],
-      ['zoom_out_map','Zoom','anim:zoom','sm'],
-      ['flight','Fly','anim:fly','sm'],
-      ['arrow_upward','Rise','anim:rise','sm'],
-      ['sports_basketball','Bounce','anim:bounce','sm'],
-      ['block','None','anim:none','sm'],
-    ]},
-    { name:'Timing', items:[
-      ['timer','Duration','anim-ms','sm'],
-      ['hourglass_empty','Delay','anim-delay','sm'],
-    ]},
-    { name:'Trigger', items:[
-      ['ads_click','On click','trig:click','sm'],
-      ['playlist_play','After prev','trig:after','sm'],
-      ['layers','With prev','trig:with','sm'],
-    ]},
-    { name:'Page transition', items:[
-      ['gradient','Fade','trans:fade','sm'],
-      ['swipe_left','Slide','trans:slide','sm'],
-      ['east','Push','trans:push','sm'],
-      ['blur_on','Dissolve','trans:dissolve','sm'],
-      ['play_arrow','Preview','trans-play','sm'],
-    ]},
-  ]},
-
   { id:'view', name:'View', groups:[
     { name:'Workspace', items:[
       ['zoom_in','Zoom in','zoom-in','sm'],
@@ -6036,12 +6009,32 @@ var FRAME_DEFS = {
 
 /* SVG path text → the [cmd, x, y, ...] command array the IR/writer expects. */
 function framePathToCmds(d) {
-  var out = [], re = /([MLCZ])([^MLCZ]*)/gi, m;
+  /* Proper tokenizer: H/V become L (using the running point), M with extra
+     pairs becomes M+L, and C/Q/A keep their own arities. The old version only
+     knew M/L/C/Z, so H/V/A numbers leaked into the previous command and drew
+     stray diagonals (grids and filled shapes). */
+  var out = [], re = /([MLHVCSQTAZ])([^MLHVCSQTAZ]*)/gi, m;
+  var cx = 0, cy = 0, sx = 0, sy = 0, i;
   while ((m = re.exec(d))) {
     var c = m[1].toUpperCase();
-    if (c === 'Z') { out.push(['Z']); continue; }
-    var nums = (m[2].match(/-?\d*\.?\d+/g) || []).map(Number);
-    out.push([c].concat(nums));
+    var nums = (m[2].match(/-?\d*\.?\d+(?:e[-+]?\d+)?/gi) || []).map(Number);
+    if (c === 'Z') { out.push(['Z']); cx = sx; cy = sy; }
+    else if (c === 'M') {
+      for (i = 0; i + 1 < nums.length; i += 2) {
+        cx = nums[i]; cy = nums[i + 1];
+        out.push([i === 0 ? 'M' : 'L', cx, cy]);
+        if (i === 0) { sx = cx; sy = cy; }
+      }
+    }
+    else if (c === 'L' || c === 'T') {
+      for (i = 0; i + 1 < nums.length; i += 2) { cx = nums[i]; cy = nums[i + 1]; out.push(['L', cx, cy]); }
+    }
+    else if (c === 'H') { for (i = 0; i < nums.length; i++) { cx = nums[i]; out.push(['L', cx, cy]); } }
+    else if (c === 'V') { for (i = 0; i < nums.length; i++) { cy = nums[i]; out.push(['L', cx, cy]); } }
+    else if (c === 'C') { for (i = 0; i + 5 < nums.length; i += 6) { out.push(['C', nums[i], nums[i+1], nums[i+2], nums[i+3], nums[i+4], nums[i+5]]); cx = nums[i+4]; cy = nums[i+5]; } }
+    else if (c === 'S') { for (i = 0; i + 3 < nums.length; i += 4) { out.push(['C', cx, cy, nums[i], nums[i+1], nums[i+2], nums[i+3]]); cx = nums[i+2]; cy = nums[i+3]; } }
+    else if (c === 'Q') { for (i = 0; i + 3 < nums.length; i += 4) { out.push(['Q', nums[i], nums[i+1], nums[i+2], nums[i+3]]); cx = nums[i+2]; cy = nums[i+3]; } }
+    else if (c === 'A') { for (i = 0; i + 6 < nums.length; i += 7) { out.push(['A', nums[i], nums[i+1], nums[i+2], nums[i+3], nums[i+4], nums[i+5], nums[i+6]]); cx = nums[i+5]; cy = nums[i+6]; } }
   }
   return out;
 }
@@ -6130,21 +6123,16 @@ function makeFrameShape(opts) {
   var boxH = opts.boxW * opts.pathH / opts.pathW;
   var ky = boxH / opts.pathH;
   /* scale the normalised path into the on-canvas box */
-  var d = framePathToCmds(opts.d).map(function (c) {
+  function scaleCmd(c) {
     if (c[0] === 'Z') return 'Z';
+    if (c[0] === 'A') return 'A ' + (c[1] * kx) + ' ' + (c[2] * ky) + ' ' + c[3] + ' ' + c[4] + ' ' + c[5]
+      + ' ' + (c[6] * kx) + ' ' + (c[7] * ky);
     var o = [c[0]];
     for (var j = 1; j < c.length; j += 2) o.push(c[j] * kx, c[j + 1] * ky);
     return o.join(' ');
-  }).join(' ');
-
-  function scaled(pathData) {
-    return framePathToCmds(pathData).map(function (c) {
-      if (c[0] === 'Z') return 'Z';
-      var o = [c[0]];
-      for (var j = 1; j < c.length; j += 2) o.push(c[j] * kx, c[j + 1] * ky);
-      return o.join(' ');
-    }).join(' ');
   }
+  var d = framePathToCmds(opts.d).map(scaleCmd).join(' ');
+  function scaled(pathData) { return framePathToCmds(pathData).map(scaleCmd).join(' '); }
 
   var p = new fabric.Path(d, {
     fill: opts.fill || '#7C3AED',
@@ -11044,7 +11032,7 @@ function addGrid(idx) {
        cell keeps its exact aspect ratio instead of being squared off */
     var pw = 1000, ph = Math.max(1, Math.round(1000 * h / w));
     var frame = makeFrameShape({
-      d: 'M 0 0 H ' + pw + ' V ' + ph + ' H 0 Z',
+      d: 'M 0 0 L ' + pw + ' 0 L ' + pw + ' ' + ph + ' L 0 ' + ph + ' Z',
       pathW: pw, pathH: ph,
       kind: 'grid-cell', look: 'placeholder',
       boxW: w, at: [x, y], quiet: true
