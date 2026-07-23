@@ -74,10 +74,26 @@
       this.innerHTML = on ? '🔒 Locked' : '🔓 Lock open';
     });
 
+    // Make a design card dragged FROM THE PAGE carry a clean payload, so the
+    // "Drag your design" box can accept a site design — not only a local file.
+    // A document-level listener means we don't have to touch every page's card
+    // renderer; .pd-card is the shared card class.
+    document.addEventListener('dragstart', function(e){
+      var card = (e.target && e.target.closest) ? e.target.closest('.pd-card') : null;
+      if (!card) return;
+      var title = (card.querySelector('.pd-card-title') || {}).textContent || 'Selected design';
+      var href  = card.getAttribute('href') || '';
+      var imgEl = card.querySelector('img'); var thumb = imgEl ? imgEl.src : '';
+      var m = href.match(/[?&]firebase=([A-Za-z0-9_-]+)/); var id = m ? m[1] : '';
+      try { e.dataTransfer.setData('application/x-ldt-design', JSON.stringify({ id:id, href:href, name:title, thumb:thumb })); } catch(_){}
+      try { e.dataTransfer.setData('text/plain', href); } catch(_){}
+      try { e.dataTransfer.effectAllowed = 'copyLink'; } catch(_){}
+    }, true);
+
     // wiring
-    var deckFile=null;
+    var deckFile=null, designRef=null;
     var goBtn=document.getElementById('fwGo');
-    function refresh(){ goBtn.disabled = !deckFile; }
+    function refresh(){ goBtn.disabled = !(deckFile || designRef); }
     function wireDrop(dropId, inputId, noteId, cb){
       var d=document.getElementById(dropId), i=document.getElementById(inputId), n=document.getElementById(noteId);
       d.addEventListener('click', function(){ i.click(); });
@@ -90,11 +106,39 @@
       n.textContent='Loaded: '+f.name;
       var r=new FileReader(); r.onload=function(){ document.getElementById('fwContent').value = String(r.result||'').slice(0,20000); }; r.readAsText(f);
     });
-    wireDrop('fwDeckDrop','fwDeckInput','fwDeckNote', function(f,n){ deckFile=f; n.textContent='Design: '+f.name; refresh(); });
+
+    // The design box: accepts a design DRAGGED FROM THE SITE, or a local .pptx.
+    (function wireDesignDrop(){
+      var d=document.getElementById('fwDeckDrop'), i=document.getElementById('fwDeckInput'), n=document.getElementById('fwDeckNote');
+      function pickFile(f){ deckFile=f; designRef=null; n.textContent='Design file: '+f.name; refresh(); }
+      function pickSite(ref){ designRef=ref; deckFile=null; n.textContent='Design from site: '+(ref.name||'selected'); refresh(); }
+      d.addEventListener('click', function(){ i.click(); });                 // clicking still lets you upload a .pptx
+      d.addEventListener('dragover', function(e){ e.preventDefault(); try{ e.dataTransfer.dropEffect='copy'; }catch(_){} d.classList.add('drag'); });
+      d.addEventListener('dragleave', function(){ d.classList.remove('drag'); });
+      d.addEventListener('drop', function(e){
+        e.preventDefault(); d.classList.remove('drag');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) { i.files=e.dataTransfer.files; pickFile(e.dataTransfer.files[0]); return; }
+        var raw = e.dataTransfer.getData('application/x-ldt-design');
+        if (raw) { try { pickSite(JSON.parse(raw)); return; } catch(_){} }
+        var url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain') || '';
+        if (url) { var m = url.match(/[?&]firebase=([A-Za-z0-9_-]+)/); pickSite({ id: m?m[1]:'', href:url, name:'Selected design' }); return; }
+        n.textContent='Drag a design card from the page here, or click to upload a .pptx.';
+      });
+      i.addEventListener('change', function(){ if(i.files[0]) pickFile(i.files[0]); });
+    })();
 
     goBtn.addEventListener('click', async function(){
       var content=document.getElementById('fwContent').value.trim();
-      if(!deckFile){ alert('Drag the design deck (.pptx) first.'); return; }
+      // A design chosen FROM THE SITE — there's no local file to stash, just its reference.
+      if(designRef){
+        try{ localStorage.setItem('lazydog_fill_plan', JSON.stringify({
+          deck: designRef.name || 'design', source:'fill_widget', mode:'site-design',
+          designId: designRef.id || '', designHref: designRef.href || '', content: content, slides: []
+        })); }catch(e){}
+        window.location.assign('/editor.html');
+        return;
+      }
+      if(!deckFile){ alert('Drag a design from the page, or drop a .pptx here, first.'); return; }
       goBtn.disabled=true; goBtn.textContent='Preparing…';
       try{
         // stash the deck for the editor (same channel the editor reads)
