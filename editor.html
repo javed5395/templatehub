@@ -2096,6 +2096,9 @@ body.show-ruler .canvas-area::after {
   <button class="ctx-item" data-ctx="setbg"><span class="ctx-item-left"><span class="material-icons-outlined">image</span>Set image as background</span></button>
   <button class="ctx-item" data-ctx="applycolor"><span class="ctx-item-left"><span class="material-icons-outlined">palette</span>Apply colour to page</span></button>
   <div class="ctx-divider"></div>
+  <button class="ctx-item" data-ctx="master"><span class="ctx-item-left"><span class="material-icons-outlined">layers</span>Show on all slides</span></button>
+  <button class="ctx-item" data-ctx="unmaster"><span class="ctx-item-left"><span class="material-icons-outlined">layers_clear</span>Remove from all slides</span></button>
+  <div class="ctx-divider"></div>
   <button class="ctx-item" data-ctx="info"><span class="ctx-item-left"><span class="material-icons-outlined">info</span>Info</span></button>
 </div>
 
@@ -2231,6 +2234,7 @@ body.show-ruler .canvas-area::after {
     <button class="btn-icon-sm" id="notes-toggle" data-action="toggle-notes" title="Speaker notes" aria-label="Toggle speaker notes">
       <span class="material-icons-outlined">sticky_note_2</span>
     </button>
+    <button class="btn-icon-sm" id="master-toggle" data-action="toggle-master" title="Master view — place elements once, they show on every slide" aria-label="Master view" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;">Master</button>
     <div class="timer-wrap">
       <button class="timer-btn" id="timer-toggle" aria-label="Start timer">
         <span class="material-icons-outlined">play_arrow</span>
@@ -3197,6 +3201,8 @@ dom.ctxMenu.addEventListener('click', function(e) {
     case 'alttext': ctxAltText(); break;
     case 'setbg': ctxSetBg(); break;
     case 'applycolor': ctxApplyColor(); break;
+    case 'master': ctxMasterAdd(); break;
+    case 'unmaster': ctxMasterRemove(); break;
     case 'trim': ctxTrimToSlide(); break;
     case 'info': ctxInfo(); break;
   }
@@ -3209,11 +3215,321 @@ function ctxDuplicate() { histLabel('Duplicated'); var o=fc&&fc.getActiveObject(
 function ctxDelete()    { histLabel('Deleted'); var o=fc&&fc.getActiveObject(); if(o){ fc.remove(o); fc.discardActiveObject(); fc.renderAll(); saveState(); } }
 function ctxAlign()     { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} o.set({left:(fc.getWidth()/fc.getZoom()-o.getScaledWidth())/2, top:(fc.getHeight()/fc.getZoom()-o.getScaledHeight())/2}); fc.renderAll(); saveState(); showToast('Aligned to center'); }
 function ctxLock()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var lock=!o.lockMovementX; o.set({lockMovementX:lock,lockMovementY:lock,hasControls:!lock,selectable:!lock}); fc.renderAll(); showToast(lock?'Element locked':'Element unlocked'); }
-function ctxSetBg()     { var o=fc&&fc.getActiveObject(); if(!o||o.type!=='image'){showToast('Select an image first');return;} fc.setBackgroundImage(o,fc.renderAll.bind(fc),{scaleX:fc.getWidth()/fc.getZoom()/o.width,scaleY:fc.getHeight()/fc.getZoom()/o.height}); fc.remove(o); fc.renderAll(); showToast('Set as background'); }
+/* ═══ SCOPE CHOOSER (Canva behaviour): "This slide" or "All slides"? ═══ */
+function ldScopeChooser(title, cb) {
+  var old = document.getElementById('ld-scope-pop'); if (old) old.remove();
+  var pop = document.createElement('div'); pop.id = 'ld-scope-pop';
+  pop.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(15,23,42,0.35);display:flex;align-items:center;justify-content:center;';
+  pop.innerHTML = '<div style="background:#fff;border-radius:12px;padding:20px 22px;min-width:260px;box-shadow:0 12px 40px rgba(0,0,0,0.25);">' +
+    '<div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:14px;">' + title + '</div>' +
+    '<button id="ld-scope-this" style="display:block;width:100%;padding:10px 0;margin-bottom:8px;background:#F1F5F9;color:#0F172A;border-radius:8px;font-weight:600;font-size:13px;">This slide only</button>' +
+    '<button id="ld-scope-all" style="display:block;width:100%;padding:10px 0;background:var(--accent,#7C3AED);color:#fff;border-radius:8px;font-weight:600;font-size:13px;">All slides</button></div>';
+  document.body.appendChild(pop);
+  pop.addEventListener('click', function (e) { if (e.target === pop) pop.remove(); });
+  document.getElementById('ld-scope-this').onclick = function () { pop.remove(); cb('slide'); };
+  document.getElementById('ld-scope-all').onclick = function () { pop.remove(); cb('deck'); };
+}
+/* Solid page colour applied deck-wide: live canvas + every other page in
+   whichever state it is (edited JSON, untouched IR, or blank). */
+function ldApplyBgColorDeck(color) {
+  fc.setBackgroundColor(color, fc.renderAll.bind(fc));
+  state.pages.forEach(function (page, i) {
+    if (i === state.currentPage) return;
+    if (page.canvasJSON) page.canvasJSON.background = color;
+    else if (page.ir) page.ir.background = { type: 'solid', color: color };
+    else page.pendingBg = color; /* blank page: honored on first load */
+    page.thumb = null;
+  });
+  renderPageThumbs();
+}
+/* Image as background on ALL slides: stamped as a full-bleed image ELEMENT
+   at the back of every slide (NOT a fabric backgroundImage, NOT a pptx
+   master) — so export writes plain per-slide elements and Canva/PowerPoint
+   open it without any master-layout dependency. */
+function ldSetBgImageDeck(src) {
+  var cw = fc.getWidth() / fc.getZoom(), ch = fc.getHeight() / fc.getZoom();
+  var size = window._deckIR ? window._deckIR.size : { w: 12192000, h: 6858000 };
+  fabric.Image.fromURL(src, function (img) {
+    img.set({ left: -1, top: -1, scaleX: (cw + 2) / img.width, scaleY: (ch + 2) / img.height, selectable: true, ldBgStamp: true });
+    fc.add(img); fc.sendToBack(img); fc.renderAll(); saveState();
+  });
+  var probe = new Image();
+  probe.onload = function () {
+    var natW = probe.width || 100, natH = probe.height || 100;
+    state.pages.forEach(function (page, i) {
+      if (i === state.currentPage) return;
+      if (page.canvasJSON) {
+        page.canvasJSON.objects = page.canvasJSON.objects || [];
+        page.canvasJSON.objects.unshift({ type: 'image', version: '5.3.1', src: src, crossOrigin: 'anonymous',
+          left: -1, top: -1, width: natW, height: natH, scaleX: (cw + 2) / natW, scaleY: (ch + 2) / natH, ldBgStamp: true });
+      } else if (page.ir) {
+        page.ir.elements = page.ir.elements || [];
+        page.ir.elements.unshift({ id: 'ld-bg-stamp-' + i, origin: 'slide', type: 'image',
+          format: (src.indexOf('image/jpeg') !== -1 ? 'jpeg' : 'png'), src: src,
+          x: 0, y: 0, w: size.w, h: size.h });
+      }
+      page.thumb = null;
+    });
+    renderPageThumbs();
+  };
+  probe.src = src;
+}
+function ctxSetBg() {
+  var o = fc && fc.getActiveObject();
+  if (!o || o.type !== 'image') { showToast('Select an image first'); return; }
+  ldScopeChooser('Set image as background on…', function (scope) {
+    if (scope === 'slide') {
+      fc.setBackgroundImage(o, fc.renderAll.bind(fc), { scaleX: fc.getWidth() / fc.getZoom() / o.width, scaleY: fc.getHeight() / fc.getZoom() / o.height });
+      fc.remove(o); fc.renderAll(); showToast('Set as background');
+    } else {
+      var src = (o.getSrc && o.getSrc()) || (o._element && o._element.src) || o.toDataURL();
+      fc.remove(o); fc.renderAll();
+      ldSetBgImageDeck(src);
+      showToast('Background applied to all slides');
+    }
+    saveState();
+  });
+}
 function ctxInfo()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} showToast('Type: '+o.type+' | W:'+Math.round(o.getScaledWidth())+'px | H:'+Math.round(o.getScaledHeight())+'px | X:'+Math.round(o.left)+' Y:'+Math.round(o.top)); }
 function ctxLink()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var url=prompt('Enter URL:','https://'); if(url){ o.set('data',{link:url}); showToast('Link added: '+url); } }
 function ctxAltText()   { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var t=prompt('Enter alternative text:',o.altText||''); if(t!==null){ o.altText=t; showToast('Alt text set: '+t); } }
-function ctxApplyColor(){ var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var c=o.fill||o.stroke||'#7C3AED'; fc.setBackgroundColor(c,fc.renderAll.bind(fc)); showToast('Page colour applied'); }
+function ctxInfo()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} showToast('Type: '+o.type+' | W:'+Math.round(o.getScaledWidth())+'px | H:'+Math.round(o.getScaledHeight())+'px | X:'+Math.round(o.left)+' Y:'+Math.round(o.top)); }
+function ctxLink()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var url=prompt('Enter URL:','https://'); if(url){ o.set('data',{link:url}); showToast('Link added: '+url); } }
+function ctxAltText()   { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var t=prompt('Enter alternative text:',o.altText||''); if(t!==null){ o.altText=t; showToast('Alt text set: '+t); } }
+function ctxApplyColor(){
+  var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;}
+  var c=o.fill||o.stroke||'#7C3AED';
+  if (typeof c !== 'string') { showToast('Pick an element with a solid colour'); return; }
+  ldScopeChooser('Apply this colour to…', function (scope) {
+    if (scope === 'slide') { fc.setBackgroundColor(c, fc.renderAll.bind(fc)); showToast('Page colour applied'); }
+    else { ldApplyBgColorDeck(c); showToast('Colour applied to all slides'); }
+    saveState();
+  });
+}
+
+/* ═══ VIRTUAL MASTER (Canva-safe): an element "on all slides" is STAMPED
+   onto every slide as a plain per-slide element — it behaves like a
+   PowerPoint master inside the editor, but the exported PPTX contains no
+   slideMaster dependency at all, so Canva/Slides/Keynote open it clean. ═══ */
+window._ldMasters = window._ldMasters || [];
+function ctxMasterAdd() {
+  var o = fc && fc.getActiveObject();
+  if (!o) { showToast('Select an element first'); return; }
+  if (o.type === 'activeSelection') { showToast('One element at a time'); return; }
+  if (!o.ldMasterId) o.ldMasterId = 'm' + Math.random().toString(36).slice(2, 10);
+  var json = o.toObject(FABRIC_JSON_PROPS);
+  json.ldMasterId = o.ldMasterId;
+  window._ldMasters = window._ldMasters.filter(function (m) { return m.ldMasterId !== o.ldMasterId; });
+  window._ldMasters.push(json);
+  /* stamp into every already-EDITED page now; untouched IR pages get it on
+     first visit (ldStampMasters) and at export (buildEffectiveDeckIR) */
+  state.pages.forEach(function (page, i) {
+    if (i === state.currentPage) return;
+    var j = ldNormJson(page);
+    if (!j) return;
+    j.objects = (j.objects || []).filter(function (ob) { return ob.ldMasterId !== o.ldMasterId; });
+    j.objects.push(json);
+    page.thumb = null;
+  });
+  o.selectable = false; o.evented = false; fc.discardActiveObject(); fc.renderAll(); /* master copies lock, like PPT */
+  renderPageThumbs(); saveState();
+  showToast('Element now shows on all ' + state.pages.length + ' slides — edit it via the Master button');
+}
+function ctxMasterRemove() {
+  var o = fc && fc.getActiveObject();
+  if (!o || !o.ldMasterId) { showToast('Select an "all slides" element first'); return; }
+  var id = o.ldMasterId;
+  window._ldMasters = window._ldMasters.filter(function (m) { return m.ldMasterId !== id; });
+  state.pages.forEach(function (page, i) {
+    var j = ldNormJson(page);
+    if (j) j.objects = (j.objects || []).filter(function (ob) { return ob.ldMasterId !== id; });
+    page.thumb = null;
+  });
+  delete o.ldMasterId; /* the copy on THIS slide stays, as a normal element */
+  renderPageThumbs(); saveState();
+  showToast('Removed from other slides (kept here as a normal element)');
+}
+/* On page load: add any master element this page doesn't have yet. Master
+   copies are LOCKED on normal slides (PowerPoint semantics) — they are only
+   editable inside Master view. */
+function ldStampMasters() {
+  return new Promise(function (resolve) {
+    if (window._masterMode) { resolve(); return; }
+    if (!window._ldMasters.length || !fc) { resolve(); return; }
+    var have = {};
+    fc.getObjects().forEach(function (ob) { if (ob.ldMasterId) have[ob.ldMasterId] = 1; });
+    var missing = window._ldMasters.filter(function (m) { return !have[m.ldMasterId]; });
+    if (!missing.length) { resolve(); return; }
+    fabric.util.enlivenObjects(missing.map(function (m) { return Object.assign({}, m); }), function (objs) {
+      objs.forEach(function (ob, k) { ob.ldMasterId = missing[k].ldMasterId; ob.selectable = false; ob.evented = false; fc.add(ob); });
+      fc.renderAll(); resolve();
+    });
+  });
+}
+
+/* ═══ MASTER VIEW (PowerPoint-style, Canva-safe): a dedicated editing surface.
+   Anything placed here — text, images, shapes, anything — shows on EVERY
+   slide. On export it is written as plain per-slide elements: the .pptx
+   contains no slideMaster dependency, so Canva opens it clean. ═══ */
+window._masterMode = false;
+function ldNormJson(page) {
+  if (!page || !page.canvasJSON) return null;
+  if (typeof page.canvasJSON === 'string') { try { page.canvasJSON = JSON.parse(page.canvasJSON); } catch (e) { return null; } }
+  return page.canvasJSON;
+}
+function enterMasterMode() {
+  if (window._masterMode || !fc) return;
+  captureCurrentPage();
+  window._masterMode = true;
+  window._bulkLoad = true;
+  fc.clear();
+  fc.setBackgroundColor('#F4F5F7', fc.renderAll.bind(fc));
+  if (window._ldMasters.length) {
+    fabric.util.enlivenObjects(window._ldMasters.map(function (m) { return Object.assign({}, m); }), function (objs) {
+      objs.forEach(function (ob, k) { ob.ldMasterId = window._ldMasters[k].ldMasterId; ob.selectable = true; ob.evented = true; fc.add(ob); });
+      fc.renderAll();
+    });
+  }
+  window._bulkLoad = false;
+  var btn = document.getElementById('master-toggle');
+  if (btn) { btn.classList.add('active'); btn.textContent = 'Exit Master'; }
+  var frame = document.getElementById('slide-frame');
+  if (frame) frame.style.boxShadow = '0 0 0 3px var(--accent, #7C3AED)';
+  showToast('MASTER VIEW — anything you place here shows on ALL slides. Click "Exit Master" (or any slide) to apply.', 6000);
+}
+function ldSyncMastersFromCanvas() {
+  var ms = [];
+  fc.getObjects().forEach(function (ob) {
+    if (!ob.ldMasterId) ob.ldMasterId = 'm' + Math.random().toString(36).slice(2, 10);
+    var j = ob.toObject(FABRIC_JSON_PROPS); j.ldMasterId = ob.ldMasterId; ms.push(j);
+  });
+  window._ldMasters = ms;
+  /* restamp every visited page: strip old master copies, append the new set
+     (they arrive locked via loadPageIntoCanvas / ldStampMasters) */
+  state.pages.forEach(function (page) {
+    var j = ldNormJson(page);
+    if (j) j.objects = (j.objects || []).filter(function (ob) { return !ob.ldMasterId; }).concat(ms.map(function (m) { return Object.assign({}, m); }));
+    page.thumb = null;
+  });
+}
+async function exitMasterMode() {
+  if (!window._masterMode) return;
+  ldSyncMastersFromCanvas();
+  window._masterMode = false;
+  var btn = document.getElementById('master-toggle');
+  if (btn) { btn.classList.remove('active'); btn.textContent = 'Master'; }
+  var frame = document.getElementById('slide-frame');
+  if (frame) frame.style.boxShadow = '';
+  await loadPageIntoCanvas(state.currentPage);
+  renderPageThumbs();
+  showToast(window._ldMasters.length ? 'Master applied to all ' + state.pages.length + ' slides' : 'Master view closed');
+}
+document.addEventListener('click', function (e) {
+  if (e.target.closest('[data-action="toggle-master"]')) {
+    if (window._masterMode) exitMasterMode(); else enterMasterMode();
+  }
+});
+
+/* ═══ FONT POLICY GATE (Javed's rule) ═══
+   RED LINE: engine-made designs use FREE library fonts only.
+   IMPORTED files may carry commercial fonts — that is the CLIENT's right.
+   So on import, any font not in the free library raises this alarm:
+   · Keep original  → client file: names untouched, export unchanged.
+   · Switch to free → our kit for distribution: every non-library font is
+     permanently rewritten to its free twin, so the EXPORTED FILE itself
+     is clean of commercial fonts. */
+function ldFontAuditPrompt(deckIR) {
+  return new Promise(function (resolve) {
+    try {
+      var lib = window.LAZYDOG_FONT_LIB || [];
+      var found = {};
+      function scanP(p) { (p.runs || []).forEach(function (r) {
+        if (r.font && lib.indexOf(String(r.font).toLowerCase()) === -1) found[r.font] = r.fontDisplay || r.font;
+      }); }
+      deckIR.slides.forEach(function (s) { (s.elements || []).forEach(function (e) {
+        if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(scanP);
+        else if (e.type === 'table' && e.rows) e.rows.forEach(function (row) { (row.cells || []).forEach(function (c) { (c.paragraphs || []).forEach(scanP); }); });
+      }); });
+      var names = Object.keys(found);
+      if (!names.length) { resolve(); return; }
+      var pop = document.createElement('div'); pop.id = 'ld-fontaudit-pop';
+      pop.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(15,23,42,0.45);display:flex;align-items:center;justify-content:center;';
+      pop.innerHTML = '<div style="background:#fff;border-radius:12px;padding:22px 24px;max-width:480px;box-shadow:0 12px 40px rgba(0,0,0,0.25);">' +
+        '<div style="font-size:15px;font-weight:800;color:#B45309;margin-bottom:8px;">&#9888; Commercial / non-library fonts detected</div>' +
+        '<div style="font-size:13px;color:#0F172A;line-height:1.5;margin-bottom:10px;">This file uses fonts that are not in the engine\'s free library:</div>' +
+        '<div style="font-size:12px;color:#334155;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;margin-bottom:14px;max-height:130px;overflow:auto;">' +
+        names.map(function (n) {
+          /* three sources, in order: (1) embedded IN THIS FILE (registered
+             above — what PowerPoint reads), (2) THIS COMPUTER's installed
+             fonts, (3) free twin preview. "Keep" truly shows the original
+             whenever source 1 or 2 has it. */
+          var emb = !!(window._ldEmbeddedFams && window._ldEmbeddedFams[String(n).toLowerCase()]);
+          var here = false;
+          try { here = !!(document.fonts && document.fonts.check && document.fonts.check('16px "' + n + '"')); } catch (fe) {}
+          return '<div style="margin-bottom:3px;">&bull; <b>' + n + '</b><br>' +
+            (emb ? '<span style="color:#059669;">&#10003; embedded in this file — "keep" displays the true font</span>'
+             : here ? '<span style="color:#059669;">&#10003; found on this computer — "keep" displays the true font</span>'
+                    : '<span style="color:#B45309;">&#10007; not in file or on this computer — preview uses free twin: ' + found[n] + '</span>') + '</div>';
+        }).join('') + '</div>' +
+        '<button id="ld-fa-keep" style="display:block;width:100%;padding:10px 0;margin-bottom:8px;background:#F1F5F9;color:#0F172A;border-radius:8px;font-weight:600;font-size:13px;">Keep original fonts <span style="font-weight:400;color:#64748B;">(client file — exports unchanged)</span></button>' +
+        '<button id="ld-fa-free" style="display:block;width:100%;padding:10px 0;background:var(--accent,#7C3AED);color:#fff;border-radius:8px;font-weight:600;font-size:13px;">Switch to free fonts <span style="font-weight:400;opacity:0.85;">(our kit — safe to distribute)</span></button></div>';
+      document.body.appendChild(pop);
+      document.getElementById('ld-fa-keep').onclick = function () { pop.remove(); resolve(); };
+      document.getElementById('ld-fa-free').onclick = function () {
+        function convP(p) { (p.runs || []).forEach(function (r) {
+          if (r.font && lib.indexOf(String(r.font).toLowerCase()) === -1) { r.font = r.fontDisplay || r.font; r.fontDisplay = r.font; }
+        }); }
+        deckIR.slides.forEach(function (s) { (s.elements || []).forEach(function (e) {
+          if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(convP);
+          else if (e.type === 'table' && e.rows) e.rows.forEach(function (row) { (row.cells || []).forEach(function (c) { (c.paragraphs || []).forEach(convP); }); });
+        }); });
+        delete deckIR.embeddedFonts; /* free-font kit: no commercial font files ride along in export */
+        pop.remove(); showToast('Fonts converted to free library twins — file is distribution-safe');
+        resolve();
+      };
+    } catch (e) { resolve(); }
+  });
+}
+/* SOURCE-1 embedded fonts + policy gate for CLOUD-parsed decks: wrap the
+   glue's loader from OUTSIDE — the LAZYDOG CLOUD GLUE block itself stays
+   byte-identical (see BRIDGE_NOTES rules). */
+(function () {
+  function ldRegisterEmbedded(deck) {
+    return new Promise(function (res) {
+      window._ldEmbeddedFams = {};
+      if (!deck || !deck.embeddedFonts || !window.FontFace) { res(); return; }
+      var todo = deck.embeddedFonts.filter(function (ef) { return ef.ttfB64; });
+      if (!todo.length) { res(); return; }
+      var left = todo.length;
+      todo.forEach(function (ef) {
+        try {
+          var fbin = atob(ef.ttfB64), fbuf = new Uint8Array(fbin.length);
+          for (var i = 0; i < fbin.length; i++) fbuf[i] = fbin.charCodeAt(i);
+          var face = new FontFace(ef.family, fbuf.buffer, {
+            weight: /bold/i.test(ef.style) ? 'bold' : 'normal',
+            style: /italic/i.test(ef.style) ? 'italic' : 'normal' });
+          face.load().then(function (f2) { document.fonts.add(f2); window._ldEmbeddedFams[ef.family.toLowerCase()] = 1; })
+            .catch(function () {}).finally(function () { if (--left <= 0) res(); });
+        } catch (e) { if (--left <= 0) res(); }
+      });
+      setTimeout(function () { res(); }, 4000);
+    });
+  }
+  function wrapLoader() {
+    if (!window.loadDeckIRIntoEditor) { setTimeout(wrapLoader, 400); return; }
+    if (window.loadDeckIRIntoEditor.__ldFontWrapped) return;
+    var orig = window.loadDeckIRIntoEditor;
+    var wrapped = async function (deck) {
+      try { await ldRegisterEmbedded(deck); await ldFontAuditPrompt(deck); }
+      catch (e) { console.warn('font gate skipped', e); }
+      return orig(deck);
+    };
+    wrapped.__ldFontWrapped = true;
+    window.loadDeckIRIntoEditor = wrapped;
+  }
+  wrapLoader();
+})();
+
 
 /* ============================================
    TEXT / SHAPES / UPLOADS (engine actions)
@@ -11381,10 +11697,10 @@ var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBod
   /* charts remember which dataset feeds them */
   'datasetId',
   /* freehand pen/marker strokes, so Clear and the eraser find them after reload */
-  '_isDrawn'];
+  '_isDrawn', 'ldMasterId', 'ldBgStamp'];
 
 function saveState() {
-  if (!fc || _restoring || window._bulkLoad) return;
+  if (!fc || _restoring || window._bulkLoad || window._masterMode) return;
   var page = currentPageObj();
   if (!page) return;
   var json = JSON.stringify(fc.toJSON(FABRIC_JSON_PROPS));
@@ -11540,7 +11856,7 @@ function renderPageThumbs() {
 /* Capture the page we're LEAVING: serialize its fabric state + a small thumb,
    so returning to it later restores exactly what was on screen. */
 function captureCurrentPage() {
-  if (!fc) return;
+  if (!fc || window._masterMode) return; /* master canvas must never overwrite a slide */
   var page = currentPageObj();
   if (!page) return;
   /* park animated stickers at their resting transform so the saved slide
@@ -11559,7 +11875,10 @@ async function loadPageIntoCanvas(index) {
   if (page.canvasJSON) {
     await new Promise(function(resolve){
       fc.loadFromJSON(page.canvasJSON, function () {
-        fc.getObjects().forEach(function(o){ if (o.isBg) { o.selectable = true; o.evented = true; } });
+        fc.getObjects().forEach(function(o){
+          if (o.isBg) { o.selectable = true; o.evented = true; }
+          if (o.ldMasterId) { o.selectable = false; o.evented = false; } /* master copies edit only in Master view */
+        });
         if (typeof rehydrateFrames === 'function') rehydrateFrames();
         /* effects are stored as parameters, so rebuild them from fx */
         if (typeof fxApply === 'function') {
@@ -11576,13 +11895,15 @@ async function loadPageIntoCanvas(index) {
     await renderSlideIR(page.ir, window._deckIR, fc);
   } else {
     fc.clear();
-    fc.setBackgroundColor('#ffffff', fc.renderAll.bind(fc));
+    fc.setBackgroundColor(page.pendingBg || '#ffffff', fc.renderAll.bind(fc));
   }
+  await ldStampMasters(); /* virtual-master elements appear on every page */
   window._bulkLoad = false;
   ensurePageHistory(index);
 }
 
 async function switchPage(index) {
+  if (window._masterMode) { await exitMasterMode(); } /* clicking a slide applies + leaves master view, like PowerPoint */
   if (index < 0 || index >= state.pages.length || index === state.currentPage) return;
   captureCurrentPage();
   state.notes[state.currentPage] = dom.notesTextarea.value;
@@ -11818,6 +12139,17 @@ function cssFF(name) {
   var f = String(name || 'DM Sans').replace(/["']/g, '').trim() || 'DM Sans';
   return '"' + f + '", sans-serif';
 }
+/* Run font chain: ORIGINAL family first (renders with the buyer's own
+   locally-installed commercial font — their license, zero hosting), free
+   display twin second, sans-serif last. The IR keeps the original name so
+   exports never disturb the client's fonts. */
+function ldFF(r) {
+  if (!r) return cssFF(null);
+  var o = String(r.font || '').replace(/["']/g, '').trim();
+  var d = String(r.fontDisplay || '').replace(/["']/g, '').trim();
+  if (o && d && d !== o) return '"' + o + '", "' + d + '", sans-serif';
+  return cssFF(o || d);
+}
 
 /* Fidelity fix #5: per-run styling via fabric `styles`, letter-spacing via
    charSpacing (spcPt/fontSizePt*1000), line-spacing via lineHeight, and an
@@ -11845,7 +12177,7 @@ function buildArchTextIR(el, sx, sy) {
       for (k = 0; k < para.runs.length; k++) { acc += para.runs[k].text.length; if (i < acc) { run = para.runs[k]; break; } }
       var t = new fabric.Text(text[i], {
         fontSize: Math.max(2, run.sizePt * 12700 * sx),
-        fontFamily: cssFF(run.font),
+        fontFamily: ldFF(run),
         fontWeight: run.weight ? run.weight : (run.b ? 'bold' : 'normal'),
         fontStyle: run.i ? 'italic' : 'normal',
         underline: !!run.u, fill: run.color,
@@ -11933,7 +12265,7 @@ function buildTextboxFromIR(el, sx, sy) {
       if (!firstRun) firstRun = r;
       /* Phase-1 proven formula: pt -> EMU (x12700) -> px (x sx) */
       var fpx = Math.max(2, r.sizePt * 12700 * sx);
-      var st = { fontSize: fpx, fontWeight: r.weight ? r.weight : (r.b ? 'bold' : 'normal'), fontStyle: r.i ? 'italic' : 'normal', underline: !!r.u, fill: r.color, fontFamily: cssFF(r.font) };
+      var st = { fontSize: fpx, fontWeight: r.weight ? r.weight : (r.b ? 'bold' : 'normal'), fontStyle: r.i ? 'italic' : 'normal', underline: !!r.u, fill: r.color, fontFamily: ldFF(r) };
       if (r.spcPt) st.charSpacing = (r.spcPt / r.sizePt) * 1000;
       if (r.strokeColor) { st.stroke = r.strokeColor; st.strokeWidth = Math.max(1, (r.strokeWPt || 0.75) * 12700 * sx); st.paintFirst = 'stroke'; /* PowerPoint paints the FILL ON TOP of a centered stroke: only the outer w/2 of the outline is visible and the fill is never darkened. Stroke-over-fill (round 1) doubled the visible ring and muddied the fill colour (slide 1 audit round 2) */ }
       for (var k = 0; k < r.text.length; k++) charStyles[offset + k] = st;
@@ -11953,7 +12285,7 @@ function buildTextboxFromIR(el, sx, sy) {
   var tb = new fabric.Textbox(fullText, {
     left: left, top: top, width: w, textAlign: align,
     fontSize: Math.max(2, baseFontPt * 12700 * sx), /* Phase-1 proven formula */
-    fontFamily: cssFF(firstRun && firstRun.font),
+    fontFamily: ldFF(firstRun),
     fill: firstRun ? firstRun.color : '#000000',
     angle: el.rot || 0, editable: true, styles: styles, lineHeight: firstLineHeight,
     irId: el.id, irOrigin: el.origin
@@ -12087,7 +12419,22 @@ function loadFabricSVGAsync(svgText) {
   return new Promise(function (resolve, reject) {
     try {
       fabric.loadSVGFromString(resolveSvgInherit(svgText), function (objects, options) {
-        try { resolve(fabric.util.groupSVGElements(objects, options)); } catch (e) { reject(e); }
+        try {
+          var g = fabric.util.groupSVGElements(objects, options);
+          /* Canva BLEED-CROPS via the svg viewBox: paths extend past the
+             declared window and the viewBox is the crop. Fabric ignores
+             that — it bounds ALL content, so overflow art got SQUEEZED
+             into the element box instead of bleeding off the slide.
+             Record the viewBox so the renderer can scale by the WINDOW
+             and clip the overflow (fabric normalizes the window to
+             0,0..vbW,vbH via its viewBoxTransform). */
+          var vbm = /viewBox\s*=\s*"([^"]+)"/.exec(svgText);
+          if (vbm) {
+            var p = vbm[1].trim().split(/[\s,]+/).map(Number);
+            if (p.length === 4 && p[2] > 0 && p[3] > 0) g._ldViewBox = { w: p[2], h: p[3] };
+          }
+          resolve(g);
+        } catch (e) { reject(e); }
       });
     } catch (e) { reject(e); }
   });
@@ -12286,6 +12633,70 @@ async function renderImageElementIR(el, sx, sy, fc) {
   }
   if (obj) {
     var bw = obj.width || 1, bh = obj.height || 1;
+    /* ═══ SVG WINDOW SEMANTICS (PowerPoint/Canva) ═══
+       The element box is a WINDOW, not the artwork bounds:
+       1. <a:stretch><a:fillRect> with NEGATIVE insets inflates the svg far
+          beyond the box (slide 4 hexagons: l=-171%, b=-66%) and the box
+          CROPS it — the raster branch always did this; the svg branch
+          ignored it, so inflated art got SQUEEZED into the box.
+       2. The svg's own viewBox is the artwork's viewport: content outside
+          it is cropped by the viewport, content bounds ≠ viewport.
+       Scale by the VIEWPORT, place by the fillRect window, clip to
+       (shape box ∩ image rect). Bleed off-slide happens naturally when
+       the shape box itself crosses the slide edge. */
+    var vbW = (obj._ldViewBox && obj._ldViewBox.w) || bw;
+    var vbH = (obj._ldViewBox && obj._ldViewBox.h) || bh;
+    var fr3 = el.frect;
+    var needWindow = !!fr3 || bw > vbW * 1.02 || bh > vbH * 1.02 || obj.left < -vbW * 0.02 || obj.top < -vbH * 0.02;
+    if (needWindow) {
+      var fL3 = fr3 ? fr3.l : 0, fT3 = fr3 ? fr3.t : 0, fR3 = fr3 ? fr3.r : 0, fB3 = fr3 ? fr3.b : 0;
+      var imgX3 = left + fL3 * w, imgY3 = top + fT3 * h;
+      var imgW3 = Math.max(1, w * (1 - fL3 - fR3)), imgH3 = Math.max(1, h * (1 - fT3 - fB3));
+      var scX3 = imgW3 / vbW, scY3 = imgH3 / vbH;
+      /* PPT order: window the content INSIDE the box, THEN flip the box.
+         flipH/flipV therefore MIRROR the fillRect window within the box
+         (slide 1 audit: fillRect b=-48% + flipV = artwork extends UP, the
+         unflipped math drew it 49% too LOW), and mirror the artwork's
+         offset inside its viewBox window too. */
+      var fx3 = !!el.flipH, fy3 = !!el.flipV;
+      if (fx3) imgX3 = 2 * left + w - imgX3 - imgW3;
+      if (fy3) imgY3 = 2 * top + h - imgY3 - imgH3;
+      var offXvb = fx3 ? (vbW - (obj.left + bw)) : obj.left;
+      var offYvb = fy3 ? (vbH - (obj.top + bh)) : obj.top;
+      var vx0s = Math.max(left, imgX3), vy0s = Math.max(top, imgY3);
+      var vx1s = Math.min(left + w, imgX3 + imgW3), vy1s = Math.min(top + h, imgY3 + imgH3);
+      if (vx1s > vx0s && vy1s > vy0s) {
+        var gLeft = imgX3 + offXvb * scX3, gTop = imgY3 + offYvb * scY3;
+        obj.set({ left: gLeft, top: gTop, angle: el.rot || 0, scaleX: scX3, scaleY: scY3,
+          flipX: fx3, flipY: fy3, irId: el.id, irOrigin: el.origin,
+          svgText: el.svgText, perPixelTargetFind: true,
+          opacity: el.opacity == null ? 1 : el.opacity });
+        var gcx = gLeft + (bw * scX3) / 2, gcy = gTop + (bh * scY3) / 2;
+        /* clipPath lives in object-local space and MIRRORS with the object —
+           convert the world window through the flip so it stays put */
+        obj.clipPath = new fabric.Rect({
+          left: fx3 ? (gcx - vx1s) / scX3 : (vx0s - gcx) / scX3,
+          top: fy3 ? (gcy - vy1s) / scY3 : (vy0s - gcy) / scY3,
+          width: (vx1s - vx0s) / scX3, height: (vy1s - vy0s) / scY3 });
+        if (el.rot) {
+          /* PPT rotates the WINDOWED result about the BOX centre. The
+             generic applyCenterRotation() snaps the object to the box
+             centre — correct only when bounds == box; here the content
+             centre is offset by the window, so rotate THAT POINT about the
+             box centre instead (caution-tape audit: rot 74°/-151° tapes
+             collapsed onto their box centres and "squeezed"). */
+          var bcx3 = left + w / 2, bcy3 = top + h / 2;
+          var rr3 = el.rot * Math.PI / 180;
+          var rdx3 = gcx - bcx3, rdy3 = gcy - bcy3;
+          obj.set({ originX: 'center', originY: 'center',
+            left: bcx3 + rdx3 * Math.cos(rr3) - rdy3 * Math.sin(rr3),
+            top: bcy3 + rdx3 * Math.sin(rr3) + rdy3 * Math.cos(rr3) });
+        }
+        if (el.media) obj.set({ mediaSrc: el.media.src, mediaKind: el.media.kind });
+        fc.add(obj);
+        return;
+      }
+    }
     /* perPixelTargetFind: clicks only register on actual drawn pixels, so a
        huge decorative SVG's empty bounding box no longer swallows clicks
        meant for the text/objects beneath it. */
@@ -12767,6 +13178,29 @@ function renderLineElementIR(el, sx, sy, fc) {
   if (el.flipV) { var t2 = y1; y1 = y2; y2 = t2; }
   var strokeColor = el.stroke ? el.stroke.color : '#555555';
   var strokeW = el.stroke ? Math.max(1, el.stroke.w * sx) : 2;
+  /* GRADIENT-stroked straight line (fade-out accent bars: <a:ln><a:gradFill>):
+     a fabric.Line has a zero-area bbox, so a gradient stroke has nothing to
+     map onto — draw the bar as a RECT of the stroke's thickness with the
+     gradient as FILL. Solid approximations showed a fully-filled bar. */
+  if (el.stroke && el.stroke.grad && !el.cxn) {
+    var isV = Math.abs(x2 - x1) < 0.5, isH = Math.abs(y2 - y1) < 0.5;
+    if (isV || isH) {
+      var ga = (el.stroke.grad.angleDeg || 0) * Math.PI / 180;
+      var gdx = Math.cos(ga), gdy = Math.sin(ga);
+      var gradF = new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage',
+        coords: { x1: 0.5 - gdx / 2, y1: 0.5 - gdy / 2, x2: 0.5 + gdx / 2, y2: 0.5 + gdy / 2 },
+        colorStops: el.stroke.grad.stops.map(function (s2) { return { offset: Math.max(0, Math.min(1, s2.pos)), color: s2.color }; }) });
+      var bar = new fabric.Rect({
+        left: isV ? Math.min(x1, x2) - strokeW / 2 : Math.min(x1, x2),
+        top: isV ? Math.min(y1, y2) : Math.min(y1, y2) - strokeW / 2,
+        width: Math.max(1, isV ? strokeW : Math.abs(x2 - x1)),
+        height: Math.max(1, isV ? Math.abs(y2 - y1) : strokeW),
+        rx: strokeW / 2, ry: strokeW / 2, /* cap-round look of the accent bar */
+        fill: gradF, irId: el.id, irOrigin: el.origin });
+      fc.add(bar);
+      return;
+    }
+  }
   var lineOpts = { fill: '', stroke: strokeColor, strokeWidth: strokeW, irId: el.id, irOrigin: el.origin, strokeLineCap: 'round' };
   if (el.stroke && el.stroke.dash && el.stroke.dash !== 'solid') lineOpts.strokeDashArray = dashArrayFor(el.stroke.dash, strokeW);
   var mx = (x1 + x2) / 2, my = (y1 + y2) / 2, parts = [];
@@ -14156,14 +14590,26 @@ function slideIRFromCanvas(json, origIR, S) {
   return { id: (origIR && origIR.id) || 'edited', background: bg, elements: elements };
 }
 async function buildEffectiveDeckIR() {
+  if (window._masterMode) { try { ldSyncMastersFromCanvas(); } catch (e) { console.warn(e); } } /* export straight from master view still ships latest masters */
   if (typeof captureCurrentPage === 'function') { try { await captureCurrentPage(); } catch (e) { console.warn(e); } }
   var size = window._deckIR ? window._deckIR.size : { w: 12192000, h: 6858000 };
   var theme = window._deckIR ? window._deckIR.theme : { colors: {}, majorFont: 'Calibri', minorFont: 'Calibri' };
   var S = size.w / (fc && fc._baseWidth ? fc._baseWidth : 960);
+  /* virtual-master elements: pages never visited hold only IR, so convert
+     the master stamps to IR once and append to those slides at export —
+     every slide ships them as PLAIN elements (no pptx master = Canva-safe) */
+  var masterEls = [];
+  if (window._ldMasters && window._ldMasters.length) {
+    try { masterEls = slideIRFromCanvas({ objects: window._ldMasters, background: null }, null, S).elements; }
+    catch (e) { console.warn('master element export failed', e); }
+  }
   var slides = state.pages.map(function (page) {
     if (page.canvasJSON) { try { return slideIRFromCanvas(page.canvasJSON, page.ir, S); } catch (e) { console.warn('edit-sync failed for a page, using imported IR', e); } }
-    if (page.ir) return page.ir;
-    return { id: 'blank', background: { type: 'solid', color: '#FFFFFF' }, elements: [] };
+    if (page.ir) {
+      if (!masterEls.length) return page.ir;
+      return Object.assign({}, page.ir, { elements: (page.ir.elements || []).concat(masterEls) });
+    }
+    return { id: 'blank', background: { type: 'solid', color: page.pendingBg || '#FFFFFF' }, elements: masterEls.slice() };
   });
   return { size: size, theme: theme, slides: slides };
 }
@@ -14247,7 +14693,7 @@ async function handlePPTXUpload(input) {
     try {
       var _fontSet = {};
       deckIR.slides.forEach(function (s) { (s.elements || []).forEach(function (e) {
-        if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(function (p) { (p.runs || []).forEach(function (r) { if (r.font) _fontSet[r.font] = 1; }); });
+        if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(function (p) { (p.runs || []).forEach(function (r) { var fn = r.fontDisplay || r.font; if (fn) _fontSet[fn] = 1; if (r.font) _fontSet[r.font] = 1; }); });
       }); });
       var _fontNames = Object.keys(_fontSet);
       if (window.loadDeckFonts && _fontNames.length) {
@@ -15330,6 +15776,7 @@ init();
   /* engine consults this to avoid stripping style words that are part of a
      REAL family name ("Archivo Black") during font normalization */
   window.LAZYDOG_FONT_LIB = ALL_FONTS.map(function(f){ return f.name.toLowerCase(); });
+  window.LAZYDOG_FONT_PROPER = ALL_FONTS.map(function(f){ return f.name; }); /* same order: index-mapped proper names */
 
   var _loaded = {};
   function ensureFontLoaded(fontObj, cb){
@@ -15400,6 +15847,11 @@ init();
     return (obj && obj[prop] !== undefined && obj[prop] !== null) ? obj[prop] : dflt;
   }
 
+  /* Heading vs body: display type. ≥28pt counts as a heading (matches the
+     composer's display-type protection band; tweak HEADING_PT to taste). */
+  var HEADING_PT = 28;
+  var _fontScope = 'sel';
+
   function buildPanelHTML(){
     var obj = currentTextObject();
     var hasText = isTextObject(obj);
@@ -15440,8 +15892,22 @@ init();
         '</div>';
     }
 
+    /* Scope row: apply the next font click to the selection, to every HEADING
+       (display type ≥ HEADING_PT pt), or to every BODY run — on this slide or
+       the whole deck. One click restyles the deck instead of box-by-box. */
+    html += '<div style="display:flex;align-items:center;gap:6px;padding:0 0 10px 0;margin-bottom:10px;border-bottom:1px solid var(--border,#E2E8F0);">' +
+      '<label style="font-size:12px;font-weight:600;color:var(--text-secondary,#64748B);flex:0 0 auto;">Apply to</label>' +
+      '<select id="font-fab-scope" style="flex:1;padding:5px 6px;border:1px solid var(--border,#E2E8F0);border-radius:6px;font-size:12px;background:#FFF;outline:none;">' +
+        '<option value="sel"' + (_fontScope==='sel' ? ' selected' : '') + '>Selected text</option>' +
+        '<option value="slide-h"' + (_fontScope==='slide-h' ? ' selected' : '') + '>Headings — this slide</option>' +
+        '<option value="deck-h"' + (_fontScope==='deck-h' ? ' selected' : '') + '>Headings — whole deck</option>' +
+        '<option value="slide-b"' + (_fontScope==='slide-b' ? ' selected' : '') + '>Body text — this slide</option>' +
+        '<option value="deck-b"' + (_fontScope==='deck-b' ? ' selected' : '') + '>Body text — whole deck</option>' +
+        '<option value="deck-all"' + (_fontScope==='deck-all' ? ' selected' : '') + '>All text — whole deck</option>' +
+      '</select></div>';
+
     if (!hasText) {
-      html += '<div id="font-fab-nosel">Click a text box on the slide to choose its font and size here.</div>';
+      html += '<div id="font-fab-nosel">Click a text box on the slide to choose its font and size here — or pick a scope above and click a font to restyle headings/body across the deck.</div>';
     }
 
     for (var i = 0; i < ALL_FONTS.length; i++) {
@@ -15497,6 +15963,80 @@ init();
     });
   }
 
+  /* ---- Scoped font apply: headings / body / all, slide or whole deck ---- */
+  function _tierMatchesPt(pt, target){
+    if (target === 'all') return true;
+    return target === 'h' ? pt >= HEADING_PT : pt < HEADING_PT;
+  }
+  function _collectTextObjects(container, out){
+    (container.getObjects ? container.getObjects() : []).forEach(function(o){
+      if (isTextObject(o)) out.push(o);
+      else if (o.getObjects) _collectTextObjects(o, out); /* groups (vert text, columns) */
+    });
+    return out;
+  }
+  /* fabric canvasJSON of a page we're NOT on: same walk, plain objects */
+  function _retargetJsonObjects(objs, target, ff){
+    var n = 0;
+    (objs || []).forEach(function(o){
+      if (o.type === 'textbox' || o.type === 'i-text' || o.type === 'text') {
+        var px = o.fontSize || 16;
+        if (o.styles) { var ls = Object.keys(o.styles); if (ls.length) { var cs = Object.keys(o.styles[ls[0]]); if (cs.length && o.styles[ls[0]][cs[0]].fontSize) px = o.styles[ls[0]][cs[0]].fontSize; } }
+        if (_tierMatchesPt(toPt(px), target)) {
+          o.fontFamily = ff; n++;
+          if (o.styles) Object.keys(o.styles).forEach(function(li){ Object.keys(o.styles[li]).forEach(function(ci){ o.styles[li][ci].fontFamily = ff; }); });
+        }
+      } else if (o.objects) n += _retargetJsonObjects(o.objects, target, ff);
+    });
+    return n;
+  }
+  /* untouched imported page: retarget the IR itself (renderer quotes via cssFF) */
+  function _retargetIR(ir, target, fontName){
+    var n = 0;
+    (ir.elements || []).forEach(function(el){
+      if (el.type === 'text' && el.paragraphs) {
+        el.paragraphs.forEach(function(p){ (p.runs || []).forEach(function(r){
+          if (_tierMatchesPt(r.sizePt || 18, target)) { r.font = fontName; n++; }
+        }); });
+      } else if (el.type === 'table' && el.rows) {
+        el.rows.forEach(function(row){ (row.cells || []).forEach(function(cell){
+          (cell.paragraphs || []).forEach(function(p){ (p.runs || []).forEach(function(r){
+            if (_tierMatchesPt(r.sizePt || 10, target)) { r.font = fontName; n++; }
+          }); });
+        }); });
+      }
+    });
+    return n;
+  }
+  function applyFontScoped(fontName){
+    if (_fontScope === 'sel') { applyFont(fontName); return; }
+    var deckWide = _fontScope.indexOf('deck') === 0;
+    var target = _fontScope.split('-')[1]; /* 'h' | 'b' | 'all' */
+    var fontObj = ALL_FONTS.find(function(f){ return f.name === fontName; });
+    ensureFontLoaded(fontObj, function(){
+      var ff = '"' + fontName.replace(/["']/g, '') + '", sans-serif';
+      var count = 0;
+      /* 1. live canvas (current slide) */
+      _collectTextObjects(window.fc, []).forEach(function(o){
+        if (_tierMatchesPt(toPt(effectiveTextProp(o, 'fontSize', 16)), target)) { applyTextProps(o, { fontFamily: ff }); count++; }
+      });
+      /* 2. other pages, when deck-wide */
+      if (deckWide && typeof state !== 'undefined' && state.pages) {
+        state.pages.forEach(function(page, i){
+          if (i === state.currentPage) return;
+          if (page.canvasJSON) count += _retargetJsonObjects(page.canvasJSON.objects, target, ff);
+          else if (page.ir) count += _retargetIR(page.ir, target, fontName);
+          page.thumb = null; /* stale — regenerates on next visit */
+        });
+        if (typeof renderPageThumbs === 'function') renderPageThumbs();
+      }
+      window.fc.requestRenderAll();
+      if (typeof saveState === 'function') saveState();
+      if (typeof showToast === 'function') showToast(count + ' text ' + (count === 1 ? 'run' : 'runs') + ' → ' + fontName + (deckWide ? ' (whole deck)' : ' (this slide)'));
+      refreshPanelIfOpen();
+    });
+  }
+
   function applySize(delta, explicitValue){
     var obj = currentTextObject();
     if (!isTextObject(obj)) { if (typeof showToast === 'function') showToast('Select a text box first'); return; }
@@ -15543,13 +16083,14 @@ init();
   /* ---- Delegated click handling for our own data-action values ---- */
   document.addEventListener('click', function(e){
     var el = e.target.closest('[data-action="apply-font"]');
-    if (el) { applyFont(el.getAttribute('data-font')); return; }
+    if (el) { applyFontScoped(el.getAttribute('data-font')); return; }
     var step = e.target.closest('[data-fs-step]');
     if (step) { applySize(parseInt(step.getAttribute('data-fs-step'), 10)); return; }
     var styleBtn = e.target.closest('[data-style-toggle]');
     if (styleBtn) { applyStyleToggle(styleBtn.getAttribute('data-style-toggle')); return; }
   });
   document.addEventListener('change', function(e){
+    if (e.target && e.target.id === 'font-fab-scope') { _fontScope = e.target.value; return; }
     if (e.target && e.target.id === 'font-fab-size-input') {
       applySize(0, parseFloat(e.target.value)); /* parseFloat: "126.4" stays 126.4 (parseInt turned it into garbage) */
     }
