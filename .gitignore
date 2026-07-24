@@ -16,7 +16,7 @@ __pycache__/
 *.pyc
 
 # FULL editor source (parser+writer+all) — THE BRAIN. Never ever public.
-editor_test.html
+editor_brain.html
 
 # User data export — private
 firebase/users.json
