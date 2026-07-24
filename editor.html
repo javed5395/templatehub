@@ -645,12 +645,14 @@ input, textarea { font-family: inherit; }
   right: 0;
   height: 0;
   background: var(--bg-surface);
-  border-top: 1px solid var(--border);
+  /* border lives on .open only: at height 0 a border-top still PAINTS —
+     it was the mystery 1px hairline floating over every dark slide */
+  border-top: none;
   z-index: 60;
   overflow: hidden;
   transition: height var(--normal);
 }
-.notes-panel.open { height: 180px; }
+.notes-panel.open { height: 180px; border-top: 1px solid var(--border); }
 .notes-panel-inner {
   padding: 12px 20px;
   height: 100%;
@@ -11806,6 +11808,16 @@ function fillIRToFabric(fillIR, w, h) {
   if (fillIR.type === 'pattern') return patternForFill(fillIR);
   return '';
 }
+/* ctx.font is CSS shorthand: an UNQUOTED family whose token starts with a
+   digit or contains a range ("Heading Now 71-78") is INVALID, the canvas
+   silently keeps its default 10px sans-serif — glyphs drew tiny while layout
+   + charSpacing used the real 68pt size (tiny letter-spaced heading bug).
+   Fabric 5 only auto-quotes families WITHOUT a comma, and we always append
+   ", sans-serif" — so quote the family ourselves, always. */
+function cssFF(name) {
+  var f = String(name || 'DM Sans').replace(/["']/g, '').trim() || 'DM Sans';
+  return '"' + f + '", sans-serif';
+}
 
 /* Fidelity fix #5: per-run styling via fabric `styles`, letter-spacing via
    charSpacing (spcPt/fontSizePt*1000), line-spacing via lineHeight, and an
@@ -11833,7 +11845,7 @@ function buildArchTextIR(el, sx, sy) {
       for (k = 0; k < para.runs.length; k++) { acc += para.runs[k].text.length; if (i < acc) { run = para.runs[k]; break; } }
       var t = new fabric.Text(text[i], {
         fontSize: Math.max(2, run.sizePt * 12700 * sx),
-        fontFamily: (run.font || 'DM Sans') + ', sans-serif',
+        fontFamily: cssFF(run.font),
         fontWeight: run.weight ? run.weight : (run.b ? 'bold' : 'normal'),
         fontStyle: run.i ? 'italic' : 'normal',
         underline: !!run.u, fill: run.color,
@@ -11921,7 +11933,7 @@ function buildTextboxFromIR(el, sx, sy) {
       if (!firstRun) firstRun = r;
       /* Phase-1 proven formula: pt -> EMU (x12700) -> px (x sx) */
       var fpx = Math.max(2, r.sizePt * 12700 * sx);
-      var st = { fontSize: fpx, fontWeight: r.weight ? r.weight : (r.b ? 'bold' : 'normal'), fontStyle: r.i ? 'italic' : 'normal', underline: !!r.u, fill: r.color, fontFamily: (r.font || 'DM Sans') + ', sans-serif' };
+      var st = { fontSize: fpx, fontWeight: r.weight ? r.weight : (r.b ? 'bold' : 'normal'), fontStyle: r.i ? 'italic' : 'normal', underline: !!r.u, fill: r.color, fontFamily: cssFF(r.font) };
       if (r.spcPt) st.charSpacing = (r.spcPt / r.sizePt) * 1000;
       if (r.strokeColor) { st.stroke = r.strokeColor; st.strokeWidth = Math.max(1, (r.strokeWPt || 0.75) * 12700 * sx); st.paintFirst = 'stroke'; /* PowerPoint paints the FILL ON TOP of a centered stroke: only the outer w/2 of the outline is visible and the fill is never darkened. Stroke-over-fill (round 1) doubled the visible ring and muddied the fill colour (slide 1 audit round 2) */ }
       for (var k = 0; k < r.text.length; k++) charStyles[offset + k] = st;
@@ -11941,7 +11953,7 @@ function buildTextboxFromIR(el, sx, sy) {
   var tb = new fabric.Textbox(fullText, {
     left: left, top: top, width: w, textAlign: align,
     fontSize: Math.max(2, baseFontPt * 12700 * sx), /* Phase-1 proven formula */
-    fontFamily: (firstRun && firstRun.font ? firstRun.font : 'DM Sans') + ', sans-serif',
+    fontFamily: cssFF(firstRun && firstRun.font),
     fill: firstRun ? firstRun.color : '#000000',
     angle: el.rot || 0, editable: true, styles: styles, lineHeight: firstLineHeight,
     irId: el.id, irOrigin: el.origin
@@ -15391,7 +15403,7 @@ init();
   function buildPanelHTML(){
     var obj = currentTextObject();
     var hasText = isTextObject(obj);
-    var currentFont = hasText ? String(effectiveTextProp(obj, 'fontFamily', '')).split(',')[0].trim() : '';
+    var currentFont = hasText ? String(effectiveTextProp(obj, 'fontFamily', '')).split(',')[0].trim().replace(/^["']|["']$/g, '') : '';
     var currentSize = hasText ? toPt(effectiveTextProp(obj, 'fontSize', 16)) : 16;
     var fw = hasText ? effectiveTextProp(obj, 'fontWeight', 'normal') : 'normal';
     var isBold = hasText && (fw === 'bold' || fw === 700 || fw === '700');
@@ -15478,7 +15490,7 @@ init();
     if (!isTextObject(obj)) { if (typeof showToast === 'function') showToast('Select a text box first'); return; }
     var fontObj = ALL_FONTS.find(function(f){ return f.name === fontName; });
     ensureFontLoaded(fontObj, function(){
-      applyTextProps(obj, { fontFamily: fontName + ', sans-serif' });
+      applyTextProps(obj, { fontFamily: '"' + fontName.replace(/["']/g, '') + '", sans-serif' });
       window.fc.requestRenderAll();
       if (typeof saveState === 'function') saveState();
       refreshPanelIfOpen();
