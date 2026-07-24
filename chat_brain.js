@@ -832,8 +832,11 @@
   window.hexaPrepare = function (opts) {
     opts = opts || {};
     var material = { content: (opts.content != null ? opts.content : ''),
-                     brand: opts.brand || '', deck: opts.deck || '' };
+                     brand: opts.brand || '', deck: opts.deck || '',
+                     designId: opts.designId || '', designHref: opts.designHref || '',
+                     mode: opts.mode || '' };
     try { localStorage.setItem('lazydog_fill_material', JSON.stringify(material)); } catch (e) {}
+    // IMPORTANT: open the editor WITHOUT ?compose — this is FILL, not compose.
     var url = opts.editorUrl || 'editor.html';
     if (opts.slug && /^https?:/.test(location.protocol)) {
       url += (url.indexOf('?') < 0 ? '?' : '&') + 'kit=' + encodeURIComponent(opts.slug);

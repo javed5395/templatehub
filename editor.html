@@ -15974,16 +15974,29 @@ window.ldCompose = async function (sentence) {
     } catch (e) { return null; }
   }
 
+  /* Call the fill brain (ai_fill_http) directly — the editor's own job is to
+     fill the GIVEN design with the user's content and hand back the deck IR.
+     Self-contained so the editor needs no chat_brain.js. */
+  var FILL_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/ai_fill_http';
+  function ldFillDeck(designIR, content, brand) {
+    return fetch(FILL_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ design: designIR, content: content, brand: brand || '' })
+    }).then(function (r) { return r.json(); })
+      .then(function (d) { return (d && (d.deck || d.slides)) ? (d.deck || d) : null; })
+      .catch(function () { return null; });
+  }
+
   var tries = 0;
   var t = setInterval(function () {
     tries++;
-    if (window.hexaFill && window.loadDeckIRIntoEditor && typeof fc !== 'undefined' && fc) {
+    if (window.loadDeckIRIntoEditor && typeof fc !== 'undefined' && fc) {
       clearInterval(t);
       try { localStorage.removeItem('lazydog_fill_material'); } catch (e) {}   /* one-shot */
-      try { if (typeof showToast === 'function') showToast('Preparing your deck…'); } catch (e) {}
+      try { if (typeof showToast === 'function') showToast('Preparing your presentation…'); } catch (e) {}
       ensureDeckIR().then(function (ir) {
         if (!ir) { if (typeof showToast === 'function') showToast('No editable deck found to fill.'); return; }
-        return window.hexaFill(ir, content, brand).then(function (filled) {
+        return ldFillDeck(ir, content, brand).then(function (filled) {
           if (filled && filled.slides) window.loadDeckIRIntoEditor(filled);
           else {                             /* fill failed → still show the design, unfilled */
             window.loadDeckIRIntoEditor(ir);
