@@ -16012,9 +16012,8 @@ window.ldCompose = async function (sentence) {
     return fetch(FILL_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ design: designIR, content: content, brand: brand || '' })
-    }).then(function (r) { return r.json(); })
-      .then(function (d) { return (d && (d.deck || d.slides)) ? (d.deck || d) : null; })
-      .catch(function () { return null; });
+    }).then(function (r) { return r.json().catch(function () { return { error: 'bad response ' + r.status }; }); })
+      .catch(function (e) { return { error: 'network error: ' + (e && e.message || e) }; });
   }
 
   var tries = 0;
@@ -16026,11 +16025,14 @@ window.ldCompose = async function (sentence) {
       try { if (typeof showToast === 'function') showToast('Preparing your presentation…'); } catch (e) {}
       ensureDeckIR().then(function (ir) {
         if (!ir) { if (typeof showToast === 'function') showToast('No editable deck found to fill.'); return; }
-        return ldFillDeck(ir, content, brand).then(function (filled) {
+        return ldFillDeck(ir, content, brand).then(function (res) {
+          var filled = (res && res.deck) ? res.deck : ((res && res.slides) ? res : null);
           if (filled && filled.slides) window.loadDeckIRIntoEditor(filled);
           else {                             /* fill failed → still show the design, unfilled */
             window.loadDeckIRIntoEditor(ir);
-            if (typeof showToast === 'function') showToast('Content fill unavailable — deck opened unfilled');
+            var why = (res && res.error) ? res.error : 'no content returned';
+            if (typeof showToast === 'function') showToast('Fill failed: ' + why, 10000);
+            try { console.error('[ai_fill] response:', res); } catch (e) {}
           }
         });
       });
