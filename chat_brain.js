@@ -800,6 +800,48 @@
     };
   };
 
+  // ── CONTENT FILL — buyer already has a CHOSEN design + their own content ───
+  // Different from hexaDesign (compose-from-scratch → composer-proxy). When the
+  // visitor wants their content dropped INTO a picked template, we route to the
+  // new ai_fill endpoint instead. `design` is the parsed deck IR (from the
+  // editor/bridge) or a kit slug; `content` is the buyer's text (paste or
+  // { slide: text }). Returns the filled deck IR the editor then loads.
+  var FILL_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/ai_fill_http';
+  var FILL_VERB = /\b(fill|drop|put|add|insert|place|pour)\b/;
+  var FILL_OBJ  = /\b(my (content|text|info|details|copy|material)|this (content|text|info)|into (this|the|it|my)|with my)\b/;
+  window.hexaFillIntent = function (text) {
+    var t = norm(text);
+    return FILL_VERB.test(t) && FILL_OBJ.test(t);
+  };
+  // POST design+content to ai_fill and return the filled deck IR (or null on error).
+  window.hexaFill = function (design, content, brand) {
+    return fetch(FILL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ design: design, content: content, brand: brand || '' })
+    }).then(function (r) { return r.json(); })
+      .then(function (d) { return (d && (d.deck || d.slides)) ? (d.deck || d) : null; })
+      .catch(function () { return null; });
+  };
+
+  // ── HANDOFF: the fill CARD hands its design + content to HEXA, and HEXA
+  //    instructs the editor to prepare the deck. The card must NEVER open the
+  //    editor itself — everything goes THROUGH Hexa (card → Hexa → editor).
+  //    Hexa stashes the buyer's material, then sends them into the editor; the
+  //    editor reads that material and calls the fill brain (window.hexaFill).
+  window.hexaPrepare = function (opts) {
+    opts = opts || {};
+    var material = { content: (opts.content != null ? opts.content : ''),
+                     brand: opts.brand || '', deck: opts.deck || '' };
+    try { localStorage.setItem('lazydog_fill_material', JSON.stringify(material)); } catch (e) {}
+    var url = opts.editorUrl || 'editor.html';
+    if (opts.slug && /^https?:/.test(location.protocol)) {
+      url += (url.indexOf('?') < 0 ? '?' : '&') + 'kit=' + encodeURIComponent(opts.slug);
+    }
+    try { window.location.assign(url); } catch (e) {}
+    return { ok: true, target: url };
+  };
+
   // ── #4 LEAD CAPTURE — visitor emails → server → private `leads` collection ─
   // Widgets call hexaLeadCapture(text) right after hexaCommand. Returns
   // { reply } when it handled the message (email saved / email requested).

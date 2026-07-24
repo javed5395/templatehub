@@ -15916,13 +15916,83 @@ window.ldCompose = async function (sentence) {
    into the public editor, so this generates the deck from the buyer's content
    (plus a style hint from the chosen design). */
 (function () {
-  /* Flow 3 now runs THROUGH HEXA: the fill card hands its material to Hexa,
-     Hexa builds the engine command (editor.html?compose=…), and the engine
-     opens on that command. This old auto-generate receiver is retired so a
-     normal editor open never composes from a stale plan. Just clear any legacy
-     key. The buyer's full material lives under 'lazydog_fill_material' for the
-     future content-fill (ai_fill) wire. */
+  /* Legacy compose-from-plan path is retired; drop any stale key. */
   try { localStorage.removeItem('lazydog_fill_plan'); } catch (e) {}
+
+  /* CONTENT-FILL WIRE (ai_fill): the buyer picked a design AND gave content.
+     Their material is stashed under 'lazydog_fill_material'; the deck itself is
+     parsed to an IR by the bridge (window._deckIR). We POST both to ai_fill via
+     window.hexaFill, then load the filled deck IR straight into the editor.
+     One-shot, and a no-op when there's no material. */
+  var rawMat;
+  try { rawMat = localStorage.getItem('lazydog_fill_material'); } catch (e) { return; }
+  if (!rawMat) return;
+  try { if (new URLSearchParams(location.search).get('compose')) return; } catch (e) {}
+
+  var content = rawMat, brand = '';
+  try { var m = JSON.parse(rawMat); if (m && typeof m === 'object') { content = m.content != null ? m.content : rawMat; brand = m.brand || ''; } } catch (e) {}
+
+  /* Read the deck the card stashed (buyer_flow idbSet: db 'lazydog', store
+     'files', key 'deck_pptx'). Same DB the card writes, so keep it in lock-step. */
+  function idbGetDeck() {
+    return new Promise(function (res) {
+      try {
+        var r = indexedDB.open('lazydog', 1);
+        r.onupgradeneeded = function () { try { r.result.createObjectStore('files'); } catch (e) {} };
+        r.onsuccess = function () {
+          try {
+            var g = r.result.transaction('files', 'readonly').objectStore('files').get('deck_pptx');
+            g.onsuccess = function () { res(g.result || null); };
+            g.onerror = function () { res(null); };
+          } catch (e) { res(null); }
+        };
+        r.onerror = function () { res(null); };
+      } catch (e) { res(null); }
+    });
+  }
+
+  /* Make sure we have a parsed deck IR: use the one already open, else load the
+     stashed deck and parse it (/parse) exactly like the manual import does. */
+  async function ensureDeckIR() {
+    if (window._deckIR) return window._deckIR;
+    var blob = await idbGetDeck();
+    if (!blob || !window.LD_BACKEND || !window.ldHeaders) return null;
+    try {
+      var buf = await blob.arrayBuffer();
+      for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r2) { setTimeout(r2, 500); });
+      var resp = await fetch(window.LD_BACKEND + '/parse', {
+        method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: buf });
+      if (!resp.ok) {
+        if (typeof showToast === 'function')
+          showToast(resp.status === 401 || resp.status === 403
+            ? 'Sign in with a designer account to open this deck.'
+            : 'Could not open your deck (' + resp.status + ').');
+        return null;
+      }
+      window._deckIR = await resp.json();
+      return window._deckIR;
+    } catch (e) { return null; }
+  }
+
+  var tries = 0;
+  var t = setInterval(function () {
+    tries++;
+    if (window.hexaFill && window.loadDeckIRIntoEditor && typeof fc !== 'undefined' && fc) {
+      clearInterval(t);
+      try { localStorage.removeItem('lazydog_fill_material'); } catch (e) {}   /* one-shot */
+      try { if (typeof showToast === 'function') showToast('Preparing your deck…'); } catch (e) {}
+      ensureDeckIR().then(function (ir) {
+        if (!ir) { if (typeof showToast === 'function') showToast('No editable deck found to fill.'); return; }
+        return window.hexaFill(ir, content, brand).then(function (filled) {
+          if (filled && filled.slides) window.loadDeckIRIntoEditor(filled);
+          else {                             /* fill failed → still show the design, unfilled */
+            window.loadDeckIRIntoEditor(ir);
+            if (typeof showToast === 'function') showToast('Content fill unavailable — deck opened unfilled');
+          }
+        });
+      });
+    } else if (tries > 120) { clearInterval(t); }
+  }, 300);
   return;
   /* --- retired below --- */
   var raw;
