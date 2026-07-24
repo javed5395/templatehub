@@ -834,6 +834,7 @@
     var material = { content: (opts.content != null ? opts.content : ''),
                      brand: opts.brand || '', deck: opts.deck || '',
                      designId: opts.designId || '', designHref: opts.designHref || '',
+                     pptxFileId: opts.pptxFileId || '', pptxUrl: opts.pptxUrl || '',
                      mode: opts.mode || '' };
     try { localStorage.setItem('lazydog_fill_material', JSON.stringify(material)); } catch (e) {}
     // IMPORTANT: open the editor WITHOUT ?compose — this is FILL, not compose.

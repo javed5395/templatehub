@@ -15929,11 +15929,11 @@ window.ldCompose = async function (sentence) {
   if (!rawMat) return;
   try { if (new URLSearchParams(location.search).get('compose')) return; } catch (e) {}
 
-  var content = rawMat, brand = '';
-  try { var m = JSON.parse(rawMat); if (m && typeof m === 'object') { content = m.content != null ? m.content : rawMat; brand = m.brand || ''; } } catch (e) {}
+  var content = rawMat, brand = '', mat = {};
+  try { var m = JSON.parse(rawMat); if (m && typeof m === 'object') { mat = m; content = m.content != null ? m.content : rawMat; brand = m.brand || ''; } } catch (e) {}
 
-  /* Read the deck the card stashed (buyer_flow idbSet: db 'lazydog', store
-     'files', key 'deck_pptx'). Same DB the card writes, so keep it in lock-step. */
+  /* Read the deck the card stashed (idbSet: db 'lazydog', store 'files',
+     key 'deck_pptx') — used when the buyer dropped an actual .pptx file. */
   function idbGetDeck() {
     return new Promise(function (res) {
       try {
@@ -15951,14 +15951,44 @@ window.ldCompose = async function (sentence) {
     });
   }
 
+  /* Fetch a design's .pptx from Google Drive via the Apps Script 'download'
+     action (used when the buyer dragged a design FROM THE PAGE — no local file).
+     Plain POST (no Content-Type) to stay CORS-safe, exactly like the uploader. */
+  var LD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec';
+  function b64ToBuf(b64) {
+    var bin = atob(b64), n = bin.length, u = new Uint8Array(n);
+    for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
+    return u.buffer;
+  }
+  async function fetchDriveDeck(fileId) {
+    try {
+      var r = await fetch(LD_APPS_SCRIPT_URL, { method: 'POST',
+        body: JSON.stringify({ action: 'download', fileId: fileId }) });
+      var d = await r.json();
+      if (d && d.success && d.b64) return b64ToBuf(d.b64);
+    } catch (e) {}
+    return null;
+  }
+
+  /* Get the deck bytes from whichever source we have: a dropped .pptx (IndexedDB)
+     or a page-design's Drive file id (via Apps Script). */
+  async function getDeckBuffer() {
+    var blob = await idbGetDeck();
+    if (blob) { try { return await blob.arrayBuffer(); } catch (e) {} }
+    if (mat && mat.pptxFileId) {
+      if (typeof showToast === 'function') showToast('Fetching your design file…');
+      return await fetchDriveDeck(mat.pptxFileId);
+    }
+    return null;
+  }
+
   /* Make sure we have a parsed deck IR: use the one already open, else load the
-     stashed deck and parse it (/parse) exactly like the manual import does. */
+     deck bytes (file or Drive) and parse them (/parse) like the manual import. */
   async function ensureDeckIR() {
     if (window._deckIR) return window._deckIR;
-    var blob = await idbGetDeck();
-    if (!blob || !window.LD_BACKEND || !window.ldHeaders) return null;
+    var buf = await getDeckBuffer();
+    if (!buf || !window.LD_BACKEND || !window.ldHeaders) return null;
     try {
-      var buf = await blob.arrayBuffer();
       for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r2) { setTimeout(r2, 500); });
       var resp = await fetch(window.LD_BACKEND + '/parse', {
         method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: buf });
