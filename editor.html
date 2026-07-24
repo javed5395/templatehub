@@ -14688,6 +14688,32 @@ async function handlePPTXUpload(input) {
     var deckIR = await _resp.json();
     window._deckIR = deckIR;
 
+    /* SOURCE 1 — the FILE's own fonts (this is the UPLOAD path; it does NOT
+       go through loadDeckIRIntoEditor, so the gate must live here too):
+       register embedded fonts under their exact names, then run the
+       commercial-font alarm before anything renders. */
+    try {
+      window._ldEmbeddedFams = {};
+      if (deckIR.embeddedFonts && window.FontFace) {
+        showToast('Loading the file\'s own fonts…');
+        for (var efj = 0; efj < deckIR.embeddedFonts.length; efj++) {
+          var ef = deckIR.embeddedFonts[efj];
+          if (!ef.ttfB64) continue;
+          try {
+            var fbin = atob(ef.ttfB64), fbuf = new Uint8Array(fbin.length);
+            for (var fbi = 0; fbi < fbin.length; fbi++) fbuf[fbi] = fbin.charCodeAt(fbi);
+            var face = new FontFace(ef.family, fbuf.buffer, {
+              weight: /bold/i.test(ef.style) ? 'bold' : 'normal',
+              style: /italic/i.test(ef.style) ? 'italic' : 'normal' });
+            await face.load();
+            document.fonts.add(face);
+            window._ldEmbeddedFams[ef.family.toLowerCase()] = 1;
+          } catch (efe) { console.warn('embedded font failed:', ef.family, efe); }
+        }
+      }
+      if (typeof ldFontAuditPrompt === 'function') await ldFontAuditPrompt(deckIR);
+    } catch (fgErr) { console.warn('font gate skipped', fgErr); }
+
     /* Collect the deck's font names and load matching webfonts BEFORE the
        first render, so imported text displays and wraps in its true fonts. */
     try {
