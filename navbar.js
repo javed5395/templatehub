@@ -50,10 +50,10 @@
   </div>
 </div>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
   const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
-  const app = initializeApp(firebaseConfig);
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig); // reuse existing app — duplicate-app crash fix (main.html)
   const auth = getAuth(app);
   // Hexa admin: fresh ID token for gated composer calls (null when logged out)
   window.ldGetToken = async function(){ try{ return auth.currentUser ? await auth.currentUser.getIdToken() : null; }catch(e){ return null; } };
@@ -68,8 +68,14 @@
     'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',   // javed5395@gmail.com — site owner
     'FvcmbFk2AsXCIq1L2uog7t5erfp1'    // lazydogtemplates@gmail.com — business account
   ];
+  // ── TEST PHASE (25 Jul 2026): all FRONTEND locks open — every visitor sees
+  //    admin-gated UI (design orders, compose buttons, fill card). Server-side
+  //    authz (TRUSTED_UIDS / composer-proxy / designer accounts) still applies.
+  //    Set to false to restore all locks in one place. ──
+  window.LD_TEST_OPEN = false;   // relocked 25 Jul per Javed — he'll explain why after this phase
   window.ldIsAdmin = function(){
     try{
+      if(window.LD_TEST_OPEN) return true;   // TEST PHASE — remove/false to relock
       if(!(auth && auth.currentUser)) return false;
       return window.LD_ADMIN_UIDS.indexOf(auth.currentUser.uid) !== -1; // strict: empty list = nobody
     }catch(e){ return false; }
@@ -86,9 +92,9 @@
   onAuthStateChanged(auth, (user) => {
     const si=document.getElementById('signinBtn'), su=document.getElementById('signupBtn');
     const um=document.getElementById('nbUserMenu'), un=document.getElementById('nbUserName'), ua=document.getElementById('nbUserAvatar');
-    // "Generate Designs" button — visible to OWNER accounts only (lock lives here, not on the page).
+    // "Generate Designs" button — PUBLIC (lock opened, Jul 2026). Always visible; server still authorizes actual builds.
     const gb=document.getElementById('nbGenBtn');
-    if(gb) gb.style.display = (window.ldIsAdmin && window.ldIsAdmin()) ? 'inline-flex' : 'none';
+    if(gb) gb.style.display = 'inline-flex';
     if(user) {
       if(si)si.style.display='none'; if(su)su.style.display='none'; if(um)um.style.display='flex';
       const name=user.displayName||user.email.split('@')[0];
@@ -213,7 +219,7 @@
     </div>
     <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="background:#fff;color:#c79a20;border:1.5px solid #dcb43f;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">What's New</a>
     <a href="coming_soon.html" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Coming Soon</a>
-    <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs (owner only)" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Generate Designs</a>
+    <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Generate Designs</a>
     <a href="editor.html" class="nb-wn-tab" title="LazyDog Designer" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:1.5px solid #7d6bf0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Editor</a>
     <a href="upload_form.html" class="nb-wn-tab" title="Upload your designs" style="background:#fff;color:#2e9e6b;border:1.5px solid #4fbf8b;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Upload</a>
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
@@ -819,7 +825,11 @@
       var dz=window.hexaDesign(text);
       bubble.textContent=dz.reply;
       if(window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(dz.target, dz.label)); }
-      hbRemember('assistant',dz.reply); hbScroll(); return;
+      hbRemember('assistant',dz.reply); hbScroll();
+      // SMART ACTION (25 Jul, Javed): the user asked to CREATE — Hexa acts,
+      // she doesn't wait for a second click. Button stays as a fallback.
+      setTimeout(function(){ try{ window.location.href=dz.target; }catch(e){} }, 1200);
+      return;
     }
     // 0.6) name capture — "my name is X" → remember the visitor (#5)
     var nm=(window.hexaNameCapture && window.hexaNameCapture(text))||null;

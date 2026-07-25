@@ -1181,8 +1181,8 @@ footer {
       <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
     </button>
     <a href="#" class="btn btn-ghost">Sign in</a>
-    <a href="#hero" class="btn btn-accent">
-      Open Hexa
+    <a href="main.html" class="btn btn-accent" title="Back to the LazyDog store">
+      Main
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
     </a>
   </div>
@@ -1219,11 +1219,8 @@ footer {
               <span class="name">Hexa</span>
               <span class="status">Online · Ready to generate</span>
             </div>
-            <div class="prompt-mode-tabs">
-              <button class="active" data-mode="create">Create</button>
-              <button data-mode="edit">Edit</button>
-              <button data-mode="export">Export</button>
-            </div>
+            <!-- Mode buttons live in the toolbar below (replacing the old
+                 Attach / Brand kit / PPTX chips) — Javed's design, 25 Jul. -->
           </div>
 
           <div class="prompt-input-wrap">
@@ -1236,17 +1233,21 @@ footer {
           </div>
 
           <div class="prompt-toolbar">
-            <button class="tool-chip" title="Attach reference">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-              Attach
+            <!-- 3 MODE BUTTONS (25 Jul, Javed's design) — replaced the old
+                 Attach / Brand kit / PPTX·16:9 chips:
+                 Chat = free AI Q&A · Create Design = order card appears
+                 on the right · Create Presentation = fill card appears. -->
+            <button class="tool-chip mode-on" data-mode="chat" title="Chat with Hexa">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Chat
             </button>
-            <button class="tool-chip" title="Brand kit">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-              Brand kit
+            <button class="tool-chip" data-mode="design" title="Generate a new design">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg>
+              Create Design
             </button>
-            <button class="tool-chip" title="Output format">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-              PPTX · 16:9
+            <button class="tool-chip" data-mode="present" title="Fill a design with your content">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              Create Presentation
             </button>
             <button class="prompt-send" id="promptSend">
               Generate
@@ -1293,7 +1294,7 @@ footer {
           <h3>&#127899;&#65039; Filter by field</h3>
           <div class="lf-block"><div class="lf-grid">
             <div class="lf-field"><label>Content Type</label><select id="lf_contentType"><option value="">Any</option><option value="pitch-deck">Pitch Deck</option><option value="media-kit">Media Kit</option><option value="web-kit">Web Kit</option><option value="resume-cv">Resume / CV</option><option value="digital-keynotes">Digital Keynotes</option></select></div>
-            <div class="lf-field"><label>No. of Slides</label><input type="number" id="lf_slides" min="2" max="30" placeholder="e.g. 15"/></div>
+            <div class="lf-field"><label>No. of Slides</label><input type="number" id="lf_slides" min="2" max="200" placeholder="e.g. 15"/></div>
             <div class="lf-field"><label>Aspect Ratio</label><select id="lf_aspect"><option value="">Any</option><option value="16 9">16:9</option><option value="4 3">4:3</option><option value="1 1">1:1 Square</option><option value="9 16">9:16 Vertical</option></select></div>
             <div class="lf-field"><label>Formality</label><select id="lf_formality"><option value="">Any</option><option value="very high">Very High</option><option value="high">High</option><option value="medium high">Medium-High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
             <div class="lf-field"><label>Color Family</label><select id="lf_colorFamily" multiple><option value="blue">Blue</option><option value="navy">Navy</option><option value="black">Black</option><option value="white">White</option><option value="grey">Grey</option><option value="red">Red</option><option value="terracotta">Terracotta</option><option value="orange">Orange</option><option value="yellow">Yellow</option><option value="gold">Gold</option><option value="green">Green</option><option value="purple">Purple</option><option value="pink">Pink</option><option value="brown">Brown</option><option value="neutral">Neutral</option><option value="warm">Warm Tones</option><option value="cool">Cool Tones</option><option value="dark">Dark</option><option value="light">Light</option><option value="multicolor">Multicolor</option></select></div>
@@ -1308,6 +1309,21 @@ footer {
           <div id="ldFilterSummary"></div>
           </div>
         </div></div>
+        <!-- ═══ FILL CARD (Create Presentation mode only) — mirrors the site's
+             fill card: content file + design .pptx → Hexa → editor. ═══ -->
+        <div id="ldFillCard" style="display:none;width:100%;background:#fff;border-radius:28px;box-shadow:0 10px 40px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);overflow:hidden;font-family:'Inter','Segoe UI',sans-serif;">
+          <div style="padding:24px 30px;">
+            <h3 style="font-size:13px;color:#d4af37;margin:0 0 6px;font-family:'Poppins','Inter',sans-serif;font-weight:600;">✨ Create a presentation from YOUR content</h3>
+            <div style="font-size:11.5px;color:#6b7280;margin-bottom:14px;">Type your content in the prompt box on the left — or load a file below — then give me the design.</div>
+            <div style="background:#F4F6FB;border:1px solid #e5e8f0;border-radius:14px;padding:16px;">
+              <label style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em;">📄 Content file (.txt · .md · .docx)</label>
+              <div id="pfContentDrop" style="margin:6px 0 14px;border:2px dashed #cbd2e0;border-radius:12px;padding:18px 12px;text-align:center;color:#6b7280;font-size:12px;cursor:pointer;background:#fff;">Click or drop your content file</div>
+              <label style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em;">🎨 Design (.pptx)</label>
+              <div id="pfDeckDrop" style="margin:6px 0 0;border:2px dashed #cbd2e0;border-radius:12px;padding:18px 12px;text-align:center;color:#6b7280;font-size:12px;cursor:pointer;background:#fff;">Click or drop the deck (.pptx) you want filled</div>
+              <div id="pfNote" style="margin-top:10px;font-size:11.5px;color:#6b7280;"></div>
+            </div>
+          </div>
+        </div>
       </aside>
       <script>
         (function(){
@@ -2208,6 +2224,422 @@ footer {
     var t = document.getElementById('promptInput');
     if (t && clean.length > 2) t.value = clean;
   })();
+</script>
+
+<!-- ============================================================
+     HEXA LIVE WIRING (Fable, 25 Jul 2026)
+     Loads the SAME brain the floating widget + search widget use
+     (va_dictionary.js + chat_brain.js), then makes the prompt card a
+     true third Hexa surface:
+       · Enter        = chat with Hexa (command → lead → name → order-absorb
+                        → FAQ/compiler → recommend_http → chat_http cascade)
+       · Shift+Enter  = newline
+       · Generate     = build the order (prompt + filter card merged via
+                        hexaCollectOrder) → closest live kits for everyone;
+                        real composition stays server-gated (TRUSTED_UIDS).
+     Chat ⇄ filter sync: attributes typed in chat auto-select the lf_* fields.
+     ============================================================ -->
+<script src="va_dictionary.js"></script>
+<script src="chat_brain.js"></script>
+<script>
+(function(){
+  var CHAT_URL='https://us-central1-templatehub-16cd7.cloudfunctions.net/chat_http';
+  var input=document.getElementById('promptInput');
+  var send=document.getElementById('promptSend');
+  if(!input||!send) return;
+
+  /* ── thread UI (created dynamically; zero markup changes) ── */
+  var st=document.createElement('style');
+  st.textContent='#hexaThread{display:none;max-height:260px;overflow-y:auto;margin:0 0 12px;padding:4px 2px;scrollbar-width:thin;}'
+    +'#hexaThread .ht-msg{margin:6px 0;display:flex;}'
+    +'#hexaThread .ht-msg.user{justify-content:flex-end;}'
+    +'#hexaThread .ht-b{max-width:82%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.55;font-family:inherit;}'
+    +'#hexaThread .user .ht-b{background:linear-gradient(135deg,#A78BFA,#F472B6);color:#0A0A0F;border-bottom-right-radius:4px;font-weight:600;}'
+    +'#hexaThread .engine .ht-b{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.10);color:#F5F5F7;border-bottom-left-radius:4px;}'
+    +'#hexaThread .ht-b a{display:inline-block;margin-top:6px;padding:5px 12px;border-radius:20px;background:rgba(167,139,250,0.18);border:1px solid rgba(167,139,250,0.45);color:#e8e2ff;text-decoration:none;font-size:12px;font-weight:600;}'
+    +'.prompt-toolbar .tool-chip.mode-on{background:linear-gradient(135deg,#A78BFA,#F472B6);color:#0A0A0F;font-weight:700;border-color:transparent;}';
+  document.head.appendChild(st);
+  var thread=document.createElement('div'); thread.id='hexaThread';
+  var iw=document.querySelector('.prompt-input-wrap');
+  if(iw&&iw.parentNode) iw.parentNode.insertBefore(thread,iw);
+
+  function addMsg(html,who){
+    thread.style.display='block';
+    var m=document.createElement('div'); m.className='ht-msg '+(who||'engine');
+    var b=document.createElement('div'); b.className='ht-b';
+    if(who==='user') b.textContent=html; else b.innerHTML=html;
+    m.appendChild(b); thread.appendChild(m);
+    thread.scrollTop=thread.scrollHeight;
+    return b;
+  }
+
+  /* ── chat ⇄ filter sync: absorb attributes from free text into lf_* ── */
+  var MULTI=['lf_colorFamily','lf_style','lf_industry','lf_tone','lf_audience','lf_bestFor'];
+  var TYPES={'pitch deck':'pitch-deck','pitch decks':'pitch-deck','media kit':'media-kit','media kits':'media-kit','web kit':'web-kit','website kit':'web-kit','resume':'resume-cv','cv':'resume-cv','keynote':'digital-keynotes'};
+  function absorb(text){
+    var t=' '+String(text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ')+' ';
+    var hits=[];
+    var ct=document.getElementById('lf_contentType');
+    if(ct){ for(var k in TYPES){ if(t.indexOf(' '+k+' ')!==-1){ if(ct.value!==TYPES[k]){ct.value=TYPES[k];hits.push(k);} break; } } }
+    var sm=t.match(/(\d{1,3})\s*slides?/); var sl=document.getElementById('lf_slides');
+    if(sm&&sl&&sl.value!==sm[1]){ sl.value=sm[1]; hits.push(sm[1]+' slides'); }
+    MULTI.forEach(function(id){
+      var e=document.getElementById(id); if(!e) return;
+      Array.prototype.forEach.call(e.options,function(op){
+        if(op.selected) return;
+        var words=[op.value].concat(op.textContent.toLowerCase().split(/[^a-z]+/));
+        for(var i=0;i<words.length;i++){
+          var w=words[i];
+          if(w&&w.length>2&&t.indexOf(' '+w+' ')!==-1){ op.selected=true; hits.push(op.textContent.trim()); return; }
+        }
+      });
+    });
+    return hits;
+  }
+
+  /* ── AI cascade with recommend-first (mirrors search_widget.askAI) ── */
+  var history=[];
+  function askAI(text,fallback){
+    history.push({role:'user',content:String(text).slice(0,500)});
+    if(history.length>12) history=history.slice(-12);
+    var bubble=addMsg('…','engine');
+    var doAI=function(){
+      fetch(CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({message:text,history:history.slice(0,-1),email:(window.hexaMemory&&window.hexaMemory.get().email)||''})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var raw=(d&&d.reply)?d.reply:(fallback||"Sorry, I couldn't answer that right now.");
+        var p=(window.chatParseAction)?window.chatParseAction(raw):null;
+        if(!p){ /* fallback parse if chat_brain isn't loaded — never show raw ACTION text */
+          var AT={pitch_decks:'pitch_deck_folder_section.html',media_kits:'media_kits_folder_section.html',web_kits:'web_kit_folder_file.html',career_docs:'career_docs_folder_section.html',digital_keynotes:'digital_keynote-folder.html',invoice:'invoice.html',home:'main.html',faq:'faq.html',whats_new:'whats_new_keynote.html'};
+          var mm=raw.match(/ACTION:\s*([a-z_]+)/i);
+          p={ text: raw.replace(/ACTION:\s*[a-z_]+/ig,'').trim(), target: (mm&&AT[mm[1].toLowerCase()])||null, label:null };
+        }
+        bubble.textContent=p.text||raw.replace(/ACTION:\s*[a-z_]+/ig,'').trim();
+        if(p.target){
+          if(window.chatMakeActionBtn){bubble.appendChild(document.createElement('br'));bubble.appendChild(window.chatMakeActionBtn(p.target,p.label));}
+          /* SMART ACTION (25 Jul, Javed): the AI decided a destination and the
+             visitor's message led there — Hexa takes them, no second click. */
+          var go=document.createElement('div');
+          go.style.cssText='margin-top:6px;font-size:11.5px;opacity:.75;';
+          go.textContent='Taking you there…';
+          bubble.appendChild(go);
+          setTimeout(function(){ try{ window.location.href=p.target; }catch(e){} },1400);
+        }
+        history.push({role:'assistant',content:bubble.textContent.slice(0,500)});
+      })
+      .catch(function(){ bubble.textContent=fallback||'I could not reach the server — please try again in a moment.'; });
+    };
+    if(window.hexaRecommendIntent&&window.hexaRecommend&&window.hexaRenderRecs&&window.hexaRecommendIntent(text)){
+      window.hexaRecommend(text).then(function(rec){
+        if(window.hexaRenderRecs(bubble,rec)){ history.push({role:'assistant',content:bubble.textContent.slice(0,500)}); }
+        else doAI();
+      }).catch(doAI);
+      return;
+    }
+    doAI();
+  }
+
+  /* ── the layered pipeline — same order as the other two Hexa surfaces ── */
+  function hexaChat(text){
+    addMsg(text,'user');
+    var r=(window.hexaCommand&&window.hexaCommand(text))||null;
+    if(r&&r.reply){addMsg(r.reply);return;}
+    /* owner batch commands — "prepare today's decks" / "publish all decks" */
+    if(window.hexaAdminIntent&&window.hexaAdmin&&window.hexaAdminIntent(text)){
+      var ab=addMsg('Working on it…');
+      window.hexaAdmin(text).then(function(res){ ab.innerHTML=String((res&&res.reply)||'Done.').replace(/\n/g,'<br>'); });
+      return;
+    }
+    r=(window.hexaLeadCapture&&window.hexaLeadCapture(text))||null;
+    if(r&&r.reply){addMsg(r.reply);return;}
+    r=(window.hexaNameCapture&&window.hexaNameCapture(text))||null;
+    if(r&&r.reply){addMsg(r.reply);return;}
+    /* "make/generate/design …" — SMART ACTION (25 Jul, Javed):
+       in CHAT mode Hexa takes the user straight to the editor canvas with
+       their sentence as the compose seed; in DESIGN/PRESENT modes the words
+       are absorbed into the order card as before. */
+    if(window.hexaComposeIntent&&window.hexaComposeIntent(text)){
+      if(hexaMode==='chat'&&window.hexaDesignIntent&&window.hexaDesignIntent(text)){
+        var dz=(window.hexaDesign&&window.hexaDesign(text))||{target:'editor.html?compose='+encodeURIComponent(text.slice(0,200)),label:'Open in Designer',reply:'I can design that for you right now 🎨 — opening the Designer:'};
+        var dm=addMsg(dz.reply+'<div style="margin-top:6px;font-size:11.5px;opacity:.75;">Taking you to the canvas…</div>');
+        if(window.chatMakeActionBtn){ dm.appendChild(document.createElement('br')); dm.appendChild(window.chatMakeActionBtn(dz.target,dz.label)); }
+        setTimeout(function(){ try{ window.location.href=dz.target; }catch(e){} },1400);
+        return;
+      }
+      var hits=absorb(text);
+      var note=hits.length?('Noted — I set <b>'+hits.join('</b>, <b>')+'</b> in the filter card. '):'Got it. ';
+      addMsg(note+'Fine-tune anything on the right, then hit <b>Generate</b> and I\'ll prepare your order 🎨');
+      return;
+    }
+    var composed=(window.chatCompose&&window.chatCompose(text))||null;
+    if(composed&&composed.reply){
+      if(composed.soft&&!composed.target){askAI(text,composed.reply);return;}
+      var b=addMsg(composed.reply);
+      if(composed.target&&window.chatMakeActionBtn){b.appendChild(document.createElement('br'));b.appendChild(window.chatMakeActionBtn(composed.target,composed.label));}
+      return;
+    }
+    askAI(text);
+  }
+
+  /* ── Enter = talk to Hexa · Shift+Enter = newline · Generate = order ── */
+  input.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey&&!e.metaKey&&!e.ctrlKey){
+      e.preventDefault(); e.stopPropagation();
+      var v=input.value.trim(); if(!v) return;
+      input.value=''; input.style.height='auto';
+      hexaChat(v);
+    }
+  },true);
+
+  /* ── admin detect + ldGetToken (this page has no navbar.js, so we provide
+        the same token helper the brain's admin commands expect; real authz
+        stays server-side at composer-proxy / TRUSTED_UIDS) ── */
+  var TEST_OPEN=false;   /* relocked 25 Jul per Javed — flip true for test phase */
+  var isAdmin=TEST_OPEN, _auth=null;
+  (function(){
+    var ADMINS=['javed5395@gmail.com','lazydogtemplates@gmail.com'];
+    Promise.all([
+      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
+    ]).then(function(m){
+      var A=m[0],B=m[1];
+      var app=A.getApps().length?A.getApp():A.initializeApp({apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",authDomain:"templatehub-16cd7.firebaseapp.com",projectId:"templatehub-16cd7"});
+      _auth=B.getAuth(app);
+      B.onAuthStateChanged(_auth,function(u){ isAdmin=TEST_OPEN||!!(u&&ADMINS.indexOf(String(u.email||'').toLowerCase())>-1); });
+    }).catch(function(){});
+  })();
+  if(!window.ldGetToken) window.ldGetToken=async function(){ try{ return (_auth&&_auth.currentUser)?await _auth.currentUser.getIdToken():null; }catch(e){ return null; } };
+
+  /* ── 3-MODE CONTROLLER (25 Jul, Javed's design) ──
+     chat    → right side hidden; Generate acts as Send (free AI cascade).
+     design  → white ORDER card appears; Generate = design order.
+     present → white FILL card appears; Generate = Prepare my deck (fill). */
+  var hexaMode='chat';
+  var asideEl=document.querySelector('.filter-panel');
+  var filterCardEl=document.getElementById('ldFilterCard');
+  var fillCardEl=document.getElementById('ldFillCard');
+  var SEND_SVG=' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+  function setMode(m){
+    hexaMode=m;
+    if(asideEl) asideEl.style.display=(m==='chat')?'none':'';
+    if(filterCardEl) filterCardEl.style.display=(m==='design')?'':'none';
+    if(fillCardEl) fillCardEl.style.display=(m==='present')?'':'none';
+    var lbl={chat:'Send',design:'Generate',present:'Prepare my deck'}[m]||'Generate';
+    if(send) send.innerHTML=lbl+SEND_SVG;
+    var ph={chat:'Ask me anything — templates, pricing, or just say hi…',
+            design:'Describe the design you want to create…',
+            present:'Type your presentation content here — headings and text for the slides…'}[m];
+    if(input&&ph) input.placeholder=ph;
+    document.querySelectorAll('.prompt-toolbar [data-mode]').forEach(function(b){
+      b.classList.toggle('mode-on', b.getAttribute('data-mode')===m);
+    });
+  }
+  document.querySelectorAll('.prompt-toolbar [data-mode]').forEach(function(tab){
+    tab.addEventListener('click',function(){
+      setMode(tab.getAttribute('data-mode')||'chat');
+      if(hexaMode==='chat')    addMsg('💬 <b>Chat</b> — ask me anything about templates, pricing, licenses… or anything at all.');
+      if(hexaMode==='design')  addMsg('🎨 <b>Create Design</b> — describe it here, fine-tune the fields on the right, then hit <b>Generate</b>.');
+      if(hexaMode==='present') addMsg('📽️ <b>Create Presentation</b> — give me your content (type it or load a file) and the design .pptx on the right, then hit <b>Prepare my deck</b>.');
+    });
+  });
+  setMode('chat');
+
+  /* ── order → one natural sentence (for the editor compose path) ── */
+  function orderSentence(o){
+    var bits=[];
+    if(o.describe) bits.push(o.describe.replace(/[.\s]+$/,''));
+    var attrs=[].concat(o.colorFamily||[],o.style||[],o.industry||[],o.tone||[]);
+    if(!o.describe){
+      bits.push('make me a '+(attrs.length?attrs.join(' ')+' ':'')+(o.contentType?o.contentType.replace(/-/g,' '):'design'));
+    } else if(attrs.length) bits.push(attrs.join(', '));
+    if(o.slides) bits.push(o.slides+' slides');
+    if(o.aspect) bits.push(o.aspect.replace(' ',':')+' aspect');
+    if(o.formality) bits.push(o.formality+' formality');
+    if(o.audience&&o.audience.length) bits.push('for '+o.audience.join(' and '));
+    if(o.inspiredBy) bits.push('inspired by '+o.inspiredBy);
+    return bits.join(', ').slice(0,200);
+  }
+
+  /* ── Generate → real routing. The page's earlier listeners keep the visual
+        feedback + "Order ready ✓" summary; this one adds Hexa's live reply:
+        the closest ready-made kits (recommend_http) for every visitor, plus
+        the admin Stage-4 note for owner accounts. ── */
+  var orderBusy=false, lastOrderKey='';
+  send.addEventListener('click',function(){
+    if(orderBusy) return; /* one order at a time — no duplicate bubbles */
+    var o=(window.hexaCollectOrder&&window.hexaCollectOrder())||{};
+    var text=o.describe||'';
+    /* ATTACHED DESIGN → FILL ORDER through Hexa (single chain of command).
+       Content = attached file text, or whatever is typed in the prompt. */
+    if(attachedDeck){
+      var fillContent=(attachedContent||text||'').trim();
+      if(!fillContent){ addMsg('Give me the content first — type it above or attach a .txt/.docx 📄'); return; }
+      addMsg((text||'Fill my design with my content'),'user');
+      var hb=addMsg('📦 Taking your design + content to the editor — your deck\'s capacity is measured there, and if extra slides are needed you\'ll approve the clones before anything is filled.');
+      ldStashDeck(attachedDeck).then(function(){
+        if(typeof window.hexaPrepare==='function'){
+          var res=window.hexaPrepare({content:fillContent,deck:String(attachedDeck.name||'').replace(/\.pptx$/i,''),mode:'file',editorUrl:'editor.html'});
+          if(res&&res.ok===false){ hb.innerHTML='Hexa: '+(res.reason||'cannot prepare this order.'); }
+        } else { hb.innerHTML='Hexa isn\'t fully loaded — refresh the page and try again.'; }
+      });
+      return;
+    }
+    /* CHAT mode → the button is Send: straight to the chat pipeline (no
+       order bookkeeping, no dedup — a question may be asked twice). */
+    if(hexaMode==='chat'){
+      var cv=(text||input.value||'').trim();
+      if(!cv) return;                     /* empty — the page's shake covers it */
+      input.value=''; input.style.height='auto';
+      hexaChat(cv);
+      return;
+    }
+
+    /* PRESENT mode without a design (an attached deck was handled above) */
+    if(hexaMode==='present'){
+      addMsg('Give me the design first — drop the .pptx on the right card 🎨 Your content can stay right here in the prompt box.');
+      return;
+    }
+
+    var hasFilters=!!(o.contentType||o.slides||(o.industry&&o.industry.length)||(o.style&&o.style.length)||(o.colorFamily&&o.colorFamily.length));
+    if(!text&&!hasFilters) return; /* empty — the existing shake handles it */
+    var key=JSON.stringify([text,o.contentType,o.slides,o.colorFamily,o.style,o.industry]);
+    if(key===lastOrderKey){ addMsg('That exact order is already noted ✓ — change something (or ask me here) and Generate again.'); return; }
+    lastOrderKey=key; orderBusy=true; setTimeout(function(){orderBusy=false;},2600);
+    if(text) absorb(text);
+    o=(window.hexaCollectOrder&&window.hexaCollectOrder())||o; window.hexaLastOrder=o;
+    try{localStorage.setItem('hexa_last_order',JSON.stringify(o));}catch(e){}
+    addMsg(text||'Build from my filter selections','user');
+
+    /* DESIGN mode — STRUCTURED ORDER door (25 Jul): the card's exact field
+       values are translated to the codec's vocabulary and scored server-side
+       against every kit's coded metadata. The free-text prompt rides along as
+       `query` so descriptive words still word-match. Unknown values are safely
+       dropped by the server's encoder. */
+    var EXP={tech:['technology','ai','fintech'],realestate:['real-estate'],travel_hospitality:['hospitality','travel'],
+      sports_fitness:['fitness','sports'],legal_professional:['legal-professional','legal','consulting'],
+      media_entertainment:['entertainment','digital-media'],retail:['e-commerce','ecommerce'],
+      nonprofit:['non-profit','ngo'],food:['food-restaurant'],general:['general-business','general-public'],
+      pitch:['pitching-investors'],launch:['product-launch'],press:['press-kit-distribution'],
+      partnership:['partnership-proposals'],job_application:['job-applications'],brand_identity:['brand-identity'],
+      social_campaign:['social-campaign'],sales:['sales-presentations'],internal:['internal-presentations'],
+      portfolio:['portfolio-showcase'],media:['media-press','press'],partners:['brand-partners'],
+      retail_buyers:['retail-buyers'],influencers:['influencer']};
+    function xp(list){ var out=[]; (list||[]).forEach(function(v){ v=String(v); out.push(v, v.replace(/_/g,'-')); (EXP[v]||[]).forEach(function(e){ out.push(e); }); }); return out; }
+    var sOrder={contentType:o.contentType||'',slides:o.slides||'',aspectRatio:o.aspect||'',formality:o.formality||'',
+      colorFamily:xp(o.colorFamily),style:xp(o.style),industry:xp(o.industry),tone:xp(o.tone),
+      audience:xp(o.audience),bestFor:xp(o.bestFor)};
+    var q=[text,o.contentType,(o.slides?o.slides+' slides':''),(o.colorFamily||[]).join(' '),(o.style||[]).join(' '),(o.industry||[]).join(' ')].join(' ').replace(/\s+/g,' ').trim();
+    var bubble=addMsg('Order received ✓ — checking the closest ready-made designs while your order is prepared…');
+    var answered=false;
+    setTimeout(function(){ if(!answered){ answered=true; bubble.innerHTML='Order saved ✓ — the design search isn\'t reachable right now (it needs the live site, not a local file). Your order details are kept.'; finish(); } },10000);
+    var finish=function(){
+      /* STAGE-4: the sanctioned compose path — editor.html?compose=<sentence>.
+         Offered to the owner only; the composer itself 403s non-admins anyway. */
+      if(isAdmin){
+        var sent=orderSentence(o);
+        var am=addMsg('👑 Compose this order for real in the Designer (server-gated):');
+        if(window.chatMakeActionBtn){ am.appendChild(document.createElement('br')); am.appendChild(window.chatMakeActionBtn('editor.html?compose='+encodeURIComponent(sent),'Compose in Designer')); }
+      }
+    };
+    fetch('https://us-central1-templatehub-16cd7.cloudfunctions.net/recommend_http',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:(text||q).slice(0,300), order:sOrder, limit:6})})
+    .then(function(r){return r.json();})
+    .then(function(rec){
+      if(answered) return; answered=true;
+      if(!(window.hexaRenderRecs&&window.hexaRenderRecs(bubble,rec))){
+        bubble.innerHTML='Order saved ✓ — no ready-made match for this yet. Type your <b>email</b> here and I\'ll let you know the moment it\'s available 📬';
+      }
+      finish();
+    }).catch(function(){ if(answered) return; answered=true; bubble.textContent='Order saved ✓ — the search server is unreachable right now, but your order details are kept.'; finish(); });
+  });
+
+  /* ══════════════════════════════════════════════════════════════════════
+     ATTACH → HAND MATERIAL TO HEXA (25 Jul 2026). The Attach chip becomes a
+     real door: user gives Hexa a design .pptx and/or a content file (.txt,
+     .md, .docx) right here. With a design attached, Generate becomes a FILL
+     order and goes through hexaPrepare — the SAME single chain of command
+     (card → Hexa → editor) as the fill card. The deck bytes ride the same
+     IndexedDB slot the editor already reads (lazydog/files/deck_pptx).
+     ══════════════════════════════════════════════════════════════════════ */
+  var attachedDeck=null, attachedContent='';
+  var attachChip=null;
+  document.querySelectorAll('.tool-chip').forEach(function(ch){ if(/attach/i.test(ch.title||ch.textContent)) attachChip=ch; });
+  if(attachChip){
+    var fIn=document.createElement('input');
+    fIn.type='file'; fIn.accept='.pptx,.txt,.md,.docx'; fIn.multiple=true; fIn.style.display='none';
+    document.body.appendChild(fIn);
+    attachChip.addEventListener('click',function(){ fIn.click(); });
+    fIn.addEventListener('change',function(){
+      Array.prototype.forEach.call(fIn.files||[],function(f){
+        if(/\.pptx$/i.test(f.name)){
+          attachedDeck=f;
+          addMsg('🎨 Design received: <b>'+f.name+'</b> — I\'ll fill this deck. Now give me your content (type it, or attach a .txt/.docx), then hit <b>Generate</b>.');
+        } else {
+          var r=new FileReader();
+          r.onload=function(){ attachedContent=String(r.result||'').slice(0,20000);
+            addMsg('📄 Content received: <b>'+f.name+'</b> ('+attachedContent.length+' chars). '+(attachedDeck?'Design + content ready — hit <b>Generate</b>!':'Attach the design .pptx too, or describe one and I\'ll find the closest match.')); };
+          r.readAsText(f);
+        }
+      });
+      var names=[]; if(attachedDeck)names.push('🎨'); if(attachedContent)names.push('📄');
+      attachChip.innerHTML=attachChip.innerHTML.replace(/Attach.*$/,'Attach '+(names.length?'· '+names.join(' '):''));
+      fIn.value='';
+    });
+  }
+  function ldStashDeck(blob){
+    return new Promise(function(res){
+      try{
+        var r=indexedDB.open('lazydog',1);
+        r.onupgradeneeded=function(){ try{ r.result.createObjectStore('files'); }catch(e){} };
+        r.onsuccess=function(){ try{ var tx=r.result.transaction('files','readwrite');
+          tx.objectStore('files').put(blob,'deck_pptx');
+          tx.oncomplete=function(){res(true);}; tx.onerror=function(){res(false);};
+        }catch(e){res(false);} };
+        r.onerror=function(){res(false);};
+      }catch(e){res(false);}
+    });
+  }
+
+  /* ── FILL CARD drop zones (Create Presentation mode) — same material state
+        as the Attach chip: attachedContent + attachedDeck feed hexaPrepare. ── */
+  (function(){
+    var cD=document.getElementById('pfContentDrop'), dD=document.getElementById('pfDeckDrop'), note=document.getElementById('pfNote');
+    if(!cD||!dD) return;
+    var cIn=document.createElement('input'); cIn.type='file'; cIn.accept='.txt,.md,.docx'; cIn.style.display='none';
+    var dIn=document.createElement('input'); dIn.type='file'; dIn.accept='.pptx'; dIn.style.display='none';
+    document.body.appendChild(cIn); document.body.appendChild(dIn);
+    function wireDrop(drop,inp,onFile){
+      drop.addEventListener('click',function(){ inp.click(); });
+      drop.addEventListener('dragover',function(e){ e.preventDefault(); drop.style.borderColor='#d4af37'; drop.style.background='rgba(212,175,55,.06)'; });
+      drop.addEventListener('dragleave',function(){ drop.style.borderColor='#cbd2e0'; drop.style.background='#fff'; });
+      drop.addEventListener('drop',function(e){ e.preventDefault(); drop.style.borderColor='#cbd2e0'; drop.style.background='#fff'; if(e.dataTransfer.files&&e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); });
+      inp.addEventListener('change',function(){ if(inp.files[0]) onFile(inp.files[0]); inp.value=''; });
+    }
+    wireDrop(cD,cIn,function(f){
+      var r=new FileReader();
+      r.onload=function(){ attachedContent=String(r.result||'').slice(0,20000);
+        cD.textContent='Loaded: '+f.name;
+        if(note) note.textContent='Content ready ('+attachedContent.length+' chars).'; };
+      r.readAsText(f);
+    });
+    wireDrop(dD,dIn,function(f){
+      if(!/\.pptx$/i.test(f.name)){ if(note) note.textContent='Please give a .pptx file for the design.'; return; }
+      attachedDeck=f;
+      dD.textContent='Design: '+f.name;
+      if(note) note.textContent='Design ready — hit Prepare my deck →';
+    });
+  })();
+
+  /* ── welcome (memory-aware, on first focus so the page stays clean) ── */
+  var greeted=false;
+  input.addEventListener('focus',function(){
+    if(greeted) return; greeted=true;
+    var g=(window.hexaGreeting&&window.hexaGreeting())||null;
+    addMsg(g||"Hi! 👋 I'm Hexa — chat with me right here. Ask anything, or describe a design and hit Generate.");
+  });
+})();
 </script>
 </body>
 </html>

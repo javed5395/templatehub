@@ -432,7 +432,7 @@
       var sec0 = document.getElementById('swResultsSection');
       if (sec0) sec0.style.display = 'none';   // don't double-render inside the widget
       if (!scored || !scored.length) window._ldtRenderFiltered(null);
-      else window._ldtRenderFiltered(scored.slice(0, 10).map(function (s) { return s.deck; }));
+      else window._ldtRenderFiltered(scored.slice(0, 15).map(function (s) { return s.deck; }));
       return;
     }
     var section = document.getElementById('swResultsSection');
@@ -458,19 +458,76 @@
     });
   }
 
-  // One continuous ranked list — best match first, then the next-nearest,
-  // flowing straight down. No fixed 100/90/70 buckets. The bar shows each
-  // deck's closeness to the *best available* match (top card always full).
+  // ══════════════════════════════════════════════════════════════════════════
+  // REAL METADATA MATCHING (25 Jul 2026) — the widget no longer decides matches
+  // itself. Requirements go to recommend_http, which encodes them via the
+  // PRIVATE meta_codec and scores every kit's encoded_raw SERVER-SIDE. Codes
+  // never reach the browser; we get back display-safe slugs + rank scores and
+  // map them onto this page's own cards. The old client-side scorer survives
+  // ONLY as an offline fallback (server unreachable).
+  // ══════════════════════════════════════════════════════════════════════════
+  var REC_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/recommend_http';
+  var TOP_N = 15;                       // engine digs out the top 15 best matches
+  var _recTimer = null, _recSeq = 0;
+
   function renderTieredResults(req) {
-    // engine digs out AT MOST 20 best matches; extras stay in the backend (not shown).
-    var scored = getDecks().map(function(d) { return { deck: d, pct: scoreDeck(d, req) }; })
-      .filter(function(s) { return s.pct > 0; })
-      .sort(function(a, b) { return b.pct - a.pct; })
-      .slice(0, 20);
     // "has input" = the user actually filled something (contentType is auto-locked on section pages).
     var hasInput = Object.keys(req).some(function(k) { return k !== 'contentType'; });
     var container = document.getElementById('metaSearchResultsList');
-    if (!scored.length || !hasInput) {
+    if (!hasInput) {
+      container.innerHTML = '<div id="metaSearchEmptyState">No matches yet — fill in a field above (hover the strip to open it), or use the chat box.</div>';
+      renderFilteredResults(null);
+      return;
+    }
+    // debounce: filters fire on every change — one server call per settled state
+    clearTimeout(_recTimer);
+    _recTimer = setTimeout(function() { fetchServerMatches(req); }, 350);
+  }
+
+  function fetchServerMatches(req) {
+    var seq = ++_recSeq;
+    fetch(REC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: req, limit: TOP_N })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (seq !== _recSeq) return;              // a newer request superseded this one
+      var results = (d && d.results) || [];
+      var pool = getDecks(), bySlug = {};
+      pool.forEach(function(dk) { if (dk && dk.id) bySlug[dk.id] = dk; });
+      var top = results.length ? (results[0].score || 1) : 1;
+      var scored = [];
+      results.forEach(function(r) {
+        var deck = bySlug[r.slug];
+        // Section pages: only this page's own category exists in the pool —
+        // anything else the server surfaced is skipped (page purity).
+        if (!deck) {
+          if (pageContext) return;
+          deck = { id: r.slug, name: r.name, contentType: '', slides: r.slides,
+                   colorFamily: [], _match: r.match };
+        }
+        scored.push({ deck: deck, pct: Math.max(1, Math.round(((r.score || 1) / top) * 100)) });
+      });
+      paintRanked(scored);
+    })
+    .catch(function() {
+      // OFFLINE FALLBACK — old client-side scorer over public template fields
+      var scored = getDecks().map(function(d) { return { deck: d, pct: scoreDeck(d, req) }; })
+        .filter(function(s) { return s.pct > 0; })
+        .sort(function(a, b) { return b.pct - a.pct; })
+        .slice(0, TOP_N);
+      paintRanked(scored);
+    });
+  }
+
+  // One continuous ranked list — best match first, then the next-nearest,
+  // flowing straight down. The bar shows each deck's closeness to the *best
+  // available* match (top card always full).
+  function paintRanked(scored) {
+    var container = document.getElementById('metaSearchResultsList');
+    if (!scored.length) {
       container.innerHTML = '<div id="metaSearchEmptyState">No matches yet — fill in a field above (hover the strip to open it), or use the chat box.</div>';
       renderFilteredResults(null);
       return;
@@ -569,11 +626,13 @@
     // lead capture — email in message / "notify me" (#4)
     var _lead=(window.hexaLeadCapture && window.hexaLeadCapture(text))||null;
     if(_lead && _lead.reply){ addMsg(_lead.reply,'engine'); return; }
-    // design order — "make me a hospital kit" → Open in Designer button
+    // design order — "make me a hospital kit" → Hexa ACTS (25 Jul, Javed):
+    // she opens the Designer herself; the button stays as a fallback.
     if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
       var _dz=window.hexaDesign(text);
       var _dm=addMsg(_dz.reply,'engine');
       if(window.chatMakeActionBtn){ _dm.appendChild(document.createElement('br')); _dm.appendChild(window.chatMakeActionBtn(_dz.target,_dz.label)); }
+      setTimeout(function(){ try{ window.location.href=_dz.target; }catch(e){} }, 1200);
       return;
     }
     // name capture — "my name is X" (#5)
@@ -686,19 +745,22 @@
       appId:             "1:143000893683:web:fd694de96f8c0fa6569f86"
     };
 
-    // Use existing Firebase app if already initialised on the page
-    var fbApp;
-    try {
-      fbApp = firebase.app();
-    } catch(e) {
-      fbApp = firebase.initializeApp(firebaseConfig);
-    }
-
-    var db = firebase.firestore(fbApp);
-
-    db.collection('templates')
-      .where('status', '==', 'approved')
-      .get()
+    // FIX (25 Jul 2026): this block used the old compat API (firebase.app()/
+    // firebase.firestore()), but the section pages never load the compat SDK —
+    // the global `firebase` doesn't exist there, the ReferenceError escaped the
+    // try/catch, and EVERYTHING below (vocab, page-context lock, event wiring)
+    // silently died. Now uses the modular SDK via dynamic import, with the
+    // getApps() reuse guard, and init ALWAYS completes even if Firestore fails.
+    Promise.all([
+      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js')
+    ])
+      .then(function(m) {
+        var A = m[0], F = m[1];
+        var app = A.getApps().length ? A.getApp() : A.initializeApp(firebaseConfig);
+        var db = F.getFirestore(app);
+        return F.getDocs(F.query(F.collection(db, 'templates'), F.where('status', '==', 'approved')));
+      })
       .then(function(snapshot) {
         allDecks = [];
         snapshot.forEach(function(docSnap) {

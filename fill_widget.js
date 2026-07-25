@@ -91,9 +91,18 @@
     }, true);
 
     // wiring
-    var deckFile=null, designRef=null, isAdmin=false;
+    // ── TEST PHASE (25 Jul 2026): all locks OPEN. Set TEST_OPEN=false to
+    //    restore the admin-only lock on filling content / preparing decks. ──
+    var TEST_OPEN = false;   // relocked 25 Jul per Javed
+    var deckFile=null, designRef=null, isAdmin=TEST_OPEN;
     var goBtn=document.getElementById('fwGo');
-    function refresh(){ goBtn.disabled = !isAdmin || !(deckFile || designRef); }
+    // ── FIT CHECK state (Gate 1): server-verified capacity verdict + the
+    //    CLONE AMENDMENT — buyer may approve adding cloned slides. ──
+    var fitInfo=null, allowClone=false;
+    function refresh(){
+      var blocked = fitInfo && fitInfo.verdict==='too_big' && !allowClone;
+      goBtn.disabled = !isAdmin || !(deckFile || designRef) || !!blocked;
+    }
     // Admin-only: filling content + generating a deck is restricted to the admin
     // account. Buyers and visitors see it locked.
     function applyAdmin(){
@@ -118,8 +127,8 @@
     // The design box: accepts a design DRAGGED FROM THE SITE, or a local .pptx.
     (function wireDesignDrop(){
       var d=document.getElementById('fwDeckDrop'), i=document.getElementById('fwDeckInput'), n=document.getElementById('fwDeckNote');
-      function pickFile(f){ deckFile=f; designRef=null; n.textContent='Design file: '+f.name; refresh(); }
-      function pickSite(ref){ designRef=ref; deckFile=null; n.textContent='Design from site: '+(ref.name||'selected'); refresh(); }
+      function pickFile(f){ deckFile=f; designRef=null; n.textContent='Design file: '+f.name; refresh(); runFitCheck(); }
+      function pickSite(ref){ designRef=ref; deckFile=null; n.textContent='Design from site: '+(ref.name||'selected'); refresh(); runFitCheck(); }
       d.addEventListener('click', function(){ i.click(); });                 // clicking still lets you upload a .pptx
       d.addEventListener('dragover', function(e){ e.preventDefault(); try{ e.dataTransfer.dropEffect='copy'; }catch(_){} d.classList.add('drag'); });
       d.addEventListener('dragleave', function(){ d.classList.remove('drag'); });
@@ -134,6 +143,88 @@
       });
       i.addEventListener('change', function(){ if(i.files[0]) pickFile(i.files[0]); });
     })();
+
+    // ════════════════════════════════════════════════════════════════════
+    // GATE 1 — LIVE FIT CHECK (25 Jul 2026). When the buyer has BOTH content
+    // and a SITE design, ask ai_fill_http (slug mode) for the deterministic
+    // fit plan built from the deck's PRIVATE slots map (server-side, no AI
+    // cost, codes never leave). Verdicts: fits / fits_with_clones / too_big.
+    // CLONE AMENDMENT: on overflow the card offers "+N cloned slides"; only
+    // buyer approval ("Go ahead") sets allowClone and unblocks the button.
+    // GATE 2: on too_big, the metadata search suggests designs that CAN hold
+    // the content. Own-.pptx decks have no slots map → checked after parse
+    // (the editor asks the same clone consent there).
+    // ════════════════════════════════════════════════════════════════════
+    var FIT_URL='https://us-central1-templatehub-16cd7.cloudfunctions.net/ai_fill_http';
+    var REC_URL='https://us-central1-templatehub-16cd7.cloudfunctions.net/recommend_http';
+    var fitBox=null, _fitTimer=null, _fitSeq=0;
+    function fitUI(){
+      if(fitBox) return fitBox;
+      fitBox=document.createElement('div'); fitBox.id='fwFitNote'; fitBox.className='fw-note';
+      fitBox.style.cssText='margin-top:10px;line-height:1.55;display:none;';
+      if(goBtn && goBtn.parentNode) goBtn.parentNode.insertBefore(fitBox, goBtn);
+      return fitBox;
+    }
+    function fitMsg(html, color){ var b=fitUI(); b.style.display='block'; b.style.color=color||''; b.innerHTML=html; }
+    function suggestBigger(needSlides){
+      fetch(REC_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({order:{slides:needSlides},limit:5})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var res=(d&&d.results)||[]; if(!res.length||!fitBox) return;
+        var div=document.createElement('div'); div.style.marginTop='6px';
+        div.innerHTML='<b>Designs that can hold your content:</b><br>';
+        res.forEach(function(k){
+          var a=document.createElement('a'); a.href=k.url||'#'; a.target='_blank'; a.rel='noopener';
+          a.textContent='• '+k.name+(k.slides?' · '+k.slides+' slides':'');
+          a.style.cssText='display:block;color:#2b6cb0;text-decoration:underline;font-size:11.5px;margin-top:2px;';
+          div.appendChild(a);
+        });
+        fitBox.appendChild(div);
+      }).catch(function(){});
+    }
+    function runFitCheck(){
+      clearTimeout(_fitTimer);
+      _fitTimer=setTimeout(function(){
+        fitInfo=null; allowClone=false; refresh();
+        var content=document.getElementById('fwContent').value.trim();
+        if(!content){ if(fitBox)fitBox.style.display='none'; return; }
+        if(deckFile){ fitMsg('📐 Your own file’s capacity is measured when it opens — if your content needs extra slides, you’ll be asked before we clone them.','#6b7280'); return; }
+        if(!(designRef&&designRef.id)){ if(fitBox)fitBox.style.display='none'; return; }
+        var seq=++_fitSeq;
+        fitMsg('📐 Checking if your content fits this design…','#6b7280');
+        fetch(FIT_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({design:String(designRef.id),content:content})})
+        .then(function(r){return r.json();})
+        .then(function(plan){
+          if(seq!==_fitSeq) return;
+          if(!plan||plan.error||!plan.verdict){ fitMsg('📐 No capacity map for this design — fit will be confirmed when it opens.','#6b7280'); return; }
+          var clones=Math.max(0,(plan.final_slides||0)-(plan.base_slides||0));
+          var extra=(plan.unplaced||[]).length;
+          fitInfo={verdict:plan.verdict,clones:clones,extra:extra};
+          if(plan.verdict==='fits'){ fitMsg('🟢 Your content fits this design perfectly.', '#1b7f3e'); }
+          else if(plan.verdict==='fits_with_clones'){
+            fitInfo.extra=clones; allowClone=true;   /* splitting inside capacity = designed behaviour */
+            fitMsg('🟡 Fits — your text is rich, so '+clones+' slide'+(clones===1?'':'s')+' will be cloned to give it room.', '#8a6d1f');
+          } else { /* too_big */
+            var need=Math.max(extra,1); fitInfo.extra=need;
+            fitMsg('🔴 Your content needs about <b>'+need+' extra slide'+(need===1?'':'s')+'</b> beyond this design’s capacity.'
+              +'<br>Our system can <b>clone '+need+' matching slide'+(need===1?'':'s')+'</b> and fill your content into them.'
+              +' <button id="fwCloneOk" type="button" style="margin-top:6px;background:#1b7f3e;color:#fff;border:0;border-radius:16px;padding:5px 14px;font-size:11.5px;font-weight:700;cursor:pointer;">✔ Go ahead — add '+need+' slide'+(need===1?'':'s')+'</button>', '#b23a3a');
+            var ok=document.getElementById('fwCloneOk');
+            if(ok) ok.addEventListener('click',function(){
+              allowClone=true; refresh();
+              fitMsg('🟢 Approved — '+need+' slide'+(need===1?'':'s')+' will be cloned and filled with your content.', '#1b7f3e');
+            });
+            var slidesTotal=(plan.final_slides||plan.base_slides||0)+need;
+            suggestBigger(slidesTotal);
+          }
+          refresh();
+        })
+        .catch(function(){ if(seq===_fitSeq) fitMsg('📐 Fit check unreachable — it will run again when the deck opens.','#6b7280'); });
+      },600);
+    }
+    document.getElementById('fwContent').addEventListener('input', runFitCheck);
 
     // Stash the actual deck bytes so the editor can PARSE and FILL it.
     // Same DB the editor reads: db 'lazydog', store 'files', key 'deck_pptx'.
@@ -193,12 +284,24 @@
         designId: (designRef&&designRef.id)||'', designHref:(designRef&&designRef.href)||'',
         pptxFileId: pptxFileId, pptxUrl: pptxUrl,
         mode: designRef ? 'site-design' : (deckFile ? 'file' : 'content'),
-        editorUrl: 'editor.html'
+        editorUrl: 'editor.html',
+        fit: (fitInfo&&fitInfo.verdict)||'', allowClone: allowClone,
+        extraSlides: (fitInfo&&fitInfo.extra)||0
       };
-      if (typeof window.hexaPrepare === 'function') { window.hexaPrepare(payload); return; }
-      // Fallback if Hexa isn't loaded on this page.
-      try{ localStorage.setItem('lazydog_fill_material', JSON.stringify(payload)); }catch(e){}
-      window.location.assign('editor.html');
+      // ONE CHAIN OF COMMAND (25 Jul 2026): the card speaks ONLY to Hexa, and
+      // Hexa alone commands the editor. No direct card→editor fallback — two
+      // command paths would leave the editor unsure whose order to obey. If
+      // Hexa isn't loaded, the card stops and says so instead of improvising.
+      if (typeof window.hexaPrepare === 'function') {
+        var _res = window.hexaPrepare(payload);
+        if (_res && _res.ok === false) {   /* GATE 3 — Hexa refused the order */
+          goBtn.disabled=false; goBtn.textContent='Prepare my deck →';
+          alert('Hexa: ' + (_res.reason || 'this order cannot be prepared as-is.'));
+        }
+        return;
+      }
+      goBtn.disabled=false; goBtn.textContent='Prepare my deck →';
+      alert("Hexa isn't loaded on this page, and only Hexa may command the editor. Please refresh the page (Hexa loads with the navbar) and try again.");
     });
     // Resolve admin status from Firebase auth (reuses the page's app).
     (function checkAdmin(){
@@ -210,7 +313,7 @@
         var A=m[0], B=m[1];
         var app = A.getApps().length ? A.getApp() : A.initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" });
         B.onAuthStateChanged(B.getAuth(app), function(u){
-          isAdmin = !!(u && ADMINS.indexOf((((u&&u.email)||'')).toLowerCase())>-1);
+          isAdmin = TEST_OPEN || !!(u && ADMINS.indexOf((((u&&u.email)||'')).toLowerCase())>-1);
           applyAdmin();
         });
       }).catch(function(){ applyAdmin(); });

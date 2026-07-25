@@ -831,11 +831,20 @@
   //    editor reads that material and calls the fill brain (window.hexaFill).
   window.hexaPrepare = function (opts) {
     opts = opts || {};
+    // GATE 3 (25 Jul 2026) — Hexa is the FINAL JUDGE. An order whose content
+    // exceeds the design's capacity, without the buyer approving cloned
+    // slides, is never commanded to the editor. The engine only ever hears
+    // from Hexa, and Hexa only speaks possible orders.
+    if (opts.fit === 'too_big' && !opts.allowClone) {
+      return { ok: false, reason: "your content needs more slides than this design holds. Approve the extra cloned slides on the card, trim the content, or pick a bigger design — then I'll prepare it." };
+    }
     var material = { content: (opts.content != null ? opts.content : ''),
                      brand: opts.brand || '', deck: opts.deck || '',
                      designId: opts.designId || '', designHref: opts.designHref || '',
                      pptxFileId: opts.pptxFileId || '', pptxUrl: opts.pptxUrl || '',
-                     mode: opts.mode || '' };
+                     mode: opts.mode || '',
+                     allowClone: !!opts.allowClone,
+                     extraSlides: opts.extraSlides || 0 };
     try { localStorage.setItem('lazydog_fill_material', JSON.stringify(material)); } catch (e) {}
     // IMPORTANT: open the editor WITHOUT ?compose — this is FILL, not compose.
     var url = opts.editorUrl || 'editor.html';
