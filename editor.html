@@ -11032,6 +11032,9 @@ function handleUploadImg(input) {
    svgText (raw SVG source kept on svg-derived groups for Phase 3 custGeom work),
    irId/irOrigin (traceability back to the IR element that produced this object). */
 var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBody', 'irTable', 'irChart', 'irChartRole', 'irChartSi', 'irChartCi', 'irReflOf', 'irHasRefl', 'reflGap', 'reflAlpha', 'irGlowOf', 'irHasGlow', 'glowPad', 'irGlowRadPx', 'irGlowColor', 'irSoftOf', 'irHasSoft', 'irSoftRadPx', 'softPad', 'mediaSrc', 'mediaKind',
+  /* round-trip geometry guard: birth transform of every imported object —
+     export writes original file geometry unless the user actually moved it */
+  'irC0',
   /* Canva-style live frames (Element 106): the frame carries its own geometry
      + photo so it survives page switch, undo and export. */
   'isFrame', 'frameKind', 'framePath', 'framePathW', 'framePathH', 'frameSrc', 'frameRect',
@@ -11506,6 +11509,30 @@ function slideIRFromCanvas(json, origIR, S) {
     var gw = Math.max(1, wPx * S);
     var gh = Math.max(1, hPx * S);
     var common = { x: gx, y: gy, w: gw, h: gh, rot: o.angle || 0, flipH: !!o.flipX, flipV: !!o.flipY };
+    /* ═══ ROUND-TRIP GEOMETRY GUARD (export side, paired with renderSlideIR's
+       irC0 stamp) ═══
+       Fabric bounding boxes LIE for SVG groups: the box is the artwork's
+       CONTENT bounds, not the viewBox — a rotated gradient alone inflated a
+       photo frame to a 13143929² square in the exported file (the "giant
+       golden bar" bug), and once written, every honest renderer — PowerPoint
+       AND our own engine on reimport — stretches the SVG to that box.
+       Rule: untouched object → write the ORIGINAL file geometry verbatim;
+       moved/scaled/rotated → apply only the user's delta to it. */
+    if (orig && o.irC0 && orig.x != null && orig.w != null) {
+      var _c0 = o.irC0, _EPX = 0.75;
+      var _moved = Math.abs(lxPx - _c0.l) > _EPX || Math.abs(lyPx - _c0.t) > _EPX;
+      var _sized = Math.abs(wPx - _c0.w) > _EPX || Math.abs(hPx - _c0.h) > _EPX;
+      var _spun = Math.abs((o.angle || 0) - (_c0.a || 0)) > 0.05;
+      if (!_moved && !_sized && !_spun) {
+        common = { x: orig.x, y: orig.y, w: orig.w, h: orig.h, rot: orig.rot || 0, flipH: !!o.flipX, flipV: !!o.flipY };
+      } else {
+        var _kx = _c0.w > 0.01 ? wPx / _c0.w : 1, _ky = _c0.h > 0.01 ? hPx / _c0.h : 1;
+        common = { x: orig.x + (lxPx - _c0.l) * S, y: orig.y + (lyPx - _c0.t) * S,
+                   w: orig.w * _kx, h: orig.h * _ky,
+                   rot: (orig.rot || 0) + ((o.angle || 0) - (_c0.a || 0)),
+                   flipH: !!o.flipX, flipV: !!o.flipY };
+      }
+    }
     /* LIVE FRAME (Element 106) → picture-filled custGeom shape, the dialect
        PowerPoint, Canva and Slides all reopen cleanly. An EMPTY frame has no
        photo, so it exports as a plain grey shape rather than vanishing. */
@@ -11573,6 +11600,26 @@ async function exportPptxFile() {
   showToast('Building PPTX in LazyDog cloud…');
   try {
     var deck = await buildEffectiveDeckIR(); /* edits included */
+    /* ═══ FREE-KIT ASSERT: a "switch to free" deck must contain ZERO
+       non-library typefaces at the moment of export. The audit prompt already
+       converted everything, but text edited/added since then (or any future
+       code path) could reintroduce one — sweep and force-twin as a final
+       guarantee, and say so out loud instead of shipping silently. */
+    if (deck.fontPolicy === 'free' && typeof ldFreeTwinFor === 'function') {
+      var _lib2 = window.LAZYDOG_FONT_LIB || [], _fixed = {};
+      function _sweepP(p) { (p.runs || []).forEach(function (r2) {
+        if (r2.font && _lib2.indexOf(String(r2.font).toLowerCase()) === -1) {
+          _fixed[r2.font] = 1; r2.font = ldFreeTwinFor(r2.font, r2.fontDisplay); r2.fontDisplay = r2.font;
+        }
+      }); }
+      (deck.slides || []).forEach(function (s2) { (s2.elements || []).forEach(function (e2) {
+        if (e2.type === 'text' && e2.paragraphs) e2.paragraphs.forEach(_sweepP);
+        else if (e2.type === 'table' && e2.rows) e2.rows.forEach(function (rw) { (rw.cells || []).forEach(function (cc) { (cc.paragraphs || []).forEach(_sweepP); }); });
+      }); });
+      delete deck.embeddedFonts; /* free kit: never let font files ride along */
+      var _leaks = Object.keys(_fixed);
+      if (_leaks.length) { console.warn('free-kit sweep re-twinned:', _leaks); showToast('Cleaned ' + _leaks.length + ' non-library font(s) before export'); }
+    }
     var r = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/export', {
       method: 'POST', headers: window.ldHeaders('application/json'),
       body: JSON.stringify({ deck: deck })

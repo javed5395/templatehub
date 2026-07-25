@@ -583,13 +583,44 @@ async function exitMasterMode() {
   showToast(window._ldMasters.length ? 'Master applied to all ' + state.pages.length + ' slides' : 'Master view closed');
 }
 
+/* GUARANTEED free twin. The parser's fontDisplay is only a DISPLAY twin and
+   can be the commercial name itself when no substitute was found — that is
+   how "Helios" and "ITC Edwardian Script" leaked into "free" exports while
+   delete deckIR.embeddedFonts stripped the real font files: PowerPoint fell
+   back to a default face and the layout broke (Founders & Fortune bug).
+   This helper NEVER returns a non-library font. */
+function ldFreeTwinFor(name, display) {
+  var lib = window.LAZYDOG_FONT_LIB || [], proper = window.LAZYDOG_FONT_PROPER || [];
+  function inLib(n) { return !!n && lib.indexOf(String(n).toLowerCase()) !== -1; }
+  function properOf(n) { var i = lib.indexOf(String(n).toLowerCase()); return i === -1 ? n : (proper[i] || n); }
+  if (inLib(name)) return properOf(name);
+  if (inLib(display)) return properOf(display);
+  var n = String(name || '').toLowerCase();
+  var MAP = {
+    'helios': 'Inter', 'helvetica': 'Inter',
+    'itc edwardian script': 'Great Vibes', 'edwardian script': 'Great Vibes',
+    'gotham': 'Montserrat', 'proxima nova': 'Montserrat',
+    'avenir': 'Nunito Sans', 'futura': 'Jost'
+  };
+  for (var k in MAP) { if (n === k || n.indexOf(k + ' ') === 0 || n.indexOf(k) === 0) { if (inLib(MAP[k])) return properOf(MAP[k]); } }
+  /* category heuristics — keep the FEEL of the lost face */
+  if (/script|handwrit|callig|brush|signature/.test(n)) { if (inLib('great vibes')) return properOf('great vibes'); if (inLib('dancing script')) return properOf('dancing script'); }
+  if (/condensed|compressed/.test(n) && inLib('barlow condensed')) return properOf('barlow condensed');
+  if (/narrow/.test(n) && inLib('archivo narrow')) return properOf('archivo narrow');
+  if (/slab|serif|roman|georgia|garamond|caslon|times|didot|bodoni/.test(n) && inLib('playfair display')) return properOf('playfair display');
+  if (inLib('inter')) return properOf('inter');
+  return proper[0] || 'Arial';
+}
+
 function ldFontAuditPrompt(deckIR) {
   return new Promise(function (resolve) {
     try {
       var lib = window.LAZYDOG_FONT_LIB || [];
       var found = {};
       function scanP(p) { (p.runs || []).forEach(function (r) {
-        if (r.font && lib.indexOf(String(r.font).toLowerCase()) === -1) found[r.font] = r.fontDisplay || r.font;
+        /* show the GUARANTEED twin in the alarm, not the parser's display
+           name (which can be the commercial font itself) */
+        if (r.font && lib.indexOf(String(r.font).toLowerCase()) === -1) found[r.font] = ldFreeTwinFor(r.font, r.fontDisplay);
       }); }
       deckIR.slides.forEach(function (s) { (s.elements || []).forEach(function (e) {
         if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(scanP);
@@ -619,10 +650,16 @@ function ldFontAuditPrompt(deckIR) {
         '<button id="ld-fa-keep" style="display:block;width:100%;padding:10px 0;margin-bottom:8px;background:#F1F5F9;color:#0F172A;border-radius:8px;font-weight:600;font-size:13px;">Keep original fonts <span style="font-weight:400;color:#64748B;">(client file — exports unchanged)</span></button>' +
         '<button id="ld-fa-free" style="display:block;width:100%;padding:10px 0;background:var(--accent,#7C3AED);color:#fff;border-radius:8px;font-weight:600;font-size:13px;">Switch to free fonts <span style="font-weight:400;opacity:0.85;">(our kit — safe to distribute)</span></button></div>';
       document.body.appendChild(pop);
-      document.getElementById('ld-fa-keep').onclick = function () { pop.remove(); resolve(); };
+      document.getElementById('ld-fa-keep').onclick = function () { deckIR.fontPolicy = 'keep'; pop.remove(); resolve(); };
       document.getElementById('ld-fa-free').onclick = function () {
+        deckIR.fontPolicy = 'free';
         function convP(p) { (p.runs || []).forEach(function (r) {
-          if (r.font && lib.indexOf(String(r.font).toLowerCase()) === -1) { r.font = r.fontDisplay || r.font; r.fontDisplay = r.font; r.__refonted = true; }
+          /* r.fontDisplay can BE the commercial name (parser found no twin)
+             — Helios / ITC Edwardian Script survived "free" mode this way.
+             ldFreeTwinFor never returns a non-library font, so the exported
+             file is truly clean AND the preview shows the exact face the
+             buyer will get (the embedded FontFace no longer masks it). */
+          if (r.font && lib.indexOf(String(r.font).toLowerCase()) === -1) { r.font = ldFreeTwinFor(r.font, r.fontDisplay); r.fontDisplay = r.font; r.__refonted = true; }
         }); }
         deckIR.slides.forEach(function (s) { (s.elements || []).forEach(function (e) {
           if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(convP);
@@ -3213,6 +3250,25 @@ async function renderSlideIR(slideIR, deckIR, fc) {
       if (el.oleFileB64) { window._oleDoc = window._oleDoc || {}; window._oleDoc[el.id] = { b64: el.oleFileB64, name: el.oleFileName || 'document.bin', el: el }; }
     }
   }
+  /* ═══ ROUND-TRIP GEOMETRY GUARD (stamp side) ═══
+     Fabric bounding boxes are NOT trustworthy as file geometry — an SVG
+     group's box is its CONTENT bounds, not its viewBox (a rotated gradient
+     alone can inflate it: the 13143929² "giant golden frame" bug). So every
+     imported object remembers its birth transform (irC0). At export,
+     slideIRFromCanvas compares against irC0: untouched → the ORIGINAL file
+     geometry is written back verbatim; moved/scaled → only the user's delta
+     is applied to the original geometry. Export→reimport becomes a no-op. */
+  try {
+    fc.getObjects().forEach(function (o) {
+      if (!o.irId || o.irBody || o.irPara != null || o.irTable || o.irChart) return;
+      if (o.irReflOf || o.irGlowOf || o.irSoftOf) return;
+      var wpx = (o.width || 0) * (o.scaleX || 1), hpx = (o.height || 0) * (o.scaleY || 1);
+      var l = o.left || 0, t = o.top || 0;
+      if (o.originX === 'center') l -= wpx / 2;
+      if (o.originY === 'center') t -= hpx / 2;
+      o.irC0 = { l: l, t: t, w: wpx, h: hpx, a: o.angle || 0 };
+    });
+  } catch (e) { console.warn('irC0 stamp failed', e); }
   fc.renderAll();
 }
 
