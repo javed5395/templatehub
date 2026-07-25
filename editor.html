@@ -10967,9 +10967,13 @@ function rehydrateFrames() {
       var im = new Image();
       im.onload = function () { o._frameImg = im; refreshFrame(o); };
       im.src = o.frameSrc;
-    } else {
+    } else if (o.frameSrc || o.frameKind) {
       refreshFrame(o);
     }
+    /* else: an IMPORTED pptx picture-frame — no frameSrc/frameKind, its
+       pattern fill already IS the photo. refreshFrame() would wipe it to
+       the placeholder purple on every page revisit (bg photos + logos
+       "vanished" when switching slides). Leave it untouched. */
   });
 }
 
@@ -13520,11 +13524,10 @@ window.ldCompose = async function (sentence) {
      fill the GIVEN design with the user's content and hand back the deck IR.
      Self-contained so the editor needs no chat_brain.js. */
   var FILL_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/ai_fill_http';
-  function ldFillDeck(designIR, content, brand, allowClone, expand) {
+  function ldFillDeck(designIR, content, brand) {
     return fetch(FILL_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ design: designIR, content: content, brand: brand || '',
-                             allowClone: !!allowClone, expand: expand || 0 })
+      body: JSON.stringify({ design: designIR, content: content, brand: brand || '' })
     }).then(function (r) { return r.json().catch(function () { return { error: 'bad response ' + r.status }; }); })
       .catch(function (e) { return { error: 'network error: ' + (e && e.message || e) }; });
   }
@@ -13538,21 +13541,7 @@ window.ldCompose = async function (sentence) {
       try { if (typeof showToast === 'function') showToast('Preparing your presentation…'); } catch (e) {}
       ensureDeckIR().then(function (ir) {
         if (!ir) { if (typeof showToast === 'function') showToast('No editable deck found to fill.'); return; }
-        /* CLONE AMENDMENT (25 Jul 2026) — own-.pptx path: capacity is only
-           known now, after the parse. If the content clearly outsizes the
-           deck and cloning wasn't already approved on the card, ask the buyer
-           here; only their "OK" lets the engine clone. */
-        var allowClone = !!mat.allowClone, expand = mat.extraSlides || 0;
-        try {
-          var secs = String(content || '').split(/\n\s*\n/).filter(function (p) { return p.trim(); }).length;
-          var have = (ir.slides || []).length;
-          if (!allowClone && secs > have) {
-            var extra = secs - have;
-            allowClone = confirm('Your content has about ' + secs + ' sections, but this deck has ' + have + ' slides.\n\nWe can CLONE ' + extra + ' matching slide(s) and fill your remaining content into them.\n\nGo ahead and add ' + extra + ' cloned slide(s)?');
-            if (allowClone) expand = extra;
-          }
-        } catch (e) {}
-        return ldFillDeck(ir, content, brand, allowClone, expand).then(function (res) {
+        return ldFillDeck(ir, content, brand).then(function (res) {
           var filled = (res && res.deck) ? res.deck : ((res && res.slides) ? res : null);
           if (filled && filled.slides) window.loadDeckIRIntoEditor(filled);
           else {                             /* fill failed → still show the design, unfilled */
