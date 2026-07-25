@@ -306,11 +306,24 @@
   var MULTI_FILTER_FIELDS = ['colorFamily','style','industry','tone','audience','bestFor'];
 
   function populateFilterOptions() {
+    // FIX (25 Jul 2026): MERGE live vocab with the curated options already in
+    // the markup — never wipe a list. (Before the widget's crash-fix, init
+    // died before reaching here, so the hardcoded options "survived"; once
+    // init succeeded, empty vocab fields blanked their dropdowns.)
     MULTI_FILTER_FIELDS.forEach(function(field) {
       var el = document.getElementById('f_' + field);
       if (!el) return;
-      var display = VOCAB[field].slice().sort();
-      el.innerHTML = display.map(function(v) {
+      var seen = {}, merged = [];
+      Array.prototype.forEach.call(el.options, function(op) {
+        var v = norm(op.value);
+        if (v && !seen[v]) { seen[v] = 1; merged.push(v); }
+      });
+      (VOCAB[field] || []).forEach(function(v) {
+        if (v && !seen[v]) { seen[v] = 1; merged.push(v); }
+      });
+      merged.sort();
+      if (!merged.length) return;   // nothing known — leave the markup as-is
+      el.innerHTML = merged.map(function(v) {
         var label = v.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
         return '<option value="' + v + '">' + label + '</option>';
       }).join('');
