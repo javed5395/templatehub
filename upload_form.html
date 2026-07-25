@@ -1496,6 +1496,10 @@ window.submitForm = async function() {
         const cleanPdf = await stripSection11FromPdf(pdfFile);
 
         const uploadPdf = await compressPdfIfNeeded(cleanPdf);
+        // ROUTING UNCHANGED (verified 25 Jul against Javed's 3-PDF system):
+        // this slot carries the IMAGE pdf (pptx slide pictures) → Cloudinary;
+        // the WRITTEN pdf + _SYSTEM pdf travel via the extra-format slots,
+        // which upload RAW to Google Drive. The slots ARE the routing.
         if (uploadPdf.size <= CLOUDINARY_PDF_MAX) {
           setProgress(78, `Clean PDF (${(uploadPdf.size/1024/1024).toFixed(1)} MB) Cloudinary par upload ho rahi hai...`);
           const r = await uploadToCloudinary(uploadPdf, `${folder}/pdf`, 'auto');
@@ -1513,6 +1517,25 @@ window.submitForm = async function() {
         console.warn('[PDF] Clean-PDF step failed — skipping public PDF, continuing submit:', pdfErr);
         pdfUrl = null; pdfPublicId = null; pdfDriveFileId = null;
         setProgress(80, 'PDF skip (metadata safe) — baaki submission continue ho rahi hai...');
+      }
+    }
+
+    // 3b. SYSTEM PDF → Google Drive, UNSTRIPPED (Javed's architecture, 25 Jul).
+    // The ORIGINAL pdf — Section 11 intact — goes to PRIVATE Drive only.
+    // Buyers never see Drive files, so the leak stays sealed; the CLOUD engine
+    // pulls this copy, strips Section 11 server-side, encodes the meta codes,
+    // and punches them into Firestore kits. The metadata road to the cloud
+    // travels through THIS file, not through the browser.
+    let sysPdfFileId = null;
+    if (pdfFile) {
+      try {
+        setProgress(80, 'System PDF (metadata ke saath) private Drive par ja rahi hai...');
+        const sysUrl = await uploadDocToDrive(pdfFile);   // RAW original, Section 11 intact
+        sysPdfFileId = extractDriveFileId(sysUrl);
+        console.log('[SysPDF] private system copy on Drive:', sysPdfFileId);
+      } catch (sysErr) {
+        console.warn('[SysPDF] system-copy upload failed — engine will fall back to doc fields:', sysErr);
+        sysPdfFileId = null;
       }
     }
 
@@ -1550,19 +1573,37 @@ window.submitForm = async function() {
     // never uploaded raw.
     let designDocUrl = null; let designDocFileId = null;
     if (designDocFile) {
-      try {
-        let docToUpload = designDocFile;
-        if (/\.pdf$/i.test(designDocFile.name)) {
-          setProgress(90, 'Design brief: Section 11 check/strip...');
-          docToUpload = await stripSection11FromPdf(designDocFile);
+      // ── JAVED'S TWO-PDF ARCHITECTURE (25 Jul night) ─────────────────────
+      // A _SYSTEM.pdf in this slot is the METADATA TRUCK — Section 11 must
+      // arrive in the cloud INTACT. It goes RAW to PRIVATE Drive, its id is
+      // saved ONLY in driveFileIds.sysPdf (server-side field), and its link
+      // is NEVER written to designDocUrl or any buyer-visible field. That
+      // seals the old leak by HIDING the truck, not by gutting it.
+      if (/_SYSTEM\.pdf$/i.test(designDocFile.name)) {
+        try {
+          setProgress(90, 'System PDF (meta codes intact) private Drive par ja rahi hai...');
+          const sysUrl2 = await uploadDocToDrive(designDocFile);   // RAW — Section 11 intact
+          sysPdfFileId  = extractDriveFileId(sysUrl2);             // overrides the main-pdf copy
+          console.log('[SysPDF] _SYSTEM pdf on private Drive:', sysPdfFileId);
+        } catch (sysErr2) {
+          console.warn('[SysPDF] _SYSTEM upload failed:', sysErr2);
         }
-        setProgress(91, 'Uploading design brief...');
-        designDocUrl    = await uploadDocToDrive(docToUpload);
-        designDocFileId = extractDriveFileId(designDocUrl);
-      } catch (docErr) {
-        console.warn('[DesignDoc] strip failed — skipping supporting doc, nothing raw uploaded:', docErr);
-        designDocUrl = null; designDocFileId = null;
-        setProgress(91, 'Design brief skip (metadata safe) — continuing...');
+        // deliberately NOT setting designDocUrl/designDocFileId — invisible to buyers
+      } else {
+        try {
+          let docToUpload = designDocFile;
+          if (/\.pdf$/i.test(designDocFile.name)) {
+            setProgress(90, 'Design brief: Section 11 check/strip...');
+            docToUpload = await stripSection11FromPdf(designDocFile);
+          }
+          setProgress(91, 'Uploading design brief...');
+          designDocUrl    = await uploadDocToDrive(docToUpload);
+          designDocFileId = extractDriveFileId(designDocUrl);
+        } catch (docErr) {
+          console.warn('[DesignDoc] strip failed — skipping supporting doc, nothing raw uploaded:', docErr);
+          designDocUrl = null; designDocFileId = null;
+          setProgress(91, 'Design brief skip (metadata safe) — continuing...');
+        }
       }
     }
 
@@ -1643,6 +1684,7 @@ window.submitForm = async function() {
       driveFileIds: {
         pptx:       pptxFileId         || null,
         pdf:        pdfDriveFileId     || null,
+        sysPdf:     sysPdfFileId       || null,   // PRIVATE system PDF, Section 11 intact — the engine's metadata source
         key:        keyFileId          || null,
         designDoc:  designDocFileId    || null,
         extraFiles: extraFileIds
