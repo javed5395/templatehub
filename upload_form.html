@@ -1274,8 +1274,14 @@ async function stripSection11FromPdf(file) {
       const isSec11 = (
         (text.includes('SECTION 11') && text.includes('SYSTEM METADATA')) ||
         text.includes('MACHINE-READABLE FILTER CODES') ||
-        text.includes('DESIGN_NAME') // fallback — unique to our metadata block
-      );
+        text.includes('DESIGN_NAME') || // fallback — unique to our metadata block
+        // ── CONTINUATION-PAGE GUARD (25 Jul 2026, security fix) ─────────────
+        // The code block can SPILL onto the next page, which carries none of
+        // the header phrases (this exact leak shipped codes to a live kit).
+        // Detect a continuation page by the code rows themselves: 3+ field
+        // codes with values ("K3 : d3,e2" style) = metadata page, remove it.
+        ((text.match(/\b(DN|SL|AR|X7|K3|F4|Q2|W9|BG|T1|P5|P6|P7|M2|LG|J8|J9)\s*:/g) || []).length >= 3
+      ));
       if (isSec11) sec11Pages.add(p - 1); // pdf-lib 0-indexed
     }
 
