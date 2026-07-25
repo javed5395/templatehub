@@ -1474,10 +1474,11 @@ async function renderImageElementIR(el, sx, sy, fc) {
         var dw = fcv.width * (1 - fr.l - fr.r), dh = fcv.height * (1 - fr.t - fr.b);
         fg.drawImage(fimg, dx, dy, dw, dh);
       } else {
-        /* no fillRect → classic cover-fit, centred */
-        var sc = Math.max(fcv.width / fimg.width, fcv.height / fimg.height);
-        fg.drawImage(fimg, (fcv.width - fimg.width * sc) / 2, (fcv.height - fimg.height * sc) / 2,
-                     fimg.width * sc, fimg.height * sc);
+        /* no/empty fillRect = PPT <a:stretch>: STRETCH to the shape box.
+           Cover-fit here drew the Laugh-deck squiggle 27% wider (cropped
+           sides, features shifted). Canva photo frames always write an
+           explicit negative-inset fillRect, so they take the branch above. */
+        fg.drawImage(fimg, 0, 0, fcv.width, fcv.height);
       }
       var cg2 = el.geom.custom, fkx = w / (cg2.pathW || 1), fky = h / (cg2.pathH || 1);
       var fd = cg2.pathCmds.map(function (c) {
@@ -1585,10 +1586,12 @@ async function renderImageElementIR(el, sx, sy, fc) {
       var fx3 = !!el.flipH, fy3 = !!el.flipV;
       if (fx3) imgX3 = 2 * left + w - imgX3 - imgW3;
       if (fy3) imgY3 = 2 * top + h - imgY3 - imgH3;
-      var vbX3 = (obj._ldViewBox && obj._ldViewBox.x) || 0;
-      var vbY3 = (obj._ldViewBox && obj._ldViewBox.y) || 0;
-      var offXvb = fx3 ? (vbX3 + vbW - (obj.left + bw)) : (obj.left - vbX3);
-      var offYvb = fy3 ? (vbY3 + vbH - (obj.top + bh)) : (obj.top - vbY3);
+      /* fabric's svg parser already normalizes coordinates to the viewBox
+         origin (translate(-minX,-minY)) — obj.left/top are 0-based in the
+         viewport. Subtracting the min again DOUBLE-shifted (SAM icon,
+         viewBox x=21.6, drew 68px left = "half logo"). */
+      var offXvb = fx3 ? (vbW - (obj.left + bw)) : obj.left;
+      var offYvb = fy3 ? (vbH - (obj.top + bh)) : obj.top;
       var vx0s = Math.max(left, imgX3), vy0s = Math.max(top, imgY3);
       var vx1s = Math.min(left + w, imgX3 + imgW3), vy1s = Math.min(top + h, imgY3 + imgH3);
       if (vx1s > vx0s && vy1s > vy0s) {
@@ -1648,10 +1651,9 @@ async function renderImageElementIR(el, sx, sy, fc) {
          bounds distorts aspect whenever the artwork has viewport padding
          (round flower in a 1.15:1 viewBox rendered PRESSED). Scale by the
          viewport and offset the content by its position inside it. */
-      var vbX4 = obj._ldViewBox.x || 0, vbY4 = obj._ldViewBox.y || 0;
       var scX4 = w / vbW, scY4 = h / vbH;
-      var offX4 = el.flipH ? (vbX4 + vbW - (obj.left + bw)) : (obj.left - vbX4);
-      var offY4 = el.flipV ? (vbY4 + vbH - (obj.top + bh)) : (obj.top - vbY4);
+      var offX4 = el.flipH ? (vbW - (obj.left + bw)) : obj.left;
+      var offY4 = el.flipV ? (vbH - (obj.top + bh)) : obj.top;
       var gL4 = left + offX4 * scX4, gT4 = top + offY4 * scY4;
       obj.set({ left: gL4, top: gT4, angle: el.rot || 0, scaleX: scX4, scaleY: scY4, flipX: !!el.flipH, flipY: !!el.flipV, irId: el.id, irOrigin: el.origin, svgText: el.svgText, perPixelTargetFind: true, opacity: el.opacity == null ? 1 : el.opacity });
       if (el.rot) {
