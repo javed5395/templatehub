@@ -12123,6 +12123,76 @@ function ldResumablePut(sessionUri, file, ct, onProgress) {
     xhr.send(file);
   });
 }
+/* Little "Loading design… NN%" pill for the (large) IR download. */
+function ldDownloadProgress(frac) {
+  var el = document.getElementById('ld-dl-prog');
+  if (frac == null) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'ld-dl-prog';
+    el.style.cssText = 'position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:99999;background:#0F172A;color:#fff;padding:10px 16px;border-radius:10px;font:600 13px "DM Sans",sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.3);min-width:210px;text-align:center;';
+    document.body.appendChild(el);
+  }
+  var pct = Math.max(0, Math.min(100, Math.round(frac * 100)));
+  el.innerHTML = 'Loading design… ' + pct + '%' +
+    '<div style="height:5px;background:rgba(255,255,255,.2);border-radius:3px;margin-top:7px;overflow:hidden;">' +
+    '<div style="height:100%;width:' + pct + '%;background:#7C3AED;transition:width .2s;"></div></div>';
+}
+
+/* Plain download of a (possibly large) JSON, streamed so we can show progress.
+   Always assembles the WHOLE body before decoding+parsing — byte-exact, no
+   partial-parse risk. This is the safe fallback for ldFetchLargeJson. */
+async function ldFetchPlainJson(url, onProgress, total) {
+  var r = await fetch(url);
+  if (!r.ok && r.status !== 206) throw new Error('Could not fetch the parsed deck (' + r.status + ').');
+  if (!total) total = parseInt(r.headers.get('Content-Length') || '0', 10) || 0;
+  if (r.body && r.body.getReader) {
+    var reader = r.body.getReader(), chunks = [], received = 0;
+    while (true) {
+      var rd = await reader.read();
+      if (rd.done) break;
+      chunks.push(rd.value); received += rd.value.length;
+      if (onProgress && total) onProgress(received / total);
+    }
+    var all = new Uint8Array(received), off = 0;
+    for (var i = 0; i < chunks.length; i++) { all.set(chunks[i], off); off += chunks[i].length; }
+    var txt = new TextDecoder('utf-8').decode(all);
+    return { text: txt, json: JSON.parse(txt) };
+  }
+  var t = await r.text();
+  return { text: t, json: JSON.parse(t) };
+}
+
+/* Fetch a large JSON as fast as the link allows. Storage often throttles a
+   SINGLE connection, so we pull the file in several parallel byte-ranges and
+   stitch them back together (download-manager trick). ANY problem — no
+   Content-Length, no range support, a failed part, a bad stitch — falls back
+   to a plain single download, so an import can never break because of this. */
+async function ldFetchLargeJson(url, onProgress) {
+  var total = 0;
+  try {
+    var head = await fetch(url, { method: 'HEAD' });
+    if (head && head.ok) total = parseInt(head.headers.get('Content-Length') || '0', 10) || 0;
+  } catch (e) { /* HEAD blocked — fall through to plain */ }
+  if (!total || total < 8 * 1024 * 1024) return await ldFetchPlainJson(url, onProgress, total);
+  try {
+    var PARTS = 6, partSize = Math.ceil(total / PARTS), parts = new Array(PARTS), done = 0;
+    await Promise.all(Array.from({ length: PARTS }, function (_u, k) {
+      var start = k * partSize, end = Math.min(total - 1, start + partSize - 1);
+      if (start > end) { parts[k] = new Uint8Array(0); return Promise.resolve(); }
+      return fetch(url, { headers: { Range: 'bytes=' + start + '-' + end } })
+        .then(function (rp) { if (!rp.ok && rp.status !== 206) throw new Error('range ' + rp.status); return rp.arrayBuffer(); })
+        .then(function (buf) { parts[k] = new Uint8Array(buf); done += parts[k].length; if (onProgress) onProgress(done / total); });
+    }));
+    var all = new Uint8Array(total);
+    for (var k = 0; k < PARTS; k++) { all.set(parts[k], k * partSize); }
+    var txt = new TextDecoder('utf-8').decode(all);
+    return { text: txt, json: JSON.parse(txt) };   /* if this throws, the catch retries plain */
+  } catch (e) {
+    return await ldFetchPlainJson(url, onProgress, total);
+  }
+}
+
 async function ldParseByPath(gcsPath) {
   await _ldAuthWait();
   var _t = (window.performance && performance.now) ? performance.now() : 0;
@@ -12141,14 +12211,11 @@ async function ldParseByPath(gcsPath) {
      GET/HEAD). Small/normal decks still return the IR inline, unchanged. */
   if (j && j.big === true && j.irUrl) {
     showToast('Finishing up…');
-    var br = await fetch(j.irUrl);
-    _m('IR downloaded from Storage');
-    if (!br.ok) throw new Error('Could not fetch the parsed deck (' + br.status + ').');
-    var _txt = await br.text();
-    _m('IR body read (' + Math.round(_txt.length / 1024) + ' KB)');
-    var _ir = JSON.parse(_txt);
-    _m('IR JSON parsed');
-    return _ir;
+    ldDownloadProgress(0);
+    var _res = await ldFetchLargeJson(j.irUrl, function (frac) { ldDownloadProgress(frac); });
+    ldDownloadProgress(null);
+    _m('IR downloaded + parsed (' + Math.round(((_res && _res.text) ? _res.text.length : 0) / 1024) + ' KB)');
+    return _res.json;
   }
   return j;
 }
