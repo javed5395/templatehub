@@ -12091,6 +12091,8 @@ async function handlePPTXUpload(input) {
   if (typeof JSZip === 'undefined') { alert('JSZip library failed to load. Check internet connection and reload.'); return; }
   var file = input.files[0];
   input.value = '';
+  var _mb = file.size / 1048576;
+  if (_mb > 30) showToast('Large file (' + _mb.toFixed(0) + ' MB) — imports over ~32 MB may be rejected or slow to upload.', 8000);
   uploadBusy(true);
   showToast('Parsing PPTX…');
   try {
@@ -12106,15 +12108,29 @@ async function handlePPTXUpload(input) {
     }
 
     var _resp;
+    /* Stop the request hanging forever on a weak/mobile connection: abort it
+       after a ceiling and report clearly instead of spinning endlessly. */
+    var _ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var _timedOut = false;
+    var _to = _ctrl ? setTimeout(function () { _timedOut = true; _ctrl.abort(); }, 120000) : null;
     try {
       _resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
-        method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: _buf });
+        method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: _buf,
+        signal: _ctrl ? _ctrl.signal : undefined });
     } catch (netErr) {
-      /* fetch() only throws for network/CORS failures, never for HTTP errors */
+      /* fetch() only throws for network/CORS failures or an abort, never HTTP errors */
+      if (_timedOut || (netErr && netErr.name === 'AbortError')) {
+        throw new Error('Upload timed out — the file may be too large or your connection too slow. Try a smaller file or a stronger connection.');
+      }
       throw new Error('Could not reach the import service. Check your internet connection and try again.');
+    } finally {
+      if (_to) clearTimeout(_to);
     }
     if (_resp.status === 401 || _resp.status === 403) {
       throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
+    }
+    if (_resp.status === 413) {
+      throw new Error('This file is too large for the importer (over ~32 MB). Try compressing its images or splitting the deck into smaller files.');
     }
     if (!_resp.ok) throw new Error('Import service error (' + _resp.status + '). Please try again in a moment.');
     var deckIR = await _resp.json();
@@ -12192,7 +12208,7 @@ async function handlePPTXUpload(input) {
     console.error('PPTX import failed:', e);
     /* Our thrown messages are already user-friendly; only prefix the raw
        low-level ones (e.g. JSON parse) so the dialog still makes sense. */
-    var msg = /sign in|internet|import service|reach the import/i.test(e.message)
+    var msg = /sign in|internet|import service|reach the import|timed out|too large/i.test(e.message)
       ? e.message
       : 'Could not import this PowerPoint file: ' + e.message;
     alert(msg);
