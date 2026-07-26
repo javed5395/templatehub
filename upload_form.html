@@ -329,13 +329,14 @@
       <div class="row">
         <div class="field">
           <label>Category <span class="required">*</span></label>
-          <select id="category" onchange="updateSubCategories()">
+          <select id="category" onchange="updateSubCategories(); toggleBlogMode();">
             <option value="">Select category</option>
             <option value="pitch_deck">Pitch Deck</option>
             <option value="media_kit">Media Kit</option>
             <option value="web_kit">Website Kit</option>
             <option value="resume_cv">Resume / CV</option>
             <option value="digital_keynotes">Digital Keynotes</option>
+            <option value="blog">Blog</option>
           </select>
         </div>
         <div class="field" id="slideCountField">
@@ -371,22 +372,64 @@
           <label id="industryLabel">Industry <span class="required">*</span></label>
           <select id="industry">
             <option value="">Select industry</option>
-            <option value="tech">Tech & AI</option>
-            <option value="healthcare">Healthcare & Medical</option>
-            <option value="finance">Finance & Banking</option>
-            <option value="construction">Construction</option>
-            <option value="retail">Retail & E-commerce</option>
-            <option value="education">Education</option>
+            <option value="technology_ai">Technology &amp; AI</option>
+            <option value="software_saas">Software / SaaS</option>
+            <option value="cybersecurity">Cybersecurity</option>
+            <option value="gaming_esports">Gaming &amp; Esports</option>
+            <option value="consumer_electronics">Consumer Electronics</option>
+            <option value="healthcare">Healthcare &amp; Medical</option>
+            <option value="pharmaceuticals">Pharmaceuticals</option>
+            <option value="mental_health">Mental Health</option>
+            <option value="finance">Finance &amp; Banking</option>
+            <option value="fintech">FinTech</option>
+            <option value="insurance">Insurance</option>
+            <option value="crypto_blockchain">Cryptocurrency &amp; Blockchain</option>
             <option value="realestate">Real Estate</option>
-            <option value="fashion">Fashion & Beauty</option>
-            <option value="food">Food & Restaurant</option>
-            <option value="agriculture">Agriculture & Farming</option>
-            <option value="travel_hospitality">Travel & Hospitality</option>
-            <option value="sports_fitness">Sports & Fitness</option>
-            <option value="nonprofit">Non-profit / NGO</option>
-            <option value="legal_professional">Legal & Professional Services</option>
-            <option value="general">General / Business</option>
-            <option value="media_entertainment">Media & Entertainment</option>
+            <option value="construction">Construction</option>
+            <option value="architecture_interior">Architecture &amp; Interior Design</option>
+            <option value="retail">Retail</option>
+            <option value="ecommerce">E-commerce</option>
+            <option value="education">Education</option>
+            <option value="online_learning">Online Learning</option>
+            <option value="marketing_advertising">Marketing &amp; Advertising</option>
+            <option value="public_relations">Public Relations</option>
+            <option value="media_entertainment">Media &amp; Entertainment</option>
+            <option value="publishing">Publishing</option>
+            <option value="music">Music</option>
+            <option value="film_video">Film &amp; Video Production</option>
+            <option value="photography">Photography</option>
+            <option value="fashion">Fashion</option>
+            <option value="beauty_cosmetics">Beauty &amp; Cosmetics</option>
+            <option value="luxury_goods">Luxury Goods</option>
+            <option value="food_beverage">Food &amp; Beverage</option>
+            <option value="restaurants_cafes">Restaurants &amp; Cafes</option>
+            <option value="agriculture">Agriculture &amp; Farming</option>
+            <option value="travel_tourism">Travel &amp; Tourism</option>
+            <option value="hospitality">Hospitality</option>
+            <option value="sports">Sports</option>
+            <option value="fitness_wellness">Fitness &amp; Wellness</option>
+            <option value="automotive">Automotive</option>
+            <option value="transport_logistics">Transportation &amp; Logistics</option>
+            <option value="manufacturing">Manufacturing</option>
+            <option value="energy_utilities">Energy &amp; Utilities</option>
+            <option value="renewable_energy">Renewable Energy</option>
+            <option value="telecommunications">Telecommunications</option>
+            <option value="legal_services">Legal Services</option>
+            <option value="accounting_tax">Accounting &amp; Tax</option>
+            <option value="consulting">Consulting</option>
+            <option value="human_resources">Human Resources</option>
+            <option value="recruiting">Recruiting</option>
+            <option value="government">Government</option>
+            <option value="nonprofit">Non-Profit / NGO</option>
+            <option value="religion_community">Religion &amp; Community</option>
+            <option value="pets_animals">Pets &amp; Animals</option>
+            <option value="parenting_family">Parenting &amp; Family</option>
+            <option value="wedding_events">Wedding &amp; Events</option>
+            <option value="home_garden">Home &amp; Garden</option>
+            <option value="furniture_decor">Furniture &amp; Decor</option>
+            <option value="art_design">Art &amp; Design</option>
+            <option value="environmental">Environmental Services</option>
+            <option value="general">General Business</option>
             <option value="other">Other</option>
           </select>
         </div>
@@ -1913,6 +1956,15 @@ window.updateSubCategories = function() {
               annual_report:'Annual Report', course_deck:'Course / Training Deck',
               ugc_kit:'UGC Creator Kit', press_kit:'Press Kit', other:'Other' };
   }
+  // ── shared creator / business sub-categories (added to every category) ──
+  var COMMON_SUBCATS = {youtuber:'YouTuber', streamer:'Streamer', gamer:'Gamer', blogger:'Blogger', journalist:'Journalist', author_writer:'Author / Writer', public_speaker:'Public Speaker', coach_mentor:'Coach / Mentor', consultant:'Consultant', agency_biz:'Agency', startup_biz:'Startup', saas_company:'SaaS Company', ecommerce_brand:'E-commerce Brand', nonprofit_org:'Nonprofit Organization', educational_creator:'Educational Creator', course_creator:'Course Creator', newsletter_creator:'Newsletter Creator', community_manager:'Community Manager', music_producer:'Music Producer', dj:'DJ', band:'Band', actor:'Actor', model:'Model', artist_illustrator:'Artist / Illustrator', designer:'Designer', developer:'Developer', mobile_app:'Mobile App', podcast_network:'Podcast Network', event_organizer:'Event Organizer', restaurant:'Restaurant', hotel:'Hotel', real_estate_agent:'Real Estate Agent', real_estate_agency:'Real Estate Agency', fitness_coach:'Fitness Coach', gym:'Gym', healthcare_professional:'Healthcare Professional', photographer_studio:'Photographer Studio', wedding_professional:'Wedding Professional', content_creator:'Content Creator', small_business:'Small Business', enterprise_brand:'Enterprise Brand'};
+  if ('other' in opts) delete opts.other;
+  var existingLabels = Object.keys(opts).map(function(k){ return String(opts[k]).toLowerCase(); });
+  Object.keys(COMMON_SUBCATS).forEach(function(k){
+    var lab = COMMON_SUBCATS[k];
+    if (!(k in opts) && existingLabels.indexOf(lab.toLowerCase()) === -1) opts[k] = lab;
+  });
+  opts.other = 'Other';
   sel.innerHTML = '';
   Object.entries(opts).forEach(function(pair){
     var o = document.createElement('option');
@@ -2199,6 +2251,27 @@ function resetColour() {
   </div>
 </div>
 
+<script>
+/* Blog mode: a blog only needs one PDF, so hide all required-asterisks and
+   drop the 'required' flags across the form when the Blog category is picked. */
+function toggleBlogMode(){
+  var cat = document.getElementById('category');
+  if(!cat) return;
+  var isBlog = cat.value === 'blog';
+  document.querySelectorAll('.required').forEach(function(star){
+    star.style.display = isBlog ? 'none' : '';
+  });
+  document.querySelectorAll('input, select, textarea').forEach(function(el){
+    if(el.id === 'category') return;
+    if(isBlog){
+      if(el.hasAttribute('required')){ el.setAttribute('data-wasreq','1'); el.removeAttribute('required'); }
+    } else if(el.getAttribute('data-wasreq') === '1'){
+      el.setAttribute('required','required'); el.removeAttribute('data-wasreq');
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', toggleBlogMode);
+</script>
 <script src="footerbar.js"></script>
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
