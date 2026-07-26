@@ -180,7 +180,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
@@ -199,22 +199,29 @@
     return d.innerHTML;
   }
 
-  function cardHTML(id, p){
-    return '<a href="blog-post.html?post=' + encodeURIComponent(id) + '" class="blog-card">' +
+  function fmtDate(ts){
+    try { if (ts && ts.seconds) return new Date(ts.seconds*1000).toLocaleDateString('en-US',{month:'long', year:'numeric'}); } catch(e){}
+    return '';
+  }
+  function cardHTML(p){
+    // Blogs are uploaded as PDFs — the card opens the PDF directly in a new tab.
+    var url   = p.pdfUrl || p.designDocUrl || '#';
+    var title = p.title || (p.template && p.template.name) || 'Untitled';
+    return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" class="blog-card">' +
       '<div class="blog-card-thumb">' +
-        '<span class="blog-card-badge">' + escapeHtml(p.tag || 'Update') + '</span>' +
+        '<span class="blog-card-badge">' + escapeHtml(p.subCategory || 'Blog') + '</span>' +
         '<span class="blog-card-thumb-mark">LazyDogTemplates</span>' +
       '</div>' +
       '<div class="blog-card-body">' +
-        '<div class="blog-card-cat">' + escapeHtml(p.category || 'Behind the Build') + '</div>' +
-        '<div class="blog-card-title">' + escapeHtml(p.title || '') + '</div>' +
-        '<div class="blog-card-excerpt">' + escapeHtml(p.excerpt || '') + '</div>' +
+        '<div class="blog-card-cat">Behind the Build</div>' +
+        '<div class="blog-card-title">' + escapeHtml(title) + '</div>' +
+        '<div class="blog-card-excerpt">' + escapeHtml(p.description || '') + '</div>' +
         '<div class="blog-card-footer">' +
           '<div class="blog-card-author">' +
             '<div class="blog-card-avatar">LD</div>' +
-            '<div class="blog-card-author-name">' + escapeHtml(p.author || 'LazyDog Team') + '</div>' +
+            '<div class="blog-card-author-name">' + escapeHtml(p.sellerName || 'LazyDog Team') + '</div>' +
           '</div>' +
-          '<div class="blog-card-date">' + escapeHtml(p.date || '') + '</div>' +
+          '<div class="blog-card-date">' + escapeHtml(fmtDate(p.uploadedAt || p.createdAt)) + '</div>' +
         '</div>' +
       '</div>' +
     '</a>';
@@ -227,15 +234,25 @@
   (async function loadBlogGrid(){
     const dynamicSlot = document.getElementById('blogGridDynamic');
     try {
-      const q = query(collection(db, 'blog_posts'), orderBy('timestamp', 'desc'), limit(11));
+      // Blogs are uploaded through the upload form as PDFs → they live in the
+      // 'templates' collection with category 'blog'. Only APPROVED ones show.
+      // (Single equality filter keeps it index-free; we sort/filter in JS.)
+      const q = query(collection(db, 'templates'), where('category', '==', 'blog'), limit(50));
       const snap = await getDocs(q);
 
-      let html = '';
+      let items = [];
       snap.forEach(function(docSnap){
-        // Skip if this Firestore post is the same one already shown as the static card above.
-        if (docSnap.id === 'pitch-decks-first-launch') return;
-        html += cardHTML(docSnap.id, docSnap.data());
+        const x = docSnap.data();
+        if (x && x.status === 'approved') items.push(x);
       });
+      items.sort(function(a, b){
+        const sa = (a.uploadedAt && a.uploadedAt.seconds) || 0;
+        const sb = (b.uploadedAt && b.uploadedAt.seconds) || 0;
+        return sb - sa;
+      });
+
+      let html = '';
+      items.forEach(function(x){ html += cardHTML(x); });
       // Pad with placeholders so the grid never looks sparse.
       html += emptyCardHTML() + emptyCardHTML();
       dynamicSlot.outerHTML = html;
