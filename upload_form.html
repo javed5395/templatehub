@@ -329,14 +329,14 @@
       <div class="row">
         <div class="field">
           <label>Category <span class="required">*</span></label>
-          <select id="category" onchange="updateSubCategories(); toggleBlogMode();">
+          <select id="category" onchange="updateSubCategories()">
             <option value="">Select category</option>
             <option value="pitch_deck">Pitch Deck</option>
             <option value="media_kit">Media Kit</option>
             <option value="web_kit">Website Kit</option>
             <option value="resume_cv">Resume / CV</option>
             <option value="digital_keynotes">Digital Keynotes</option>
-            <option value="blog">Blog</option>
+            <option value="blog">Blogs</option>
           </select>
         </div>
         <div class="field" id="slideCountField">
@@ -372,64 +372,22 @@
           <label id="industryLabel">Industry <span class="required">*</span></label>
           <select id="industry">
             <option value="">Select industry</option>
-            <option value="technology_ai">Technology &amp; AI</option>
-            <option value="software_saas">Software / SaaS</option>
-            <option value="cybersecurity">Cybersecurity</option>
-            <option value="gaming_esports">Gaming &amp; Esports</option>
-            <option value="consumer_electronics">Consumer Electronics</option>
-            <option value="healthcare">Healthcare &amp; Medical</option>
-            <option value="pharmaceuticals">Pharmaceuticals</option>
-            <option value="mental_health">Mental Health</option>
-            <option value="finance">Finance &amp; Banking</option>
-            <option value="fintech">FinTech</option>
-            <option value="insurance">Insurance</option>
-            <option value="crypto_blockchain">Cryptocurrency &amp; Blockchain</option>
-            <option value="realestate">Real Estate</option>
+            <option value="tech">Tech & AI</option>
+            <option value="healthcare">Healthcare & Medical</option>
+            <option value="finance">Finance & Banking</option>
             <option value="construction">Construction</option>
-            <option value="architecture_interior">Architecture &amp; Interior Design</option>
-            <option value="retail">Retail</option>
-            <option value="ecommerce">E-commerce</option>
+            <option value="retail">Retail & E-commerce</option>
             <option value="education">Education</option>
-            <option value="online_learning">Online Learning</option>
-            <option value="marketing_advertising">Marketing &amp; Advertising</option>
-            <option value="public_relations">Public Relations</option>
-            <option value="media_entertainment">Media &amp; Entertainment</option>
-            <option value="publishing">Publishing</option>
-            <option value="music">Music</option>
-            <option value="film_video">Film &amp; Video Production</option>
-            <option value="photography">Photography</option>
-            <option value="fashion">Fashion</option>
-            <option value="beauty_cosmetics">Beauty &amp; Cosmetics</option>
-            <option value="luxury_goods">Luxury Goods</option>
-            <option value="food_beverage">Food &amp; Beverage</option>
-            <option value="restaurants_cafes">Restaurants &amp; Cafes</option>
-            <option value="agriculture">Agriculture &amp; Farming</option>
-            <option value="travel_tourism">Travel &amp; Tourism</option>
-            <option value="hospitality">Hospitality</option>
-            <option value="sports">Sports</option>
-            <option value="fitness_wellness">Fitness &amp; Wellness</option>
-            <option value="automotive">Automotive</option>
-            <option value="transport_logistics">Transportation &amp; Logistics</option>
-            <option value="manufacturing">Manufacturing</option>
-            <option value="energy_utilities">Energy &amp; Utilities</option>
-            <option value="renewable_energy">Renewable Energy</option>
-            <option value="telecommunications">Telecommunications</option>
-            <option value="legal_services">Legal Services</option>
-            <option value="accounting_tax">Accounting &amp; Tax</option>
-            <option value="consulting">Consulting</option>
-            <option value="human_resources">Human Resources</option>
-            <option value="recruiting">Recruiting</option>
-            <option value="government">Government</option>
-            <option value="nonprofit">Non-Profit / NGO</option>
-            <option value="religion_community">Religion &amp; Community</option>
-            <option value="pets_animals">Pets &amp; Animals</option>
-            <option value="parenting_family">Parenting &amp; Family</option>
-            <option value="wedding_events">Wedding &amp; Events</option>
-            <option value="home_garden">Home &amp; Garden</option>
-            <option value="furniture_decor">Furniture &amp; Decor</option>
-            <option value="art_design">Art &amp; Design</option>
-            <option value="environmental">Environmental Services</option>
-            <option value="general">General Business</option>
+            <option value="realestate">Real Estate</option>
+            <option value="fashion">Fashion & Beauty</option>
+            <option value="food">Food & Restaurant</option>
+            <option value="agriculture">Agriculture & Farming</option>
+            <option value="travel_hospitality">Travel & Hospitality</option>
+            <option value="sports_fitness">Sports & Fitness</option>
+            <option value="nonprofit">Non-profit / NGO</option>
+            <option value="legal_professional">Legal & Professional Services</option>
+            <option value="general">General / Business</option>
+            <option value="media_entertainment">Media & Entertainment</option>
             <option value="other">Other</option>
           </select>
         </div>
@@ -1317,14 +1275,8 @@ async function stripSection11FromPdf(file) {
       const isSec11 = (
         (text.includes('SECTION 11') && text.includes('SYSTEM METADATA')) ||
         text.includes('MACHINE-READABLE FILTER CODES') ||
-        text.includes('DESIGN_NAME') || // fallback — unique to our metadata block
-        // ── CONTINUATION-PAGE GUARD (25 Jul 2026, security fix) ─────────────
-        // The code block can SPILL onto the next page, which carries none of
-        // the header phrases (this exact leak shipped codes to a live kit).
-        // Detect a continuation page by the code rows themselves: 3+ field
-        // codes with values ("K3 : d3,e2" style) = metadata page, remove it.
-        ((text.match(/\b(DN|SL|AR|X7|K3|F4|Q2|W9|BG|T1|P5|P6|P7|M2|LG|J8|J9)\s*:/g) || []).length >= 3
-      ));
+        text.includes('DESIGN_NAME') // fallback — unique to our metadata block
+      );
       if (isSec11) sec11Pages.add(p - 1); // pdf-lib 0-indexed
     }
 
@@ -1466,16 +1418,17 @@ window.submitForm = async function() {
   // Collect editable apps checkboxes
   const editableApps = Array.from(document.querySelectorAll('input[name="editableApps"]:checked')).map(cb => cb.value);
 
-  if (category === 'blog') {
-    // A blog only needs a title and its one PDF — nothing else is required.
-    if (!templateName) { alert('Please enter a title for the blog.'); return; }
-    if (!pdfFile) { alert('Please upload the blog PDF file.'); return; }
-  } else if (category === 'resume_cv') {
+  if (category === 'resume_cv') {
     if (!templateName || !category) {
       alert('Please fill all required template fields!'); return;
     }
     if (!docType) { alert('Please select the Document Type (Resume, CV, Cover Letter, etc.)!'); return; }
     if (!pdfFile) { alert('Please upload the resume PDF!'); return; }
+  } else if (category === 'blog') {
+    if (!templateName || !category || !industry) {
+      alert('Please fill all required template fields!'); return;
+    }
+    if (!pdfFile) { alert('Please upload the blog PDF!'); return; }
   } else {
     if (!templateName || !category || !slideCount || !industry) {
       alert('Please fill all required template fields!'); return;
@@ -1543,18 +1496,12 @@ window.submitForm = async function() {
         const cleanPdf = await stripSection11FromPdf(pdfFile);
 
         const uploadPdf = await compressPdfIfNeeded(cleanPdf);
-        // ROUTING UNCHANGED (verified 25 Jul against Javed's 3-PDF system):
-        // this slot carries the IMAGE pdf (pptx slide pictures) → Cloudinary;
-        // the WRITTEN pdf + _SYSTEM pdf travel via the extra-format slots,
-        // which upload RAW to Google Drive. The slots ARE the routing.
-        // Small PDFs → Cloudinary (CORS-friendly, so the blog page can render pages
-        // inline). Big ones → Drive. Requires Cloudinary "Allow delivery of PDF" ON.
         if (uploadPdf.size <= CLOUDINARY_PDF_MAX) {
           setProgress(78, `Clean PDF (${(uploadPdf.size/1024/1024).toFixed(1)} MB) Cloudinary par upload ho rahi hai...`);
           const r = await uploadToCloudinary(uploadPdf, `${folder}/pdf`, 'auto');
           pdfUrl = r.url; pdfPublicId = r.publicId;
         } else {
-          setProgress(75, `Clean PDF Google Drive par ja rahi hai (${(uploadPdf.size/1024/1024).toFixed(1)} MB)...`);
+          setProgress(75, `Clean PDF badi hai — Google Drive par ja rahi hai (${(uploadPdf.size/1024/1024).toFixed(1)} MB)...`);
           pdfUrl         = await uploadDocToDrive(uploadPdf);
           pdfDriveFileId = extractDriveFileId(pdfUrl);
         }
@@ -1566,25 +1513,6 @@ window.submitForm = async function() {
         console.warn('[PDF] Clean-PDF step failed — skipping public PDF, continuing submit:', pdfErr);
         pdfUrl = null; pdfPublicId = null; pdfDriveFileId = null;
         setProgress(80, 'PDF skip (metadata safe) — baaki submission continue ho rahi hai...');
-      }
-    }
-
-    // 3b. SYSTEM PDF → Google Drive, UNSTRIPPED (Javed's architecture, 25 Jul).
-    // The ORIGINAL pdf — Section 11 intact — goes to PRIVATE Drive only.
-    // Buyers never see Drive files, so the leak stays sealed; the CLOUD engine
-    // pulls this copy, strips Section 11 server-side, encodes the meta codes,
-    // and punches them into Firestore kits. The metadata road to the cloud
-    // travels through THIS file, not through the browser.
-    let sysPdfFileId = null;
-    if (pdfFile) {
-      try {
-        setProgress(80, 'System PDF (metadata ke saath) private Drive par ja rahi hai...');
-        const sysUrl = await uploadDocToDrive(pdfFile);   // RAW original, Section 11 intact
-        sysPdfFileId = extractDriveFileId(sysUrl);
-        console.log('[SysPDF] private system copy on Drive:', sysPdfFileId);
-      } catch (sysErr) {
-        console.warn('[SysPDF] system-copy upload failed — engine will fall back to doc fields:', sysErr);
-        sysPdfFileId = null;
       }
     }
 
@@ -1622,37 +1550,19 @@ window.submitForm = async function() {
     // never uploaded raw.
     let designDocUrl = null; let designDocFileId = null;
     if (designDocFile) {
-      // ── JAVED'S TWO-PDF ARCHITECTURE (25 Jul night) ─────────────────────
-      // A _SYSTEM.pdf in this slot is the METADATA TRUCK — Section 11 must
-      // arrive in the cloud INTACT. It goes RAW to PRIVATE Drive, its id is
-      // saved ONLY in driveFileIds.sysPdf (server-side field), and its link
-      // is NEVER written to designDocUrl or any buyer-visible field. That
-      // seals the old leak by HIDING the truck, not by gutting it.
-      if (/_SYSTEM\.pdf$/i.test(designDocFile.name)) {
-        try {
-          setProgress(90, 'System PDF (meta codes intact) private Drive par ja rahi hai...');
-          const sysUrl2 = await uploadDocToDrive(designDocFile);   // RAW — Section 11 intact
-          sysPdfFileId  = extractDriveFileId(sysUrl2);             // overrides the main-pdf copy
-          console.log('[SysPDF] _SYSTEM pdf on private Drive:', sysPdfFileId);
-        } catch (sysErr2) {
-          console.warn('[SysPDF] _SYSTEM upload failed:', sysErr2);
+      try {
+        let docToUpload = designDocFile;
+        if (/\.pdf$/i.test(designDocFile.name)) {
+          setProgress(90, 'Design brief: Section 11 check/strip...');
+          docToUpload = await stripSection11FromPdf(designDocFile);
         }
-        // deliberately NOT setting designDocUrl/designDocFileId — invisible to buyers
-      } else {
-        try {
-          let docToUpload = designDocFile;
-          if (/\.pdf$/i.test(designDocFile.name)) {
-            setProgress(90, 'Design brief: Section 11 check/strip...');
-            docToUpload = await stripSection11FromPdf(designDocFile);
-          }
-          setProgress(91, 'Uploading design brief...');
-          designDocUrl    = await uploadDocToDrive(docToUpload);
-          designDocFileId = extractDriveFileId(designDocUrl);
-        } catch (docErr) {
-          console.warn('[DesignDoc] strip failed — skipping supporting doc, nothing raw uploaded:', docErr);
-          designDocUrl = null; designDocFileId = null;
-          setProgress(91, 'Design brief skip (metadata safe) — continuing...');
-        }
+        setProgress(91, 'Uploading design brief...');
+        designDocUrl    = await uploadDocToDrive(docToUpload);
+        designDocFileId = extractDriveFileId(designDocUrl);
+      } catch (docErr) {
+        console.warn('[DesignDoc] strip failed — skipping supporting doc, nothing raw uploaded:', docErr);
+        designDocUrl = null; designDocFileId = null;
+        setProgress(91, 'Design brief skip (metadata safe) — continuing...');
       }
     }
 
@@ -1733,7 +1643,6 @@ window.submitForm = async function() {
       driveFileIds: {
         pptx:       pptxFileId         || null,
         pdf:        pdfDriveFileId     || null,
-        sysPdf:     sysPdfFileId       || null,   // PRIVATE system PDF, Section 11 intact — the engine's metadata source
         key:        keyFileId          || null,
         designDoc:  designDocFileId    || null,
         extraFiles: extraFileIds
@@ -1962,15 +1871,6 @@ window.updateSubCategories = function() {
               annual_report:'Annual Report', course_deck:'Course / Training Deck',
               ugc_kit:'UGC Creator Kit', press_kit:'Press Kit', other:'Other' };
   }
-  // ── shared creator / business sub-categories (added to every category) ──
-  var COMMON_SUBCATS = {youtuber:'YouTuber', streamer:'Streamer', gamer:'Gamer', blogger:'Blogger', journalist:'Journalist', author_writer:'Author / Writer', public_speaker:'Public Speaker', coach_mentor:'Coach / Mentor', consultant:'Consultant', agency_biz:'Agency', startup_biz:'Startup', saas_company:'SaaS Company', ecommerce_brand:'E-commerce Brand', nonprofit_org:'Nonprofit Organization', educational_creator:'Educational Creator', course_creator:'Course Creator', newsletter_creator:'Newsletter Creator', community_manager:'Community Manager', music_producer:'Music Producer', dj:'DJ', band:'Band', actor:'Actor', model:'Model', artist_illustrator:'Artist / Illustrator', designer:'Designer', developer:'Developer', mobile_app:'Mobile App', podcast_network:'Podcast Network', event_organizer:'Event Organizer', restaurant:'Restaurant', hotel:'Hotel', real_estate_agent:'Real Estate Agent', real_estate_agency:'Real Estate Agency', fitness_coach:'Fitness Coach', gym:'Gym', healthcare_professional:'Healthcare Professional', photographer_studio:'Photographer Studio', wedding_professional:'Wedding Professional', content_creator:'Content Creator', small_business:'Small Business', enterprise_brand:'Enterprise Brand'};
-  if ('other' in opts) delete opts.other;
-  var existingLabels = Object.keys(opts).map(function(k){ return String(opts[k]).toLowerCase(); });
-  Object.keys(COMMON_SUBCATS).forEach(function(k){
-    var lab = COMMON_SUBCATS[k];
-    if (!(k in opts) && existingLabels.indexOf(lab.toLowerCase()) === -1) opts[k] = lab;
-  });
-  opts.other = 'Other';
   sel.innerHTML = '';
   Object.entries(opts).forEach(function(pair){
     var o = document.createElement('option');
@@ -1986,8 +1886,12 @@ window.updateSubCategories = function() {
 
 // ── CATEGORY-BASED REQUIRED FIELDS ─────────────────────────────────────────
 // Resume/CV only needs the PDF; PNG slides + slide count don't apply to a resume.
+// Blog is the same shape as Resume/CV: it's a single PDF file, so PNG slides
+// are not required and the asterisk on PNG Slides is removed so the blog
+// submission is never blocked waiting on a PNG upload.
 window.applyCategoryRequirements = function(cat) {
   var isResume = cat === 'resume_cv';
+  var isBlog   = cat === 'blog';
 
   var pngLabel   = document.getElementById('pngLabel');
   var pdfLabel   = document.getElementById('pdfLabel');
@@ -2001,6 +1905,13 @@ window.applyCategoryRequirements = function(cat) {
     pdfLabel.innerHTML = 'PDF <span class="required">*</span>';
     if (indLabel) indLabel.innerHTML = 'Industry <span style="color:var(--muted);font-weight:400;">(Optional)</span>';
     if (indInput) indInput.removeAttribute('required');
+    slideField.style.display = 'none';
+    slideInput.removeAttribute('required');
+  } else if (isBlog) {
+    pngLabel.innerHTML = 'PNG Slides <span style="color:var(--muted);font-weight:400;">(Optional)</span>';
+    pdfLabel.innerHTML = 'PDF <span class="required">*</span>';
+    if (indLabel) indLabel.innerHTML = 'Industry <span class="required">*</span>';
+    if (indInput) indInput.setAttribute('required', 'required');
     slideField.style.display = 'none';
     slideInput.removeAttribute('required');
   } else {
@@ -2257,27 +2168,6 @@ function resetColour() {
   </div>
 </div>
 
-<script>
-/* Blog mode: a blog only needs one PDF, so hide all required-asterisks and
-   drop the 'required' flags across the form when the Blog category is picked. */
-function toggleBlogMode(){
-  var cat = document.getElementById('category');
-  if(!cat) return;
-  var isBlog = cat.value === 'blog';
-  document.querySelectorAll('.required').forEach(function(star){
-    star.style.display = isBlog ? 'none' : '';
-  });
-  document.querySelectorAll('input, select, textarea').forEach(function(el){
-    if(el.id === 'category') return;
-    if(isBlog){
-      if(el.hasAttribute('required')){ el.setAttribute('data-wasreq','1'); el.removeAttribute('required'); }
-    } else if(el.getAttribute('data-wasreq') === '1'){
-      el.setAttribute('required','required'); el.removeAttribute('data-wasreq');
-    }
-  });
-}
-document.addEventListener('DOMContentLoaded', toggleBlogMode);
-</script>
 <script src="footerbar.js"></script>
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
