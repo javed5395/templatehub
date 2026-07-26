@@ -273,6 +273,7 @@ a { color: inherit; text-decoration: none; }
 .brand-mark svg { width: 100%; height: 100%; }
 .brand-name { font-family: var(--font-display); font-size: 19px; letter-spacing: -0.01em; }
 .brand-name b { font-weight: 400; }
+.brand-suffix { font-family: var(--font-display); font-weight: 400; letter-spacing: 0.06em; margin-left: 2px; }
 .nav-links {
   display: flex; align-items: center; gap: 4px;
   font-size: 13.5px;
@@ -1136,6 +1137,35 @@ footer {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .orb { animation: none; }
 }
+
+/* ── AUTH MODAL (ported from navbar.js / main.html) ── */
+.auth-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; backdrop-filter: blur(6px); align-items: center; justify-content: center; }
+.auth-overlay.open { display: flex; }
+.auth-modal { background: #0f1030; border: 1px solid rgba(212,175,55,0.2); border-radius: 24px; padding: 36px; width: 100%; max-width: 420px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); font-family: 'Poppins', sans-serif; position: relative; }
+body.light .auth-modal { background: #ffffff; border-color: rgba(0,0,0,0.1); }
+@keyframes modalIn { from{opacity:0;transform:scale(0.88) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);} }
+.auth-modal-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.08); border: none; color: #888; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.auth-modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
+body.light .auth-modal-close { background: rgba(0,0,0,0.06); }
+body.light .auth-modal-close:hover { background: rgba(0,0,0,0.1); color: #333; }
+.auth-modal h2 { font-size: 24px; font-weight: 900; margin-bottom: 6px; color: #fff; }
+body.light .auth-modal h2 { color: #1a1a2e; }
+.auth-modal p { font-size: 13px; color: #8899aa; margin-bottom: 28px; }
+.auth-tabs { display: flex; gap: 6px; margin-bottom: 24px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 4px; }
+body.light .auth-tabs { background: rgba(0,0,0,0.05); }
+.auth-tab { flex: 1; padding: 9px; border-radius: 9px; border: none; background: none; color: #8899aa; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: all 0.2s; }
+.auth-tab.active { background: linear-gradient(90deg, #5b7fff, #b464ff); color: #fff; }
+.auth-field { margin-bottom: 16px; }
+.auth-field label { display: block; font-size: 12px; font-weight: 600; color: #8899aa; margin-bottom: 6px; }
+body.light .auth-field label { color: #666; }
+.auth-field input { width: 100%; background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; color: #fff; font-size: 14px; font-family: 'Poppins', sans-serif; outline: none; transition: border-color 0.2s; }
+body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1); color: #1a1a2e; }
+.auth-field input:focus { border-color: #5b7fff; }
+.auth-error { color: #ff6666; font-size: 12px; margin-bottom: 14px; min-height: 18px; }
+.auth-submit { width: 100%; padding: 14px; border-radius: 14px; border: none; background: linear-gradient(135deg, #5b7fff, #b464ff); color: #fff; font-size: 15px; font-weight: 800; cursor: pointer; font-family: 'Poppins', sans-serif; transition: all 0.2s; box-shadow: 0 8px 24px rgba(91,127,255,0.35); }
+.auth-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(91,127,255,0.5); }
+.auth-name-field { display: none; }
+.auth-name-field.show { display: block; }
 </style>
 </head>
 <body>
@@ -1152,35 +1182,21 @@ footer {
 <!-- Navigation -->
 <nav class="nav" aria-label="Primary">
   <a href="#" class="brand">
-    <span class="brand-mark">
-      <svg viewBox="0 0 32 32" fill="none">
-        <defs>
-          <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#A78BFA"/>
-            <stop offset="50%" stop-color="#F472B6"/>
-            <stop offset="100%" stop-color="#FBBF24"/>
-          </linearGradient>
-        </defs>
-        <path d="M16 2 L28 9 L28 23 L16 30 L4 23 L4 9 Z" fill="url(#brandGrad)"/>
-        <path d="M16 8 L22 11.5 L22 18.5 L16 22 L10 18.5 L10 11.5 Z" fill="#0A0A0F" opacity="0.85"/>
-        <circle cx="16" cy="15" r="2" fill="url(#brandGrad)"/>
-      </svg>
-    </span>
-    <span class="brand-name">Lazy<b>Dog</b></span>
+    <span class="brand-name">Lazy<b>Dog</b> <span class="brand-suffix">Templates</span></span>
   </a>
   <div class="nav-links">
     <a href="#featured">Templates</a>
     <a href="#capabilities">Capabilities</a>
     <a href="#intelligence">Hexa Engine</a>
     <a href="#">Pricing</a>
-    <a href="#">Docs</a>
+    <a href="blog.html">Docs</a>
   </div>
   <div class="nav-actions">
     <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
       <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
       <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
     </button>
-    <a href="#" class="btn btn-ghost">Sign in</a>
+    <a href="#" class="btn btn-ghost" onclick="openAuth('signin');return false;">Sign in</a>
     <a href="main.html" class="btn btn-accent" title="Back to the LazyDog store">
       Main
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
@@ -1198,12 +1214,11 @@ footer {
     </div>
 
     <h1 class="hero-title reveal" data-delay="1">
-      <span class="line">Welcome to</span>
-      <span class="line"><span class="accent">Hexa</span> World</span>
+      <span class="line">Welcome to <span class="accent">Hexa</span></span>
     </h1>
 
     <p class="hero-sub reveal" data-delay="2">
-      Describe any presentation, media kit, website kit, keynote, or document.
+      Describe any presentation, media kit, or pitch deck.
       <b>Hexa finds, builds, edits, and prepares it for you.</b>
     </p>
 
@@ -1255,21 +1270,6 @@ footer {
             </button>
           </div>
 
-          <div class="examples-row">
-            <span class="examples-label">Try</span>
-            <button class="example-chip" data-tone="fashion" data-prompt="Luxury fashion media kit, black background, gold typography, 20 slides.">
-              <span class="dot"></span>Luxury fashion media kit · 20 slides
-            </button>
-            <button class="example-chip" data-tone="saas" data-prompt="SaaS investor pitch deck for seed funding.">
-              <span class="dot"></span>SaaS seed pitch deck
-            </button>
-            <button class="example-chip" data-tone="coffee" data-prompt="Coffee shop website kit with modern branding.">
-              <span class="dot"></span>Coffee shop website kit
-            </button>
-            <button class="example-chip" data-tone="report" data-prompt="Corporate annual report for shareholders.">
-              <span class="dot"></span>Corporate annual report
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1297,8 +1297,7 @@ footer {
   <div class="container">
     <div class="section-head reveal">
       <span class="eyebrow"><span class="dot"></span> Featured Examples</span>
-      <h2 class="section-title">Ten templates, <em>generated by Hexa</em>, ready to ship.</h2>
-      <p class="section-sub">Every card below was built from a single natural-language prompt — then refined, branded, and exported by Hexa. Tap any card to open it in the editor.</p>
+      <h2 class="section-title">Some templates, <em>made by Hexa</em>.</h2>
     </div>
 
     <div class="featured-grid" id="featuredGrid">
@@ -1362,7 +1361,7 @@ footer {
       <!-- 03 · Coffee Shop Website Kit -->
       <article class="feature-card reveal" data-delay="2">
         <div class="feature-preview">
-          <span class="feature-tag">Website Kit</span>
+          <span class="feature-tag">Media Kit</span>
           <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
             <defs>
               <linearGradient id="p3bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5E9D7"/><stop offset="100%" stop-color="#E8D5B7"/></linearGradient>
@@ -1392,7 +1391,7 @@ footer {
       <!-- 04 · Corporate Annual Report -->
       <article class="feature-card reveal" data-delay="2">
         <div class="feature-preview">
-          <span class="feature-tag">Annual Report</span>
+          <span class="feature-tag">Pitch Deck</span>
           <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
             <defs>
               <linearGradient id="p4bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#0F172A"/></linearGradient>
@@ -1428,7 +1427,7 @@ footer {
       <!-- 05 · Minimal Portfolio Keynote -->
       <article class="feature-card reveal" data-delay="3">
         <div class="feature-preview">
-          <span class="feature-tag">Keynote</span>
+          <span class="feature-tag">Pitch Deck</span>
           <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
             <defs>
               <linearGradient id="p5bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FAFAF7"/><stop offset="100%" stop-color="#EFEFE9"/></linearGradient>
@@ -1525,7 +1524,7 @@ footer {
       <!-- 08 · Restaurant Menu Kit -->
       <article class="feature-card reveal" data-delay="4">
         <div class="feature-preview">
-          <span class="feature-tag">Menu Kit</span>
+          <span class="feature-tag">Media Kit</span>
           <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
             <defs>
               <linearGradient id="p8bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7F1D1D"/><stop offset="100%" stop-color="#450A0A"/></linearGradient>
@@ -1560,7 +1559,7 @@ footer {
       <!-- 09 · Tech Startup Keynote -->
       <article class="feature-card reveal" data-delay="5">
         <div class="feature-preview">
-          <span class="feature-tag">Keynote</span>
+          <span class="feature-tag">Pitch Deck</span>
           <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
             <defs>
               <linearGradient id="p9bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0F0A1F"/><stop offset="100%" stop-color="#050211"/></linearGradient>
@@ -1599,7 +1598,7 @@ footer {
       <!-- 10 · Fashion Lookbook -->
       <article class="feature-card reveal" data-delay="5">
         <div class="feature-preview">
-          <span class="feature-tag">Lookbook</span>
+          <span class="feature-tag">Media Kit</span>
           <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
             <defs>
               <linearGradient id="p10bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FCE7F3"/><stop offset="100%" stop-color="#FBCFE8"/></linearGradient>
@@ -1634,7 +1633,7 @@ footer {
   <div class="container">
     <div class="section-head reveal">
       <span class="eyebrow"><span class="dot"></span> AI Capabilities</span>
-      <h2 class="section-title">One engine. <em>Eight creative surfaces.</em></h2>
+      <h2 class="section-title">One engine. <em>Six creative surfaces.</em></h2>
       <p class="section-sub">Hexa is not a single tool — it is a unified intelligence that operates across every format your team ships. From investor narratives to brand systems, the same engine understands your intent and outputs production-ready work.</p>
     </div>
 
@@ -1660,19 +1659,9 @@ footer {
         <p class="cap-desc">Press-ready media kits with brand story, leadership bios, logo lockups, fact sheet, and high-res image gallery — formatted for journalists and partners.</p>
       </div>
 
-      <!-- 03 · Build Website Kits -->
-      <div class="cap-card reveal" data-delay="2" style="--cap-grad: linear-gradient(135deg, #67E8F9 0%, #0891B2 100%)">
-        <span class="cap-num">03</span>
-        <div class="cap-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        </div>
-        <h3 class="cap-title">Build Website Kits</h3>
-        <p class="cap-desc">Complete multi-page website kits — landing, about, pricing, blog, contact — with responsive layouts, component library, and CMS-ready structure.</p>
-      </div>
-
-      <!-- 04 · Convert Canva ↔ PPTX -->
+      <!-- 03 · Convert Canva ↔ PPTX -->
       <div class="cap-card reveal" data-delay="2" style="--cap-grad: linear-gradient(135deg, #FBBF24 0%, #D97706 100%)">
-        <span class="cap-num">04</span>
+        <span class="cap-num">03</span>
         <div class="cap-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M16 21h5v-5"/><path d="M8 21H3v-5"/><path d="M21 21l-7-7"/><path d="M3 21l7-7"/></svg>
         </div>
@@ -1680,19 +1669,9 @@ footer {
         <p class="cap-desc">Lossless two-way conversion between Canva and PowerPoint. Fonts, gradients, animations, and master layouts survive the round trip — no rebuild required.</p>
       </div>
 
-      <!-- 05 · Create Keynotes -->
-      <div class="cap-card reveal" data-delay="3" style="--cap-grad: linear-gradient(135deg, #818CF8 0%, #4F46E5 100%)">
-        <span class="cap-num">05</span>
-        <div class="cap-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-        </div>
-        <h3 class="cap-title">Create Keynotes</h3>
-        <p class="cap-desc">Stage-quality keynote presentations with cinematic transitions, speaker notes, and timed builds — engineered for product launches and conference talks.</p>
-      </div>
-
-      <!-- 06 · Smart Template Search -->
+      <!-- 04 · Smart Template Search -->
       <div class="cap-card reveal" data-delay="3" style="--cap-grad: linear-gradient(135deg, #34D399 0%, #059669 100%)">
-        <span class="cap-num">06</span>
+        <span class="cap-num">04</span>
         <div class="cap-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
@@ -1700,9 +1679,9 @@ footer {
         <p class="cap-desc">Semantic search across 180k+ templates. Hexa understands intent, industry, and aesthetic — surfacing the three best matches before you finish typing.</p>
       </div>
 
-      <!-- 07 · Auto Fill Content -->
+      <!-- 05 · Auto Fill Content -->
       <div class="cap-card reveal" data-delay="4" style="--cap-grad: linear-gradient(135deg, #FB7185 0%, #E11D48 100%)">
-        <span class="cap-num">07</span>
+        <span class="cap-num">05</span>
         <div class="cap-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </div>
@@ -1710,9 +1689,9 @@ footer {
         <p class="cap-desc">Drop in a URL, brief, or spreadsheet. Hexa extracts key facts, writes slide copy, generates charts, and fills every placeholder with on-brand content.</p>
       </div>
 
-      <!-- 08 · Brand Consistency Engine -->
+      <!-- 06 · Brand Consistency Engine -->
       <div class="cap-card reveal" data-delay="4" style="--cap-grad: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)">
-        <span class="cap-num">08</span>
+        <span class="cap-num">06</span>
         <div class="cap-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
         </div>
@@ -1823,11 +1802,7 @@ footer {
 
       <div class="intel-footer">
         <div class="intel-stat">
-          <span class="v"><em>2.4s</em></span>
-          <span class="l">AVG END-TO-END LATENCY</span>
-        </div>
-        <div class="intel-stat">
-          <span class="v"><em>180k+</em></span>
+          <span class="v"><em>Many</em></span>
           <span class="l">TEMPLATES IN INDEX</span>
         </div>
         <div class="intel-stat">
@@ -1835,26 +1810,9 @@ footer {
           <span class="l">BRAND CONSISTENCY SCORE</span>
         </div>
         <div class="intel-stat">
-          <span class="v"><em>12</em></span>
+          <span class="v"><em>Many</em></span>
           <span class="l">EXPORT FORMATS SUPPORTED</span>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============== CTA ============== -->
-<section class="cta">
-  <div class="container">
-    <div class="cta-card reveal">
-      <h3>Step into <em>Hexa World.</em></h3>
-      <p>Stop browsing template marketplaces. Describe what you need — Hexa will find it, build it, edit it, and prepare it for export.</p>
-      <div class="cta-actions">
-        <a href="#hero" class="btn btn-accent">
-          Open Hexa Console
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
-        <a href="#intelligence" class="btn btn-ghost">See how it works</a>
       </div>
     </div>
   </div>
@@ -1868,13 +1826,6 @@ footer {
       <span class="brand-name" style="font-size:14px">Lazy<b>Dog</b></span>
       <span class="sep">·</span>
       <span>Hexa Intelligence v3.2</span>
-    </div>
-    <div class="footer-links">
-      <a href="#">Templates</a>
-      <a href="#">Hexa API</a>
-      <a href="#">Enterprise</a>
-      <a href="#">Changelog</a>
-      <a href="#">Privacy</a>
     </div>
     <div>© 2026 LazyDog Templates · Crafted with Hexa</div>
   </div>
@@ -2430,6 +2381,85 @@ footer {
   /* No welcome line, no mode lines (25 Jul, Javed): NOTHING appears above the
      prompt box until the user actually talks — the thread stays invisible. */
 })();
+</script>
+
+<!-- ── AUTH MODAL (sign in / sign up) — ported from navbar.js ── -->
+<div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuthModal()">
+  <div class="auth-modal">
+    <button class="auth-modal-close" onclick="closeAuthModal()">✕</button>
+    <h2 id="authTitle">Welcome Back</h2>
+    <p id="authSubtitle">Sign in to access your downloads</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabSignin" onclick="switchTab('signin')">Sign In</button>
+      <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div class="auth-name-field" id="nameField">
+      <div class="auth-field"><label>Your Name</label><input type="text" id="authName" placeholder="e.g. John Smith"/></div>
+    </div>
+    <div class="auth-field"><label>Email Address</label><input type="email" id="authEmail" placeholder="your@email.com"/></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="authPass" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')submitAuth()"/></div>
+    <div class="auth-error" id="authError"></div>
+    <button class="auth-submit" id="authSubmit" onclick="submitAuth()">Sign In</button>
+    <div style="text-align:center;margin-top:12px;"><span style="font-size:12px;color:#8899aa;cursor:pointer;" onclick="doForgotPassword()">Forgot password?</span></div>
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0;"><div style="flex:1;height:1px;background:rgba(255,255,255,0.1);"></div><span style="font-size:11px;color:#8899aa;">OR</span><div style="flex:1;height:1px;background:rgba(255,255,255,0.1);"></div></div>
+    <button onclick="doGoogleSignIn()" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;"> Continue with Google
+    </button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  window.doSignUp = async function() {
+    const name=document.getElementById('authName').value.trim(), email=document.getElementById('authEmail').value.trim(), pass=document.getElementById('authPass').value, err=document.getElementById('authError');
+    err.textContent='';
+    if(!name||!email||!pass){err.textContent='Please fill all fields.';return;}
+    if(pass.length<6){err.textContent='Password must be at least 6 characters.';return;}
+    try { const cred=await createUserWithEmailAndPassword(auth,email,pass); await updateProfile(cred.user,{displayName:name}); await cred.user.reload(); closeAuthModal(); } catch(e){err.textContent=e.message.replace('Firebase: ','').replace(/\(.*\)/,'');}
+  };
+  window.doSignIn = async function() {
+    const email=document.getElementById('authEmail').value.trim(), pass=document.getElementById('authPass').value, err=document.getElementById('authError');
+    err.textContent='';
+    if(!email||!pass){err.textContent='Please enter email and password.';return;}
+    try { await signInWithEmailAndPassword(auth,email,pass); closeAuthModal(); } catch(e){err.textContent='Invalid email or password.';}
+  };
+  window.doSignOut = async function() { await signOut(auth); };
+  window.doGoogleSignIn = async function() {
+    try { await signInWithPopup(auth,new GoogleAuthProvider()); closeAuthModal(); } catch(e){ var err=document.getElementById('authError'); if(err)err.textContent='Google sign-in failed. Try again.'; }
+  };
+  window.doForgotPassword = async function() {
+    const email=document.getElementById('authEmail').value.trim(), err=document.getElementById('authError');
+    if(!email){err.textContent='Enter your email address above first.';return;}
+    try { await sendPasswordResetEmail(auth,email); err.style.color='#50dc96'; err.textContent='Reset link sent! Check your email.'; setTimeout(()=>{err.style.color='';err.textContent='';},4000); } catch(e){err.textContent='Email not found. Check and try again.';}
+  };
+</script>
+
+<script>
+  window.openAuth = function(mode) {
+    window._authMode = mode||'signin';
+    document.getElementById('authOverlay').classList.add('open');
+    switchTab(window._authMode);
+    document.getElementById('authError').textContent='';
+    document.getElementById('authEmail').value='';
+    document.getElementById('authPass').value='';
+    document.getElementById('authName').value='';
+  };
+  window.closeAuthModal = function() { document.getElementById('authOverlay').classList.remove('open'); };
+  window.switchTab = function(mode) {
+    window._authMode = mode;
+    document.getElementById('tabSignin').classList.toggle('active', mode==='signin');
+    document.getElementById('tabSignup').classList.toggle('active', mode==='signup');
+    document.getElementById('nameField').classList.toggle('show', mode==='signup');
+    document.getElementById('authTitle').textContent = mode==='signin'?'Welcome Back':'Create Account';
+    document.getElementById('authSubtitle').textContent = mode==='signin'?'Sign in to access your downloads':'Join free — download unlimited templates';
+    document.getElementById('authSubmit').textContent = mode==='signin'?'Sign In':'Create Account';
+    document.getElementById('authError').textContent='';
+  };
+  window.submitAuth = function() { if(window._authMode==='signin') doSignIn(); else doSignUp(); };
 </script>
 </body>
 </html>
