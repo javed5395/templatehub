@@ -2109,6 +2109,23 @@ body.show-ruler .canvas-area::after {
 /* icon-only ribbon buttons (Bigger / Smaller / Bold / Italic) */
 .rb-btn.icon-only { padding: 5px 8px; }
 .rb-btn.icon-only .material-icons-outlined { font-size: 19px; }
+/* WordArt style gallery */
+.ld-wa-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-width: 224px; }
+.ld-wa-item { display: flex; align-items: center; justify-content: center; height: 46px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-surface); cursor: pointer; overflow: hidden; }
+.ld-wa-item:hover { border-color: var(--accent); background: var(--bg-hover); }
+.ld-wa-A { font-family: 'DM Sans', sans-serif; font-weight: 800; font-size: 27px; line-height: 1; }
+/* Theme fonts heading/body toggle */
+.ld-pop-toggle { display: flex; gap: 4px; padding: 0 2px 6px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.ld-tog { flex: 1; padding: 6px 8px; font-size: 11.5px; font-weight: 600; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ld-tog.on { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
+/* Theme colours dropdown swatches */
+.ld-theme-item { gap: 8px; }
+.ld-theme-item .th-sw { width: 46px; height: 22px; flex: 0 0 auto; }
+.ld-theme-name { font-size: 13px; }
+/* Save-theme inline name box */
+.ld-pop-actions { display: flex; justify-content: flex-end; padding: 2px 2px 0; }
+.ld-pop-save { padding: 7px 16px; font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 6px; cursor: pointer; }
+.ld-pop-save:hover { background: var(--accent-hover); }
 </style>
 </head>
 <body>
@@ -4769,6 +4786,7 @@ var RIBBON = [
     { name:'Text', items:[
       ['font_download','Font','font-family','sw'],
       ['format_size','Size','font-size','sm'],
+      ['auto_awesome','WordArt','wordart','sw'],
       ['text_increase','','font-up','sm','Bigger'],
       ['text_decrease','','font-down','sm','Smaller'],
       ['format_bold','','bold','sm','Bold'],
@@ -5018,6 +5036,7 @@ function ribbonRun(key) {
     case 'font-size':     rbFontSizePicker(); return;
     case 'font-up':       rbFontStep(1); return;
     case 'font-down':     rbFontStep(-1); return;
+    case 'wordart':       rbWordArt(); return;
     case 'strike':        rbTextStyle('strike'); return;
     case 'clear-format':  rbClearFormatting(); return;
     case 'highlight':     rbHighlight(); return;
@@ -6185,6 +6204,73 @@ function attachPopDismiss(pop) {
     document.addEventListener('keydown', onKey);
   }, 0);
 }
+
+/* ── WordArt: preset text styles (gradient/solid fill + outline + shadow).
+   These map onto the SAME fabric props the renderer already produces for
+   run-level WordArt (stroke + paintFirst, fabric.Shadow, gradient fill), so
+   they render live, export to image, and round-trip through the brain. Fabric
+   serialises stroke/strokeWidth/fill/shadow/paintFirst by default, so they
+   also survive save/reload with no schema change. No 3-D (brain lacks it). */
+var WORDART_PRESETS = [
+  { id:'plain',   name:'Plain',   fill:null,                                              stroke:null,                          shadow:null },
+  { id:'accent',  name:'Fill',    fill:{ type:'solid', color:'#7C3AED' },                 stroke:null,                          shadow:null },
+  { id:'grape',   name:'Grape',   fill:{ type:'grad', stops:['#7C3AED','#EC4899'], dir:'h' }, stroke:null,                      shadow:null },
+  { id:'gold',    name:'Gold',    fill:{ type:'grad', stops:['#B45309','#FDE68A'], dir:'v' }, stroke:null,                      shadow:null },
+  { id:'fire',    name:'Fire',    fill:{ type:'grad', stops:['#F97316','#DC2626'], dir:'h' }, stroke:null,                      shadow:null },
+  { id:'ocean',   name:'Ocean',   fill:{ type:'grad', stops:['#2563EB','#06B6D4'], dir:'h' }, stroke:null,                      shadow:null },
+  { id:'outline', name:'Outline', fill:{ type:'solid', color:'#FFFFFF' },                 stroke:{ color:'#1B1B1B', ratio:0.045 }, shadow:null },
+  { id:'edge',    name:'Edge',    fill:{ type:'solid', color:'#FFFFFF' },                 stroke:{ color:'#7C3AED', ratio:0.045 }, shadow:null },
+  { id:'shadow',  name:'Shadow',  fill:{ type:'solid', color:'#7C3AED' },                 stroke:null,                          shadow:{ color:'rgba(0,0,0,.38)', blurR:0.05, dxR:0.05, dyR:0.05 } },
+  { id:'lifted',  name:'Lifted',  fill:{ type:'solid', color:'#FFFFFF' },                 stroke:null,                          shadow:{ color:'rgba(0,0,0,.45)', blurR:0.09, dxR:0.02, dyR:0.06 } },
+  { id:'neon',    name:'Neon',    fill:{ type:'solid', color:'#22D3EE' },                 stroke:null,                          shadow:{ color:'#22D3EE', blurR:0.18, dxR:0, dyR:0 } },
+  { id:'pop',     name:'Pop',     fill:{ type:'solid', color:'#FDE047' },                 stroke:{ color:'#1B1B1B', ratio:0.05 }, shadow:{ color:'rgba(0,0,0,.4)', blurR:0.02, dxR:0.05, dyR:0.06 } }
+];
+function _waGradCoords(dir, w, h) { return dir === 'v' ? { x1:0, y1:0, x2:0, y2:h } : { x1:0, y1:0, x2:w, y2:0 }; }
+function applyWordArt(o, p) {
+  if (!o || !p) return;
+  var fs = o.fontSize || 40;
+  if (p.fill) {
+    if (p.fill.type === 'grad') {
+      var w = o.width || 200, h = o.height || fs, stops = p.fill.stops;
+      o.set('fill', new fabric.Gradient({ type:'linear', gradientUnits:'pixels',
+        coords: _waGradCoords(p.fill.dir, w, h),
+        colorStops: stops.map(function (c, i) { return { offset: i / (stops.length - 1), color: c }; }) }));
+    } else { o.set('fill', p.fill.color); }
+  }
+  if (p.stroke) { o.set({ stroke: p.stroke.color, strokeWidth: Math.max(1, fs * p.stroke.ratio), paintFirst: 'stroke', strokeLineJoin: 'round' }); }
+  else { o.set({ stroke: '', strokeWidth: 0 }); }
+  if (p.shadow) { o.set('shadow', new fabric.Shadow({ color: p.shadow.color, blur: Math.round(fs * p.shadow.blurR), offsetX: Math.round(fs * p.shadow.dxR), offsetY: Math.round(fs * p.shadow.dyR) })); }
+  else { o.set('shadow', null); }
+  o.dirty = true; fc.renderAll(); saveState();
+}
+function _waThumbStyle(p) {
+  var s = '';
+  if (p.fill && p.fill.type === 'grad') { s += 'background:linear-gradient(' + (p.fill.dir === 'v' ? 'to bottom' : 'to right') + ',' + p.fill.stops.join(',') + ');-webkit-background-clip:text;background-clip:text;color:transparent;'; }
+  else if (p.fill) { s += 'color:' + p.fill.color + ';'; }
+  else { s += 'color:#0F172A;'; }
+  if (p.stroke) { s += '-webkit-text-stroke:1.3px ' + p.stroke.color + ';'; }
+  if (p.shadow) { s += 'text-shadow:' + (p.shadow.dxR * 30).toFixed(1) + 'px ' + (p.shadow.dyR * 30).toFixed(1) + 'px ' + (p.shadow.blurR * 30 + 1).toFixed(1) + 'px ' + p.shadow.color + ';'; }
+  return s;
+}
+function rbWordArt() {
+  var o = rbText();
+  if (!rbNeed(o, 'Select a text box first')) return;
+  var ex = document.getElementById('ld-wa-pop'); if (ex) { ex.remove(); return; }
+  var anchor = document.querySelector('[data-rb="wordart"]');
+  var pop = document.createElement('div');
+  pop.id = 'ld-wa-pop'; pop.className = 'ld-pop';
+  pop.innerHTML = '<div class="ld-pop-head">WordArt styles</div><div class="ld-wa-grid">' +
+    WORDART_PRESETS.map(function (p, i) {
+      return '<button class="ld-wa-item" data-wa="' + i + '" title="' + p.name + '" type="button"><span class="ld-wa-A" style="' + _waThumbStyle(p) + '">A</span></button>';
+    }).join('') + '</div>';
+  document.body.appendChild(pop);
+  positionPop(pop, anchor);
+  pop.addEventListener('click', function (e) {
+    var it = e.target.closest('[data-wa]');
+    if (it) { applyWordArt(rbText(), WORDART_PRESETS[parseInt(it.dataset.wa, 10)]); showToast('WordArt applied'); }
+  });
+  attachPopDismiss(pop);
+}
 function rbTextStyle(prop) {
   var o = rbText();
   if (!rbNeed(o, 'Select a text box first')) return;
@@ -6412,52 +6498,186 @@ function rbUnlockAll() {
 }
 
 /* ── Design ── */
+/* Save current colours+fonts as a reusable named theme (it then shows up in
+   the Themes panel). Clean inline name box instead of a browser prompt. */
 function rbSaveTheme() {
+  var ex = document.getElementById('ld-savetheme-pop'); if (ex) { ex.remove(); return; }
+  var anchor = document.querySelector('[data-rb="theme-save"]');
   var th = themeCurrent();
-  var name = prompt('Save this theme as:', th.name === 'Custom' ? 'My theme' : th.name);
-  if (!name) return;
-  var saved = iconStore('ld_saved_themes', []);
-  var rec = JSON.parse(JSON.stringify(th));
-  rec.id = 'saved-' + Date.now();
-  rec.name = name.trim();
-  saved.unshift(rec);
-  iconSave('ld_saved_themes', saved.slice(0, 12));
-  /* make it selectable straight away */
-  THEME_PRESETS.unshift(rec);
-  themeRefresh();
-  showToast('Theme “' + rec.name + '” saved');
-}
-function rbThemeAccent() {
-  var th = themeCurrent();
-  var c = prompt('Theme accent colour (hex):', th.accent);
-  if (!c || !/^#[0-9A-Fa-f]{6}$/.test(c.trim())) { if (c) showToast('Use a 6-digit hex'); return; }
-  th.accent = c.trim().toUpperCase(); th.id = 'custom'; th.name = 'Custom';
-  themeApply(null);
-}
-function rbThemeFont() {
-  var th = themeCurrent();
-  var n = prompt('Heading font for the whole deck:', th.hFont);
-  if (!n) return;
-  var b = prompt('Body font:', th.bFont);
-  th.hFont = n.trim(); if (b) th.bFont = b.trim();
-  th.id = 'custom'; th.name = 'Custom';
-  themeApply(null);
-}
-function rbPageSize() {
-  var pick = prompt('Page size:\n1 = 16:9 widescreen\n2 = 4:3 standard\n3 = A4 landscape\n4 = Square', '1');
-  var map = { '1':[12192000,6858000], '2':[9144000,6858000],
-              '3':[10692130,7560310], '4':[9144000,9144000] };
-  var r = map[String(pick || '').trim()];
-  if (!r) return;
-  if (typeof setSlideAspect === 'function') { setSlideAspect(r[0], r[1]); showToast('Page size changed'); }
-}
-function rbOrientation() {
-  var d = window._deckIR && window._deckIR.size;
-  var w = d ? d.w : 12192000, h = d ? d.h : 6858000;
-  if (typeof setSlideAspect === 'function') {
-    setSlideAspect(h, w);
-    showToast(h > w ? 'Landscape' : 'Portrait');
+  var pop = document.createElement('div');
+  pop.id = 'ld-savetheme-pop'; pop.className = 'ld-pop';
+  pop.innerHTML =
+    '<div class="ld-pop-head">Save this theme</div>' +
+    '<div class="ld-pop-search"><input type="text" id="ld-theme-name" placeholder="Theme name…" autocomplete="off" value="' +
+      (th.name === 'Custom' ? 'My theme' : (th.name || 'My theme')) + '"></div>' +
+    '<div class="ld-pop-actions"><button class="ld-pop-save" type="button">Save</button></div>';
+  document.body.appendChild(pop);
+  positionPop(pop, anchor);
+  var input = pop.querySelector('#ld-theme-name');
+  function save() {
+    var name = (input.value || '').trim(); if (!name) { input.focus(); return; }
+    var saved = iconStore('ld_saved_themes', []);
+    var rec = JSON.parse(JSON.stringify(themeCurrent()));
+    rec.id = 'saved-' + Date.now(); rec.name = name;
+    saved.unshift(rec); iconSave('ld_saved_themes', saved.slice(0, 12));
+    THEME_PRESETS.unshift(rec); themeRefresh();
+    showToast('Theme “' + name + '” saved — find it under Themes');
+    if (pop.parentNode) pop.remove();
   }
+  pop.querySelector('.ld-pop-save').addEventListener('click', save);
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') save(); });
+  attachPopDismiss(pop);
+  setTimeout(function () { try { input.focus(); input.select(); } catch (e) {} }, 30);
+}
+/* Theme colours → dropdown of preset palettes (Clean, Midnight, …). */
+function rbThemeAccent() {
+  var ex = document.getElementById('ld-theme-pop'); if (ex) { ex.remove(); return; }
+  var anchor = document.querySelector('[data-rb="theme-accent"]');
+  var cur = themeCurrent();
+  var pop = document.createElement('div');
+  pop.id = 'ld-theme-pop'; pop.className = 'ld-pop ld-pop-scroll';
+  pop.innerHTML = '<div class="ld-pop-head">Theme colours</div><div class="ld-pop-list">' +
+    THEME_PRESETS.map(function (t) {
+      var on = cur && cur.id === t.id;
+      return '<button class="ld-pop-item ld-theme-item' + (on ? ' on' : '') + '" data-theme="' + t.id + '" type="button">' +
+        themeSwatch(t) + '<span class="ld-theme-name">' + t.name + '</span></button>';
+    }).join('') + '</div>';
+  document.body.appendChild(pop);
+  positionPop(pop, anchor);
+  pop.addEventListener('click', function (e) {
+    var it = e.target.closest('[data-theme]');
+    if (it) { themeApply(it.getAttribute('data-theme')); if (pop.parentNode) pop.remove(); }
+  });
+  attachPopDismiss(pop);
+}
+/* Theme fonts → pick heading & body font from the full searchable font list. */
+function rbThemeFont() {
+  var ex = document.getElementById('ld-themefont-pop'); if (ex) { ex.remove(); return; }
+  var anchor = document.querySelector('[data-rb="theme-fonts"]');
+  var all = (window.ldAllFonts || []).map(function (f) { return f.name; });
+  if (!all.length) all = ['DM Sans','Arial','Georgia','Montserrat','Playfair Display','Roboto','Oswald','Lato','Poppins'];
+  var role = 'heading', CAP = 140;
+  var pop = document.createElement('div');
+  pop.id = 'ld-themefont-pop'; pop.className = 'ld-pop ld-pop-scroll';
+  function apply(name) {
+    var th = themeCurrent();
+    if (role === 'heading') th.hFont = name; else th.bFont = name;
+    th.id = 'custom'; th.name = 'Custom';
+    themeApply(null);
+    render();
+  }
+  function listHtml(q) {
+    q = (q || '').trim().toLowerCase();
+    var th = themeCurrent();
+    var cf = ((role === 'heading' ? th.hFont : th.bFont) || '').toLowerCase();
+    var matches = q ? all.filter(function (n) { return n.toLowerCase().indexOf(q) > -1; }) : all;
+    var html = matches.slice(0, CAP).map(function (n) {
+      var on = n.toLowerCase() === cf;
+      return '<button class="ld-pop-item' + (on ? ' on' : '') + '" data-tfont="' + n.replace(/"/g, '&quot;') +
+        '" type="button" style="font-family:\'' + n.replace(/'/g, '') + '\',sans-serif">' +
+        '<span class="material-icons-outlined">' + (on ? 'check' : '') + '</span><span class="ld-font-name">' + n + '</span></button>';
+    }).join('');
+    if (matches.length > CAP) html += '<div class="ld-pop-more">+' + (matches.length - CAP) + ' more — keep typing…</div>';
+    return html;
+  }
+  function render() {
+    var th = themeCurrent();
+    pop.innerHTML =
+      '<div class="ld-pop-head">Theme fonts</div>' +
+      '<div class="ld-pop-toggle">' +
+        '<button class="ld-tog' + (role === 'heading' ? ' on' : '') + '" data-role="heading" type="button">Heading · ' + (th.hFont || '—') + '</button>' +
+        '<button class="ld-tog' + (role === 'body' ? ' on' : '') + '" data-role="body" type="button">Body · ' + (th.bFont || '—') + '</button>' +
+      '</div>' +
+      '<div class="ld-pop-search"><input type="text" id="ld-tf-q" placeholder="Search fonts…" autocomplete="off"></div>' +
+      '<div class="ld-pop-list" id="ld-tf-list">' + listHtml('') + '</div>';
+    var q = pop.querySelector('#ld-tf-q'), listEl = pop.querySelector('#ld-tf-list');
+    q.addEventListener('input', function () { listEl.innerHTML = listHtml(q.value); });
+  }
+  render();
+  document.body.appendChild(pop);
+  positionPop(pop, anchor);
+  pop.addEventListener('click', function (e) {
+    var rl = e.target.closest('[data-role]');
+    if (rl) { role = rl.getAttribute('data-role'); render(); return; }
+    var it = e.target.closest('[data-tfont]');
+    if (it) { apply(it.getAttribute('data-tfont')); }
+  });
+  attachPopDismiss(pop);
+}
+/* Shared: change page size / orientation, then REDRAW the slide so it never
+   blanks. Import does setSlideAspect + loadPageIntoCanvas; these used to call
+   setSlideAspect alone, which is why the slide vanished. */
+function applyAspect(w, h, label) {
+  if (typeof setSlideAspect !== 'function' || !fc) return;
+  if (typeof captureCurrentPage === 'function') captureCurrentPage();
+  setSlideAspect(w, h);
+  if (window._deckIR && window._deckIR.size) { window._deckIR.size.w = w; window._deckIR.size.h = h; }
+  function done() {
+    if (typeof rbFitWidth === 'function') rbFitWidth();
+    if (typeof renderPageThumbs === 'function') renderPageThumbs();
+    if (label) showToast(label);
+  }
+  var r = loadPageIntoCanvas(state.currentPage);
+  if (r && r.then) r.then(done); else done();
+}
+function _curSizeEMU() {
+  var d = window._deckIR && window._deckIR.size;
+  if (d && d.w && d.h) return { w: d.w, h: d.h };
+  var bw = fc && fc._baseWidth ? fc._baseWidth : 960;
+  var bh = fc && fc._baseHeight ? fc._baseHeight : 540;
+  return { w: Math.round(bw * 12700), h: Math.round(bh * 12700) };
+}
+/* Page size → dropdown of standard sizes. */
+function rbPageSize() {
+  var ex = document.getElementById('ld-pagesize-pop'); if (ex) { ex.remove(); return; }
+  var anchor = document.querySelector('[data-rb="page-size"]');
+  var opts = [
+    ['16:9 Widescreen', 12192000, 6858000],
+    ['4:3 Standard', 9144000, 6858000],
+    ['A4 Landscape', 10692130, 7560310],
+    ['Square 1:1', 9144000, 9144000],
+    ['16:10', 12192000, 7620000]
+  ];
+  var pop = document.createElement('div');
+  pop.id = 'ld-pagesize-pop'; pop.className = 'ld-pop';
+  pop.innerHTML = '<div class="ld-pop-head">Page size</div>' +
+    opts.map(function (o) {
+      return '<button class="ld-pop-item" data-w="' + o[1] + '" data-h="' + o[2] + '" type="button">' +
+        '<span class="material-icons-outlined">aspect_ratio</span>' + o[0] + '</button>';
+    }).join('');
+  document.body.appendChild(pop);
+  positionPop(pop, anchor);
+  pop.addEventListener('click', function (e) {
+    var it = e.target.closest('[data-w]');
+    if (it) { applyAspect(parseInt(it.dataset.w, 10), parseInt(it.dataset.h, 10), 'Page size changed'); if (pop.parentNode) pop.remove(); }
+  });
+  attachPopDismiss(pop);
+}
+/* Orientation → dropdown (Landscape / Portrait). Uses applyAspect so the
+   slide stays on the canvas instead of disappearing. */
+function rbOrientation() {
+  var ex = document.getElementById('ld-orient-pop'); if (ex) { ex.remove(); return; }
+  var anchor = document.querySelector('[data-rb="orientation"]');
+  var s = _curSizeEMU();
+  var isPortrait = s.h > s.w;
+  var pop = document.createElement('div');
+  pop.id = 'ld-orient-pop'; pop.className = 'ld-pop';
+  pop.innerHTML = '<div class="ld-pop-head">Orientation</div>' +
+    '<button class="ld-pop-item' + (!isPortrait ? ' on' : '') + '" data-orient="landscape" type="button">' +
+      '<span class="material-icons-outlined">crop_landscape</span>Landscape</button>' +
+    '<button class="ld-pop-item' + (isPortrait ? ' on' : '') + '" data-orient="portrait" type="button">' +
+      '<span class="material-icons-outlined">crop_portrait</span>Portrait</button>';
+  document.body.appendChild(pop);
+  positionPop(pop, anchor);
+  pop.addEventListener('click', function (e) {
+    var it = e.target.closest('[data-orient]');
+    if (!it) return;
+    var cs = _curSizeEMU(), big = Math.max(cs.w, cs.h), small = Math.min(cs.w, cs.h);
+    if (it.dataset.orient === 'portrait') applyAspect(small, big, 'Portrait');
+    else applyAspect(big, small, 'Landscape');
+    if (pop.parentNode) pop.remove();
+  });
+  attachPopDismiss(pop);
 }
 function rbBgToAll() {
   if (!fc) return;
