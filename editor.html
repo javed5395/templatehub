@@ -12085,55 +12085,124 @@ async function exportPptxFile() {
 
 window._deckIR = null;
 
+/* ── Big-file import (goes around the proxy's 32 MB request cap) ────────────
+   Flow: editor → proxy /upload_url → resumable PUT straight to Google Storage
+   (no size cap, real progress) → proxy /parse { gcsPath }. Uses the cloud-glue
+   (LD_BACKEND / ldHeaders / LD_AUTH_TOKEN) READ-ONLY and adds no logic to it.
+   Contract locked with Fable: /upload_url → { uploadUrl, gcsPath }. */
+async function _ldAuthWait() {
+  for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
+}
+async function ldRequestUploadUrl(file, ct) {
+  await _ldAuthWait();
+  var r = await fetch(window.LD_BACKEND + '/upload_url', {
+    method: 'POST', headers: window.ldHeaders('application/json'),
+    body: JSON.stringify({ filename: file.name || 'deck.pptx', contentType: ct })
+  });
+  if (r.status === 401 || r.status === 403) throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
+  if (!r.ok) throw new Error('Could not start the upload (service error ' + r.status + ').');
+  var j = await r.json();
+  if (!j || !j.uploadUrl || !j.gcsPath) throw new Error('Upload service returned an unexpected response.');
+  return j;
+}
+function ldResumablePut(sessionUri, file, ct, onProgress) {
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('PUT', sessionUri, true);
+    xhr.setRequestHeader('Content-Type', ct);
+    /* single-shot upload of the whole object to the resumable session URI */
+    xhr.setRequestHeader('Content-Range', 'bytes 0-' + (file.size - 1) + '/' + file.size);
+    if (xhr.upload) xhr.upload.onprogress = function (e) { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+    xhr.onload = function () {
+      if (xhr.status === 200 || xhr.status === 201) resolve();
+      else reject(new Error('Upload failed (' + xhr.status + '). Please try again.'));
+    };
+    xhr.onerror = function () { reject(new Error('Upload connection failed — check your internet and try again.')); };
+    xhr.ontimeout = function () { reject(new Error('Upload timed out — connection too slow. Try again on a stronger connection.')); };
+    xhr.timeout = 15 * 60 * 1000;
+    xhr.send(file);
+  });
+}
+async function ldParseByPath(gcsPath) {
+  await _ldAuthWait();
+  var r = await fetch(window.LD_BACKEND + '/parse', {
+    method: 'POST', headers: window.ldHeaders('application/json'),
+    body: JSON.stringify({ gcsPath: gcsPath })
+  });
+  if (r.status === 401 || r.status === 403) throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
+  if (!r.ok) throw new Error('Import service error (' + r.status + '). Please try again in a moment.');
+  return await r.json();
+}
+/* Small self-contained progress bar (no dependency on the toast system). */
+function ldUploadProgress(frac) {
+  var el = document.getElementById('ld-up-prog');
+  if (frac == null) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'ld-up-prog';
+    el.style.cssText = 'position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:99999;background:#0F172A;color:#fff;padding:10px 16px;border-radius:10px;font:600 13px "DM Sans",sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.3);min-width:210px;text-align:center;';
+    document.body.appendChild(el);
+  }
+  var pct = Math.round(frac * 100);
+  el.innerHTML = 'Uploading… ' + pct + '%' +
+    '<div style="height:5px;background:rgba(255,255,255,.2);border-radius:3px;margin-top:7px;overflow:hidden;">' +
+    '<div style="height:100%;width:' + pct + '%;background:#7C3AED;transition:width .2s;"></div></div>';
+}
+async function ldBigUploadParse(file) {
+  var ct = file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+  ldUploadProgress(0);
+  var t = await ldRequestUploadUrl(file, ct);
+  await ldResumablePut(t.uploadUrl, file, ct, function (frac) { ldUploadProgress(frac); });
+  ldUploadProgress(null);
+  showToast('Parsing PPTX…');
+  return await ldParseByPath(t.gcsPath);
+}
+
 async function handlePPTXUpload(input) {
   if (!input.files || !input.files[0]) { showToast('No file selected'); return; }
   if (!fc) { alert('Editor not ready — please wait a moment and try again.'); return; }
   if (typeof JSZip === 'undefined') { alert('JSZip library failed to load. Check internet connection and reload.'); return; }
   var file = input.files[0];
   input.value = '';
-  var _mb = file.size / 1048576;
-  if (_mb > 30) showToast('Large file (' + _mb.toFixed(0) + ' MB) — imports over ~32 MB may be rejected or slow to upload.', 8000);
   uploadBusy(true);
-  showToast('Parsing PPTX…');
   try {
-    var _buf = await file.arrayBuffer();
-
-    /* The /parse backend is behind a locked cloud gate that needs the
-       designer's Firebase token. On a cold page load onAuthStateChanged
-       may not have resolved yet, so — like ldCompose — give the token a
-       few moments to arrive before firing the request. Without this the
-       first click after load races auth and the import silently fails. */
-    for (var _w = 0; _w < 10 && !window.LD_AUTH_TOKEN; _w++) {
-      await new Promise(function (res) { setTimeout(res, 500); });
-    }
-
-    var _resp;
-    /* Stop the request hanging forever on a weak/mobile connection: abort it
-       after a ceiling and report clearly instead of spinning endlessly. */
-    var _ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-    var _timedOut = false;
-    var _to = _ctrl ? setTimeout(function () { _timedOut = true; _ctrl.abort(); }, 120000) : null;
-    try {
-      _resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
-        method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: _buf,
-        signal: _ctrl ? _ctrl.signal : undefined });
-    } catch (netErr) {
-      /* fetch() only throws for network/CORS failures or an abort, never HTTP errors */
-      if (_timedOut || (netErr && netErr.name === 'AbortError')) {
-        throw new Error('Upload timed out — the file may be too large or your connection too slow. Try a smaller file or a stronger connection.');
+    var deckIR;
+    if (file.size >= 25 * 1024 * 1024) {
+      /* BIG FILE — bypass the proxy's 32 MB request cap: upload the pptx
+         straight to Storage (resumable, real progress bar), then have the
+         worker parse it from there. */
+      deckIR = await ldBigUploadParse(file);
+    } else {
+      /* SMALL FILE — the original direct path, unchanged. */
+      showToast('Parsing PPTX…');
+      var _buf = await file.arrayBuffer();
+      /* The /parse backend needs the designer's Firebase token; on a cold page
+         load it may not have resolved yet, so give it a moment (like ldCompose). */
+      for (var _w = 0; _w < 10 && !window.LD_AUTH_TOKEN; _w++) {
+        await new Promise(function (res) { setTimeout(res, 500); });
       }
-      throw new Error('Could not reach the import service. Check your internet connection and try again.');
-    } finally {
-      if (_to) clearTimeout(_to);
+      var _resp;
+      var _ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var _timedOut = false;
+      var _to = _ctrl ? setTimeout(function () { _timedOut = true; _ctrl.abort(); }, 120000) : null;
+      try {
+        _resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
+          method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: _buf,
+          signal: _ctrl ? _ctrl.signal : undefined });
+      } catch (netErr) {
+        if (_timedOut || (netErr && netErr.name === 'AbortError')) {
+          throw new Error('Upload timed out — the file may be too large or your connection too slow. Try a smaller file or a stronger connection.');
+        }
+        throw new Error('Could not reach the import service. Check your internet connection and try again.');
+      } finally {
+        if (_to) clearTimeout(_to);
+      }
+      if (_resp.status === 401 || _resp.status === 403) {
+        throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
+      }
+      if (!_resp.ok) throw new Error('Import service error (' + _resp.status + '). Please try again in a moment.');
+      deckIR = await _resp.json();
     }
-    if (_resp.status === 401 || _resp.status === 403) {
-      throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
-    }
-    if (_resp.status === 413) {
-      throw new Error('This file is too large for the importer (over ~32 MB). Try compressing its images or splitting the deck into smaller files.');
-    }
-    if (!_resp.ok) throw new Error('Import service error (' + _resp.status + '). Please try again in a moment.');
-    var deckIR = await _resp.json();
     window._deckIR = deckIR;
 
     /* SOURCE 1 — the FILE's own fonts (this is the UPLOAD path; it does NOT
@@ -12215,6 +12284,7 @@ async function handlePPTXUpload(input) {
     showToast('PPTX import failed');
   } finally {
     uploadBusy(false);
+    if (typeof ldUploadProgress === 'function') ldUploadProgress(null);
   }
 }
 
