@@ -12131,7 +12131,18 @@ async function ldParseByPath(gcsPath) {
   });
   if (r.status === 401 || r.status === 403) throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
   if (!r.ok) throw new Error('Import service error (' + r.status + '). Please try again in a moment.');
-  return await r.json();
+  var j = await r.json();
+  /* Big decks: to dodge the proxy's 32 MB RESPONSE cap, the worker parks the
+     full IR in Storage and returns a small pointer { irUrl, irPath, big:true }.
+     Pull the real IR straight from that URL (plain GET — needs bucket CORS
+     GET/HEAD). Small/normal decks still return the IR inline, unchanged. */
+  if (j && j.big === true && j.irUrl) {
+    showToast('Finishing up…');
+    var br = await fetch(j.irUrl);
+    if (!br.ok) throw new Error('Could not fetch the parsed deck (' + br.status + ').');
+    return await br.json();
+  }
+  return j;
 }
 /* Small self-contained progress bar (no dependency on the toast system). */
 function ldUploadProgress(frac) {
