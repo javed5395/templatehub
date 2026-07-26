@@ -47,7 +47,7 @@
   }
   .bv-back:hover { text-decoration: underline; }
 
-  /* The pages render straight onto the page — no iframe, no box. */
+  /* Pages render straight onto the page as images — no frame, no box. */
   .bv-pages { max-width: 900px; margin: 12px auto 70px; padding: 0 20px; }
   .bv-page {
     display: block; width: 100%; height: auto; margin: 0 auto 22px;
@@ -77,8 +77,6 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-  import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs";
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
@@ -96,24 +94,30 @@
     return '';
   }
 
-  async function renderPdf(url, mount){
+  // EXACT same Cloudinary transform the resume pages use (career_docs_slides.html):
+  // f_jpg + pg_N renders page N of the PDF as an image. No PDF-delivery toggle, no CORS.
+  function pageImageUrl(pdfUrl, n){
+    return pdfUrl.replace('/image/upload/', '/image/upload/f_jpg,pg_' + n + ',w_1400/');
+  }
+
+  // Load page 1, 2, 3 … in order; stop when a page doesn't exist. Cap for safety.
+  function renderPages(pdfUrl, mount, fallbackUrl){
     mount.innerHTML = '';
-    const pdf = await pdfjsLib.getDocument({ url }).promise;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const cssWidth = Math.min(mount.clientWidth, 860);   // reading width
-    for (let n = 1; n <= pdf.numPages; n++){
-      const page = await pdf.getPage(n);
-      const base = page.getViewport({ scale: 1 });
-      const scale = cssWidth / base.width;
-      const viewport = page.getViewport({ scale: scale * dpr });
-      const canvas = document.createElement('canvas');
-      canvas.className = 'bv-page';
-      canvas.width  = viewport.width;
-      canvas.height = viewport.height;
-      canvas.style.width = cssWidth + 'px';
-      mount.appendChild(canvas);
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-    }
+    let n = 1; const MAX = 100;
+    (function next(){
+      if (n > MAX) return;
+      const img = new Image();
+      img.className = 'bv-page';
+      img.onload  = function(){ mount.appendChild(img); n++; next(); };
+      img.onerror = function(){
+        if (n === 1) {
+          mount.innerHTML = '<div class="bv-status">Couldn\'t display this blog inline. '
+            + '<a href="' + fallbackUrl + '" target="_blank" rel="noopener">Open the PDF ↗</a></div>';
+        }
+        // else: reached the end of the pages — done.
+      };
+      img.src = pageImageUrl(pdfUrl, n);
+    })();
   }
 
   (async function(){
@@ -149,20 +153,14 @@
 
     if (!url) { pagesEl.innerHTML = '<div class="bv-status">This blog has no file attached yet.</div>'; return; }
 
-    try {
-      await renderPdf(url, pagesEl);
-    } catch (err) {
-      console.error('PDF render failed:', err);
-      pagesEl.innerHTML = '<div class="bv-status">Couldn\'t display this blog inline. <a href="' + url + '" target="_blank" rel="noopener">Open the PDF ↗</a></div>';
+    if (url.indexOf('/image/upload/') !== -1) {
+      renderPages(url, pagesEl, url);            // Cloudinary PDF → render pages as images
+    } else {
+      // Non-Cloudinary file (e.g. a Drive upload) can't render as inline images.
+      pagesEl.innerHTML = '<div class="bv-status">This blog is stored elsewhere. '
+        + '<a href="' + url + '" target="_blank" rel="noopener">Open the PDF ↗</a></div>';
     }
   })();
-
-  // Re-render crisply if the window is resized to a very different width.
-  let rt;
-  window.addEventListener('resize', function(){
-    clearTimeout(rt);
-    rt = setTimeout(function(){ /* canvases keep their CSS width; full reflow on reload only */ }, 300);
-  });
 </script>
 
 <script src="navbar.js"></script>
