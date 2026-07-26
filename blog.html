@@ -204,10 +204,10 @@
     return '';
   }
   function cardHTML(p){
-    // Blogs are uploaded as PDFs — the card opens the PDF directly in a new tab.
-    var url   = p.pdfUrl || p.designDocUrl || '#';
+    // Blogs are uploaded as PDFs — the card opens a viewer page that shows the PDF.
     var title = p.title || (p.template && p.template.name) || 'Untitled';
-    return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" class="blog-card">' +
+    var href  = 'blog-view.html?id=' + encodeURIComponent(p._id || '');
+    return '<a href="' + href + '" class="blog-card">' +
       '<div class="blog-card-thumb">' +
         '<span class="blog-card-badge">' + escapeHtml(p.subCategory || 'Blog') + '</span>' +
         '<span class="blog-card-thumb-mark">LazyDogTemplates</span>' +
@@ -243,7 +243,7 @@
       let items = [];
       snap.forEach(function(docSnap){
         const x = docSnap.data();
-        if (x && x.status === 'approved') items.push(x);
+        if (x && x.status === 'approved') { x._id = docSnap.id; items.push(x); }
       });
       items.sort(function(a, b){
         const sa = (a.uploadedAt && a.uploadedAt.seconds) || 0;
