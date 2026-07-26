@@ -1466,7 +1466,11 @@ window.submitForm = async function() {
   // Collect editable apps checkboxes
   const editableApps = Array.from(document.querySelectorAll('input[name="editableApps"]:checked')).map(cb => cb.value);
 
-  if (category === 'resume_cv') {
+  if (category === 'blog') {
+    // A blog only needs a title and its one PDF — nothing else is required.
+    if (!templateName) { alert('Please enter a title for the blog.'); return; }
+    if (!pdfFile) { alert('Please upload the blog PDF file.'); return; }
+  } else if (category === 'resume_cv') {
     if (!templateName || !category) {
       alert('Please fill all required template fields!'); return;
     }
