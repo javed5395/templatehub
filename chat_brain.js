@@ -751,7 +751,13 @@
   window.hexaAdminIntent = function (text) {
     var t = norm(text);
     return /\b(prepare|make|generate|create)\b.*\b(today s|todays|daily)\b.*\bdecks?\b/.test(t)
-        || /\bpublish\b.*\bdecks?\b/.test(t) || /\bdecks?\b.*\bgo live\b/.test(t);
+        || /\bpublish\b.*\bdecks?\b/.test(t) || /\bdecks?\b.*\bgo live\b/.test(t)
+        /* BATCH ORDERS (25 Jul, Javed): "make 10 decks of 40 slides" — plural
+           decks + a count = a batch, never a single design order. */
+        || /\b(make|prepare|generate|create|compose)\b[\s\S]*?\b\d{1,2}\s*decks\b/.test(t)
+        || /\b\d{1,2}\s*decks\b[\s\S]*?\b(make|prepare|generate|create|compose)\b/.test(t)
+        /* "make decks and put them on the site (yourself)" */
+        || /\b(make|prepare|generate|create)\b.*\bdecks\b.*\b(on the site|to the site|on site|store|upload)\b/.test(t);
   };
   window.hexaAdmin = async function (text) {
     var t = norm(text);
@@ -771,14 +777,21 @@
           ? '🚀 LIVE! Published ' + d.published.length + ' deck(s):\n' + d.published.join('\n')
           : 'Nothing published — is there a batch for today?' };
       }
-      // prepare today's decks
-      var r2 = await fetch(GATE_URL + '/daily_batch', { method: 'POST', headers: H, body: '{}' });
+      // batch order — "make 10 decks of 40 slides" (count + slides parsed from
+      // the sentence; defaults keep the old daily behaviour). Decks ALWAYS go
+      // to review first — Javed reviews, then says "publish all decks".
+      var body = {};
+      var mc = t.match(/(\d{1,2})\s*decks/);        if (mc) body.count  = +mc[1];
+      var msl = t.match(/(\d{1,3})\s*slides?/);      if (msl) body.slides = +msl[1];
+      var wantsSite = /\b(on the site|to the site|on site|store|upload|yourself|urself)\b/.test(t);
+      var r2 = await fetch(GATE_URL + '/daily_batch', { method: 'POST', headers: H, body: JSON.stringify(body) });
       var d2 = await r2.json();
       if (!r2.ok) return { reply: 'Batch failed: ' + (d2.error || r2.status) };
       var lines = (d2.decks || []).map(function (x) { return x.i + '. ' + x.name; });
-      return { reply: "🎨 Today's " + d2.count + " decks are ready for your review:\n" + lines.join('\n')
-        + "\n\nDownload links are in your review folder (Storage → review/" + d2.date + "). "
-        + "When happy, tell me: \"publish all decks\" or \"publish decks 1,3,5\".",
+      return { reply: "🎨 " + d2.count + " deck" + (d2.count === 1 ? '' : 's') + " ready for your review:\n" + lines.join('\n')
+        + "\n\nOpen them below or in Storage → review/" + d2.date + "."
+        + (wantsSite ? "\n\n⚠️ I never publish without you — review them, then tell me \"publish all decks\" (or \"publish decks 1,3,5\") and I'll put your picks on the site."
+                     : "\n\nWhen happy, tell me: \"publish all decks\" or \"publish decks 1,3,5\"."),
         decks: d2.decks };
     } catch (e) { return { reply: 'Admin command error: ' + e.message }; }
   };

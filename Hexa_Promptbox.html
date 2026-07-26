@@ -2244,120 +2244,6 @@ footer {
     doAI();
   }
 
-  /* ── the layered pipeline — same order as the other two Hexa surfaces ── */
-  function hexaChat(text){
-    addMsg(text,'user');
-    var r=(window.hexaCommand&&window.hexaCommand(text))||null;
-    if(r&&r.reply){addMsg(r.reply);return;}
-    /* owner batch commands — "prepare today's decks" / "publish all decks" */
-    if(window.hexaAdminIntent&&window.hexaAdmin&&window.hexaAdminIntent(text)){
-      var ab=addMsg('Working on it…');
-      window.hexaAdmin(text).then(function(res){ ab.innerHTML=String((res&&res.reply)||'Done.').replace(/\n/g,'<br>'); });
-      return;
-    }
-    r=(window.hexaLeadCapture&&window.hexaLeadCapture(text))||null;
-    if(r&&r.reply){addMsg(r.reply);return;}
-    r=(window.hexaNameCapture&&window.hexaNameCapture(text))||null;
-    if(r&&r.reply){addMsg(r.reply);return;}
-    /* "make/generate/design …" — SMART ACTION (25 Jul, Javed):
-       in CHAT mode Hexa takes the user straight to the editor canvas with
-       their sentence as the compose seed; in DESIGN/PRESENT modes the text
-       goes into the mode's card (design card / fill card). */
-    if(window.hexaComposeIntent&&window.hexaComposeIntent(text)){
-      if(hexaMode==='chat'&&window.hexaDesignIntent&&window.hexaDesignIntent(text)){
-        var dz=(window.hexaDesign&&window.hexaDesign(text))||{target:'editor.html?compose='+encodeURIComponent(text.slice(0,200)),label:'Open in Designer',reply:'I can design that for you right now 🎨 — opening the Designer:'};
-        var dm=addMsg(dz.reply+'<div style="margin-top:6px;font-size:11.5px;opacity:.75;">Taking you to the canvas…</div>');
-        if(window.chatMakeActionBtn){ dm.appendChild(document.createElement('br')); dm.appendChild(window.chatMakeActionBtn(dz.target,dz.label)); }
-        setTimeout(function(){ try{ window.location.href=dz.target; }catch(e){} },1400);
-        return;
-      }
-      if(hexaMode==='design'){
-        var dD=document.getElementById('dwDescribe');
-        if(dD&&!dD.value.trim()) dD.value=text;
-        addMsg('Noted 🎨 — it\'s in the design card. Fine-tune the preferences, then hit <b>Make my design</b>.');
-        return;
-      }
-      if(hexaMode==='present'){
-        var fC=document.getElementById('fwContent');
-        if(fC&&!fC.value.trim()){ fC.value=text; try{ fC.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){} }
-        addMsg('Noted 📄 — your content is in the card. Give the design (.pptx), then hit <b>Prepare my deck</b>.');
-        return;
-      }
-    }
-    var composed=(window.chatCompose&&window.chatCompose(text))||null;
-    if(composed&&composed.reply){
-      if(composed.soft&&!composed.target){askAI(text,composed.reply);return;}
-      var b=addMsg(composed.reply);
-      if(composed.target&&window.chatMakeActionBtn){b.appendChild(document.createElement('br'));b.appendChild(window.chatMakeActionBtn(composed.target,composed.label));}
-      return;
-    }
-    askAI(text);
-  }
-
-  /* ── Enter = talk to Hexa · Shift+Enter = newline · Generate = order ── */
-  input.addEventListener('keydown',function(e){
-    if(e.key==='Enter'&&!e.shiftKey&&!e.metaKey&&!e.ctrlKey){
-      e.preventDefault(); e.stopPropagation();
-      var v=input.value.trim(); if(!v) return;
-      input.value=''; input.style.height='auto';
-      hexaChat(v);
-    }
-  },true);
-
-  /* ── admin detect + ldGetToken (this page has no navbar.js, so we provide
-        the same token helper the brain's admin commands expect; real authz
-        stays server-side at composer-proxy / TRUSTED_UIDS) ── */
-  var TEST_OPEN=false;   /* relocked 25 Jul per Javed — flip true for test phase */
-  var isAdmin=TEST_OPEN, _auth=null;
-  (function(){
-    var ADMINS=['javed5395@gmail.com','lazydogtemplates@gmail.com'];
-    Promise.all([
-      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
-    ]).then(function(m){
-      var A=m[0],B=m[1];
-      var app=A.getApps().length?A.getApp():A.initializeApp({apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",authDomain:"templatehub-16cd7.firebaseapp.com",projectId:"templatehub-16cd7"});
-      _auth=B.getAuth(app);
-      B.onAuthStateChanged(_auth,function(u){ isAdmin=TEST_OPEN||!!(u&&ADMINS.indexOf(String(u.email||'').toLowerCase())>-1); });
-    }).catch(function(){});
-  })();
-  if(!window.ldGetToken) window.ldGetToken=async function(){ try{ return (_auth&&_auth.currentUser)?await _auth.currentUser.getIdToken():null; }catch(e){ return null; } };
-
-  /* ── 3-MODE CONTROLLER (25 Jul, Javed's design) ──
-     chat    → right side hidden; Generate acts as Send (free AI cascade).
-     design  → white ORDER card appears; Generate = design order.
-     present → white FILL card appears; Generate = Prepare my deck (fill). */
-  var hexaMode='chat';
-  var asideEl=document.querySelector('.filter-panel');
-  /* the DESIGN card (design_widget.js — same card as the store pages) mounts
-     itself after #metaSearchRow; it boots async, so look it up at mode-switch */
-  function designCardEl(){ return document.getElementById('dwWrap'); }
-  var fillCardEl=document.getElementById('metaSearchRow');   /* the REAL fill card mounts here */
-  var SEND_SVG=' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
-  function setMode(m){
-    hexaMode=m;
-    if(asideEl) asideEl.style.display=(m==='chat')?'none':'';
-    var dw=designCardEl();
-    if(dw) dw.style.display=(m==='design')?'':'none';
-    if(fillCardEl) fillCardEl.style.display=(m==='present')?'':'none';
-    /* design card locks itself OPEN in design mode (it's the whole point here) */
-    if(dw&&m==='design'){ var w=document.getElementById('designWidget'); if(w) w.classList.add('locked'); }
-    var lbl={chat:'Send',design:'Generate',present:'Prepare my deck'}[m]||'Generate';
-    if(send) send.innerHTML=lbl+SEND_SVG;
-    var ph={chat:'Ask me anything — templates, pricing, or just say hi…',
-            design:'Describe the design you want to create…',
-            present:'Type your presentation content here — headings and text for the slides…'}[m];
-    if(input&&ph) input.placeholder=ph;
-    document.querySelectorAll('.prompt-toolbar [data-mode]').forEach(function(b){
-      b.classList.toggle('mode-on', b.getAttribute('data-mode')===m);
-    });
-  }
-  /* mode switches are SILENT (25 Jul, Javed): no thread messages — the UI
-     change itself (card appearing, button relabel, placeholder) says it all. */
-  document.querySelectorAll('.prompt-toolbar [data-mode]').forEach(function(tab){
-    tab.addEventListener('click',function(){ setMode(tab.getAttribute('data-mode')||'chat'); });
-  });
-  setMode('chat');
 
   /* ── the layered pipeline — same order as the other two Hexa surfaces ── */
   function hexaChat(text){
@@ -2366,8 +2252,20 @@ footer {
     if(r&&r.reply){addMsg(r.reply);return;}
     /* owner batch commands — "prepare today's decks" / "publish all decks" */
     if(window.hexaAdminIntent&&window.hexaAdmin&&window.hexaAdminIntent(text)){
-      var ab=addMsg('Working on it…');
-      window.hexaAdmin(text).then(function(res){ ab.innerHTML=String((res&&res.reply)||'Done.').replace(/\n/g,'<br>'); });
+      var ab=addMsg('Working on it — composing your decks…');
+      window.hexaAdmin(text).then(function(res){
+        ab.innerHTML=String((res&&res.reply)||'Done.').replace(/\n/g,'<br>');
+        /* REVIEW LINKS (25 Jul, Javed): every batch deck opens right here —
+           Javed reviews first; publishing happens only on his word. */
+        if(res&&res.decks&&res.decks.length&&window.chatMakeActionBtn){
+          res.decks.forEach(function(dk){
+            if(!dk.pptx_url) return;
+            var b=window.chatMakeActionBtn(dk.pptx_url, dk.i+'. '+String(dk.name||'deck').slice(0,36));
+            b.target='_blank'; b.rel='noopener';
+            ab.appendChild(document.createElement('br')); ab.appendChild(b);
+          });
+        }
+      });
       return;
     }
     r=(window.hexaLeadCapture&&window.hexaLeadCapture(text))||null;

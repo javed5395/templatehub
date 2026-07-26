@@ -2070,6 +2070,33 @@ body.show-ruler .canvas-area::after {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Upload / Download activity indicator — spins the button's arrow icon
+   (like Chrome/Canva) while a file is actually uploading or exporting. */
+@keyframes ldSpin { to { transform: rotate(360deg); } }
+[data-action="upload-menu"].is-busy,
+[data-action="share"].is-busy { pointer-events: none; opacity: 0.75; cursor: progress; }
+.is-busy > .material-icons-outlined {
+  animation: ldSpin 0.7s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+/* PowerPoint-style line-spacing popover (replaces the old prompt dialog) */
+.ld-pop {
+  position: fixed; z-index: 9999;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md, 10px); box-shadow: var(--shadow-lg);
+  padding: 6px; min-width: 140px; font-family: 'DM Sans', sans-serif;
+}
+.ld-pop-head { font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 4px 8px 6px; }
+.ld-pop-step { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 4px 6px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
+.ld-pop-val { font-size: 13px; font-weight: 600; color: var(--text-primary); min-width: 46px; text-align: center; }
+.ld-pop-btn { width: 28px; height: 28px; border: 1px solid var(--border-strong); background: var(--bg-surface); border-radius: 6px; cursor: pointer; font-size: 17px; line-height: 1; color: var(--text-primary); display: flex; align-items: center; justify-content: center; }
+.ld-pop-btn:hover { background: var(--bg-hover); color: var(--accent); border-color: var(--accent); }
+.ld-pop-item { display: flex; align-items: center; gap: 6px; width: 100%; border: none; background: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-primary); text-align: left; }
+.ld-pop-item:hover { background: var(--bg-hover); color: var(--accent); }
+.ld-pop-item .material-icons-outlined { font-size: 16px; width: 16px; color: var(--accent); }
+.ld-pop-item.on { font-weight: 600; color: var(--accent); }
 </style>
 </head>
 <body>
@@ -4749,8 +4776,6 @@ var RIBBON = [
       ['format_align_justify','Justify','p-justify','sm'],
       ['format_list_bulleted','Bullets','bullets','sm'],
       ['format_list_numbered','Numbers','numbering','sm'],
-      ['format_indent_increase','Indent','indent-in','sm'],
-      ['format_indent_decrease','Outdent','indent-out','sm'],
       ['format_line_spacing','Spacing','line-spacing','sm'],
     ]},
     { name:'Selection', items:[
@@ -4860,14 +4885,6 @@ var RIBBON = [
     ]},
   ]},
 
-
-  { id:'dev', name:'Developer', groups:[
-    { name:'Tools', items:[
-      ['data_object','JSON','dev-json','w'],
-      ['layers','Layer','dev-layer','w'],
-      ['speed','Performance','dev-perf','w'],
-    ]},
-  ]},
 
   /* ── contextual: only while something is selected ── */
   { id:'illo', name:'Graphic format', ctx:true, groups:[
@@ -4998,8 +5015,6 @@ function ribbonRun(key) {
     case 'p-justify':     rbAlignText('justify'); return;
     case 'bullets':       rbList('bullet'); return;
     case 'numbering':     rbList('number'); return;
-    case 'indent-in':     rbIndent(1); return;
-    case 'indent-out':    rbIndent(-1); return;
     case 'line-spacing':  rbLineSpacing(); return;
     case 'select-all':    rbSelectAll(); return;
     case 'deselect':      rbDeselect(); return;
@@ -5056,11 +5071,6 @@ function ribbonRun(key) {
     case 'presenter-view':  openPanel('presenter'); return;
     case 'rehearse':        openPanel('presenter'); rehearseStart(); return;
     case 'record':          openPanel('presenter'); return;
-
-    /* ── Developer ── */
-    case 'dev-json':  rbInspectJson(); return;
-    case 'dev-layer': rbInspectLayer(); return;
-    case 'dev-perf':  rbPerfStats(); return;
   }
 
   if (key.indexOf('panel:') === 0) { openPanel(key.slice(6)); return; }
@@ -6112,13 +6122,69 @@ function rbIndent(dir) {
   }).join('\n'));
   o.dirty = true; fc.renderAll(); saveState();
 }
+/* PowerPoint-style line-spacing control: a small popover anchored to the
+   Spacing button — preset rows plus a −/+ stepper — instead of a raw prompt. */
 function rbLineSpacing() {
   var o = rbText();
   if (!rbNeed(o, 'Select a text box first')) return;
-  var v = parseFloat(prompt('Line spacing (1 = single, 1.5, 2…):', o.lineHeight || 1.16));
-  if (!isFinite(v) || v <= 0) return;
-  o.set('lineHeight', Math.max(0.5, Math.min(4, v)));
-  fc.renderAll(); saveState();
+  openSpacingPopover();
+}
+function _spClamp(v) { return Math.max(0.5, Math.min(4, Math.round(v * 100) / 100)); }
+function openSpacingPopover() {
+  var existing = document.getElementById('ld-spacing-pop');
+  if (existing) { existing.remove(); return; }
+  var anchor = document.querySelector('[data-rb="line-spacing"]');
+  var presets = [['1.0',1],['1.15',1.15],['1.5',1.5],['2.0',2],['2.5',2.5],['3.0',3]];
+  var pop = document.createElement('div');
+  pop.id = 'ld-spacing-pop';
+  pop.className = 'ld-pop';
+
+  function apply(v) {
+    var t = rbText(); if (!t) return;
+    t.set('lineHeight', _spClamp(v));
+    t.dirty = true; fc.renderAll(); saveState();
+    build();
+  }
+  function build() {
+    var t = rbText();
+    var c = _spClamp(t ? (t.lineHeight || 1.16) : 1.16);
+    pop.innerHTML =
+      '<div class="ld-pop-head">Line spacing</div>' +
+      '<div class="ld-pop-step">' +
+        '<button class="ld-pop-btn" data-sp-dec type="button" aria-label="Decrease spacing">&minus;</button>' +
+        '<span class="ld-pop-val">' + (Math.round(c * 100) / 100) + '&times;</span>' +
+        '<button class="ld-pop-btn" data-sp-inc type="button" aria-label="Increase spacing">+</button>' +
+      '</div>' +
+      presets.map(function (p) {
+        var on = Math.abs(p[1] - c) < 0.001;
+        return '<button class="ld-pop-item' + (on ? ' on' : '') + '" data-sp="' + p[1] + '" type="button">' +
+          '<span class="material-icons-outlined">' + (on ? 'check' : '') + '</span>' + p[0] + '</button>';
+      }).join('');
+  }
+  build();
+  document.body.appendChild(pop);
+
+  var r = anchor ? anchor.getBoundingClientRect() : null;
+  pop.style.left = Math.round(r ? r.left : 200) + 'px';
+  pop.style.top  = Math.round((r ? r.bottom : 120) + 4) + 'px';
+  var pr = pop.getBoundingClientRect();
+  if (pr.right > window.innerWidth - 8) pop.style.left = Math.round(window.innerWidth - pr.width - 8) + 'px';
+
+  pop.addEventListener('click', function (e) {
+    var it = e.target.closest('[data-sp]');
+    if (it) { apply(parseFloat(it.dataset.sp)); return; }
+    var t = rbText(); var cur = t ? (t.lineHeight || 1.16) : 1.16;
+    if (e.target.closest('[data-sp-dec]')) { apply(cur - 0.1); return; }
+    if (e.target.closest('[data-sp-inc]')) { apply(cur + 0.1); return; }
+  });
+
+  setTimeout(function () {
+    function done() { pop.remove(); document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); }
+    function onDown(ev) { if (!pop.contains(ev.target)) done(); }
+    function onKey(ev) { if (ev.key === 'Escape') done(); }
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+  }, 0);
 }
 
 /* ── Selection ── */
@@ -6377,6 +6443,27 @@ function rbGoFullscreen() {
 }
 
 /* ── Export ── */
+/* ── Upload / Download activity indicator ───────────────────────────
+   Swaps the button's up/down arrow for a spinning icon while a file is
+   actually uploading or exporting, then restores it (on success OR error),
+   so long cloud round-trips are visible — same idea as Chrome/Canva. */
+function _btnBusy(sel, on) {
+  var btn = document.querySelector(sel);
+  if (!btn) return;
+  var ico = btn.querySelector('.material-icons-outlined');
+  if (on) {
+    if (ico && btn._ldIco == null) { btn._ldIco = ico.textContent; ico.textContent = 'autorenew'; }
+    btn.classList.add('is-busy');
+    btn.setAttribute('aria-busy', 'true');
+  } else {
+    if (ico && btn._ldIco != null) { ico.textContent = btn._ldIco; btn._ldIco = null; }
+    btn.classList.remove('is-busy');
+    btn.removeAttribute('aria-busy');
+  }
+}
+function uploadBusy(on)   { _btnBusy('[data-action="upload-menu"]', on); }
+function downloadBusy(on) { _btnBusy('[data-action="share"]', on); }
+
 function rbDownload(dataUrl, filename) {
   var a = document.createElement('a');
   a.href = dataUrl; a.download = filename;
@@ -6442,6 +6529,7 @@ function rbDeliver(files, ext, label) {
 
 function rbExportImage(fmt) {
   if (!fc) return;
+  downloadBusy(true);
   var mime = fmt === 'jpg' ? 'jpeg' : 'png';
   showToast('Rendering all slides…');
   rbEachSlide(function (i) {
@@ -6454,24 +6542,26 @@ function rbExportImage(fmt) {
       return;
     }
     rbDeliver(files, fmt, fmt.toUpperCase());
-  });
+  }).finally(function () { downloadBusy(false); });
 }
 
 function rbExportSvg() {
   if (!fc || !fc.toSVG) return;
+  downloadBusy(true);
   showToast('Rendering all slides…');
   rbEachSlide(function (i) {
     var svg = fc.toSVG();
     return { name: rbSlideName(i, 'svg'),
              url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg),
              data: svg, base64: false };
-  }).then(function (files) { rbDeliver(files, 'svg', 'SVG'); });
+  }).then(function (files) { rbDeliver(files, 'svg', 'SVG'); }).finally(function () { downloadBusy(false); });
 }
 /* PDF: render every slide to an image and hand them to the browser's own
    print-to-PDF. No PDF library needed, and it keeps vector text crisp
    enough at 2x while staying dependency-free. */
 function rbExportPdf() {
   if (!fc) return;
+  downloadBusy(true);
   showToast('Rendering all slides…');
   rbEachSlide(function () {
     return { url: fc.toDataURL({ format: 'png', multiplier: 2 }) };
@@ -6489,7 +6579,7 @@ function rbExportPdf() {
     w.document.close();
     setTimeout(function () { w.focus(); w.print(); }, 500);
     showToast(imgs.length + ' slides ready — choose “Save as PDF”');
-  });
+  }).finally(function () { downloadBusy(false); });
 }
 
 /* ── Developer ── */
@@ -10979,7 +11069,9 @@ function rehydrateFrames() {
 
 function handleUploadImg(input) {
   if (!input.files || !input.files[0]) return;
+  uploadBusy(true);
   var reader = new FileReader();
+  reader.onerror = function () { uploadBusy(false); showToast('Could not read the file'); };
   reader.onload = function(e) {
     /* Ribbon "Drop photo" armed a frame — send this picture straight into it
        instead of dropping a loose image on the slide. */
@@ -10999,16 +11091,20 @@ function handleUploadImg(input) {
         target.frameRect = fr;
         refreshFrame(target);
         saveState();
+        uploadBusy(false);
         showToast('Photo fitted into frame ✓');
       };
+      im.onerror = function () { uploadBusy(false); showToast('Could not load the image'); };
       im.src = e.target.result;
       return;
     }
     fabric.Image.fromURL(e.target.result, function(img) {
+      if (!img) { uploadBusy(false); showToast('Could not load the image'); return; }
       img.scaleToWidth(Math.min(img.width, fc.getWidth() / fc.getZoom() * 0.5));
       img.set({ left:80, top:80 });
       fc.add(img).setActiveObject(img).renderAll();
       saveState();
+      uploadBusy(false);
       showToast('Image uploaded');
     });
   };
@@ -11597,6 +11693,7 @@ function slideIRFromCanvas(json, origIR, S) {
 
 /* ---- browser glue: SVG rasterizer + download action ---- */
 async function exportPptxFile() {
+  downloadBusy(true);
   showToast('Building PPTX in LazyDog cloud…');
   try {
     var deck = await buildEffectiveDeckIR(); /* edits included */
@@ -11634,6 +11731,7 @@ async function exportPptxFile() {
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
     showToast('PPTX downloaded ✓');
   } catch (e) { console.error(e); showToast('PPTX export failed: ' + e.message); }
+  finally { downloadBusy(false); }
 }
 
 window._deckIR = null;
@@ -11644,6 +11742,7 @@ async function handlePPTXUpload(input) {
   if (typeof JSZip === 'undefined') { alert('JSZip library failed to load. Check internet connection and reload.'); return; }
   var file = input.files[0];
   input.value = '';
+  uploadBusy(true);
   showToast('Parsing PPTX…');
   try {
     var _buf = await file.arrayBuffer();
@@ -11749,6 +11848,8 @@ async function handlePPTXUpload(input) {
       : 'Could not import this PowerPoint file: ' + e.message;
     alert(msg);
     showToast('PPTX import failed');
+  } finally {
+    uploadBusy(false);
   }
 }
 
