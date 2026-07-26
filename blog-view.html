@@ -29,15 +29,9 @@
     position: relative; font-family: 'Instrument Serif', serif; font-weight: 400;
     font-size: clamp(28px, 5vw, 50px); line-height: 1.1; margin: 0 auto; max-width: 820px;
   }
-  .bv-meta {
-    position: relative; margin-top: 14px; font-size: 13px; color: #b8bfd0;
-    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
-  }
-  .bv-avatar {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: linear-gradient(135deg, #6b21c8, #9333ea);
-    display: inline-flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 10px; font-weight: 800; font-family: 'Poppins', sans-serif;
+  .bv-subtitle {
+    position: relative; margin: 14px auto 0; max-width: 560px;
+    font-size: 17px; line-height: 1.6; color: #b8bfd0;
   }
 
   .bv-bar { max-width: 900px; margin: 0 auto; padding: 16px 20px 0; }
@@ -61,13 +55,8 @@
 
 <section class="bv-hero">
   <div class="bv-eyebrow">✦ LazyDog Journal</div>
-  <h1 class="bv-title" id="bvTitle">Loading…</h1>
-  <div class="bv-meta">
-    <span class="bv-avatar">LD</span>
-    <span id="bvAuthor">LazyDog Studios</span>
-    <span>·</span>
-    <span id="bvDate"></span>
-  </div>
+  <h1 class="bv-title" id="bvTitle">Notes from the Build</h1>
+  <p class="bv-subtitle">Feature spotlights, product updates, and behind-the-scenes progress from LazyDogTemplates.</p>
 </section>
 
 <div class="bv-bar"><a href="blog.html" class="bv-back">← Back to Journal</a></div>
@@ -88,11 +77,6 @@
   };
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
-
-  function fmtDate(ts){
-    try { if (ts && ts.seconds) return new Date(ts.seconds*1000).toLocaleDateString('en-US',{month:'long', year:'numeric'}); } catch(e){}
-    return '';
-  }
 
   // EXACT same Cloudinary transform the resume pages use (career_docs_slides.html):
   // f_jpg + pg_N renders page N of the PDF as an image. No PDF-delivery toggle, no CORS.
@@ -122,10 +106,8 @@
 
   (async function(){
     const id = new URLSearchParams(location.search).get('id');
-    const titleEl = document.getElementById('bvTitle');
     const pagesEl = document.getElementById('bvPages');
     if (!id) {
-      titleEl.textContent = 'Blog not found';
       pagesEl.innerHTML = '<div class="bv-status">No blog was specified. <a href="blog.html">Back to the journal</a>.</div>';
       return;
     }
@@ -133,20 +115,15 @@
     try {
       const snap = await getDoc(doc(db, 'templates', id));
       if (!snap.exists()) {
-        titleEl.textContent = 'Blog not found';
         pagesEl.innerHTML = '<div class="bv-status">This blog could not be found. <a href="blog.html">Back to the journal</a>.</div>';
         return;
       }
       const p = snap.data();
       const title = p.title || (p.template && p.template.name) || 'Untitled';
       document.title = title + ' — LazyDogTemplates';
-      titleEl.textContent = title;
-      document.getElementById('bvAuthor').textContent = p.sellerName || 'LazyDog Studios';
-      document.getElementById('bvDate').textContent   = fmtDate(p.uploadedAt || p.createdAt);
       url = p.pdfUrl || p.designDocUrl || '';
     } catch (err) {
       console.error('Failed to load blog record:', err);
-      titleEl.textContent = 'Could not load blog';
       pagesEl.innerHTML = '<div class="bv-status">Something went wrong. <a href="blog.html">Back to the journal</a>.</div>';
       return;
     }
