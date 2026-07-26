@@ -416,7 +416,7 @@ function ldSetBgImageDeck(src) {
   fabric.Image.fromURL(src, function (img) {
     img.set({ left: -1, top: -1, scaleX: (cw + 2) / img.width, scaleY: (ch + 2) / img.height, selectable: true, ldBgStamp: true });
     fc.add(img); fc.sendToBack(img); fc.renderAll(); saveState();
-  });
+  }, { crossOrigin: 'anonymous' });
   var probe = new Image();
   probe.onload = function () {
     var natW = probe.width || 100, natH = probe.height || 100;
@@ -1404,6 +1404,7 @@ function loadFabricSVGAsync(svgText) {
 function bakeImageEffects(src, duo, featherFrac, colorKey) {
   return new Promise(function (resolve) {
     var img = new Image();
+    img.crossOrigin = 'anonymous';   /* cross-origin GCS images must not taint the effect canvas */
     img.onload = function () {
       try {
         var c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
@@ -1496,7 +1497,7 @@ async function renderImageElementIR(el, sx, sy, fc) {
      circle/diamond/blob masks render exactly as Canva shows them. */
   if (el.geom && el.geom.custom && el.geom.custom.pathCmds && el.src && el.format !== 'svg' && !el.tile) {
     var fimg = await new Promise(function (res) {
-      var fi = new Image(); fi.onload = function () { res(fi); }; fi.onerror = function () { res(null); };
+      var fi = new Image(); fi.crossOrigin = 'anonymous'; fi.onload = function () { res(fi); }; fi.onerror = function () { res(null); };
       fi.src = el.src;
     });
     if (fimg) {
@@ -1545,7 +1546,7 @@ async function renderImageElementIR(el, sx, sy, fc) {
      wrapped in a group so edit-sync reuses the original image IR */
   if ((el.tile || el.spStroke || (el.geom && el.geom.preset === 'roundRect')) && el.src && el.format !== 'svg') {
     var pimg = await new Promise(function (res) {
-      var im2 = new Image(); im2.onload = function () { res(im2); }; im2.onerror = function () { res(null); };
+      var im2 = new Image(); im2.crossOrigin = 'anonymous'; im2.onload = function () { res(im2); }; im2.onerror = function () { res(null); };
       im2.src = el.src;
     });
     if (pimg) {
@@ -3370,6 +3371,7 @@ async function rasterizeSvgElToPng(el) {
   return new Promise(function (resolve) {
     try {
       var img = new Image();
+      img.crossOrigin = 'anonymous';
       var pxW = Math.max(2, Math.round(Math.abs(el.w) / 9525)), pxH = Math.max(2, Math.round(Math.abs(el.h) / 9525));
       img.onload = function () {
         try {
