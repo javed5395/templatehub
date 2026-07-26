@@ -138,9 +138,16 @@
 
       const url = p.pdfUrl || p.designDocUrl || '';
       if (url) {
+        // Google Drive links must use the /preview form to embed. Pull the file id
+        // out of any Drive URL shape (/file/d/ID/view, uc?id=ID, open?id=ID).
+        let embedSrc = url + '#view=FitH';
+        const m = url.match(/\/file\/d\/([^/]+)/) || url.match(/[?&]id=([^&]+)/);
+        if (/drive\.google\.com/.test(url) && m) {
+          embedSrc = 'https://drive.google.com/file/d/' + m[1] + '/preview';
+        }
         const openBtn = document.getElementById('bvOpen');
         openBtn.href = url; openBtn.style.display = 'inline-flex';
-        bodyEl.innerHTML = '<iframe class="bv-frame" src="' + url + '#view=FitH" title="' + title.replace(/"/g,'&quot;') + '"></iframe>';
+        bodyEl.innerHTML = '<iframe class="bv-frame" src="' + embedSrc + '" allow="autoplay" title="' + title.replace(/"/g,'&quot;') + '"></iframe>';
       } else {
         bodyEl.innerHTML = '<div class="bv-msg">This blog has no readable file attached yet.</div>';
       }

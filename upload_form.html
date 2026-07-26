@@ -1547,12 +1547,14 @@ window.submitForm = async function() {
         // this slot carries the IMAGE pdf (pptx slide pictures) → Cloudinary;
         // the WRITTEN pdf + _SYSTEM pdf travel via the extra-format slots,
         // which upload RAW to Google Drive. The slots ARE the routing.
-        if (uploadPdf.size <= CLOUDINARY_PDF_MAX) {
+        // BLOG PDFs always go to Google Drive (Cloudinary blocks public PDF delivery).
+        // Other categories keep the existing routing (small → Cloudinary, big → Drive).
+        if (category !== 'blog' && uploadPdf.size <= CLOUDINARY_PDF_MAX) {
           setProgress(78, `Clean PDF (${(uploadPdf.size/1024/1024).toFixed(1)} MB) Cloudinary par upload ho rahi hai...`);
           const r = await uploadToCloudinary(uploadPdf, `${folder}/pdf`, 'auto');
           pdfUrl = r.url; pdfPublicId = r.publicId;
         } else {
-          setProgress(75, `Clean PDF badi hai — Google Drive par ja rahi hai (${(uploadPdf.size/1024/1024).toFixed(1)} MB)...`);
+          setProgress(75, `Clean PDF Google Drive par ja rahi hai (${(uploadPdf.size/1024/1024).toFixed(1)} MB)...`);
           pdfUrl         = await uploadDocToDrive(uploadPdf);
           pdfDriveFileId = extractDriveFileId(pdfUrl);
         }
