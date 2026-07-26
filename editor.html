@@ -12125,10 +12125,13 @@ function ldResumablePut(sessionUri, file, ct, onProgress) {
 }
 async function ldParseByPath(gcsPath) {
   await _ldAuthWait();
+  var _t = (window.performance && performance.now) ? performance.now() : 0;
+  var _m = function (l) { if (_t) try { console.log('[ld-timing] ' + l + ': ' + Math.round(performance.now() - _t) + 'ms'); } catch (e) {} };
   var r = await fetch(window.LD_BACKEND + '/parse', {
     method: 'POST', headers: window.ldHeaders('application/json'),
     body: JSON.stringify({ gcsPath: gcsPath })
   });
+  _m('cloud /parse responded');
   if (r.status === 401 || r.status === 403) throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
   if (!r.ok) throw new Error('Import service error (' + r.status + '). Please try again in a moment.');
   var j = await r.json();
@@ -12139,8 +12142,13 @@ async function ldParseByPath(gcsPath) {
   if (j && j.big === true && j.irUrl) {
     showToast('Finishing up…');
     var br = await fetch(j.irUrl);
+    _m('IR downloaded from Storage');
     if (!br.ok) throw new Error('Could not fetch the parsed deck (' + br.status + ').');
-    return await br.json();
+    var _txt = await br.text();
+    _m('IR body read (' + Math.round(_txt.length / 1024) + ' KB)');
+    var _ir = JSON.parse(_txt);
+    _m('IR JSON parsed');
+    return _ir;
   }
   return j;
 }
@@ -13974,7 +13982,44 @@ window.ldHeaders = function (ct) {
   if (window.LD_AUTH_TOKEN) h['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
   return h;
 };
+/* Background thumbnail streamer: once slide 1 is on screen, render each of the
+   OTHER slides off-screen (same engine the live canvas uses) and drop the
+   picture into its filmstrip cell one-by-one — so a big deck visibly "keeps
+   coming" like Canva. Never touches the live canvas, yields between slides so
+   editing stays smooth, skips the current slide, and a fresh import cancels an
+   in-flight stream via the run token. */
+var _ldThumbRun = 0;
+async function ldStreamThumbs() {
+  var deck = window._deckIR;
+  if (!deck || !state || !state.pages || typeof fabric === 'undefined' || typeof renderSlideIR !== 'function') return;
+  var run = ++_ldThumbRun;
+  var sw = (deck.size && deck.size.w) ? deck.size.w : 4, sh = (deck.size && deck.size.h) ? deck.size.h : 3;
+  var W = 240, H = Math.max(60, Math.round(W * sh / sw));
+  for (var i = 0; i < state.pages.length; i++) {
+    if (run !== _ldThumbRun) return;                 /* superseded by a new import */
+    if (i === state.currentPage) continue;           /* live canvas owns the current slide */
+    var page = state.pages[i];
+    if (!page || page.thumb || !page.ir) continue;
+    try {
+      var tf = new fabric.StaticCanvas(null, { width: W, height: H });
+      tf._baseWidth = W; tf._baseHeight = H;
+      await renderSlideIR(page.ir, deck, tf);
+      tf.renderAll();
+      try { page.thumb = tf.toDataURL({ format: 'jpeg', quality: 0.7 }); } catch (e) {}
+      try { tf.dispose(); } catch (e) {}
+      var cell = dom.pageThumbs && dom.pageThumbs.querySelector('.page-thumb[data-page="' + i + '"]');
+      if (cell && page.thumb) {
+        var im = cell.querySelector('img');
+        if (im) im.src = page.thumb;
+        else cell.insertAdjacentHTML('afterbegin', '<img src="' + page.thumb + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">');
+      }
+    } catch (e) { /* skip a slide that won't render as a thumb */ }
+    await new Promise(function (res) { setTimeout(res, 0); });
+  }
+}
 window.loadDeckIRIntoEditor = async function (deckIR) {
+  var _t = (window.performance && performance.now) ? performance.now() : 0;
+  var _m = function (l) { if (_t) try { console.log('[ld-timing] ' + l + ': ' + Math.round(performance.now() - _t) + 'ms'); } catch (e) {} };
   window._deckIR = deckIR;
   try {
     var fs = {}; deckIR.slides.forEach(function(s){(s.elements||[]).forEach(function(e){
@@ -13982,13 +14027,17 @@ window.loadDeckIRIntoEditor = async function (deckIR) {
     var names = Object.keys(fs);
     if (window.loadDeckFonts && names.length) await new Promise(function(res){ window.loadDeckFonts(names, res); });
   } catch (e) {}
+  _m('deck fonts loaded');
   state.pages = deckIR.slides.map(function (slideIR, i) { return Object.assign(makeBlankPage(Date.now() + i), { ir: slideIR }); });
   state.notes = state.pages.map(function () { return ''; });
   state.currentPage = 0;
   setSlideAspect(deckIR.size.w, deckIR.size.h);
   await loadPageIntoCanvas(0);
+  _m('slide 1 painted (' + state.pages.length + ' slides total)');
   renderPageThumbs && renderPageThumbs();
   showToast('Design loaded ✓');
+  /* slide 1 is up — stream the rest of the slides into the filmstrip */
+  if (typeof ldStreamThumbs === 'function') ldStreamThumbs();
 };
 window.ldCompose = async function (sentence) {
   showToast('Designing in LazyDog cloud…');
