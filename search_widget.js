@@ -349,8 +349,15 @@
     var sl = document.getElementById('f_slides').value; if (sl) filterRequirements.slides = parseInt(sl, 10);
     var ar = document.getElementById('f_aspectRatio').value; if (ar) filterRequirements.aspectRatio = ar;
     var fo = document.getElementById('f_formality').value; if (fo) filterRequirements.formality = fo;
+    // CRASH FIX (27 Jul 2026): f_textWeight / f_imageWeight / f_graphWeight are
+    // NOT in the markup — there are no weight dropdowns in the filter panel. The
+    // unguarded .value on a null element threw on EVERY filter change, before the
+    // multi-selects below were read and before recomputeRequirements() ran, so
+    // the whole filter panel silently did nothing. Guard, don't assume.
     ['textWeight','imageWeight','graphWeight'].forEach(function(w) {
-      var v = document.getElementById('f_' + w).value; if (v) filterRequirements[w] = v;
+      var el = document.getElementById('f_' + w);
+      if (!el) return;
+      var v = el.value; if (v) filterRequirements[w] = v;
     });
     MULTI_FILTER_FIELDS.forEach(function(field) {
       var vals = readMultiSelect('f_' + field);
