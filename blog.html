@@ -219,7 +219,9 @@
         '<div class="blog-card-footer">' +
           '<div class="blog-card-author">' +
             '<div class="blog-card-avatar">LD</div>' +
-            '<div class="blog-card-author-name">' + escapeHtml(p.sellerName || 'LazyDog Team') + '</div>' +
+            // Blog posts are branded as LazyDog Team, not the individual seller
+            // who happened to upload the PDF — always show the team name here.
+            '<div class="blog-card-author-name">LazyDog Team</div>' +
           '</div>' +
           '<div class="blog-card-date">' + escapeHtml(fmtDate(p.uploadedAt || p.createdAt)) + '</div>' +
         '</div>' +
