@@ -173,7 +173,7 @@
                 '<option value="minimal">Minimal</option><option value="bold">Bold</option><option value="modern">Modern</option>' +
                 '<option value="elegant">Elegant</option><option value="professional">Professional</option><option value="playful">Playful</option>' +
                 '<option value="editorial">Editorial</option><option value="corporate">Corporate</option><option value="creative">Creative</option>' +
-                '<option value="luxury">Luxury</option><option value="clean">Clean</option><option value="dark">Dark</option>' +
+                '<option value="luxury">Luxury</option><option value="clean">Clean</option>' +
                 '<option value="colorful">Colorful</option><option value="vintage">Vintage</option><option value="futuristic">Futuristic</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Industry</label><select id="f_industry" multiple>' +
@@ -188,11 +188,16 @@
                 '<option value="other">Other</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Tone</label><select id="f_tone" multiple>' +
-                '<option value="professional">Professional</option><option value="confident">Confident</option>' +
-                '<option value="friendly">Friendly</option><option value="inspiring">Inspiring</option>' +
-                '<option value="bold">Bold</option><option value="calm">Calm</option>' +
-                '<option value="authoritative">Authoritative</option><option value="playful">Playful</option>' +
-                '<option value="elegant">Elegant</option><option value="editorial">Editorial</option>' +
+                '<option value="professional">Professional</option><option value="friendly">Friendly</option>' +
+                '<option value="formal">Formal</option><option value="casual">Casual</option>' +
+                '<option value="creative">Creative</option><option value="modern">Modern</option>' +
+                '<option value="elegant">Elegant</option><option value="luxury">Luxury</option>' +
+                '<option value="minimalist">Minimalist</option><option value="serious">Serious</option>' +
+                '<option value="inspirational">Inspirational</option><option value="motivational">Motivational</option>' +
+                '<option value="playful">Playful</option><option value="fun">Fun</option>' +
+                '<option value="confident">Confident</option><option value="trustworthy">Trustworthy</option>' +
+                '<option value="premium">Premium</option><option value="executive">Executive</option>' +
+                '<option value="corporate">Corporate</option><option value="bold">Bold</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Audience</label><select id="f_audience" multiple>' +
                 '<option value="investors">Investors</option><option value="clients">Clients</option>' +
@@ -202,11 +207,16 @@
                 '<option value="customers">Customers</option><option value="general">General Public</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Best For</label><select id="f_bestFor" multiple>' +
-                '<option value="pitch">Pitching Investors</option><option value="launch">Product / Collection Launch</option>' +
-                '<option value="press">Press & Media Distribution</option><option value="partnership">Partnership Proposals</option>' +
-                '<option value="job_application">Job Applications</option><option value="brand_identity">Brand Identity</option>' +
-                '<option value="social_campaign">Social Media Campaigns</option><option value="sales">Sales Presentations</option>' +
-                '<option value="internal">Internal Presentations</option><option value="portfolio">Portfolio Showcase</option>' +
+                '<option value="pitching-investors">Pitching Investors</option><option value="seed-round">Seed Round</option>' +
+                '<option value="series-a">Series A</option><option value="series-b">Series B</option>' +
+                '<option value="demo-day">Demo Day</option><option value="investor-roadshow">Investor Roadshow</option>' +
+                '<option value="accelerator-application">Accelerator Application</option><option value="product-launch">Product Launch</option>' +
+                '<option value="brand-campaign-pitches">Brand Campaign Pitches</option><option value="press-kit-distribution">Press Kit Distribution</option>' +
+                '<option value="partnership-proposals">Partnership Proposals</option><option value="client-proposals">Client Proposals</option>' +
+                '<option value="sales-presentations">Sales Presentations</option><option value="internal-presentations">Internal Presentations</option>' +
+                '<option value="team-training">Team Training</option><option value="board-meetings">Board Meetings</option>' +
+                '<option value="conference-talk">Conference Talk</option><option value="social-campaign">Social Media Campaigns</option>' +
+                '<option value="job-applications">Job Applications</option><option value="portfolio-showcase">Portfolio Showcase</option>' +
               '</select></div>' +
             '</div>' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">' +
