@@ -388,43 +388,6 @@
             <option value="legal_professional">Legal & Professional Services</option>
             <option value="general">General / Business</option>
             <option value="media_entertainment">Media & Entertainment</option>
-            <option value="software_saas">Software / SaaS</option>
-            <option value="cybersecurity">Cybersecurity</option>
-            <option value="gaming_esports">Gaming & Esports</option>
-            <option value="consumer_electronics">Consumer Electronics</option>
-            <option value="pharmaceuticals">Pharmaceuticals</option>
-            <option value="mental_health">Mental Health</option>
-            <option value="fintech">FinTech</option>
-            <option value="insurance">Insurance</option>
-            <option value="crypto_blockchain">Cryptocurrency & Blockchain</option>
-            <option value="architecture_interior">Architecture & Interior Design</option>
-            <option value="online_learning">Online Learning</option>
-            <option value="marketing_advertising">Marketing & Advertising</option>
-            <option value="public_relations">Public Relations</option>
-            <option value="publishing">Publishing</option>
-            <option value="music">Music</option>
-            <option value="film_video">Film & Video Production</option>
-            <option value="photography">Photography</option>
-            <option value="luxury_goods">Luxury Goods</option>
-            <option value="automotive">Automotive</option>
-            <option value="transportation_logistics">Transportation & Logistics</option>
-            <option value="manufacturing">Manufacturing</option>
-            <option value="energy_utilities">Energy & Utilities</option>
-            <option value="renewable_energy">Renewable Energy</option>
-            <option value="telecommunications">Telecommunications</option>
-            <option value="accounting_tax">Accounting & Tax</option>
-            <option value="consulting">Consulting</option>
-            <option value="human_resources">Human Resources</option>
-            <option value="recruiting">Recruiting</option>
-            <option value="government">Government</option>
-            <option value="religion_community">Religion & Community</option>
-            <option value="pets_animals">Pets & Animals</option>
-            <option value="parenting_family">Parenting & Family</option>
-            <option value="wedding_events">Wedding & Events</option>
-            <option value="home_garden">Home & Garden</option>
-            <option value="furniture_decor">Furniture & Decor</option>
-            <option value="art_design">Art & Design</option>
-            <option value="environmental_services">Environmental Services</option>
             <option value="other">Other</option>
           </select>
         </div>
@@ -1883,13 +1846,30 @@ window.updateSubCategories = function() {
               tech:'Tech', fashion:'Fashion', ugc:'UGC Creator', photography:'Photography',
               music_artist:'Music / Artist', sports_fitness:'Sports & Fitness',
               food_lifestyle:'Food & Lifestyle', beauty_makeup:'Beauty & Makeup',
-              travel:'Travel', corporate:'Corporate', other:'Other' };
+              travel:'Travel', corporate:'Corporate',
+              youtuber:'YouTuber', streamer:'Streamer', gamer:'Gamer', blogger:'Blogger',
+              journalist:'Journalist', author_writer:'Author / Writer', public_speaker:'Public Speaker',
+              coach_mentor:'Coach / Mentor', consultant:'Consultant', agency:'Agency',
+              startup:'Startup', saas_company:'SaaS Company', ecommerce_brand:'E-commerce Brand',
+              nonprofit_org:'Nonprofit Organization', educational_creator:'Educational Creator',
+              course_creator:'Course Creator', newsletter_creator:'Newsletter Creator',
+              community_manager:'Community Manager', actor:'Actor', model:'Model',
+              artist_illustrator:'Artist / Illustrator', designer:'Designer', developer:'Developer',
+              mobile_app:'Mobile App', event_organizer:'Event Organizer',
+              real_estate_agent:'Real Estate Agent', healthcare_professional:'Healthcare Professional',
+              wedding_professional:'Wedding Professional', content_creator:'Content Creator',
+              small_business:'Small Business',
+              other:'Other' };
   } else if (cat === 'pitch_deck') {
     opts = { '':'Select sub-category', startup:'Startup', corporate:'Corporate',
               sales:'Sales', education:'Education', nonprofit:'Non-profit',
               creative:'Creative', investment:'Investment', product_launch:'Product Launch',
               partnership:'Partnership', real_estate:'Real Estate',
-              healthcare:'Healthcare', tech_ai:'Tech & AI', other:'Other' };
+              healthcare:'Healthcare', tech_ai:'Tech & AI',
+              saas_company:'SaaS Company', ecommerce_brand:'E-commerce Brand', agency:'Agency',
+              consultant:'Consultant', mobile_app:'Mobile App', small_business:'Small Business',
+              event_organizer:'Event Organizer',
+              other:'Other' };
   } else if (cat === 'resume_cv') {
     opts = { '':'Select sub-category', fresher:'Fresher / Entry Level', experienced:'Experienced',
               executive:'Executive / C-Level', creative:'Creative', tech:'Tech / Developer',
