@@ -373,7 +373,10 @@
      means this page is already understood to be Digital Keynotes, so the widget hides its
      Content Type field and locks the filter to digital-keynotes automatically. Same rule and
      method as the pitch-deck / media-kit folder pages. See search_widget.js header comment. -->
-<div id="metaSearchWidgetMount" data-context="digital-keynotes"></div>
+<!-- REMOVED 28 Jul 2026: the search card serves Media Kits + Pitch Decks only.
+     The Digital Keynotes metadata room is not built, so the card would search nothing here.
+     Re-add exactly this line when that room exists:
+     <div id="metaSearchWidgetMount" data-context="digital-keynotes"></div> -->
 
 <!-- ══ HERO SECTION ══ -->
 <section class="hero-section"></section>
@@ -909,8 +912,8 @@ body.light .pd-card-rating { color: #556677 !important; }
 
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
-<script src="search_widget.js?v=3"></script>
-<script src="fill_widget.js?v=4"></script>
+<script src="search_widget.js?v=6"></script>
+<script src="fill_widget.js?v=6"></script>
 <script defer src="commerce-loader.js"></script>
 <script src="footerbar.js"></script>
 <nav>

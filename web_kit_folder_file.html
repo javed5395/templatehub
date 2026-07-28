@@ -370,7 +370,10 @@
 </div>
 
 <!-- METADATA SEARCH WIDGET — same card + engine as media kit & pitch deck, locked to web-kit. -->
-<div id="metaSearchWidgetMount" data-context="web-kit"></div>
+<!-- REMOVED 28 Jul 2026: the search card serves Media Kits + Pitch Decks only.
+     The Web Kit metadata room is not built, so the card would search nothing here.
+     Re-add exactly this line when that room exists:
+     <div id="metaSearchWidgetMount" data-context="web-kit"></div> -->
 
 <!-- ══ HERO SECTION ══ -->
 <section class="hero-section"></section>
@@ -883,8 +886,8 @@ body.light .pd-card-rating { color: #556677 !important; }
 
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
-<script src="search_widget.js?v=3"></script>
-<script src="fill_widget.js?v=4"></script>
+<script src="search_widget.js?v=6"></script>
+<script src="fill_widget.js?v=6"></script>
 <script defer src="commerce-loader.js"></script>
 <script src="footerbar.js"></script>
 <nav>

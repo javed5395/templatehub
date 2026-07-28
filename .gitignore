@@ -11,14 +11,6 @@ admin_panel.html
 meta_codec.py
 firebase/functions/meta_codec.py
 
-# Metadata schema (27 Jul 2026) — the FULL master carries backend-only keys, so
-# the copy sitting next to the cloud functions must never be pushed.
-# NOTE: website/kit_schema.json in the SITE ROOT is deliberately NOT ignored —
-# the search card fetches it to build its dropdowns. That copy is written by
-# metadata\schema\publish_public_schema.py, which strips every field/value code
-# and refuses to write if one survives. Never hand-copy the master over it.
-firebase/functions/kit_schema.json
-
 # Compiled Python — bytecode of the private files leaks the same secrets!
 __pycache__/
 *.pyc

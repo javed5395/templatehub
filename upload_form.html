@@ -371,62 +371,7 @@
         <div class="field">
           <label id="industryLabel">Industry <span class="required">*</span></label>
           <select id="industry">
-            <option value="">Select industry</option>
-            <option value="tech">Tech & AI</option>
-            <option value="healthcare">Healthcare & Medical</option>
-            <option value="finance">Finance & Banking</option>
-            <option value="construction">Construction</option>
-            <option value="retail">Retail & E-commerce</option>
-            <option value="education">Education</option>
-            <option value="realestate">Real Estate</option>
-            <option value="fashion">Fashion & Beauty</option>
-            <option value="food">Food & Restaurant</option>
-            <option value="agriculture">Agriculture & Farming</option>
-            <option value="travel_hospitality">Travel & Hospitality</option>
-            <option value="sports_fitness">Sports & Fitness</option>
-            <option value="nonprofit">Non-profit / NGO</option>
-            <option value="legal_professional">Legal & Professional Services</option>
-            <option value="general">General / Business</option>
-            <option value="media_entertainment">Media & Entertainment</option>
-            <option value="software_saas">Software / SaaS</option>
-            <option value="cybersecurity">Cybersecurity</option>
-            <option value="gaming_esports">Gaming & Esports</option>
-            <option value="consumer_electronics">Consumer Electronics</option>
-            <option value="pharmaceuticals">Pharmaceuticals</option>
-            <option value="mental_health">Mental Health</option>
-            <option value="fintech">FinTech</option>
-            <option value="insurance">Insurance</option>
-            <option value="crypto_blockchain">Cryptocurrency & Blockchain</option>
-            <option value="architecture_interior">Architecture & Interior Design</option>
-            <option value="online_learning">Online Learning</option>
-            <option value="marketing_advertising">Marketing & Advertising</option>
-            <option value="public_relations">Public Relations</option>
-            <option value="publishing">Publishing</option>
-            <option value="music">Music</option>
-            <option value="film_video">Film & Video Production</option>
-            <option value="photography">Photography</option>
-            <option value="luxury_goods">Luxury Goods</option>
-            <option value="automotive">Automotive</option>
-            <option value="transportation_logistics">Transportation & Logistics</option>
-            <option value="manufacturing">Manufacturing</option>
-            <option value="energy_utilities">Energy & Utilities</option>
-            <option value="renewable_energy">Renewable Energy</option>
-            <option value="telecommunications">Telecommunications</option>
-            <option value="accounting_tax">Accounting & Tax</option>
-            <option value="consulting">Consulting</option>
-            <option value="human_resources">Human Resources</option>
-            <option value="recruiting">Recruiting</option>
-            <option value="government">Government</option>
-            <option value="religion_community">Religion & Community</option>
-            <option value="pets_animals">Pets & Animals</option>
-            <option value="parenting_family">Parenting & Family</option>
-            <option value="wedding_events">Wedding & Events</option>
-            <option value="home_garden">Home & Garden</option>
-            <option value="furniture_decor">Furniture & Decor</option>
-            <option value="art_design">Art & Design</option>
-            <option value="environmental_services">Environmental Services</option>
-            <option value="other">Other</option>
-          </select>
+            <option value="">Select industry</option><option value="tech">Tech</option><option value="saas">SaaS</option><option value="cybersecurity">Cybersecurity</option><option value="electronics">Electronics</option><option value="gaming">Gaming</option><option value="telecom">Telecom</option><option value="healthcare">Healthcare</option><option value="pharma">Pharma</option><option value="mental-health">Mental Health</option><option value="finance">Finance</option><option value="fintech">FinTech</option><option value="insurance">Insurance</option><option value="accounting">Accounting</option><option value="crypto">Crypto</option><option value="education">Education</option><option value="elearning">E-Learning</option><option value="retail">Retail</option><option value="food">Food</option><option value="fashion">Fashion</option><option value="luxury">Luxury</option><option value="realestate">Real Estate</option><option value="construction">Construction</option><option value="architecture">Architecture</option><option value="home">Home</option><option value="furniture">Furniture</option><option value="travel">Travel</option><option value="sports">Sports</option><option value="events">Events</option><option value="media">Media</option><option value="music">Music</option><option value="film">Film</option><option value="photography">Photography</option><option value="publishing">Publishing</option><option value="art">Art</option><option value="marketing">Marketing</option><option value="pr">Public Relations</option><option value="consulting">Consulting</option><option value="hr">Human Resources</option><option value="recruiting">Recruiting</option><option value="automotive">Automotive</option><option value="manufacturing">Manufacturing</option><option value="logistics">Logistics</option><option value="energy">Energy</option><option value="environment">Environment</option><option value="agriculture">Agriculture</option><option value="pets">Pets</option><option value="parenting">Parenting</option><option value="legal">Legal</option><option value="government">Government</option><option value="nonprofit">Nonprofit</option><option value="religion">Religion</option><option value="general">General</option><option value="other">Other</option></select>
         </div>
         <div class="field">
           <label>Price (USD)</label>
@@ -663,6 +608,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, getDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getStorage, ref as storageRef, uploadBytes } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -677,6 +623,36 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 const auth = getAuth(app);
+// ── PRIVATE METADATA BUCKET (28 Jul 2026) ────────────────────────────────────
+// The PDF's SECTION 11 is written in CODES ("X7 : b1,b2"). The browser must
+// never decode them, so it does not try: the ORIGINAL, un-stripped PDF is
+// dropped into the private bucket as kits/<docId>_SYSTEM.pdf and the
+// process_system_pdf Cloud Function reads the codes there, server-side, with
+// the private codec. That function already writes kits.encoded_raw +
+// templates. Storage rules allow this path for the admin accounts only.
+const PRIVATE_BUCKET_URL = 'gs://lazydog-studio-private';
+const META_ADMIN_EMAILS  = ['lazydogtemplates@gmail.com', 'javed5395@gmail.com'];
+const privateStorage = getStorage(app, PRIVATE_BUCKET_URL);
+
+async function uploadSystemPdf(docId, originalPdfFile) {
+  if (!docId || !originalPdfFile) return false;
+  const email = (auth.currentUser && auth.currentUser.email || '').toLowerCase();
+  if (META_ADMIN_EMAILS.indexOf(email) === -1) {
+    console.log('[SYSTEM PDF] not an admin account — private upload skipped.');
+    return false;
+  }
+  try {
+    const path = 'kits/' + docId + '_SYSTEM.pdf';
+    await uploadBytes(storageRef(privateStorage, path), originalPdfFile,
+                      { contentType: 'application/pdf' });
+    console.log('[SYSTEM PDF] uploaded →', PRIVATE_BUCKET_URL + '/' + path);
+    return true;
+  } catch (e) {
+    console.warn('[SYSTEM PDF] private upload failed — metadata will not be read:', e);
+    return false;
+  }
+}
+
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ 'prompt': 'select_account' });
 
@@ -1722,6 +1698,16 @@ window.submitForm = async function() {
         templateId:  docRef.id,
         savedAt:     serverTimestamp()
       });
+    }
+
+    // ── METADATA (28 Jul 2026) ──────────────────────────────────────────
+    // Send the ORIGINAL pdf (Section 11 still inside) to the private bucket.
+    // process_system_pdf reads the codes there and writes kits.encoded_raw —
+    // this is the ONLY path by which a kit's real metadata reaches search.
+    // The public pdf uploaded above is still the stripped one.
+    if (pdfFile) {
+      setProgress(97, 'Metadata (private) process ho raha hai...');
+      await uploadSystemPdf(docRef.id, pdfFile);
     }
 
     setProgress(100, 'Done!');

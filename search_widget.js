@@ -79,10 +79,9 @@
        .sticky-card__visual (background:#F4F6FB) in landing.html: left
        column stays white, right column gets the grey-blue tone + a
        divider border, restoring the proper side-by-side v4 layout. */
-    #searchWidget .sw-panels { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px,1fr)); align-items:stretch; min-height:520px; }
-    #searchWidget .sw-col { padding:44px 48px; }
-    #searchWidget .sw-col:first-child { background:#ffffff; }
-    #searchWidget .sw-col:last-child { background:#F4F6FB; border-left:1px solid #e5e8f0; }
+    /* 28 Jul 2026 — one column only (chat side removed). */
+    #searchWidget .sw-panels { display:block; }
+    #searchWidget .sw-col { padding:22px 26px 26px; background:#F4F6FB; }
     #searchWidget .sw-col h3 { font-size:13px; color:var(--accent,#d4af37); margin:0 0 12px; font-family:'Poppins',sans-serif; }
     #searchWidget #chatBox { background:#fff; border:1px solid #d8dce6; border-radius:14px; padding:12px; min-height:100px; max-height:160px; overflow-y:auto; margin-bottom:0; resize:vertical; width:100%; box-sizing:border-box; font-size:12.5px; color:#1a1a2e; font-family:'Inter',sans-serif; line-height:1.6; }
     #searchWidget #chatBox:focus { outline:none; border-color:var(--accent,#d4af37); }
@@ -116,6 +115,16 @@
     #metaSearchEmptyState { color:#8899aa; font-size:13px; padding:16px 0; }
     #swResultsSection { padding:20px 40px 24px; }
     .sw-results-head { font-size:13px; color:#aaaaaa; margin-bottom:14px; }
+    /* Cross-section note — sits at the BOTTOM of the card, red, with the other
+       section's name as a button that carries this search over to that page. */
+    #searchWidget #swCrossNote { display:none; margin-top:12px; font-size:12px; line-height:1.6;
+      color:#c02626; background:rgba(192,38,38,0.07); border:1px solid rgba(192,38,38,0.35);
+      border-radius:10px; padding:9px 13px; font-family:'Inter',sans-serif; }
+    #searchWidget #swCrossNote.is-on { display:block; }
+    #searchWidget #swCrossGoBtn { margin-left:6px; background:#c02626; border:none; color:#ffffff;
+      font-weight:700; font-size:11.5px; border-radius:8px; padding:4px 11px; cursor:pointer;
+      font-family:'Inter',sans-serif; }
+    #searchWidget #swCrossGoBtn:hover { background:#a01f1f; }
     .sw-results-head strong { color:#ffffff; }
     #swResultsGrid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; }
     #swResultsGrid .pd-card { width:auto !important; flex-shrink:unset !important; position:relative; }
@@ -137,37 +146,88 @@
     '<div id="metaSearchCardWrap"><div id="searchWidget">' +
       '<div id="widgetTeaser">🔎 Looking for a 100% match to your requirement?' +
         '<button id="widgetLockBtn" type="button" title="Lock the card open">🔓 Lock open</button>' +
-        '<small>Hover or tap to fill in details — our engine digs out the closest decks for you instantly.</small>' +
+        '<small>Hover or tap to open, then pick your fields — the engine pulls the closest designs instantly.</small>' +
       '</div>' +
       '<div id="widgetFull">' +
+        // 28 Jul 2026 — ONE column. The 'Describe it' chat side is gone; the
+        // card is the field filter and nothing else. The title now sits
+        // directly above the fields, in #widgetTeaser.
         '<div class="sw-panels">' +
-          '<div class="sw-col"><h3>💬 Describe it</h3>' +
-            '<textarea id="chatBox" placeholder="Tell me what you\'re looking for — e.g. bold fashion pitch deck for investors, minimal blue tone, 16 slides..."></textarea>' +
-            '<div id="inputRow"></div>' +
-            '<button id="sendBtn" style="margin-top:10px;padding:10px 28px;border-radius:30px;border:2px solid #1a1a2e;background:#ffffff;color:#1a1a2e;font-weight:700;cursor:pointer;font-size:13px;font-family:\'Poppins\',sans-serif;letter-spacing:0.01em;">Reset</button>' +
-          '</div>' +
-          '<div class="sw-col"><h3>🎛️ Filter by field</h3>' +
+          '<div class="sw-col">' +
             '<div id="filterBlock"><div class="sw-grid">' +
-              '<div class="sw-field" id="f_contentTypeWrap"><label>Content Type</label>' +
-                '<select id="f_contentType"><option value="">Any</option><option value="pitch-deck">Pitch Deck</option>' +
-                '<option value="media-kit">Media Kit</option><option value="web-kit">Web Kit</option>' +
-                '<option value="resume-cv">Resume / CV</option>' +
-                '<option value="digital-keynotes">Digital Keynotes</option></select></div>' +
+              '<div class="sw-field" id="f_contentTypeWrap"><label>Template Type</label>' +
+                // 28 Jul 2026: TWO types only — Media Kit and Pitch Deck. Web Kit,
+                // Resume/CV and Digital Keynotes are removed: those rooms are not
+                // built yet, so offering them would search nothing.
+                '<select id="f_contentType"><option value="">Any</option>' +
+                '<option value="pitch-deck">Pitch Deck</option>' +
+                '<option value="media-kit">Media Kit</option></select></div>' +
+              // Y4 — TYPE: the category INSIDE the template type. Same list the
+              // seller picks as Sub-Category in upload_form.html (media kit + pitch
+              // deck sub-categories, deduped, 'other' dropped).
+              '<div class="sw-field"><label>Type</label><select id="f_type" multiple>' +
+                '<option value="freelancer">Freelancer</option>' +
+                '<option value="podcast">Podcast</option>' +
+                '<option value="press">Press / PR</option>' +
+                '<option value="influencer">Influencer</option>' +
+                '<option value="brand">Brand</option>' +
+                '<option value="tech">Tech</option>' +
+                '<option value="fashion">Fashion</option>' +
+                '<option value="ugc">UGC Creator</option>' +
+                '<option value="photography">Photography</option>' +
+                '<option value="music">Music / Artist</option>' +
+                '<option value="sports">Sports</option>' +
+                '<option value="food">Food</option>' +
+                '<option value="beauty">Beauty</option>' +
+                '<option value="travel">Travel</option>' +
+                '<option value="corporate">Corporate</option>' +
+                '<option value="startup">Startup</option>' +
+                '<option value="sales">Sales</option>' +
+                '<option value="education">Education</option>' +
+                '<option value="nonprofit">Non-profit</option>' +
+                '<option value="creative">Creative</option>' +
+                '<option value="investment">Investment</option>' +
+                '<option value="product-launch">Product Launch</option>' +
+                '<option value="partnership">Partnership</option>' +
+                '<option value="real-estate">Real Estate</option>' +
+                '<option value="healthcare">Healthcare</option>' +
+                '<option value="tech-ai">Tech & AI</option>' +
+              '</select></div>' +
               '<div class="sw-field"><label>No. of Slides</label><input type="number" id="f_slides" placeholder="e.g. 15"/></div>' +
               '<div class="sw-field"><label>Aspect Ratio</label><select id="f_aspectRatio"><option value="">Any</option>' +
-                '<option value="16 9">16:9</option><option value="4 3">4:3</option><option value="1 1">1:1 Square</option>' +
-                '<option value="9 16">9:16 Vertical</option></select></div>' +
+                '<option value="16 9">16:9</option></select></div>' +
               '<div class="sw-field"><label>Formality</label><select id="f_formality"><option value="">Any</option>' +
                 '<option value="very high">Very High</option><option value="high">High</option>' +
                 '<option value="medium high">Medium-High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>' +
+              '<div class="sw-field"><label>Text</label><select id="f_textWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Shapes</label><select id="f_shapeWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Graphs</label><select id="f_graphWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Empty Space</label><select id="f_emptySpace"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
               '<div class="sw-field"><label>Color Family</label><select id="f_colorFamily" multiple>' +
-                '<option value="blue">Blue</option><option value="navy">Navy</option><option value="black">Black</option>' +
-                '<option value="white">White</option><option value="grey">Grey</option><option value="red">Red</option>' +
-                '<option value="terracotta">Terracotta</option><option value="orange">Orange</option><option value="yellow">Yellow</option>' +
-                '<option value="gold">Gold</option><option value="green">Green</option><option value="purple">Purple</option>' +
-                '<option value="pink">Pink</option><option value="brown">Brown</option><option value="neutral">Neutral</option>' +
-                '<option value="warm">Warm Tones</option><option value="cool">Cool Tones</option><option value="dark">Dark</option>' +
+                '<option value="black">Black</option><option value="white">White</option><option value="gray">Gray</option>' +
+                '<option value="silver">Silver</option><option value="charcoal">Charcoal</option><option value="beige">Beige</option>' +
+                '<option value="neutral">Neutral</option><option value="navy">Navy</option><option value="blue">Blue</option>' +
+                '<option value="cyan">Cyan</option><option value="teal">Teal</option><option value="green">Green</option>' +
+                '<option value="lime">Lime</option><option value="olive">Olive</option><option value="yellow">Yellow</option>' +
+                '<option value="gold">Gold</option><option value="orange">Orange</option><option value="coral">Coral</option>' +
+                '<option value="terracotta">Terracotta</option><option value="brown">Brown</option><option value="red">Red</option>' +
+                '<option value="burgundy">Burgundy</option><option value="pink">Pink</option><option value="purple">Purple</option>' +
+                '<option value="violet">Violet</option><option value="lavender">Lavender</option><option value="warm">Warm Tones</option>' +
+                '<option value="cool">Cool Tones</option><option value="pastel">Pastel</option><option value="neon">Neon</option>' +
+                '<option value="earth">Earth Tones</option><option value="monochrome">Monochrome</option><option value="dark">Dark</option>' +
                 '<option value="light">Light</option><option value="multicolor">Multicolor</option>' +
+              '</select></div>' +
+              '<div class="sw-field"><label>Background</label><select id="f_background" multiple>' +
+                '<option value="dark">Dark</option><option value="light">Light</option><option value="monochrome">Monochrome</option>' +
+                '<option value="transparent">Transparent</option><option value="solid">Solid</option><option value="gradient">Gradient</option>' +
+                '<option value="mesh-gradient">Mesh Gradient</option><option value="duotone">Duotone</option><option value="color-block">Colour Block</option>' +
+                '<option value="metallic">Metallic</option><option value="neon">Neon</option><option value="photo">Photo</option>' +
+                '<option value="full-bleed-image">Full-Bleed Image</option><option value="blurred">Blurred</option><option value="bokeh">Bokeh</option>' +
+                '<option value="illustration">Illustration</option><option value="watercolor">Watercolour</option><option value="textured">Textured</option>' +
+                '<option value="pattern">Pattern</option><option value="paper">Paper</option><option value="organic">Organic</option>' +
+                '<option value="grid">Grid</option><option value="geometric">Geometric</option><option value="split-screen">Split Screen</option>' +
+                '<option value="framed">Framed</option><option value="abstract">Abstract</option><option value="3d">3D</option>' +
+                '<option value="glassmorphism">Glassmorphism</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Style</label><select id="f_style" multiple>' +
                 '<option value="minimal">Minimal</option><option value="bold">Bold</option><option value="modern">Modern</option>' +
@@ -177,15 +237,24 @@
                 '<option value="colorful">Colorful</option><option value="vintage">Vintage</option><option value="futuristic">Futuristic</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Industry</label><select id="f_industry" multiple>' +
-                '<option value="tech">Tech & AI</option><option value="healthcare">Healthcare & Medical</option>' +
-                '<option value="finance">Finance & Banking</option><option value="construction">Construction</option>' +
-                '<option value="retail">Retail & E-commerce</option><option value="education">Education</option>' +
-                '<option value="realestate">Real Estate</option><option value="fashion">Fashion & Beauty</option>' +
-                '<option value="food">Food & Restaurant</option><option value="agriculture">Agriculture & Farming</option>' +
-                '<option value="travel_hospitality">Travel & Hospitality</option><option value="sports_fitness">Sports & Fitness</option>' +
-                '<option value="nonprofit">Non-profit / NGO</option><option value="legal_professional">Legal & Professional Services</option>' +
-                '<option value="general">General / Business</option><option value="media_entertainment">Media & Entertainment</option>' +
-                '<option value="other">Other</option>' +
+                '<option value="tech">Tech</option><option value="saas">SaaS</option><option value="cybersecurity">Cybersecurity</option>' +
+                '<option value="electronics">Electronics</option><option value="gaming">Gaming</option><option value="telecom">Telecom</option>' +
+                '<option value="healthcare">Healthcare</option><option value="pharma">Pharma</option><option value="mental-health">Mental Health</option>' +
+                '<option value="finance">Finance</option><option value="fintech">FinTech</option><option value="insurance">Insurance</option>' +
+                '<option value="accounting">Accounting</option><option value="crypto">Crypto</option><option value="education">Education</option>' +
+                '<option value="elearning">E-Learning</option><option value="retail">Retail</option><option value="food">Food</option>' +
+                '<option value="fashion">Fashion</option><option value="luxury">Luxury</option><option value="realestate">Real Estate</option>' +
+                '<option value="construction">Construction</option><option value="architecture">Architecture</option><option value="home">Home</option>' +
+                '<option value="furniture">Furniture</option><option value="travel">Travel</option><option value="sports">Sports</option>' +
+                '<option value="events">Events</option><option value="media">Media</option><option value="music">Music</option>' +
+                '<option value="film">Film</option><option value="photography">Photography</option><option value="publishing">Publishing</option>' +
+                '<option value="art">Art</option><option value="marketing">Marketing</option><option value="pr">Public Relations</option>' +
+                '<option value="consulting">Consulting</option><option value="hr">Human Resources</option><option value="recruiting">Recruiting</option>' +
+                '<option value="automotive">Automotive</option><option value="manufacturing">Manufacturing</option><option value="logistics">Logistics</option>' +
+                '<option value="energy">Energy</option><option value="environment">Environment</option><option value="agriculture">Agriculture</option>' +
+                '<option value="pets">Pets</option><option value="parenting">Parenting</option><option value="legal">Legal</option>' +
+                '<option value="government">Government</option><option value="nonprofit">Nonprofit</option><option value="religion">Religion</option>' +
+                '<option value="general">General</option><option value="other">Other</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Tone</label><select id="f_tone" multiple>' +
                 '<option value="professional">Professional</option><option value="friendly">Friendly</option>' +
@@ -200,11 +269,30 @@
                 '<option value="corporate">Corporate</option><option value="bold">Bold</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Audience</label><select id="f_audience" multiple>' +
-                '<option value="investors">Investors</option><option value="clients">Clients</option>' +
-                '<option value="media">Media & Press</option><option value="partners">Brand Partners</option>' +
-                '<option value="retail_buyers">Retail Buyers</option><option value="influencers">Influencers</option>' +
-                '<option value="recruiters">Recruiters</option><option value="students">Students</option>' +
-                '<option value="customers">Customers</option><option value="general">General Public</option>' +
+                '<option value="executives">Executives</option><option value="managers">Managers</option>' +
+                '<option value="team-leaders">Team Leaders</option><option value="employees">Employees</option>' +
+                '<option value="project-managers">Project Managers</option><option value="product-managers">Product Managers</option>' +
+                '<option value="entrepreneurs">Entrepreneurs</option><option value="founders">Founders</option>' +
+                '<option value="startups">Startups</option><option value="business-owners">Business Owners</option>' +
+                '<option value="investors">Investors</option><option value="vcs">Venture Capitalists</option>' +
+                '<option value="sales-teams">Sales Teams</option><option value="marketing-teams">Marketing Teams</option>' +
+                '<option value="agencies">Agencies</option><option value="consultants">Consultants</option>' +
+                '<option value="freelancers">Freelancers</option><option value="recruiters">Recruiters</option>' +
+                '<option value="hr">HR Professionals</option><option value="job-seekers">Job Seekers</option>' +
+                '<option value="educators">Educators</option><option value="teachers">Teachers</option>' +
+                '<option value="trainers">Trainers</option><option value="students">Students</option>' +
+                '<option value="researchers">Researchers</option><option value="academics">Academics</option>' +
+                '<option value="healthcare">Healthcare Professionals</option><option value="doctors">Doctors</option>' +
+                '<option value="nurses">Nurses</option><option value="engineers">Engineers</option>' +
+                '<option value="developers">Developers</option><option value="designers">Designers</option>' +
+                '<option value="architects">Architects</option><option value="realtors">Real Estate Agents</option>' +
+                '<option value="buyers">Retail Buyers</option><option value="procurement">Procurement Teams</option>' +
+                '<option value="customers">Customers</option><option value="clients">Clients</option>' +
+                '<option value="nonprofits">Nonprofits</option><option value="government">Government Officials</option>' +
+                '<option value="public-sector">Public Sector Professionals</option><option value="media">Media Outlets</option>' +
+                '<option value="press">Press</option><option value="editors">Editors</option>' +
+                '<option value="influencers">Influencers</option><option value="partners">Brand Partners</option>' +
+                '<option value="sponsors">Brand Sponsors</option>' +
               '</select></div>' +
               '<div class="sw-field"><label>Best For</label><select id="f_bestFor" multiple>' +
                 '<option value="pitching-investors">Pitching Investors</option><option value="seed-round">Seed Round</option>' +
@@ -223,6 +311,7 @@
               '<button id="clearFiltersBtn">Clear all filters</button>' +
             '</div>' +
             '<span id="lockNote">📌 Click anywhere outside this box to close it</span>' +
+            '<div id="swCrossNote"></div>' +
           '</div></div>' +
         '</div>' +
       '</div>' +
@@ -248,7 +337,7 @@
   // ---------------------------------------------------------
   var allDecks = [];
 
-  var ARRAY_FIELDS = ['colorFamily','style','industry','tone','audience','bestFor','notFor'];
+  var ARRAY_FIELDS = ['type','colorFamily','background','style','industry','tone','audience','bestFor','notFor'];
 
   function norm(s) {
     return String(s || '')
@@ -284,7 +373,9 @@
     if (/pitch deck|investor pitch|pitch/.test(lower)) { found.contentType = 'pitch-deck'; consumed = consumed.replace(/pitch deck|investor pitch|pitch/, ' '); }
     else if (/media kit/.test(lower)) { found.contentType = 'media-kit'; consumed = consumed.replace(/media kit/, ' '); }
     FORMALITY_LEVELS.forEach(function(level) { if (lower.indexOf(level) !== -1) { found.formality = level; consumed = consumed.replace(level, ' '); } });
-    if (/image heavy|lots of images|photo heavy/.test(lower)) { found.imageWeight = 'high'; consumed = consumed.replace(/image heavy|lots of images|photo heavy/, ' '); }
+    if (/image heavy|lots of images|photo heavy|graphic heavy/.test(lower)) { found.shapeWeight = 'high'; consumed = consumed.replace(/image heavy|lots of images|photo heavy|graphic heavy/, ' '); }
+    if (/lots of (?:white ?space|room|space)|airy|minimal layout|plenty of space/.test(lower)) { found.emptySpace = 'high'; consumed = consumed.replace(/lots of (?:white ?space|room|space)|airy|minimal layout|plenty of space/, ' '); }
+    if (/dense|packed|busy layout|no white ?space/.test(lower)) { found.emptySpace = 'low'; consumed = consumed.replace(/dense|packed|busy layout|no white ?space/, ' '); }
     if (/text heavy|lots of text|copy heavy/.test(lower)) { found.textWeight = 'high'; consumed = consumed.replace(/text heavy|lots of text|copy heavy/, ' '); }
     if (/graph heavy|lots of graphs|chart heavy|data heavy/.test(lower)) { found.graphWeight = 'high'; consumed = consumed.replace(/graph heavy|lots of graphs|chart heavy|data heavy/, ' '); }
     ARRAY_FIELDS.forEach(function(field) {
@@ -313,7 +404,7 @@
     });
   }
 
-  var MULTI_FILTER_FIELDS = ['colorFamily','style','industry','tone','audience','bestFor'];
+  var MULTI_FILTER_FIELDS = ['type','colorFamily','background','style','industry','tone','audience','bestFor'];
 
   function populateFilterOptions() {
     // FIX (25 Jul 2026): MERGE live vocab with the curated options already in
@@ -349,12 +440,13 @@
     var sl = document.getElementById('f_slides').value; if (sl) filterRequirements.slides = parseInt(sl, 10);
     var ar = document.getElementById('f_aspectRatio').value; if (ar) filterRequirements.aspectRatio = ar;
     var fo = document.getElementById('f_formality').value; if (fo) filterRequirements.formality = fo;
-    // CRASH FIX (27 Jul 2026): f_textWeight / f_imageWeight / f_graphWeight are
-    // NOT in the markup — there are no weight dropdowns in the filter panel. The
-    // unguarded .value on a null element threw on EVERY filter change, before the
-    // multi-selects below were read and before recomputeRequirements() ran, so
-    // the whole filter panel silently did nothing. Guard, don't assume.
-    ['textWeight','imageWeight','graphWeight'].forEach(function(w) {
+    // 28 Jul 2026: the four canvas fields — text / shapes / graphs / empty space.
+    // These are MEASURED from the .pptx, never typed: background is exempt, shapes
+    // and graphs are rectangle unions, empty is canvas nothing sits on, and text is
+    // the remainder, so the four always total 100.
+    // The null guard stays — it is what stopped a missing element from throwing
+    // here and silently killing the entire filter panel (crash fix, 27 Jul).
+    ['textWeight','shapeWeight','graphWeight','emptySpace'].forEach(function(w) {
       var el = document.getElementById('f_' + w);
       if (!el) return;
       var v = el.value; if (v) filterRequirements[w] = v;
@@ -366,10 +458,10 @@
     recomputeRequirements();
   }
   function clearFilters() {
-    ['f_contentType','f_slides','f_aspectRatio','f_formality','f_textWeight','f_imageWeight','f_graphWeight'].forEach(function(id) {
+    ['f_contentType','f_slides','f_aspectRatio','f_formality','f_textWeight','f_shapeWeight','f_graphWeight','f_emptySpace'].forEach(function(id) {
       var el = document.getElementById(id); if (el && id !== 'f_contentType') el.value = '';
     });
-    if (!pageContext) document.getElementById('f_contentType').value = ''; // only Home can clear content type
+    document.getElementById('f_contentType').value = pageContext || '';  // section pages fall back to their own type
     MULTI_FILTER_FIELDS.forEach(function(field) {
       var el = document.getElementById('f_' + field);
       Array.prototype.slice.call(el.options).forEach(function(o) { o.selected = false; });
@@ -400,6 +492,7 @@
       });
     });
     renderTieredResults(requirements);
+    crossSectionNotice();   // note lives in the card, so it updates on every change
   }
 
   function fieldValuesNorm(deck, field) {
@@ -432,7 +525,7 @@
     if (req.aspectRatio) { max += 1; if (norm(deck.aspectRatio) === req.aspectRatio) score += 1; }
     if (req.contentType) { max += 1; score += tokenOverlap(req.contentType, deck.contentType); }
     if (req.formality) { max += 1; if (norm(deck.formality).indexOf(req.formality) !== -1) score += 1; }
-    ['textWeight','imageWeight','graphWeight'].forEach(function(w) { if (req[w]) { max += 1; score += gradedWeight(req[w], norm(deck[w])); } });
+    ['textWeight','shapeWeight','graphWeight','emptySpace'].forEach(function(w) { if (req[w]) { max += 1; score += gradedWeight(req[w], norm(deck[w])); } });
     ['colorFamily','style','industry','tone','audience','bestFor'].forEach(function(field) {
       if (req[field] && req[field].length) {
         max += 1;                                  // whole field = 1 point (equal weight), no matter how many values picked
@@ -531,10 +624,15 @@
       var scored = [];
       results.forEach(function(r) {
         var deck = bySlug[r.slug];
-        // Section pages: only this page's own category exists in the pool —
-        // anything else the server surfaced is skipped (page purity).
+        // Section pages keep "page purity" — the local pool only holds this
+        // page's own category, so a result from elsewhere has no card to reuse.
+        // EXCEPTION (28 Jul 2026): if the buyer explicitly picked a different
+        // Content Type, that is exactly what they asked for. Build a light card
+        // from the server's display-safe fields and show it.
+        var askedElsewhere = (filterRequirements.contentType || '') &&
+                             filterRequirements.contentType !== pageContext;
         if (!deck) {
-          if (pageContext) return;
+          if (pageContext && !askedElsewhere) return;
           deck = { id: r.slug, name: r.name, contentType: '', slides: r.slides,
                    colorFamily: [], _match: r.match };
         }
@@ -585,6 +683,7 @@
 
   function addMsg(text, who) {
     var box = document.getElementById('chatBox');
+    if (!box) return;          // chat column removed — nothing to write into
     var div = document.createElement('div');
     div.className = 'msg ' + who;
     div.textContent = text;
@@ -699,7 +798,9 @@
   // ---------------------------------------------------------
   function applyPageContext() {
     if (pageContext) {
-      document.getElementById('f_contentTypeWrap').style.display = 'none';
+      // 28 Jul 2026: no longer hidden. It is pre-set to this page's type so the
+      // default behaviour is unchanged, but the buyer can now change it and
+      // search another category without leaving the page.
       document.getElementById('f_contentType').value = pageContext;
       filterRequirements.contentType = pageContext;
     }
@@ -744,14 +845,111 @@
     }
   }
 
+
+  // ---------------------------------------------------------
+  // CROSS-SECTION SEARCH  (28 Jul 2026)
+  // A buyer standing in Media Kits may want a Pitch Deck. Before this, the
+  // Content Type field was hidden and hard-locked to the page, so they could
+  // not ask — and any result the server returned from another category was
+  // thrown away by the "page purity" rule below.
+  //
+  // Now they get the results RIGHT HERE. No redirect, no "would you like to go
+  // to..." — sending someone away mid-search loses them. The only thing shown
+  // is a small line saying what is on screen, so the mixed list is never
+  // confusing.
+  // ---------------------------------------------------------
+  // TWO sections only — Media Kits and Pitch Decks. Nothing else has a room
+  // built, so nothing else is offered and the note never points anywhere else.
+  var SECTION_LABELS = {
+    'pitch-deck' : 'Pitch Decks',
+    'media-kit'  : 'Media Kits'
+  };
+  var SECTION_PAGES = {
+    'pitch-deck' : 'pitch_deck_folder_section.html',
+    'media-kit'  : 'media_kits_folder_section.html'
+  };
+
+  // The whole card state travels in ONE url parameter so the buyer's search is
+  // not retyped on the other page: ?sw=<url-encoded json of filterRequirements>.
+  function crossSearchUrl(target) {
+    var page = SECTION_PAGES[target];
+    if (!page) return null;
+    var carry = {};
+    Object.keys(filterRequirements).forEach(function(k) { carry[k] = filterRequirements[k]; });
+    carry.contentType = target;
+    return page + '?sw=' + encodeURIComponent(JSON.stringify(carry));
+  }
+
+  function crossSectionNotice() {
+    var note = document.getElementById('swCrossNote');
+    if (!note) return;
+    var chosen = (filterRequirements.contentType || '').trim();
+    var here = SECTION_LABELS[pageContext];
+    var want = SECTION_LABELS[chosen];
+    if (!pageContext || !chosen || chosen === pageContext || !want || !here) {
+      note.className = ''; note.innerHTML = '';
+      return;
+    }
+    note.innerHTML =
+      'Currently you are in the <strong>' + here + '</strong> section, so ' + want +
+      ' are being pulled from the ' + want + ' section and shown here. ' +
+      'If you want to explore more ' + want + ' yourself, click' +
+      '<button type="button" id="swCrossGoBtn">' + want + '</button>';
+    note.className = 'is-on';
+    var btn = document.getElementById('swCrossGoBtn');
+    if (btn) btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var url = crossSearchUrl(chosen);
+      if (url) window.location.href = url;
+    });
+  }
+
+  // ---------------------------------------------------------
+  // ARRIVING FROM ANOTHER SECTION \u2014 read ?sw=, refill every card field, rerun
+  // the match and leave the card locked open. That is what "opens his search
+  // there" means: same search, new section, nothing retyped.
+  // ---------------------------------------------------------
+  function applyIncomingSearch() {
+    var m = (window.location.search || '').match(/[?&]sw=([^&]*)/);
+    if (!m) return;
+    var wanted;
+    try { wanted = JSON.parse(decodeURIComponent(m[1])); } catch (err) { return; }
+    if (!wanted || typeof wanted !== 'object') return;
+
+    ['contentType','slides','aspectRatio','formality','textWeight','shapeWeight','graphWeight','emptySpace']
+      .forEach(function(k) {
+        var el = document.getElementById('f_' + k);
+        if (!el) return;
+        var v = wanted[k];
+        if (v === undefined || v === null || v === '') return;
+        el.value = String(v);      // a value this page's list doesn't have simply stays blank
+      });
+    MULTI_FILTER_FIELDS.forEach(function(f) {
+      var el = document.getElementById('f_' + f);
+      if (!el || !Array.isArray(wanted[f])) return;
+      Array.prototype.forEach.call(el.options, function(o) {
+        if (wanted[f].indexOf(o.value) !== -1) o.selected = true;
+      });
+    });
+    onFilterChange();            // rebuilds filterRequirements from the DOM + rerenders
+    setLocked(true);             // card open, so he sees his own search sitting there
+    var w = document.getElementById('searchWidget');
+    if (w && w.scrollIntoView) w.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function wireEvents() {
-    document.getElementById('sendBtn').addEventListener('click', resetAll); // button is now Reset
+    // The chat column was removed, so #sendBtn / #userInput may not exist.
+    // Unguarded, the missing #sendBtn threw here and killed every filter
+    // listener below it — the same failure mode as the 27 Jul crash.
+    var sendEl = document.getElementById('sendBtn');
+    if (sendEl) sendEl.addEventListener('click', resetAll);
     var inputEl = document.getElementById('userInput');
     if (inputEl) inputEl.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') { e.stopPropagation(); sendMsg(); }
     });
     document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
-    ['f_contentType','f_slides','f_aspectRatio','f_formality','f_textWeight','f_imageWeight','f_graphWeight']
+    ['f_contentType','f_slides','f_aspectRatio','f_formality','f_textWeight','f_shapeWeight','f_graphWeight','f_emptySpace']
       .concat(MULTI_FILTER_FIELDS.map(function(f){ return 'f_' + f; }))
       .forEach(function(id) {
         var el = document.getElementById(id);
@@ -810,6 +1008,7 @@
         applyPageContext();
         wireEvents();
         renderTieredResults(requirements);
+        applyIncomingSearch();   // must run last — it overwrites the page default
       });
   }
 

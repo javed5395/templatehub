@@ -8,8 +8,14 @@ service firebase.storage {
     // still does all the processing; this only lets the admin's own browser
     // drop the file in. Nobody else can write here.
     match /kits/{allPaths=**} {
+      // 28 Jul 2026 — upload_form.html now drops <docId>_SYSTEM.pdf here so the
+      // Cloud Function can read the coded Section 11 server-side. Both admin
+      // accounts need write; nobody can read.
       allow write: if request.auth != null
-                   && request.auth.token.email == 'lazydogtemplates@gmail.com';
+                   && request.auth.token.email in [
+                        'lazydogtemplates@gmail.com',
+                        'javed5395@gmail.com'
+                      ];
       allow read: if false;
     }
 

@@ -2,12 +2,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── kits collection ───────────────────────────────────────────────────
-    // Public can READ kit metadata (needed by search widget).
-    // Only Firebase Functions (Admin SDK) can WRITE.
+    // ── kits collection (PRIVATE — 28 Jul 2026) ───────────────────────────
+    // This holds `encoded_raw`: every metadata CODE for every kit. It was
+    // `allow read: if true`, so anyone could open the collection in a browser
+    // and harvest the whole codebook by comparing kits.
+    //
+    // Nothing on the site needs it. The search card does NOT read kits — it
+    // posts the buyer's requirements to recommend_http, which scores against
+    // encoded_raw SERVER-SIDE with the Admin SDK (Admin SDK ignores these
+    // rules, so the function keeps working). Display data comes from
+    // `templates`, which stays public.
     match /kits/{kitId} {
-      allow read: if true;          // search widget reads this
-      allow write: if false;        // only Firebase Function writes via Admin SDK
+      allow read:  if false;        // browser must never see the codes
+      allow write: if false;        // only Firebase Functions, via Admin SDK
     }
 
     // ── templates collection (PUBLIC READ) ───────────────────────────────

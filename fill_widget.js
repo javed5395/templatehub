@@ -264,10 +264,12 @@
           var A = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
           var F = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
           var app = A.getApps().length ? A.getApp() : A.initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" });
+          // 28 Jul 2026: reads `templates` ONLY. The old fallback also read
+          // `kits`, which holds encoded_raw (every private metadata code) —
+          // that collection is now closed to the browser. `templates` is the
+          // public doc and already carries pptxUrl / driveFileIds.
           var db = F.getFirestore(app), data=null;
-          for (var ci=0; ci<2 && !data; ci++) {
-            try { var snap = await F.getDoc(F.doc(db, ci===0?'templates':'kits', designRef.id)); if (snap.exists()) data = snap.data(); } catch(_){}
-          }
+          try { var snap = await F.getDoc(F.doc(db, 'templates', designRef.id)); if (snap.exists()) data = snap.data(); } catch(_){}
           if (data) {
             pptxUrl    = data.pptxUrl || '';
             pptxFileId = (data.driveFileIds && data.driveFileIds.pptx) || '';
