@@ -630,9 +630,18 @@ const auth = getAuth(app);
 // process_system_pdf Cloud Function reads the codes there, server-side, with
 // the private codec. That function already writes kits.encoded_raw +
 // templates. Storage rules allow this path for the admin accounts only.
-const PRIVATE_BUCKET_URL = 'gs://lazydog-studio-private';
+// 29 Jul 2026 — the separate private bucket never existed (404). Using the
+// project's own default bucket instead; storage.rules closes kits/ to everyone
+// but the two admin accounts, and nobody can read it at all.
+const PRIVATE_BUCKET_URL = 'gs://templatehub-16cd7.firebasestorage.app';
 const META_ADMIN_EMAILS  = ['lazydogtemplates@gmail.com', 'javed5395@gmail.com'];
-const privateStorage = getStorage(app, PRIVATE_BUCKET_URL);
+const privateStorage = getStorage(app);   // default bucket, from firebaseConfig
+// The Firebase SDK retries a failed upload for 2 MINUTES by default. If the
+// private bucket has no CORS rule for this origin the browser request never
+// completes, so the form sat on the last step looking frozen. Cut the retry
+// window right down and race it against our own timer below.
+privateStorage.maxUploadRetryTime  = 12000;
+privateStorage.maxOperationRetryTime = 12000;
 
 async function uploadSystemPdf(docId, originalPdfFile) {
   if (!docId || !originalPdfFile) return false;
@@ -641,12 +650,25 @@ async function uploadSystemPdf(docId, originalPdfFile) {
     console.log('[SYSTEM PDF] not an admin account — private upload skipped.');
     return false;
   }
+  const path = 'kits/' + docId + '_SYSTEM.pdf';
+  // HARD 15s CEILING. The submission itself is already saved by this point, so
+  // this step must never be able to block the seller. If it does not finish in
+  // time we log it and move on — the file can be re-dropped into the bucket
+  // later and process_system_pdf will pick it up then.
+  const timeout = new Promise(function(res) { setTimeout(function(){ res('timeout'); }, 15000); });
   try {
-    const path = 'kits/' + docId + '_SYSTEM.pdf';
-    await uploadBytes(storageRef(privateStorage, path), originalPdfFile,
-                      { contentType: 'application/pdf' });
-    console.log('[SYSTEM PDF] uploaded →', PRIVATE_BUCKET_URL + '/' + path);
-    return true;
+    const r = await Promise.race([
+      uploadBytes(storageRef(privateStorage, path), originalPdfFile,
+                  { contentType: 'application/pdf' }).then(function(){ return 'ok'; }),
+      timeout
+    ]);
+    if (r === 'ok') {
+      console.log('[SYSTEM PDF] uploaded →', PRIVATE_BUCKET_URL + '/' + path);
+      return true;
+    }
+    console.warn('[SYSTEM PDF] timed out after 15s — most likely CORS is not set on ' +
+                 PRIVATE_BUCKET_URL + '. Submission saved; metadata not read.');
+    return false;
   } catch (e) {
     console.warn('[SYSTEM PDF] private upload failed — metadata will not be read:', e);
     return false;
@@ -1706,7 +1728,7 @@ window.submitForm = async function() {
     // this is the ONLY path by which a kit's real metadata reaches search.
     // The public pdf uploaded above is still the stripped one.
     if (pdfFile) {
-      setProgress(97, 'Metadata (private) process ho raha hai...');
+      setProgress(97, 'Data is loading...');
       await uploadSystemPdf(docRef.id, pdfFile);
     }
 
