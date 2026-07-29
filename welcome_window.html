@@ -620,7 +620,7 @@ body{
         <div class="dest-num">01 · Store</div>
         <h2 class="dest-title">The <em>Store</em></h2>
         <p class="dest-desc">Browse premium WebKits, Media Kits, Pitch Decks, UI Kits, Resume Templates, Brand Assets, and creative resources designed for professionals, agencies, founders, and modern businesses.</p>
-        <a class="dest-cta">
+        <!-- SEO (29 Jul 2026): this had NO href. Both doors were JS-only, so this page contained zero links and Google could not reach the Store or the Studio from the site front door. The click handler calls preventDefault(), so the cinematic transition still runs for a human; the href exists so a crawler has something to follow. --><a class="dest-cta" href="main.html">
           <span>Explore Store</span>
           <div class="dest-cta-arrow"></div>
         </a>
@@ -633,7 +633,7 @@ body{
         <div class="dest-num">02 · The Studio</div>
         <h2 class="dest-title">LazyDog <em>Studios</em></h2>
         <p class="dest-desc">Step inside our creative studio. Discover our design philosophy, flagship WebKits, innovation gallery, engineering excellence, behind-the-scenes craftsmanship, and bespoke digital experiences.</p>
-        <a class="dest-cta">
+        <a class="dest-cta" href="lazydog_studio.html">
           <span>Enter LazyDog Studios</span>
           <div class="dest-cta-arrow"></div>
         </a>
