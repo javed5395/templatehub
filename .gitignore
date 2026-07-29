@@ -1,7 +1,9 @@
 # --- Keep these OFF the public website (GitHub Pages serves everything else) ---
 
 # Admin panel: contains the admin password + Cloudinary secret. Run it locally only.
-admin_panel.html
+# Wildcard is deliberate — the old exact-name rule missed admin_panel_edited.html
+# and it stayed tracked for 330 commits. Any admin_panel* variant is now ignored.
+admin_panel*.html
 
 # Backend source (Google Apps Script). Lives in the Apps Script editor, not the site.
 *.gs
