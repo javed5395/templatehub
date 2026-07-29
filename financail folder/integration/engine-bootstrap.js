@@ -206,7 +206,12 @@ async function _run(opts) {
     // completed checkout enters the financial lifecycle.
     scope.commerceCheckoutSuccess = (payload) => scope.Commerce.bridge.onCheckoutSuccess(payload);
     scope.commerceCheckoutCancel = scope.Commerce.checkoutCancelHandler;
-    mark("fastspring_callbacks", typeof scope.commerceCheckoutSuccess === "function", "success->bridge, cancel->engine");
+    // Renamed 29 Jul 2026: FastSpring is gone, Whop is the only provider.
+    // This checks the bridge handler EXISTS; it never depended on FastSpring.
+    // Whop purchases are recorded SERVER-SIDE by the whop_webhook_http Cloud
+    // Function, not through this browser callback — a browser can claim a
+    // payment succeeded, a signed webhook from Whop cannot be faked.
+    mark("checkout_callbacks", typeof scope.commerceCheckoutSuccess === "function", "success->bridge, cancel->engine");
   }
 
   // Runtime linkage self-tests exposed by the engines themselves.

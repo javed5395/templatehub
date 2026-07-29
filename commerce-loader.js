@@ -1,7 +1,7 @@
 // ============================================================================
 // commerce-loader.js
 // The SINGLE, dedicated entry point that brings the cart + full commerce /
-// financial engine + FastSpring checkout online.
+// financial engine online.
 //
 // Deliberately SEPARATE from navbar.js: finance is critical and must not depend
 // on the navigation bar's integrity. Each page includes this file directly
@@ -11,6 +11,28 @@
 //
 // Everything here is NON-BLOCKING. Page rendering never depends on it, so a load
 // failure can only leave checkout/ownership inert — it can never blank a page.
+//
+// ── FASTSPRING REMOVED, 29 Jul 2026 ─────────────────────────────────────────
+// Whop is the only payment provider. FastSpring's Store Builder Library used to
+// be loaded here, which caused three problems on every page of the site:
+//
+//   1. TWO checkout systems were bound to the same "Buy it now" button. Which
+//      one ran was decided by script load order — not by any deliberate choice.
+//   2. It pointed at the TEST storefront
+//      (lazydogtemplates.test.onfastspring.com), so any buyer who went down
+//      that path could never actually pay. Money could not reach the owner.
+//   3. It hardcoded a single product path, 'media-kit-templates'. Every item on
+//      the site opened that same $7.99 product regardless of what the buyer had
+//      clicked — wrong item, wrong price.
+//
+// Whop checkout now lives entirely in whop-checkout.js, which overrides
+// buyItNow(), verifies the buyer is signed in, locks the checkout email to
+// their account, and only unlocks a file once the SERVER has recorded the
+// purchase via the Whop webhook.
+//
+// Apple Pay note: the .well-known/apple-developer-merchantid-domain-association
+// file at the site root belongs to WHOP, not FastSpring. Do not delete it — it
+// is what makes Apple Pay work on the live Whop checkout.
 // ============================================================================
 (function () {
   if (typeof window === "undefined" || !document || !document.head) return;
@@ -25,22 +47,10 @@
     document.head.appendChild(c);
   }
 
-  // -- 2. FastSpring checkout script (Store Builder Library). Its callbacks
-  //       route to the engine's handlers, installed on window by the bootstrap.
-  //       TEST storefront for now — switch to live when testing passes.
-  if (!document.getElementById("fsc-api")) {
-    var fs = document.createElement("script");
-    fs.id = "fsc-api";
-    fs.type = "text/javascript";
-    fs.src = "https://sbl.onfastspring.com/sbl/1.0.7/fastspring-builder.min.js";
-    fs.setAttribute("data-storefront", "lazydogtemplates.test.onfastspring.com/popup-lazydogtemplates");
-    fs.setAttribute("data-popup-webhook-received", "commerceCheckoutSuccess");
-    fs.setAttribute("data-popup-closed", "commerceCheckoutCancel");
-    document.head.appendChild(fs);
-  }
-
-  // -- 3. Full engine: auth, purchase library (ownership), Commerce->Finance
+  // -- 2. Full engine: auth, purchase library (ownership), Commerce->Finance
   //       bridge, checkout, finance recording. Loaded as a module, non-blocking.
+  //       The fastspring* options are gone; the engine simply has no provider
+  //       configured here, because Whop handles checkout in whop-checkout.js.
   if (!document.getElementById("lazyCommerceEngine")) {
     var em = document.createElement("script");
     em.type = "module";
@@ -49,9 +59,6 @@
       "import { bootstrapCommerce } from './financail%20folder/integration/engine-bootstrap.js';\n" +
       "try {\n" +
       "  await bootstrapCommerce({\n" +
-      "    fastspringStorefront: 'lazydogtemplates.test.onfastspring.com/popup-lazydogtemplates',\n" +
-      "    fastspringProductPath: 'media-kit-templates',\n" +
-      "    fastspringProductPrefix: 'templates-',\n" +
       "    currency: 'USD',\n" +
       "    basePlatformCommissionRate: 0.30\n" +
       "  });\n" +
