@@ -1196,7 +1196,18 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
       <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
       <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
     </button>
-    <a href="#" class="btn btn-ghost" onclick="openAuth('signin');return false;">Sign in</a>
+    <a href="#" class="btn btn-ghost" id="hxSignIn" onclick="openAuth('signin');return false;">Sign in</a>
+    <a href="#" class="btn btn-ghost" id="hxSignUp" onclick="openAuth('signup');return false;">Sign up</a>
+    <!-- Signed-in state: Google photo when there is one, first initial otherwise.
+         Same behaviour as navbar.js on the store pages. -->
+    <div id="hxUserMenu" title="Click to sign out" onclick="if(window.doSignOut)window.doSignOut();"
+         style="display:none;align-items:center;gap:8px;cursor:pointer;">
+      <div id="hxUserAvatar"
+           style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+                  font-weight:700;font-size:13px;overflow:hidden;flex:none;color:#fff;
+                  background:linear-gradient(135deg,#7c5cff,#c86dd7);"></div>
+      <span id="hxUserName" style="font-size:13px;opacity:.9;white-space:nowrap;"></span>
+    </div>
     <a href="main.html" class="btn btn-accent" title="Back to the LazyDog store">
       Main
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
@@ -2227,7 +2238,14 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
        in CHAT mode Hexa takes the user straight to the editor canvas with
        their sentence as the compose seed; in DESIGN/PRESENT modes the text
        goes into the mode's card (design card / fill card). */
-    if(window.hexaComposeIntent&&window.hexaComposeIntent(text)){
+    /* 29 Jul 2026 BUGFIX — "make 6 slides for me" answered "Opening Pitch Decks
+       for you". Cause: the design branch lived INSIDE the hexaComposeIntent()
+       test, but chat_brain's composeAnswer() returns null for the 'create' verb
+       ("creation is hexaDesign's job, not ours"). So every creation request
+       skipped this whole block and fell through to chatCompose(), which matched
+       the noun "slides" as a BROWSE. Testing design intent alongside compose
+       intent — not nested under it — is the fix. */
+    if((window.hexaDesignIntent&&window.hexaDesignIntent(text))||(window.hexaComposeIntent&&window.hexaComposeIntent(text))){
       if(hexaMode==='chat'&&window.hexaDesignIntent&&window.hexaDesignIntent(text)){
         var dz=(window.hexaDesign&&window.hexaDesign(text))||{target:'editor.html?compose='+encodeURIComponent(text.slice(0,200)),label:'Open in Designer',reply:'I can design that for you right now 🎨 — opening the Designer:'};
         var dm=addMsg(dz.reply+'<div style="margin-top:6px;font-size:11.5px;opacity:.75;">Taking you to the canvas…</div>');
@@ -2282,9 +2300,36 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
       var A=m[0],B=m[1];
       var app=A.getApps().length?A.getApp():A.initializeApp({apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",authDomain:"templatehub-16cd7.firebaseapp.com",projectId:"templatehub-16cd7"});
       _auth=B.getAuth(app);
-      B.onAuthStateChanged(_auth,function(u){ isAdmin=TEST_OPEN||!!(u&&ADMINS.indexOf(String(u.email||'').toLowerCase())>-1); });
+      B.onAuthStateChanged(_auth,function(u){
+        isAdmin=TEST_OPEN||!!(u&&ADMINS.indexOf(String(u.email||'').toLowerCase())>-1);
+        try{ window.hxPaintAuth&&window.hxPaintAuth(u); }catch(e){}
+      });
     }).catch(function(){});
   })();
+  /* Nav auth state — signed out shows Sign in + Sign up; signed in swaps both
+     for the user's Google photo (or their initial), exactly as navbar.js does
+     on the store pages. Clicking the avatar signs out. */
+  window.hxPaintAuth = function(u){
+    var si=document.getElementById('hxSignIn'),  su=document.getElementById('hxSignUp'),
+        um=document.getElementById('hxUserMenu'),av=document.getElementById('hxUserAvatar'),
+        nm=document.getElementById('hxUserName');
+    if(u){
+      if(si) si.style.display='none';
+      if(su) su.style.display='none';
+      if(um) um.style.display='flex';
+      var name=u.displayName||String(u.email||'').split('@')[0]||'You';
+      if(nm) nm.textContent=name;
+      if(av){
+        if(u.photoURL){ av.innerHTML='<img src="'+u.photoURL+'" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">'; }
+        else { av.textContent=name.charAt(0).toUpperCase(); }
+      }
+    } else {
+      if(si) si.style.display='inline-flex';
+      if(su) su.style.display='inline-flex';
+      if(um) um.style.display='none';
+    }
+  };
+
   if(!window.ldGetToken) window.ldGetToken=async function(){ try{ return (_auth&&_auth.currentUser)?await _auth.currentUser.getIdToken():null; }catch(e){ return null; } };
 
   /* ── 3-MODE CONTROLLER (25 Jul, Javed's design) ──
@@ -2354,7 +2399,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
         addMsg('📦 Handing your material to Hexa — the card\'s rules (fit, clones, approval) all apply…');
         fwGo.click();
       } else {
-        addMsg('Use the card on the right — the same card as the store pages: add your content, give the design (.pptx), then <b>Prepare my deck</b>. '+(fwGo&&fwGo.disabled?'(It unlocks once content + design are in'+((window.ldIsAdmin&&window.ldIsAdmin())?'':' and you\'re signed in as admin')+'.)':''));
+        addMsg('Use the card on the right — the same card as the store pages: add your content, give the design (.pptx), then <b>Prepare my deck</b>. '+(fwGo&&fwGo.disabled?'(It unlocks once content + design are in'+((window.ldIsAdmin&&window.ldIsAdmin())?'':', and deck filling is a subscriber feature — coming soon')+'.)':''));
       }
       return;
     }
@@ -2372,7 +2417,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
         addMsg('🎨 Handing your order to Hexa — she\'s opening the Designer…');
         dwGo.click();
       } else {
-        addMsg('Use the design card on the right — describe your design (or type it here), set the preferences, then <b>Make my design</b>.'+((window.ldIsAdmin&&window.ldIsAdmin())?'':' (Design generation is admin-only for now.)'));
+        addMsg('Use the design card on the right — describe your design (or type it here), set the preferences, then <b>Make my design</b>.'+((window.ldIsAdmin&&window.ldIsAdmin())?'':' (Free version: up to 5 slides. Subscriptions coming soon.)'));
       }
       return;
     }

@@ -2,6 +2,48 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ════════════════════════════════════════════════════════════════════════
+    // F04 — REWRITE, 29 Jul 2026
+    //
+    // Three defects fixed here:
+    //   (a) NO rules existed for orders / salesRecords / transactions /
+    //       paymentJobs / auditTrail, so the catch-all denied every commerce
+    //       write and nothing could ever record a sale.
+    //   (b) `templates` had `allow create: if request.auth != null` — no field
+    //       validation at all. A seller could create their own doc with
+    //       status:'approved' already set; the approval function sees it is
+    //       already approved and steps aside. The gate was on the wrong door.
+    //   (c) `templates_internal` was read/write for ANY signed-in user, so every
+    //       seller could read every other seller's private submission data.
+    //
+    // KEY DESIGN NOTE — read this before "fixing" the finance rules again:
+    // Client browsers must NEVER write finance documents. If a browser can
+    // write `orders`, a buyer can write their own order saying they paid.
+    // Every finance write is done SERVER-SIDE by a Cloud Function using the
+    // Admin SDK, which bypasses these rules entirely. So `allow write: if false`
+    // on those collections is CORRECT, not an oversight — the browser's job is
+    // only to READ its own records. This is why F04 alone does not make sales
+    // work: it needs the Whop webhook (F06) to do the writing.
+    // ════════════════════════════════════════════════════════════════════════
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // The two owner accounts. Same pair as TRUSTED_UIDS in functions/main.py
+    // and the admin list in navbar.js — keep all three in sync.
+    function isAdmin() {
+      return isSignedIn() && request.auth.uid in [
+        'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',    // javed5395@gmail.com — site owner
+        'FvcmbFk2AsXCIq1L2uog7t5erfp1'     // lazydogtemplates@gmail.com — business
+      ];
+    }
+
+    // True when the signed-in user owns the document being read.
+    function ownsDoc(field) {
+      return isSignedIn() && resource.data[field] == request.auth.uid;
+    }
+
     // ── kits collection (PRIVATE — 28 Jul 2026) ───────────────────────────
     // This holds `encoded_raw`: every metadata CODE for every kit. It was
     // `allow read: if true`, so anyone could open the collection in a browser
@@ -18,25 +60,25 @@ service cloud.firestore {
       // Admin cascade delete (29 Jul 2026). Read/create/update stay locked —
       // this ONLY lets the two admin UIDs remove the leftover record when a kit
       // is deleted forever from the admin panel.
-      allow delete: if request.auth != null &&
-                       request.auth.uid in [
-                         'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',
-                         'FvcmbFk2AsXCIq1L2uog7t5erfp1'
-                       ];
+      allow delete: if isAdmin();
     }
 
     // ── templates collection (PUBLIC READ) ───────────────────────────────
     // Decoded plain-field documents read by search_widget.js.
-    // Written by Cloud Function (Admin SDK) OR by trusted admin UIDs via admin panel.
     match /templates/{kitId} {
       allow read: if true;
-      // Any logged-in seller can CREATE (submit), only admin UIDs can UPDATE/DELETE
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null &&
-                      request.auth.uid in [
-                        'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',
-                        'FvcmbFk2AsXCIq1L2uog7t5erfp1'
-                      ];
+
+      // CREATE is now field-validated. A seller may only submit something that
+      // is genuinely pending and genuinely theirs. Field names match what
+      // upload_form.html writes (status/sellerId/uploaderUid, ~line 1628).
+      // The server (on_seller_submission) owns the transition to 'approved';
+      // a client can no longer hand itself that value.
+      allow create: if isSignedIn()
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.sellerId    == request.auth.uid
+                    && request.resource.data.uploaderUid == request.auth.uid;
+
+      allow update, delete: if isAdmin();
     }
 
     // ── kit_slots collection (PRIVATE) ────────────────────────────────────
@@ -44,26 +86,29 @@ service cloud.firestore {
     // via the Admin SDK (which bypasses these rules). Never readable by the
     // client — this keeps the matching/capacity logic off the browser.
     match /kit_slots/{kitId} {
-      allow read: if false;
+      allow read:  if false;
       allow write: if false;
       // Admin cascade delete (29 Jul 2026) — same reasoning as /kits above.
-      allow delete: if request.auth != null &&
-                       request.auth.uid in [
-                         'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',
-                         'FvcmbFk2AsXCIq1L2uog7t5erfp1'
-                       ];
+      allow delete: if isAdmin();
     }
 
     // ── sellers collection ────────────────────────────────────────────────────
     // Each seller can read/write only their own profile doc.
+    // NOTE (D7): payout fields are being REMOVED from this doc, not secured —
+    // no freelancers yet. See F30.
     match /sellers/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
     }
 
     // ── templates_internal collection ─────────────────────────────────────────
-    // Sellers write their own internal submission data.
+    // Private per-submission data (pdfMetaRaw). Was read/write for ANY signed-in
+    // user — every seller could read every other seller's submission. Now scoped
+    // to the owning seller, plus admins.
+    // Requires `sellerId` on the document; upload_form.html now writes it.
     match /templates_internal/{docId} {
-      allow read, write: if request.auth != null;
+      allow read:   if isAdmin() || ownsDoc('sellerId');
+      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
 
     // ── editor_templates (free editable templates shown in the editor) ────
@@ -71,11 +116,75 @@ service cloud.firestore {
     // Only the admin account may WRITE (via the Template Upload page).
     match /editor_templates/{id} {
       allow read: if true;
-      allow write: if request.auth != null &&
+      allow write: if isSignedIn() &&
                       request.auth.token.email in [
                         'javed5395@gmail.com',
                         'lazydogtemplates@gmail.com'
                       ];
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // COMMERCE — every write is Admin SDK only (see KEY DESIGN NOTE above).
+    // Clients read their own records and nothing else.
+    // ════════════════════════════════════════════════════════════════════════
+
+    // Buyer's own orders. Powers "My Purchases" and the download gate.
+    match /orders/{orderId} {
+      allow read:  if isAdmin() || ownsDoc('buyerId');
+      allow write: if false;      // Whop webhook only (F06)
+    }
+
+    // Per-download record: buyer uid + email, kit id, timestamp, licence tier.
+    // Feeds BOTH the 14-day refund check and per-item entitlement (D4/D6, F28).
+    match /downloadLedger/{entryId} {
+      allow read:  if isAdmin() || ownsDoc('buyerId');
+      allow write: if false;      // server records every download (F28)
+    }
+
+    // Subscription state. The 5-free-slides gate and the deck-maker lock both
+    // read from here once the Whop subscription plan exists (F34).
+    // Doc id = the subscriber's uid.
+    match /subscribers/{uid} {
+      allow read:  if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+      allow write: if false;      // Whop subscription webhook only
+    }
+
+    // Seller-side accounting. Not buyer-facing — admin reads only.
+    match /salesRecords/{id} {
+      allow read:  if isAdmin();
+      allow write: if false;
+    }
+
+    match /transactions/{id} {
+      allow read:  if isAdmin();
+      allow write: if false;
+    }
+
+    match /paymentJobs/{id} {
+      allow read:  if isAdmin();
+      allow write: if false;
+    }
+
+    // Append-only history. Nobody edits it, not even admins — the Admin SDK
+    // writes it and it stays readable for investigation.
+    match /auditTrail/{id} {
+      allow read:  if isAdmin();
+      allow write: if false;
+    }
+
+    // payoutQueue — DELIBERATELY DENIED, not merely unwritten.
+    // D7 (owner, 29 Jul 2026): seller payouts are being CUT, not repaired —
+    // no freelancers yet. Do not "fix" this by opening it. When payouts are
+    // rebuilt, give it the same Admin-SDK-only shape as the collections above.
+    match /payoutQueue/{id} {
+      allow read, write: if false;
+    }
+
+    // Chat/AI quota counters written by functions/main.py (Admin SDK).
+    // Never client-visible — a client that can read its own counter can work
+    // out exactly how much room it has left to abuse.
+    match /chat_quota/{id} {
+      allow read, write: if false;
     }
 
     // Block everything else

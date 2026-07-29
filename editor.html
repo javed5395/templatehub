@@ -14181,6 +14181,8 @@ window.ldCompose = async function (sentence) {
      action (used when the buyer dragged a design FROM THE PAGE — no local file).
      Plain POST (no Content-Type) to stay CORS-safe, exactly like the uploader. */
   var LD_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec';
+  // PUBLIC token — served to the world, treat as public. See apps_script_fixed.gs.
+  var LD_APPS_SCRIPT_TOKEN = '3MSoyo4kU0al-jWfAEVIzwSKvAi2yZiW';
   function b64ToBuf(b64) {
     var bin = atob(b64), n = bin.length, u = new Uint8Array(n);
     for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
@@ -14189,7 +14191,7 @@ window.ldCompose = async function (sentence) {
   async function fetchDriveDeck(fileId) {
     try {
       var r = await fetch(LD_APPS_SCRIPT_URL, { method: 'POST',
-        body: JSON.stringify({ action: 'download', fileId: fileId }) });
+        body: JSON.stringify({ token: LD_APPS_SCRIPT_TOKEN, action: 'download', fileId: fileId }) });
       var d = await r.json();
       if (d && d.success && d.b64) return b64ToBuf(d.b64);
     } catch (e) {}

@@ -395,7 +395,15 @@
     if (a.target) { a.label = labelForUrl(a.target); }
     return a;
   }
-  window.hexaComposeIntent = hexaComposeIntent;
+  // 29 Jul 2026 — RENAMED. This function composes an ANSWER OBJECT. navbar.js
+  // exported a completely different function under the same global name that
+  // returns a BOOLEAN (verb + deck-noun detection). Whichever script loaded
+  // last silently won, so the same call behaved differently page to page —
+  // which is exactly how "make 6 slides for me" got answered with "Opening
+  // Pitch Decks for you" on one page and worked on another.
+  // Consumers wanting the boolean use window.hexaComposeIntent (navbar.js, or
+  // the inline copy on Hexa_Promptbox.html, which has no navbar).
+  window.hexaComposeAnswer = hexaComposeIntent;
 
 
   // Real browser actions Hexa can perform on the page it is sitting on.
@@ -801,14 +809,50 @@
   // button → editor.html?compose=<sentence>. The editor + cloud do the rest.
   var DESIGN_VERB = /\b(make|design|create|compose|build|generate|prepare)\b/;
   var DESIGN_NOUN = /\b(kit|kits|deck|decks|presentation|presentations|template|templates|design|slides)\b/;
+  /* SINGLE HOME for the deck-request detector (29 Jul 2026).
+     Previously navbar.js defined window.hexaComposeIntent as this boolean while
+     chat_brain.js exported a DIFFERENT function of the same name that returns an
+     answer object. Whichever loaded last won, so identical code behaved
+     differently page to page. It now lives here only — chat_brain.js is loaded
+     by every page that needs it (directly on Hexa_Promptbox.html, injected by
+     navbar.js elsewhere), so both stay in step automatically. */
+  window.hexaComposeIntent = function (text) {
+    var t = ' ' + String(text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+    var v = /\b(make|making|create|creating|generate|generating|prepare|preparing|build|building|design|designing|compose|composing|produce|draft|whip up|put together)\b/;
+    var n = /\b(deck|decks|presentation|presentations|slides|slide|kit|kits|template|templates|design|designs)\b/;
+    return v.test(t) && n.test(t);
+  };
+
   window.hexaDesignIntent = function (text) {
     var t = norm(text);
     return DESIGN_VERB.test(t) && DESIGN_NOUN.test(t);
   };
+  // Free tier (owner rule, 29 Jul 2026): non-subscribers get up to 5 slides.
+  // Hexa says so herself rather than letting the visitor reach the Designer and
+  // be refused there. The real enforcement is server-side in composer_proxy —
+  // this is courtesy, not security.
+  var HEXA_FREE_SLIDES = 5;
   window.hexaDesign = function (text) {
+    var raw  = String(text || '');
+    var seed = raw.slice(0, 200);
+    var isAdmin = false;
+    try { isAdmin = !!(window.ldIsAdmin && window.ldIsAdmin()); } catch (e) {}
+    var m    = norm(raw).match(/\b(\d{1,3})\s*(slides?|pages?)\b/);
+    var want = m ? parseInt(m[1], 10) : 0;
+
+    if (!isAdmin && want > HEXA_FREE_SLIDES) {
+      return {
+        reply: 'The free version makes up to <strong>' + HEXA_FREE_SLIDES + ' slides</strong> — you asked for ' +
+               want + '. Opening the Designer with ' + HEXA_FREE_SLIDES +
+               ' now. Subscriptions are coming soon and will lift the limit.',
+        target: 'editor.html?compose=' + encodeURIComponent(seed) + '&slides=' + HEXA_FREE_SLIDES,
+        label: 'Open Designer (' + HEXA_FREE_SLIDES + ' slides)',
+        capped: true
+      };
+    }
     return {
       reply: "I can design that for you right now 🎨 — opening it in the LazyDog Designer:",
-      target: 'editor.html?compose=' + encodeURIComponent(String(text || '').slice(0, 200)),
+      target: 'editor.html?compose=' + encodeURIComponent(seed),
       label: 'Open in Designer'
     };
   };

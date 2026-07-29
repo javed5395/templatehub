@@ -681,6 +681,11 @@ googleProvider.setCustomParameters({ 'prompt': 'select_account' });
 const CLOUDINARY_CLOUD  = "dsqxuaucz";
 const CLOUDINARY_PRESET = "lazydog_unsigned";
 const APPS_SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec";
+// PUBLIC token. This page is served to the world, so this string IS public.
+// It is a speed bump, not a secret. The real protection is that the Apps Script
+// now refuses delete/listFolder without the ADMIN token, and confines
+// delete/download to the templates folder.
+const APPS_SCRIPT_TOKEN = "3MSoyo4kU0al-jWfAEVIzwSKvAi2yZiW";
 
 // ── FILE SIZE LIMITS (change these to adjust limits) ─────────────────────────
 const FILE_LIMITS = {
@@ -1177,7 +1182,7 @@ async function sendChunkWithRetry(payload, chunkLabel, onRetryMsg, timeoutMs) {
     try {
       const res  = await fetch(APPS_SCRIPT_URL, {
         method : 'POST',
-        body   : JSON.stringify(payload),
+        body   : JSON.stringify(Object.assign({ token: APPS_SCRIPT_TOKEN }, payload)),
         signal : controller.signal
       });
       clearTimeout(timer);
@@ -1248,7 +1253,7 @@ async function uploadDocToDrive(file) {
   const base64Data = await readFileAsBase64(file);
   const res  = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',
-    body: JSON.stringify({ fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/octet-stream' })
+    body: JSON.stringify({ token: APPS_SCRIPT_TOKEN, fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/octet-stream' })
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.error || 'Failed to upload document');
@@ -1718,6 +1723,10 @@ window.submitForm = async function() {
       await setDoc(doc(db, 'templates_internal', docRef.id), {
         pdfMetaRaw:  pdfMeta,
         templateId:  docRef.id,
+        // F04 (29 Jul 2026): required by firestore.rules. Without it this
+        // collection cannot be scoped, and it was readable by ANY signed-in
+        // user — every seller could read every other seller's private data.
+        sellerId:    currentUser.uid,
         savedAt:     serverTimestamp()
       });
     }

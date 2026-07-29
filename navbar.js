@@ -82,13 +82,10 @@
   };
   // Convenience: let the owner read their own UID (to paste into LD_ADMIN_UIDS above).
   window.ldMyUid = function(){ try{ return auth.currentUser ? auth.currentUser.uid : null; }catch(e){ return null; } };
-  // Detect "make/prepare a deck" style requests (verb + deck-noun).
-  window.hexaComposeIntent = function(text){
-    var t=' '+String(text||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim()+' ';
-    var v=/\b(make|making|create|creating|generate|generating|prepare|preparing|build|building|design|designing|compose|composing|produce|draft|whip up|put together)\b/;
-    var n=/\b(deck|decks|presentation|presentations|slides|slide|kit|kits|template|templates|design|designs)\b/;
-    return v.test(t) && n.test(t);
-  };
+  // hexaComposeIntent ("make/prepare a deck" detector) now lives in
+  // chat_brain.js, which this file injects further down. Defining it here too
+  // created two different functions sharing one global name — see the note in
+  // chat_brain.js. Do not redefine it here.
   onAuthStateChanged(auth, (user) => {
     const si=document.getElementById('signinBtn'), su=document.getElementById('signupBtn');
     const um=document.getElementById('nbUserMenu'), un=document.getElementById('nbUserName'), ua=document.getElementById('nbUserAvatar');
@@ -820,8 +817,13 @@
       return;
     }
     // 0.55) design order — "make me a hospital kit" → Open in Designer button.
-    //       LOCKED: owner-only for now (deck building is forbidden for buyers until the gate opens).
-    if(window.hexaDesignIntent && window.hexaDesign && window.ldIsAdmin && window.ldIsAdmin() && window.hexaDesignIntent(text)){
+    //       29 Jul 2026: the owner-only lock is REMOVED. Slide generation runs on
+    //       LazyDog's own engine (no model cost) and is now free up to 5 slides,
+    //       enforced server-side in composer_proxy. While this was admin-gated,
+    //       "make 4 slides for me" fell through to the browse matcher, which saw
+    //       the word "slides" and replied "Opening Pitch Decks for you" — wrong
+    //       answer to a creation request.
+    if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
       var dz=window.hexaDesign(text);
       bubble.textContent=dz.reply;
       if(window.chatMakeActionBtn){ bubble.appendChild(document.createElement('br')); bubble.appendChild(window.chatMakeActionBtn(dz.target, dz.label)); }

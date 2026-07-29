@@ -109,7 +109,7 @@
       refresh();
       var note=document.getElementById('fwAdminNote');
       if(!note && goBtn && goBtn.parentNode){ note=document.createElement('div'); note.id='fwAdminNote'; note.className='fw-note'; note.style.marginTop='8px'; goBtn.parentNode.appendChild(note); }
-      if(note){ note.textContent = isAdmin ? '' : '🔒 Only the admin can fill content and generate decks.'; note.style.color = isAdmin ? '' : '#b23a3a'; }
+      if(note){ note.textContent = isAdmin ? '' : '🔒 Deck filling is for subscribers — subscriptions coming soon.'; note.style.color = isAdmin ? '' : '#b23a3a'; }
     }
     function wireDrop(dropId, inputId, noteId, cb){
       var d=document.getElementById(dropId), i=document.getElementById(inputId), n=document.getElementById(noteId);
@@ -243,7 +243,12 @@
     }
 
     goBtn.addEventListener('click', async function(){
-      if(!isAdmin){ alert('Only the admin can fill content and generate decks. Please sign in as the admin account.'); return; }
+      if(!isAdmin){
+        alert('Filling a deck with your content is a subscriber feature.\n\n'
+            + 'Subscriptions are coming soon. In the meantime you can still\n'
+            + 'generate up to 5 slides free from the designer.');
+        return;
+      }
       if(!(deckFile || designRef)){ alert('Drag a design from the page, or drop a .pptx here, first.'); return; }
       var content=document.getElementById('fwContent').value.trim();
       var designName = (designRef && designRef.name) ? designRef.name
