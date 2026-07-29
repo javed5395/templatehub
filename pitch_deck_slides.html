@@ -1111,7 +1111,11 @@ function toggleLearnMore(btn){
     </div>
   </div>
 </div>
-<script src="watermark.js"></script>
+<!-- watermark.js removed 29 Jul 2026 (owner): section and product pages do NOT
+     carry a watermark. The mark belongs in the background artwork of the
+     slides the engine generates, not as an overlay here. The
+     wrapThumbWm/lbPrint calls below are already guarded with a typeof check,
+     so they simply no-op without this file. -->
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
 <script defer src="commerce-loader.js"></script>
