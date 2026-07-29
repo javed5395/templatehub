@@ -524,7 +524,9 @@
       '<div class="pd-card-label">Pitch Deck Template &bull; ' + deck.slides.length + ' slides</div>' +
       '<div class="pd-card-title">' + deck.title + '</div>' +
       '<div class="pd-card-meta">' +
-        '<span><span class="pd-card-stars">★★★★★</span><span class="pd-card-rating">(48)</span></span>' +
+        /* Fake rating removed 29 Jul 2026: every card carried a hardcoded
+           5 stars and "(48)" while the site has no reviews at all — the
+           Studio page says so honestly. Invented social proof. */
         (deck.price && deck.price !== 'free' && deck.price !== '0' && parseFloat(deck.price) > 0 ? '<span class="pd-card-price">USD ' + parseFloat(deck.price).toFixed(2) + '</span>' : '') +
       '</div>' +
       '<div class="pd-card-actions"><div class="pd-card-btn-view">View Slides</div></div>';

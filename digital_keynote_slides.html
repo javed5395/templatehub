@@ -473,7 +473,7 @@ document.addEventListener('click',function(e){
       <div class="etsy-keywords" id="etsyKeywords"></div>
       <div class="etsy-seller-row">
         <span class="etsy-seller-name">LazyDogTemplates</span>
-        <span class="etsy-stars">★★★★★</span>
+        <!-- Fake 5-star rating removed 29 Jul 2026 — no reviews exist yet. -->
       </div>
       <button class="etsy-btn-outline" onclick="buyItNow()">Buy it now</button>
       <button class="etsy-btn-filled" onclick="addToBasket()">Add to basket</button>
@@ -562,6 +562,18 @@ function getDkUrl(k, n, transform) {
     var db = getFirestore(app);
     var docSnap = await getDoc(doc(db, 'templates', firebaseId));
     if (!docSnap.exists()) { window.location = 'digital_keynote-folder.html'; return; }
+
+    /* F11 (29 Jul 2026) — existence used to be the ONLY check. A submission
+       still sitting in 'pending', or one that had been REJECTED, was fully
+       viewable by anyone who had or guessed its ?firebase=<id> link — file
+       links included. That quietly defeated the rule that nothing goes live
+       without admin approval. Admins are let through so the review flow still
+       works; note ldIsAdmin() is false until auth has loaded, so an admin
+       arriving on a cold page load may be bounced once. */
+    var _ldStatus = (docSnap.data() || {}).status;
+    if (_ldStatus !== 'approved' && !(window.ldIsAdmin && window.ldIsAdmin())) {
+      window.location = 'digital_keynote-folder.html'; return;
+    }
     var docData = docSnap.data() || {};
     // Capture identifiers the finance folder (cart / ownership) needs. Still the
     // page's own product read — presentation stays fully independent.
