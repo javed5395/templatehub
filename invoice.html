@@ -646,10 +646,24 @@ ${wm}
   function downloadInvoice(){
     const v=getValues();
     const html=buildInvoiceHTML(v);
+    /* 29 Jul 2026: window.open() returns null when a popup blocker is active,
+       and blockers fire on exactly this pattern — a new window opened with no
+       URL. The next line then threw on null, the error went to a console no
+       visitor ever opens, and the button simply appeared to do nothing. On the
+       free tool that brings people to the site. */
     const w=window.open('','_blank');
-    w.document.write(html);
-    w.document.close();
-    setTimeout(()=>w.print(),800);
+    if(!w){
+      alert('Your browser blocked the invoice window.\n\n' +
+            'Allow pop-ups for lazydogtemplates.com, then press Download again.');
+      return;
+    }
+    try{
+      w.document.write(html);
+      w.document.close();
+      setTimeout(()=>{ try{ w.print(); }catch(e){} },800);
+    }catch(e){
+      alert('Could not build the invoice. Please try again, or use a different browser.');
+    }
   }
 
   // Set watermark note
