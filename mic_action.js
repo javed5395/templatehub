@@ -319,7 +319,7 @@
 
     if (!best && actionPhrase) {
       // Recognized a verb but no known target — ask instead of failing silently.
-      vaSpeak('Open what? You can say pitch decks, media kits, social media kits, career docs, web kits, invoice, or home.');
+      vaSpeak('Open what? You can say pitch decks, media kits, digital keynotes, career docs, web kits, invoice, or home.');
       return;
     }
 

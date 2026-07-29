@@ -1254,18 +1254,9 @@ var vaTargetWords = [
     target: 'pitch_deck_folder_section.html',
     reply: 'Opening Pitch Decks for you.'
   },
-  {
-    // Listed BEFORE the plain media-kit block so "social media kit(s)"
-    // (the longer, more specific phrase) wins the longest-match check
-    // instead of getting swallowed by the shorter "media kit" / "kit".
-    keywords: [
-      'social media kit', 'social media kits', 'social kit', 'social kits',
-      'social media', 'social media pack', 'social pack',
-      'instagram kit', 'instagram pack', 'facebook kit'
-    ],
-    target: 'social_kits.html',
-    reply: 'Opening Social Media Kits for you.'
-  },
+  // Social Media Kits block removed 29 Jul 2026 — the category is not being
+  // built and social_kits.html has never existed, so this spoke a promise
+  // and then navigated to a 404.
   {
     keywords: [
       'media kit', 'media kits', 'brand kit', 'brand kits',

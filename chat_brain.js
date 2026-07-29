@@ -254,7 +254,8 @@
 
   // WHAT THEY ARE TALKING ABOUT. `page` gives the Open button a destination.
   var NOUNS = [
-    ['social kit',  ['social media kit','social kit','instagram kit','instagram template','story template','reels kit','social pack','linkedin kit'], 'social_kits.html'],
+    // 'social kit' removed 29 Jul 2026 — the category is not being built, and
+    // this entry routed buyers to social_kits.html, which has never existed.
     ['pitch deck',  ['pitch deck','pitchdeck','pitch','slide deck','deck','decks','presentation','slides','powerpoint','ppt','keynote deck'], 'pitch_deck_folder_section.html'],
     ['media kit',   ['media kit','mediakit','press kit','brand kit','rate card','sponsorship kit','creator kit','collab kit'], 'media_kits_folder_section.html'],
     ['web kit',     ['web kit','website kit','ui kit','web ui','landing page','website template','web template','homepage'], 'web_kit_folder_file.html'],
