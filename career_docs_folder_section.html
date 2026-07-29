@@ -473,7 +473,12 @@
     <p class="hero-subtitle">ATS-friendly resumes, modern CVs, cover letters, portfolios and more — professionally designed and ready to customize in minutes.</p>
     <div class="hero-stats">
       <div class="hero-stat">
-        <div class="hero-stat-num"><span class="gold">80+</span></div>
+        <!-- 29 Jul 2026: this said "80+" while the catalogue held about ten. A made-up
+           inventory claim on a live sales page, same as the fake 5-star reviews.
+           It now counts the approved resume/CV templates from the database, so it
+           is true today and stays true as more are uploaded. Shows a dash until
+           the data arrives — never a number we cannot stand behind. -->
+        <div class="hero-stat-num"><span class="gold" id="careerLiveCount">&mdash;</span></div>
         <div class="hero-stat-lbl">Career Templates</div>
       </div>
       <div class="hero-stat">
@@ -1310,7 +1315,15 @@
         buckets[type].push(d);
       });
       TYPES.forEach(type => renderBucket(type));
-    }, err => console.error('Career uploads failed to load:', err));
+
+      // keep the hero figure honest — it is whatever is actually published
+      const countEl = document.getElementById('careerLiveCount');
+      if (countEl) countEl.textContent = snap.size;
+    }, err => {
+      console.error('Career uploads failed to load:', err);
+      const countEl = document.getElementById('careerLiveCount');
+      if (countEl) countEl.textContent = '\u2014';   // dash, not a guess
+    });
   } catch(e){ console.error('Career loader init failed:', e); }
 })();
 </script>
