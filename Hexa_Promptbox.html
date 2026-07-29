@@ -363,11 +363,24 @@ a { color: inherit; text-decoration: none; }
 .dual {
   margin-top: 56px;
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  /* 29 Jul 2026 — the prompt box now sits on the page's exact horizontal centre.
+     It was column 1 of a 1.55 : 1 grid, so its midpoint landed well left of the
+     page midpoint. A spacer column (the ::before below) is added on the LEFT the
+     same width as the panel column on the right, which makes the layout
+     symmetrical: prompt dead centre, panel pushed out to the right. */
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.55fr) minmax(0, 0.85fr);
   gap: 22px;
-  align-items: stretch;
+  /* 29 Jul 2026: was `align-items: stretch`, which forced BOTH columns to the
+     same height. Opening the white fill card therefore stretched Hexa's prompt
+     card to match it, leaving a tall empty gradient below the input. The prompt
+     box must keep its own height whatever the panel next to it is doing. */
+  align-items: start;
   text-align: left;
 }
+
+/* Empty left spacer — mirrors the panel column so the prompt is centred.
+   Collapses away on narrow screens (see the media query further down). */
+.dual::before { content: ''; }
 
 /* AI prompt box */
 .prompt-card {
@@ -588,7 +601,8 @@ a { color: inherit; text-decoration: none; }
   padding: 22px;
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  /* was min-height:100% — with align-items:start there is no column height to
+     fill, and asking for one is what tied the two cards together. */
   box-shadow: var(--shadow-md);
 }
 .filter-panel-head {
@@ -1115,6 +1129,7 @@ footer {
   .featured-grid { grid-template-columns: repeat(3, 1fr); }
   .cap-grid { grid-template-columns: repeat(2, 1fr); }
   .dual { grid-template-columns: 1fr; }
+  .dual::before { display: none; }   /* no spacer once stacked */
   .filter-panel { min-height: auto; }
   .nav-links { display: none; }
 }
@@ -1292,8 +1307,12 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
              set of rules: fit check, clone consent, suggestions, admin lock).
              fill_widget.js mounts itself into #metaSearchRow below. ═══ -->
         <style>
-          /* neutralize the store-page offset when the card lives here */
-          .filter-panel #fillWrap { margin-top: 0 !important; }
+          /* neutralize the store-page offset when the cards live here. On the
+             store pages both wrappers are pulled up -70px to overlap the hero;
+             inside this aside there is no hero to overlap, so both sit flush.
+             Width is 100% here — the three-up row belongs to the store pages. */
+          .filter-panel #fillWrap,
+          .filter-panel #dwWrap { margin-top: 0 !important; flex: 1 1 100% !important; }
         </style>
         <div id="metaSearchRow" style="display:none;width:100%;"></div>
       </aside>
@@ -2338,17 +2357,24 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
      present → white FILL card appears; Generate = Prepare my deck (fill). */
   var hexaMode='chat';
   var asideEl=document.querySelector('.filter-panel');
-  /* the DESIGN card (design_widget.js — same card as the store pages) mounts
-     itself after #metaSearchRow; it boots async, so look it up at mode-switch */
+  /* 30 Jul 2026 — BOTH cards now mount INSIDE #metaSearchRow (the design card
+     used to be a sibling slung underneath it). So the row itself can no longer
+     be the on/off switch for "present" mode — hiding it would take the design
+     card down with it. We toggle the two WRAPPERS instead, and the row is
+     simply visible whenever we are not in chat mode. Both boot async, so look
+     them up fresh at every mode switch. */
   function designCardEl(){ return document.getElementById('dwWrap'); }
-  var fillCardEl=document.getElementById('metaSearchRow');   /* the REAL fill card mounts here */
+  function fillCardEl(){ return document.getElementById('fillWrap'); }
+  var rowEl=document.getElementById('metaSearchRow');
   var SEND_SVG=' <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
   function setMode(m){
     hexaMode=m;
     if(asideEl) asideEl.style.display=(m==='chat')?'none':'';
+    if(rowEl) rowEl.style.display=(m==='chat')?'none':'';
     var dw=designCardEl();
     if(dw) dw.style.display=(m==='design')?'':'none';
-    if(fillCardEl) fillCardEl.style.display=(m==='present')?'':'none';
+    var fw=fillCardEl();
+    if(fw) fw.style.display=(m==='present')?'':'none';
     /* design card locks itself OPEN in design mode (it's the whole point here) */
     if(dw&&m==='design'){ var w=document.getElementById('designWidget'); if(w) w.classList.add('locked'); }
     var lbl={chat:'Send',design:'Generate',present:'Prepare my deck'}[m]||'Generate';

@@ -10,7 +10,10 @@
 
     var style = document.createElement('style');
     style.textContent = `
-      #fillWrap { flex:1 1 auto; min-width:0; margin-top:-70px; align-self:flex-start; }
+      /* 30 Jul 2026 — one of three equal cards in #metaSearchRow (was flex:1 1
+         auto, which let it swell into whatever the search card left behind). */
+      #fillWrap { flex:1 1 0; min-width:0; order:1; margin-top:-70px; align-self:flex-start; }
+      @media (max-width:1100px){ #fillWrap { flex:1 1 100%; margin-top:0; } }
       #fillWidget { width:100%; background:#fff; overflow:hidden; max-height:260px;
         transition:max-height .45s cubic-bezier(.4,0,.2,1); border-radius:28px;
         box-shadow:0 10px 40px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);

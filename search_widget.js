@@ -57,10 +57,29 @@
        (width: min(82vw, 1000px)) instead of the too-narrow 420px cap that
        forced the two-column layout to collapse into a single stacked strip. */
     /* Results (LEFT) sit PARALLEL to the card (RIGHT) in one row, instead of below it. */
-    #metaSearchRow { display:flex; flex-wrap:wrap; align-items:flex-start; gap:28px; padding:0 40px; position:relative; z-index:5; }
-    #metaSearchCardWrap { flex:0 0 auto; margin-left:auto; margin-top:-70px; pointer-events:none; }
+    /* ── 30 Jul 2026 — THREE CARDS, ONE LINE (Javed's layout call) ──────────
+       The row used to be [results][fill card][search card], with the search
+       card hogging min(82vw,1000px) and shoving everything else aside. It is
+       now a clean three-up strip:
+
+            [ FILL ]   [ SEARCH ]   [ GENERATE ]
+            [ ————— results, full width, below ————— ]
+
+       Every card takes an equal third (flex:1 1 0) instead of a fixed width,
+       so "slim" is automatic — the search card is a third of the row, not a
+       kilopixel slab. The results area already had its own full-width line
+       (flex:0 0 100%, order:-1) and keeps it. Below 1100px the three cards
+       stack, one per line. */
+    #metaSearchRow { display:flex; flex-wrap:wrap; align-items:flex-start; gap:22px; padding:0 40px; position:relative; z-index:5; }
+    #metaSearchCardWrap { flex:1 1 0; min-width:0; order:2; margin-top:-70px; pointer-events:none; }
     #metaSearchCardWrap #searchWidget { pointer-events:auto; }
-    #searchWidget { width:min(82vw,1000px); background:#ffffff; overflow:hidden; max-height:260px; transition:max-height 0.45s cubic-bezier(0.4,0,0.2,1); cursor:default; border-radius:28px; box-shadow:0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06); font-family:'Inter','Segoe UI',sans-serif; }
+    /* results already claim their own full-width line (flex:0 0 100%, order:-1
+       — see the #metaSearchResultsArea rule further down); nothing to change. */
+    @media (max-width:1100px){
+      #metaSearchRow { padding:0 20px; gap:18px; }
+      #metaSearchCardWrap { flex:1 1 100%; margin-top:0; }
+    }
+    #searchWidget { width:100%; background:#ffffff; overflow:hidden; max-height:260px; transition:max-height 0.45s cubic-bezier(0.4,0,0.2,1); cursor:default; border-radius:28px; box-shadow:0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06); font-family:'Inter','Segoe UI',sans-serif; }
     #searchWidget:hover { max-height:1300px; cursor:default; }
     #searchWidget.locked { max-height:1300px !important; cursor:default; }
     #searchWidget.force-collapsed:not(.locked), #searchWidget.force-collapsed:not(.locked):hover { max-height:260px !important; }
@@ -92,7 +111,9 @@
     #searchWidget #userInput { flex:1; padding:9px 12px; border-radius:10px; border:1px solid #d8dce6; background:#fff; color:#1a1a2e; font-size:12.5px; }
     #searchWidget #sendBtn { padding:9px 16px; border-radius:10px; border:none; background:var(--accent,#d4af37); color:#1a1200; font-weight:700; cursor:pointer; }
     #searchWidget #filterBlock { background:#F4F6FB; border:1px solid #e5e8f0; border-radius:14px; padding:14px; }
-    #searchWidget .sw-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; }
+    /* auto-fit, not a hard 1fr 1fr: the card is a third of the row now, so the
+       field grid must decide its own column count from the width it is given. */
+    #searchWidget .sw-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:8px 12px; }
     #searchWidget .sw-field { display:flex; flex-direction:column; gap:3px; }
     #searchWidget .sw-field label { font-size:10px; color:#6b7280; text-transform:uppercase; letter-spacing:.03em; }
     #searchWidget .sw-field select, #searchWidget .sw-field input { background:#fff; color:#1a1a2e; border:1px solid #d8dce6; border-radius:10px; padding:6px 8px; font-size:12px; }
