@@ -1044,7 +1044,19 @@ function toggleLearnMore(btn){
         🖼️ Edit Current Slide
       </button>
       <button onclick="editCompleteDeck()" style="padding:14px 20px;border-radius:12px;border:2px solid #1a1a2e;background:#f8f8f8;color:#1a1a2e;font-size:14px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;"
-        onmouseover="this.style.background='#1a1a2e';this.style.color='#fff'" onmouseout="this.style.backgr
+        onmouseover="this.style.background='#1a1a2e';this.style.color='#fff'" onmouseout="this.style.background='#f8f8f8';this.style.color='#1a1a2e'">
+        📑 Edit Whole Deck
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Repaired 29 Jul 2026. A bulk find-and-replace in July cut this file off
+     mid-attribute at 'this.style.backgr'. The unclosed quote swallowed
+     everything after it, so the button had no label, no closing tag, and three
+     closing </div>s were gone. Restored from the intact copy in
+     pitch_deck_slides.html. NOTE: the same truncation also removed a
+     watermark.js script tag that the intact page still has — left out
+     deliberately, pending the owner's decision on preview watermarking. -->
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
 <script defer src="commerce-loader.js"></script>
