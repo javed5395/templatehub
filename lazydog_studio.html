@@ -1321,10 +1321,10 @@ body::before{
     <div class="container">
       <div class="signature-hero__inner">
         <div>
-          <span class="eyebrow reveal">04 — LazyDog Collection</span>
-          <h1 class="signature-hero__title reveal reveal-delay-1">Our most <em>ambitious</em> work.</h1>
+          <span class="eyebrow reveal" id="collectionEyebrow">04 — LazyDog Collection</span>
+          <h1 class="signature-hero__title reveal reveal-delay-1" id="collectionTitle">Our most <em>ambitious</em> work.</h1>
         </div>
-        <div class="signature-hero__text reveal reveal-delay-2">
+        <div class="signature-hero__text reveal reveal-delay-2" id="collectionText">
           <p>The LazyDog Collection is our flagship series — complete digital experiences designed over hundreds of hours, each accompanied by full documentation, a design dossier, and engineering notes.</p>
           <p>These are not templates. They are <em>finished thoughts</em>, available for adaptation.</p>
         </div>
@@ -3141,6 +3141,103 @@ document.addEventListener('keydown',e=>{
         return items;
       }
 
+      // ── COLLECTION (page 04) — live kit takeover ─────────────────────
+      // A live Store card no longer opens a bare lightbox. It navigates to
+      // page 04 and rebuilds that page around the clicked kit: hero copy,
+      // spread image, meta row and description all follow the kit's own
+      // category, so a Media Kit reads as a Media Kit and not as a WebKit.
+      const esc = v => String(v==null?'':v)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      const pretty = v => String(v||'').replace(/[_-]+/g,' ').trim()
+        .replace(/\b\w/g, c=>c.toUpperCase());
+
+      const collectionEl = {
+        eyebrow: document.getElementById('collectionEyebrow'),
+        title:   document.getElementById('collectionTitle'),
+        text:    document.getElementById('collectionText'),
+        spreads: document.getElementById('collectionSpreads')
+      };
+      // snapshot the stock page so we can always put it back
+      const COLLECTION_DEFAULT = {
+        eyebrow: collectionEl.eyebrow ? collectionEl.eyebrow.innerHTML : '',
+        title:   collectionEl.title   ? collectionEl.title.innerHTML   : '',
+        text:    collectionEl.text    ? collectionEl.text.innerHTML    : ''
+      };
+
+      window.ldsResetCollection = function(){
+        if(collectionEl.eyebrow) collectionEl.eyebrow.innerHTML = COLLECTION_DEFAULT.eyebrow;
+        if(collectionEl.title)   collectionEl.title.innerHTML   = COLLECTION_DEFAULT.title;
+        if(collectionEl.text)    collectionEl.text.innerHTML    = COLLECTION_DEFAULT.text;
+        if(typeof renderCollectionSpreads==='function') renderCollectionSpreads();
+      };
+
+      window.ldsOpenCollectionKit = function(t, catKey){
+        if(!collectionEl.spreads) return;
+        const label = (CATS[catKey] && CATS[catKey][1]) || 'Artifact';
+        const name  = t.name || 'Untitled';
+        const img   = t.coverImage || (t.slides && t.slides[0]) || '';
+        const sub   = t.subCategory ? pretty(t.subCategory) : '';
+        const price = parseFloat(t.price);
+        const priceTxt = (price>0)
+          ? '$' + Math.round(price) + ' Personal · ' + commercialPrice('$'+price) + ' Commercial'
+          : 'Free';
+        const slideN = t.slideCount || (t.slides ? t.slides.length : 0) || '—';
+        // WebKits ship code, everything else ships slides — label the 3rd cell to suit
+        const third = (catKey === 'webkit')
+          ? { l:'Stack',  v:(t.fileTypes && t.fileTypes.length ? t.fileTypes.join(' / ') : 'HTML / CSS / JS') }
+          : { l:'Slides', v:slideN };
+        const desc = t.designNotes
+          || (name + ' — a ' + label.toLowerCase() + ' from the LazyDog collection, ready to adapt.');
+
+        collectionEl.eyebrow.textContent = '04 — ' + label;
+        collectionEl.title.textContent   = name;
+        collectionEl.text.innerHTML =
+          '<p>' + esc(desc) + '</p>' +
+          '<p>' + esc(label) + (sub ? ' · ' + esc(sub) : '') +
+          ' — available for adaptation under your chosen Personal or Commercial license.</p>';
+
+        collectionEl.spreads.innerHTML =
+          '<article class="featured-spread" data-live-spread="1">' +
+            '<div class="featured-spread__media" data-lds-gallery="1" style="background-image:url(\'' + esc(img) + '\')">' +
+              '<div class="featured-spread__media-label">' + esc(label) + ' · ' + esc(name) + '</div>' +
+            '</div>' +
+            '<div class="featured-spread__info">' +
+              '<span class="featured-spread__num">' + esc(label) + (sub ? ' · ' + esc(sub) : '') + '</span>' +
+              '<h2 class="featured-spread__title">' + esc(name) + '</h2>' +
+              '<div class="featured-spread__meta">' +
+                '<div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Category</span><span class="featured-spread__meta-value">' + esc(label) + (sub ? ' · ' + esc(sub) : '') + '</span></div>' +
+                '<div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Type</span><span class="featured-spread__meta-value">' + esc(t.docType ? pretty(t.docType) : label) + '</span></div>' +
+                '<div class="featured-spread__meta-item"><span class="featured-spread__meta-label">' + third.l + '</span><span class="featured-spread__meta-value">' + esc(third.v) + '</span></div>' +
+                '<div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Price</span><span class="featured-spread__meta-value">' + esc(priceTxt) + '</span></div>' +
+              '</div>' +
+              '<p class="featured-spread__desc">' + esc(desc) + '</p>' +
+              '<a href="#" class="featured-spread__pkg" data-lds-gallery="1" data-cursor-label="Preview" style="display:inline-block;margin-bottom:14px;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);padding:10px 20px;text-decoration:none;font-family:var(--font-sans);">Complete Product Package Details</a>' +
+              '<a href="#" class="featured-spread__num" data-lds-back="1" data-cursor-label="Back" style="text-decoration:none;">&larr; Back to the full collection</a>' +
+            '</div>' +
+          '</article>';
+
+        const gal = galleryFor(t);
+        collectionEl.spreads.querySelectorAll('[data-lds-gallery]').forEach(el=>{
+          el.addEventListener('click', e=>{
+            e.preventDefault(); e.stopPropagation();
+            if(gal.length) window.ldsOpenLightbox(gal, {title:name, meta:label});
+          });
+        });
+        const back = collectionEl.spreads.querySelector('[data-lds-back]');
+        if(back) back.addEventListener('click', e=>{
+          e.preventDefault(); e.stopPropagation();
+          window.ldsResetCollection();
+        });
+
+        navigateTo('signature');
+      };
+
+      // Reaching the Collection any other way (nav, menu, side rail) restores
+      // the stock 16-spread page instead of leaving the last kit stuck there.
+      document.querySelectorAll('[data-page="signature"]').forEach(el=>{
+        el.addEventListener('click', ()=>window.ldsResetCollection());
+      });
+
       function renderLiveCards(catKey, docs){
         const grid = document.getElementById('marketplaceGrid');
         if(!grid)return;
@@ -3171,7 +3268,7 @@ document.addEventListener('keydown',e=>{
                ${priceLabel?`<div class="product-card__price">${priceLabel}</div>`:''}
              </div>`;
           card.addEventListener('click',()=>{
-            window.ldsOpenLightbox(galleryFor(t), {title:t.name||'Untitled', meta:label});
+            window.ldsOpenCollectionKit(t, catKey);
           });
           grid.appendChild(card);
         });
