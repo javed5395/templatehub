@@ -384,6 +384,9 @@
 
     /* ── PLATFORM CARDS ── */
     .platform-row { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin:0; }
+    /* These five open Figma, Canva, Google Slides, PowerPoint and Keynote in a
+       NEW TAB — they are the apps our templates open in, not rivals. Briefly
+       de-linked on 29 Jul 2026 on a wrong assumption; restored by the owner. */
     .platform-card { display:flex; align-items:center; gap:16px; padding:18px 18px; border-radius:0; background:linear-gradient(110deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 35%, rgba(255,255,255,0.02) 100%); border:1px solid rgba(255,255,255,0.10); border-left-color:rgba(255,255,255,0.22); transition:all 0.22s ease; cursor:pointer; text-decoration:none; }
     .platform-card:hover { background:linear-gradient(110deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.06) 35%, rgba(255,255,255,0.03) 100%); border-color:rgba(255,255,255,0.16); border-left-color:rgba(255,255,255,0.32); transform:translateY(-3px); box-shadow:0 10px 28px rgba(0,0,0,0.35); }
     body.light .platform-card { background:linear-gradient(110deg,#15163a 0%,#0d0d28 100%); border-color:rgba(255,255,255,0.10); border-left-color:rgba(212,175,55,0.55); box-shadow:0 4px 16px rgba(0,0,0,0.22); }
