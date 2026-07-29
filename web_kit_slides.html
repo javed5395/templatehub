@@ -576,7 +576,7 @@ function getMkUrl(k, n, transform) {
     window._ldtSellerId = docData.sellerId || (docData.template && docData.template.sellerId) || '';
     var t = docData.template || {};
     // ── category label mapping ──
-    var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', web_kit:'Website Kit', social_media_kit:'Social Media Kit', resume_cv:'Resume / CV', digital_keynotes:'Digital Keynote', presentation:'Presentation', resume:'Resume', report:'Report' };
+    var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', web_kit:'Website Kit', resume_cv:'Resume / CV', digital_keynotes:'Digital Keynote', presentation:'Presentation', resume:'Resume', report:'Report' };
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKitData = {
       whopPlanId:   (typeof docData!=='undefined' && docData ? (docData.whopPlanId||'') : '') || (t.whopPlanId||''),
