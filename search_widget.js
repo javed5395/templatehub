@@ -1004,6 +1004,13 @@
       .then(function() {
         // Build filter vocab from live Firestore data
         ARRAY_FIELDS.concat(['contentType']).forEach(function(f) { VOCAB[f] = buildVocab(f); });
+        // 30 Jul 2026 — PUBLISH the live vocab so the "Make my design" card can
+        // use the SAME words this card searches with, without a second Firestore
+        // read. Read-only export: design_widget.js merges it into its dropdowns.
+        try {
+          window.LDT_SEARCH_VOCAB = VOCAB;
+          window.dispatchEvent(new CustomEvent('ldt-vocab-ready'));
+        } catch (e) {}
         populateFilterOptions();
         applyPageContext();
         wireEvents();
