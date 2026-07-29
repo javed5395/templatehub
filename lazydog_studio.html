@@ -1203,7 +1203,7 @@ body::before{
       <div class="section-header reveal">
         <div class="section-header__meta">
           <span class="section-header__num">03 — The Store</span>
-          <p class="section-header__desc">Browse our full catalogue of 20 artifacts — WebKits, UI systems, presentation templates, media kits, and branding assets.</p>
+          <p class="section-header__desc">Browse our full catalogue of <span id="ldsCatalogueCount">20</span> artifacts — WebKits, UI systems, presentation templates, media kits, and branding assets.</p>
         </div>
         <h2 class="section-header__title">The full <em>collection</em></h2>
       </div>
@@ -1258,7 +1258,7 @@ body::before{
     <div class="container">
       <div class="stats-grid reveal">
         <div class="stat">
-          <div class="stat__num" data-count="20">0</div>
+          <div class="stat__num" data-live-total data-count="20">0</div>
           <div class="stat__label">Templates in Collection</div>
           <div class="stat__desc">WebKits, decks, and branding assets — each catalogued and maintained.</div>
         </div>
@@ -1932,7 +1932,7 @@ animateRing();</pre>
   <section class="section section--tight">
     <div class="container">
       <div class="stats-grid reveal">
-        <div class="stat"><div class="stat__num" data-count="20">0</div><div class="stat__label">Templates Published</div><div class="stat__desc">Every one designed, documented, and maintained in-house.</div></div>
+        <div class="stat"><div class="stat__num" data-live-total data-count="20">0</div><div class="stat__label">Templates Published</div><div class="stat__desc">Every one designed, documented, and maintained in-house.</div></div>
         <div class="stat"><div class="stat__num">2026</div><div class="stat__label">Founded</div><div class="stat__desc">Independent, and intentional about what we make.</div></div>
         <div class="stat"><div class="stat__num">100%</div><div class="stat__label">Digital Delivery</div><div class="stat__desc">Instant download after purchase, available worldwide.</div></div>
         <div class="stat"><div class="stat__num">14-Day</div><div class="stat__label">Refund Window</div><div class="stat__desc">A clear, published refund policy on every purchase.</div></div>
@@ -3402,6 +3402,29 @@ document.addEventListener('keydown',e=>{
 
         setCategoryCountLabel(catKey, docs.length);
         if(typeof updateFilterCounts==='function') updateFilterCounts();
+        ldsSyncLiveTotals();
+      }
+
+      /* 29 Jul 2026 — one source of truth for "how many products do we have".
+         The headline and the two stat counters used to be typed in by hand
+         (128, then 16, then 23, then 20) and every one of them was wrong the
+         moment anything was uploaded or removed. They now read the live grid,
+         which counts only APPROVED items in the five real categories —
+         blogs, invoices and rejected submissions are excluded, because those
+         are not products a buyer can browse. */
+      function ldsSyncLiveTotals(){
+        const grid = document.getElementById('marketplaceGrid');
+        if(!grid) return;
+        const n = grid.querySelectorAll('.product-card[data-live="1"]').length;
+        if(!n) return;                       // never overwrite a real number with 0
+        const headline = document.getElementById('ldsCatalogueCount');
+        if(headline) headline.textContent = n;
+        document.querySelectorAll('[data-live-total]').forEach(el=>{
+          el.setAttribute('data-count', n);
+          // the counters animate 0 -> data-count on scroll; if that already ran,
+          // set the text directly so it does not sit on a stale figure.
+          if(el.textContent && el.textContent.trim() !== '0') el.textContent = n;
+        });
       }
 
       Object.keys(CATS).forEach(catKey=>{
