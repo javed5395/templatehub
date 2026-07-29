@@ -15,6 +15,14 @@ service cloud.firestore {
     match /kits/{kitId} {
       allow read:  if false;        // browser must never see the codes
       allow write: if false;        // only Firebase Functions, via Admin SDK
+      // Admin cascade delete (29 Jul 2026). Read/create/update stay locked —
+      // this ONLY lets the two admin UIDs remove the leftover record when a kit
+      // is deleted forever from the admin panel.
+      allow delete: if request.auth != null &&
+                       request.auth.uid in [
+                         'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',
+                         'FvcmbFk2AsXCIq1L2uog7t5erfp1'
+                       ];
     }
 
     // ── templates collection (PUBLIC READ) ───────────────────────────────
@@ -38,6 +46,12 @@ service cloud.firestore {
     match /kit_slots/{kitId} {
       allow read: if false;
       allow write: if false;
+      // Admin cascade delete (29 Jul 2026) — same reasoning as /kits above.
+      allow delete: if request.auth != null &&
+                       request.auth.uid in [
+                         'EUgr3ahFHTdOtNL5oGyLPfQcX8A3',
+                         'FvcmbFk2AsXCIq1L2uog7t5erfp1'
+                       ];
     }
 
     // ── sellers collection ────────────────────────────────────────────────────
