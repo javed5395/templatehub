@@ -1244,12 +1244,12 @@ body::before{
           <p class="category-card__desc">Press kits, brand press folios, and media resources — designed to make your studio look as good in print as it does on screen.</p>
           <div class="category-card__arrow">Browse Media Kits →</div>
         </div>
-        <div class="category-card" data-cat="social" data-page="marketplace" data-cursor-label="Browse">
+        <div class="category-card category-card--placeholder" data-cat="social" data-cursor-label="Coming Soon">
           <div class="category-card__num">06</div>
-          <h3 class="category-card__title">Social Media <em>Kits</em></h3>
+          <h3 class="category-card__title">New <em>Template</em></h3>
           <div class="category-card__count">Coming Soon</div>
-          <p class="category-card__desc">Story templates, post grids, and branded social assets — built for studios that need their feed to look as sharp as their portfolio.</p>
-          <div class="category-card__arrow">Browse Social Media Kits →</div>
+          <p class="category-card__desc"></p>
+          <div class="category-card__arrow"></div>
         </div>
       </div>
     </div>
@@ -1359,7 +1359,7 @@ body::before{
           <button class="filter-btn" data-filter="deck">Pitch Deck Templates<span class="filter-btn__count">0</span></button>
           <button class="filter-btn" data-filter="resume">Resume / CV Templates<span class="filter-btn__count">0</span></button>
           <button class="filter-btn" data-filter="media">Media Kit Templates<span class="filter-btn__count">0</span></button>
-          <button class="filter-btn" data-filter="social">Social Media Kits<span class="filter-btn__count">0</span></button>
+          <button class="filter-btn" data-filter="social">New Template<span class="filter-btn__count">0</span></button>
         </div>
       </div>
 
@@ -1599,12 +1599,12 @@ animateRing();</pre>
           <p class="category-card__desc">Press kits, brand press folios, and media resources — designed to make your studio look as good in print as it does on screen.</p>
           <div class="category-card__arrow">Browse Media Kits →</div>
         </div>
-        <div class="category-card" data-cat="social" data-page="marketplace" data-cursor-label="Browse">
+        <div class="category-card category-card--placeholder" data-cat="social" data-cursor-label="Coming Soon">
           <div class="category-card__num">06</div>
-          <h3 class="category-card__title">Social Media <em>Kits</em></h3>
+          <h3 class="category-card__title">New <em>Template</em></h3>
           <div class="category-card__count">Coming Soon</div>
-          <p class="category-card__desc">Story templates, post grids, and branded social assets — built for studios that need their feed to look as sharp as their portfolio.</p>
-          <div class="category-card__arrow">Browse Social Media Kits →</div>
+          <p class="category-card__desc"></p>
+          <div class="category-card__arrow"></div>
         </div>
       </div>
     </div>
@@ -3125,8 +3125,7 @@ document.addEventListener('keydown',e=>{
         keynote:['digital_keynotes','Digital Keynote'],
         deck:   ['pitch_deck',      'Pitch Deck'],
         resume: ['resume_cv',       'Resume / CV'],
-        media:  ['media_kit',       'Media Kit'],
-        social: ['social_media_kit','Social Media Kit']
+        media:  ['media_kit',       'Media Kit']
       };
 
       function setCategoryCountLabel(catKey, n){
@@ -3187,4 +3186,15 @@ document.addEventListener('keydown',e=>{
         onSnapshot(q, snapshot=>{
           const docs=[];
           snapshot.forEach(d=>docs.push(d));
-          renderLiveCards(catKey,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+          renderLiveCards(catKey, docs);
+        });
+      });
+    }catch(err){
+      console.error('LDS live sync failed:', err);
+    }
+  })();
+})();
+</script>
+
+</body>
+</html>
