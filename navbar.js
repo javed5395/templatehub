@@ -237,8 +237,11 @@
       <div class="nb-user-avatar" id="nbUserAvatar" onclick="toggleNbUserDropdown()">J</div>
       <span class="nb-user-name" id="nbUserName"></span>
       <div class="nb-user-dropdown" id="nbUserDropdown">
-        <a href="#">My Downloads</a>
-        <a href="#">Profile</a>
+        <!-- "My Downloads" and "Profile" removed 29 Jul 2026: both were
+             href="#" and did nothing at all — a menu that looks like it works
+             and doesn't is worse than a shorter menu. Re-add My Downloads once
+             there is a purchases page for it to open (orders are now recorded
+             server-side, so the data exists). -->
         <button class="nb-signout-btn" onclick="doSignOut()">Sign Out</button>
       </div>
     </div>
@@ -465,15 +468,58 @@
     // Replace this static array with a Firestore fetch (same pattern as the
     // rest of the site's data — see kit loading in career_docs_slides.html
     // for the reference pattern) once the collection exists.
-    renderUpdates([
-      {
-        tag: 'First Launch',
-        title: 'Pitch Decks is live — our first template category',
-        date: 'July 2026',
-        link: 'blog.html',
-        timestamp: Date.parse('2026-07-19')
+    /* 29 Jul 2026 — this used to be ONE hardcoded entry ("Pitch Decks is live",
+       dated 19 July) that could never change. Worse, it was stale in a way that
+       misled: Pitch Decks has no approved products right now, while 20+ blog
+       posts had no route to a reader at all.
+
+       The bell now shows your five most recent published blog posts, straight
+       from Firestore, and updates itself whenever you publish. If the query
+       fails or nothing is published, renderUpdates() already falls back to
+       "No updates yet — check back soon." — an honest empty state beats a
+       frozen announcement. */
+    (async function loadUpdatesFromBlog(){
+      try {
+        /* NOTE: `app` from the module block above is NOT in scope here — that
+           block is an injected <script type="module">, a separate scope from
+           this IIFE. Import firebase-app too and reuse the already-initialised
+           instance via getApps(), exactly as Hexa_Promptbox.html does. */
+        const fa = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js");
+        const fs = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+        const _app = fa.getApps().length ? fa.getApp() : fa.initializeApp({
+          apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+          authDomain:"templatehub-16cd7.firebaseapp.com",
+          projectId:"templatehub-16cd7",
+          storageBucket:"templatehub-16cd7.firebasestorage.app",
+          messagingSenderId:"143000893683",
+          appId:"1:143000893683:web:fd694de96f8c0fa6569f86"
+        });
+        const db = fs.getFirestore(_app);
+        const q  = fs.query(fs.collection(db, 'templates'),
+                            fs.where('status', '==', 'approved'),
+                            fs.where('category', '==', 'blog'),
+                            fs.limit(20));
+        const snap = await fs.getDocs(q);
+        const items = [];
+        snap.forEach(function(d){
+          const v = d.data() || {};
+          const t = v.template || {};
+          const when = v.uploadedAt && v.uploadedAt.toDate ? v.uploadedAt.toDate() : null;
+          items.push({
+            tag: 'Journal',
+            title: v.title || t.name || 'Untitled',
+            date: when ? when.toLocaleDateString(undefined, { month:'long', year:'numeric' }) : '',
+            link: 'blog-view.html?id=' + d.id,
+            timestamp: when ? when.getTime() : 0
+          });
+        });
+        items.sort(function(a,b){ return b.timestamp - a.timestamp; });
+        renderUpdates(items);
+      } catch (e) {
+        console.warn('[navbar] updates feed unavailable:', e && e.message);
+        renderUpdates([]);          // honest empty state, never a stale claim
       }
-    ]);
+    })();
   })();
 
   // ── FORCE Studios span green via JS — beats any CSS including shared-styles.css ──
@@ -1298,10 +1344,28 @@
     var inp = document.getElementById('navSearchInput');
     if(inp) inp.value = '';
   };
+  /* 29 Jul 2026: this always sent you to Pitch Decks no matter which section
+     you were browsing — search Media Kits from the Media Kits page and you
+     landed in Pitch Decks. Now it searches the section you are actually in and
+     only falls back to Pitch Decks from pages that have no section of their own. */
+  window.nbSearchTarget = function(){
+    var here = (location.pathname.split('/').pop() || '').toLowerCase();
+    var map = {
+      'media_kits_folder_section.html':  'media_kits_folder_section.html',
+      'media_kits_slides.html':          'media_kits_folder_section.html',
+      'web_kit_folder_file.html':        'web_kit_folder_file.html',
+      'web_kit_slides.html':             'web_kit_folder_file.html',
+      'career_docs_folder_section.html': 'career_docs_folder_section.html',
+      'career_docs_slides.html':         'career_docs_folder_section.html',
+      'digital_keynote-folder.html':     'digital_keynote-folder.html',
+      'digital_keynote_slides.html':     'digital_keynote-folder.html'
+    };
+    return map[here] || 'pitch_deck_folder_section.html';
+  };
   window.nbDoSearch = function() {
     var q = document.getElementById('navSearchInput').value.trim();
-    if(q) window.location = 'pitch_deck_folder_section.html?q=' + encodeURIComponent(q);
-    else window.location = 'pitch_deck_folder_section.html';
+    var target = window.nbSearchTarget();
+    window.location = q ? (target + '?q=' + encodeURIComponent(q)) : target;
   };
 
   // ── VOICE MIC ──
