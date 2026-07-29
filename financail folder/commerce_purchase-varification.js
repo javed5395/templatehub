@@ -117,7 +117,13 @@
 
     try {
       // Step 1: Query intermediate Library Layer
-      const masterRecords = masterRecords || await Commerce.library.list(buyerId);
+      // F05 (29 Jul 2026): was `const masterRecords = masterRecords || await …`
+      // — the declaration referenced itself, so every call threw a ReferenceError
+      // (temporal dead zone) before reaching the query. The catch below swallowed
+      // it and returned false, meaning ownership could NEVER be verified: the
+      // Download button stayed "Locked" on every slides page even after payment.
+      // getOwnedProducts (below) always had the correct form.
+      const masterRecords = await Commerce.library.list(buyerId);
       
       // Step 2: Locate target product match row entries
       const matchingRecords = masterRecords.filter(r => r.productId === targetProductId);

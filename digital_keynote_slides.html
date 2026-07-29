@@ -804,9 +804,38 @@ window.buyNow = function(){ window.addToBasket(); };
 // DOWNLOAD is LOCKED until the buyer has PAID. It never adds to cart and never
 // delivers a paid file for free — it only delivers once Commerce confirms
 // ownership; otherwise it stays locked.
+// F07 (29 Jul 2026): decide whether a price means FREE.
+// Deliberately CONSERVATIVE — only an explicit zero or the word "free" counts.
+// A missing, blank or unparseable price is treated as PAID and stays locked, so
+// a data glitch can never hand a paid kit away.
+function ldtIsFreePrice(v){
+  if (typeof v === 'number') return v === 0;
+  if (typeof v !== 'string') return false;
+  var s = v.trim().toLowerCase().replace(/[^a-z0-9.]/g, '');
+  if (s === 'free') return true;
+  if (s === '') return false;
+  var n = parseFloat(s);
+  return !isNaN(n) && n === 0;
+}
+
 function ldtRequestDownload(){
   var p = ldtCurrentProduct();
   var locked = function(){ ldtToast('Locked — buy this template first. Download unlocks after payment.'); };
+
+  // F07: FREE items must never reach the ownership check.
+  // Every item used to be routed through ownsProduct, and a free item is never
+  // "owned" — nobody ever bought it — so free templates answered
+  // "Locked — buy this template first." Free was literally unobtainable.
+  if (ldtIsFreePrice(p && p.price)) {
+    // Free must not become a side door to unapproved submissions (F11).
+    if (currentKitData && currentKitData.status && currentKitData.status !== 'approved') {
+      ldtToast('This template is not published yet.');
+      return;
+    }
+    handleDownload();
+    return;
+  }
+
   if (window.Commerce && window.Commerce.library && typeof window.Commerce.library.ownsProduct === 'function'
       && window.Commerce.auth && typeof window.Commerce.auth.getCurrentUser === 'function') {
     var user = window.Commerce.auth.getCurrentUser();
@@ -987,4 +1016,3 @@ function toggleLearnMore(btn){
 <script src="whop-checkout.js"></script>
 </body>
 </html>
-                                                    
