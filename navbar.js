@@ -196,7 +196,7 @@
   </button>
   <div class="nb-links" id="nbLinks">
     <button class="nav-search-icon" id="navSearchBtn" onclick="nbOpenSearch()" title="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
-    <button class="nb-lang" id="nbLangBtn" onmouseenter="nbShowLang()" onmouseleave="nbLangLeaveBtn()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span id="nbLangLabel">English</span></button>
+    <button class="nb-lang" id="nbLangBtn" onmouseenter="nbShowLang()" onmouseleave="nbLangLeaveBtn()" onclick="nbLangToggle(event)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> <span id="nbLangLabel">English</span></button>
     <div class="nb-feat-wrap" id="nbFeatWrap" onmouseenter="nbFeatHover(true)" onmouseleave="nbFeatHover(false)">
       <button class="nb-features" id="nbFeatBtn" onclick="nbFeatLockToggle()">Features</button>
       <div class="nb-feat-dropdown">
@@ -654,6 +654,27 @@
     panel.style.top = (rect.bottom + 6) + 'px';
     panel.style.right = (window.innerWidth - rect.right - 20) + 'px';
     panel.classList.add('open');
+  };
+  /* 29 Jul 2026 — the panel could ONLY be opened by onmouseenter. On a phone it
+     does open, because mobile browsers fire a synthetic mouseenter on tap to keep
+     hover menus working. But that is browser behaviour, not a guarantee: it
+     differs between Safari, Chrome and in-app browsers (Instagram, Facebook), and
+     with 34 languages behind this button it is not something to leave to chance.
+
+     This adds a real click toggle alongside the hover. Desktop is unchanged —
+     hover still opens it. On touch, the tap now opens it deliberately rather
+     than by accident, and tapping again closes it. */
+  window.nbLangToggle = function(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    var panel = document.getElementById('nbLangPanel');
+    if (!panel) return;
+    if (panel.classList.contains('open')) {
+      nbLangLocked = false;
+      panel.classList.remove('open');
+    } else {
+      window.nbShowLang();
+      nbLangLocked = true;      // keep it open until something else is tapped
+    }
   };
   window.nbLangLeaveBtn = function() {
     if (nbLangLocked) return;
