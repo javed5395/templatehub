@@ -2378,7 +2378,10 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
     var lbl={chat:'Send',design:'Generate',present:'Prepare my deck'}[m]||'Generate';
     if(send) send.innerHTML=lbl+SEND_SVG;
     var ph={chat:'Ask me anything — templates, pricing, or just say hi…',
-            design:'Describe the design you want to create…',
+            /* 30 Jul 2026 — this bar IS the design card's description box on
+               this page (design_widget.js detects #promptInput and hides its
+               own textarea), so the hint has to say both halves of the job. */
+            design:'Describe your design here — or fill the boxes below for more precision…',
             present:'Type your presentation content here — headings and text for the slides…'}[m];
     if(input&&ph) input.placeholder=ph;
     document.querySelectorAll('.prompt-toolbar [data-mode]').forEach(function(b){
