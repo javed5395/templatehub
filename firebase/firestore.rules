@@ -81,6 +81,25 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ── templates_files collection (PRIVATE — F10, 29 Jul 2026) ───────────
+    // Everything that used to sit in the world-readable `templates` doc and
+    // should never have been there: the paid file URLs (pptx/pdf/key/designDoc),
+    // the internal Cloudinary + Drive ids, and the seller's email and phone.
+    //
+    // NO client may read this. Buyers get a download URL from the
+    // download_url_http function, which checks entitlement server-side with the
+    // Admin SDK (Admin SDK ignores these rules). Admins may read it directly so
+    // the admin panel can still find the file ids it needs to delete an asset.
+    //
+    // A seller may CREATE their own doc (upload_form.html writes it during
+    // submission) but may never read one back — not even their own — because
+    // read access here is the whole exposure we are closing.
+    match /templates_files/{kitId} {
+      allow read:   if isAdmin();
+      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
     // ── kit_slots collection (PRIVATE) ────────────────────────────────────
     // The full per-slide capacity map. Read ONLY by the fit_content callable
     // via the Admin SDK (which bypasses these rules). Never readable by the

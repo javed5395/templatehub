@@ -840,20 +840,53 @@ function toDirectDownload(url){
   var m = url.match(/\/d\/([A-Za-z0-9_-]+)/) || url.match(/[?&]id=([A-Za-z0-9_-]+)/);
   return m ? 'https://drive.google.com/uc?export=download&id=' + m[1] : url;
 }
+/* F10 (29 Jul 2026) — the file URL is no longer in the page data.
+   `templates` is read:if true for the storefront, so keeping pptxUrl/pdfUrl
+   there meant the Download button was locked while the file itself sat beside
+   it in plain sight. The URL now lives in the private templates_files
+   collection and only download_url_http hands it out, after checking
+   server-side that this visitor is entitled to it (free kit, a paid order for
+   THIS kit, or admin). Editing the browser cannot get past that. */
+var LDT_DOWNLOAD_ENDPOINT = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/download_url_http';
+
+async function ldtFetchDownloadUrl(kitId, kind){
+  var headers = { 'Content-Type': 'application/json' };
+  try {
+    var tok = window.ldGetToken ? await window.ldGetToken() : null;
+    if (tok) headers['Authorization'] = 'Bearer ' + tok;
+  } catch(e){}
+  var res = await fetch(LDT_DOWNLOAD_ENDPOINT, {
+    method: 'POST', headers: headers,
+    body: JSON.stringify({ kitId: kitId, kind: kind })
+  });
+  var j = {}; try { j = await res.json(); } catch(e){}
+  if (!res.ok || !j.url) throw new Error((j && j.error) || 'Download unavailable');
+  return j.url;
+}
+
+function ldtKitId(){
+  try { if (typeof ldtCurrentProduct === 'function') { var p = ldtCurrentProduct(); if (p && p.productId) return p.productId; } } catch(e){}
+  return String(window._ldtProductId || (new URLSearchParams(location.search)).get('firebase') || '');
+}
+
 function handleDownload(){
   var k = currentKitData;
   if (!k) { closeModal(); return; }
   closeModal();
-  if (_dlIsPdf && k.pdfUrl) {
-    window.open(toDirectDownload(k.pdfUrl), '_blank');
-  } else if (k.pptxUrl) {
-    var a = document.createElement('a'); a.href = toDirectDownload(k.pptxUrl); a.target = '_blank';
+  var kitId = ldtKitId();
+  if (!kitId) { alert('Download not available for this template yet.'); return; }
+  ldtFetchDownloadUrl(kitId, _dlIsPdf ? 'pdf' : 'pptx').then(function(url){
+    if (_dlIsPdf) { window.open(toDirectDownload(url), '_blank'); return; }
+    var a = document.createElement('a'); a.href = toDirectDownload(url); a.target = '_blank';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  } else if (k.canvaLink) {
-    window.open(k.canvaLink, '_blank');
-  } else {
-    alert('Download not available for this template yet.');
-  }
+  }).catch(function(e){
+    var msg = (e && e.message) || '';
+    if (msg === 'purchase required')      { alert('Locked — buy this template first.'); return; }
+    if (msg === 'sign in to download')    { alert('Please sign in to download this template.'); return; }
+    if (msg === 'not published')          { alert('This template is not published yet.'); return; }
+    if (k.canvaLink) { window.open(k.canvaLink, '_blank'); return; }
+    alert('Download not available: ' + (msg || 'unknown error'));
+  });
 }
 function openCanva(){ if(currentKitData && currentKitData.canvaLink) window.open(currentKitData.canvaLink,'_blank'); }
 /* ── LIGHTBOX ── */

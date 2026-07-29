@@ -1633,8 +1633,10 @@ window.submitForm = async function() {
       sellerId:    currentUser.uid,
       uploaderUid: currentUser.uid,        // used by on_seller_submission to detect trusted owner
       sellerName:  sellerProfile.shopName || sellerProfile.name || '',
-      sellerEmail: sellerProfile.email    || currentUser.email  || '',
-      sellerPhone: sellerProfile.phone    || '',
+      // F10 (29 Jul 2026): sellerEmail / sellerPhone MOVED to templates_files.
+      // `templates` is read:if true for the storefront, so every seller's email
+      // and phone number were world-readable — a privacy-law exposure, not just
+      // untidiness. Shop name stays; it is meant to be public.
 
       // ── SEARCH & FILTER METADATA ─────────────────────────────────────────────
       // pdfMeta (Section 11) available hai to wahi use hoga, warna form fields
@@ -1663,35 +1665,32 @@ window.submitForm = async function() {
       graphWeight:  pdfMeta.graphWeight  || '',
 
       // ── FILE URLs (search widget aur site display ke liye) ──
-      pngUrl:       slideUrls[0]  || '',   // Cover/thumbnail
-      slideImages:  slideUrls     || [],   // Saari slide images
-      pptxUrl:      pptxUrl       || '',
-      pdfUrl:       pdfUrl        || '',
-      keyUrl:       keyUrl        || '',
+      pngUrl:       slideUrls[0]  || '',   // Cover/thumbnail — public preview
+      slideImages:  slideUrls     || [],   // Slide previews — public
       videoUrl:     videoUrl      || '',
       fileTypes,
       editableApps,
-      extraFiles:   extraUrls,
-      designDocUrl: designDocUrl  || '',
       watermark:    priceRaw > 0,
+      // designDocUrl STAYS PUBLIC (owner, 29 Jul 2026): every slides page shows
+      // a "Download Design Brief" link, and the brief is a spec sheet ABOUT the
+      // product — palette, fonts, slide count, who it suits — not the product.
+      // It is deliberate advertising. Briefly moved to templates_files during
+      // F10 and moved straight back; doing so would have broken that link on
+      // all five slides pages.
+      designDocUrl: designDocUrl  || '',
+      // F10: pptxUrl / pdfUrl / keyUrl / extraFiles MOVED to
+      // templates_files. They are the actual paid deliverables; keeping them in
+      // a world-readable doc meant the Download button was locked while the file
+      // itself sat in the page data. Buyers now get a URL from
+      // download_url_http after a server-side entitlement check.
 
-      // ── INTERNAL DELETE IDs (admin panel ke liye — user ko nahi dikhte) ──
-      cloudinaryIds: {
-        slides: slidePublicIds,
-        pdf:    pdfPublicId || null
-      },
-      driveFileIds: {
-        pptx:       pptxFileId         || null,
-        pdf:        pdfDriveFileId     || null,
-        key:        keyFileId          || null,
-        designDoc:  designDocFileId    || null,
-        extraFiles: extraFileIds
-      },
-      // ── LEGACY (admin panel display ke liye — abhi bhi use ho raha hai) ──
+      // F10: cloudinaryIds / driveFileIds MOVED to templates_files. The comment
+      // here used to say "user ko nahi dikhte" (the user cannot see these) —
+      // they could: this document is read:if true. The admin panel now reads
+      // them from templates_files, which admins can read and nobody else can.
+      // uploader.email / uploader.phone moved for the same reason.
       uploader: {
         name:     sellerProfile.name     || '',
-        phone:    sellerProfile.phone    || '',
-        email:    sellerProfile.email    || currentUser.email || '',
         shopName: sellerProfile.shopName || sellerProfile.name || ''
       },
       template: {
@@ -1706,15 +1705,42 @@ window.submitForm = async function() {
         fileTypes,
         slides:      slideUrls,
         videoUrl,
-        pptxUrl,
-        pdfUrl,
-        keyUrl,
-        extraFiles:  extraUrls,
         editableApps,
         coverImage:  slideUrls[0] || null,
-        designDocUrl,
+        designDocUrl,          // public — see the note above
         designNotes
+        // F10: pptxUrl / pdfUrl / keyUrl / extraFiles were duplicated here as
+        // well as at the root, so they leaked twice over. Both copies now live
+        // in templates_files.
       }
+    });
+
+    // ── F10 — PRIVATE FILE RECORD (templates_files) ──────────────────────
+    // Everything a buyer must not see until they are entitled to it, plus the
+    // internal ids the admin panel needs in order to delete an asset.
+    // firestore.rules: no client can READ this; admins can; the seller may only
+    // create their own. download_url_http is the single way a buyer gets a URL.
+    await setDoc(doc(db, 'templates_files', docRef.id), {
+      templateId:   docRef.id,
+      sellerId:     currentUser.uid,          // required by the create rule
+      sellerEmail:  sellerProfile.email || currentUser.email || '',
+      sellerPhone:  sellerProfile.phone || '',
+      pptxUrl:      pptxUrl      || '',
+      pdfUrl:       pdfUrl       || '',
+      keyUrl:       keyUrl       || '',
+      extraFiles:   extraUrls,
+      cloudinaryIds: {
+        slides: slidePublicIds,
+        pdf:    pdfPublicId || null
+      },
+      driveFileIds: {
+        pptx:       pptxFileId      || null,
+        pdf:        pdfDriveFileId  || null,
+        key:        keyFileId       || null,
+        designDoc:  designDocFileId || null,
+        extraFiles: extraFileIds
+      },
+      savedAt: serverTimestamp()
     });
 
     // ── INTERNAL — pdfMetaRaw alag private collection mein save karo ──

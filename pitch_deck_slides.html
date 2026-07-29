@@ -904,6 +904,35 @@ function openModal(isPdf){
   ldtRequestDownload();
 }
 function closeModal(){ var o=document.getElementById('modalOverlay'); if(o) o.style.display='none'; }
+/* F10 (29 Jul 2026) — the PPTX URL is no longer in the page data.
+   `templates` is read:if true for the storefront, so keeping pptxUrl there
+   meant the Download button was locked while the file sat beside it in plain
+   sight. It now lives in the private templates_files collection and only
+   download_url_http hands it out, after checking entitlement server-side.
+   The PDF branch below is untouched — it is built client-side from the public
+   slide previews, and the owner has ruled the PDF free to everyone. */
+var LDT_DOWNLOAD_ENDPOINT = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/download_url_http';
+
+async function ldtFetchDownloadUrl(kitId, kind){
+  var headers = { 'Content-Type': 'application/json' };
+  try {
+    var tok = window.ldGetToken ? await window.ldGetToken() : null;
+    if (tok) headers['Authorization'] = 'Bearer ' + tok;
+  } catch(e){}
+  var res = await fetch(LDT_DOWNLOAD_ENDPOINT, {
+    method: 'POST', headers: headers,
+    body: JSON.stringify({ kitId: kitId, kind: kind })
+  });
+  var j = {}; try { j = await res.json(); } catch(e){}
+  if (!res.ok || !j.url) throw new Error((j && j.error) || 'Download unavailable');
+  return j.url;
+}
+
+function ldtKitId(){
+  try { if (typeof ldtCurrentProduct === 'function') { var p = ldtCurrentProduct(); if (p && p.productId) return p.productId; } } catch(e){}
+  return String(window._ldtProductId || (new URLSearchParams(location.search)).get('firebase') || '');
+}
+
 function handleDownload(){
   closeModal();
   var d = currentDeckData;
@@ -938,16 +967,22 @@ function handleDownload(){
       })(i);
     }
   } else {
-    if (d.pptxUrl) {
+    var kitId = ldtKitId();
+    if (!kitId) { alert('PPTX download not available for this template yet.'); return; }
+    ldtFetchDownloadUrl(kitId, 'pptx').then(function(url){
       var a = document.createElement('a');
-      a.href = toDirectDownload(d.pptxUrl);
+      a.href = toDirectDownload(url);
       a.target = '_blank';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    } else {
-      alert('PPTX download not available for this template yet.');
-    }
+    }).catch(function(e){
+      var msg = (e && e.message) || '';
+      if (msg === 'purchase required')   { alert('Locked — buy this template first.'); return; }
+      if (msg === 'sign in to download') { alert('Please sign in to download this template.'); return; }
+      if (msg === 'not published')       { alert('This template is not published yet.'); return; }
+      alert('PPTX download not available: ' + (msg || 'unknown error'));
+    });
   }
 }
 // Convert a Google Drive view link into a direct-download link so big PPTX files

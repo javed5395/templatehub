@@ -60,12 +60,25 @@
   }
 
   /* Deliver the REAL file only. No preview-image fallback: handing a buyer a
-     PNG because the pptx URL was missing is worse than an honest error. */
+     PNG because the pptx URL was missing is worse than an honest error.
+
+     F10: the URL is no longer in the page data — it comes from the server,
+     which re-checks entitlement. That double-check is deliberate: this runs
+     immediately after payment, so if the webhook has not landed yet the server
+     will correctly say "purchase required" and we tell the buyer to wait rather
+     than handing over a file we cannot yet prove they own. */
   function deliver(d){
-    var u = d.pptxUrl || d.pdfUrl;
-    if (!u) { toast('Payment received — preparing your file. Check My Purchases in a moment.'); return; }
-    window.open(u, '_blank', 'noopener');
-    toast('Payment complete — your download is starting.');
+    var pid = productId(d);
+    if (!pid || typeof window.ldtFetchDownloadUrl !== 'function') {
+      toast('Payment received — your download is in My Purchases.');
+      return;
+    }
+    window.ldtFetchDownloadUrl(pid, 'pptx').then(function(url){
+      window.open(url, '_blank', 'noopener');
+      toast('Payment complete — your download is starting.');
+    }).catch(function(){
+      toast('Payment received — your download is in My Purchases.');
+    });
   }
 
   /* Wait for the webhook to record the purchase, then unlock. The server is the
