@@ -80,6 +80,21 @@
 
   // EXACT same Cloudinary transform the resume pages use (career_docs_slides.html):
   // f_jpg + pg_N renders page N of the PDF as an image. No PDF-delivery toggle, no CORS.
+  /* F13 (29 Jul 2026) — the blog's file URL comes from a seller-writable
+     Firestore document and was being concatenated straight into an href. A
+     value containing a quote breaks out of the attribute, and a `javascript:`
+     URL executes on click — stored XSS hitting every visitor who opens the
+     blog. Escape the text, and refuse any scheme that is not http(s). */
+  function esc(v){
+    return String(v == null ? '' : v)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function safeUrl(v){
+    var u = String(v == null ? '' : v).trim();
+    return /^https?:\/\//i.test(u) ? u : '';
+  }
+
   function pageImageUrl(pdfUrl, n){
     return pdfUrl.replace('/image/upload/', '/image/upload/f_jpg,pg_' + n + ',w_1400/');
   }
@@ -95,8 +110,10 @@
       img.onload  = function(){ mount.appendChild(img); n++; next(); };
       img.onerror = function(){
         if (n === 1) {
+          var fb = safeUrl(fallbackUrl);
           mount.innerHTML = '<div class="bv-status">Couldn\'t display this blog inline. '
-            + '<a href="' + fallbackUrl + '" target="_blank" rel="noopener">Open the PDF ↗</a></div>';
+            + (fb ? '<a href="' + esc(fb) + '" target="_blank" rel="noopener">Open the PDF ↗</a>' : '')
+            + '</div>';
         }
         // else: reached the end of the pages — done.
       };
@@ -134,8 +151,11 @@
       renderPages(url, pagesEl, url);            // Cloudinary PDF → render pages as images
     } else {
       // Non-Cloudinary file (e.g. a Drive upload) can't render as inline images.
+      var safe = safeUrl(url);
       pagesEl.innerHTML = '<div class="bv-status">This blog is stored elsewhere. '
-        + '<a href="' + url + '" target="_blank" rel="noopener">Open the PDF ↗</a></div>';
+        + (safe ? '<a href="' + esc(safe) + '" target="_blank" rel="noopener">Open the PDF ↗</a>'
+                : 'The link on this blog is not valid.')
+        + '</div>';
     }
   })();
 </script>

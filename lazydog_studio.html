@@ -1110,7 +1110,7 @@ body::before{
     <div class="hero__overlay"></div>
     <div class="hero__content">
       <div class="hero__top">
-        <span>Volume I · MMXXVI</span>
+        <span>Est. MMXXVI</span>
         <span>A curated collection</span>
       </div>
       <h1 class="hero__title">
@@ -1203,7 +1203,7 @@ body::before{
       <div class="section-header reveal">
         <div class="section-header__meta">
           <span class="section-header__num">03 — The Store</span>
-          <p class="section-header__desc">Browse our full catalogue of 16 artifacts — WebKits, UI systems, presentation templates, media kits, and branding assets.</p>
+          <p class="section-header__desc">Browse our full catalogue of 20 artifacts — WebKits, UI systems, presentation templates, media kits, and branding assets.</p>
         </div>
         <h2 class="section-header__title">The full <em>collection</em></h2>
       </div>
@@ -1258,7 +1258,7 @@ body::before{
     <div class="container">
       <div class="stats-grid reveal">
         <div class="stat">
-          <div class="stat__num" data-count="23">0</div>
+          <div class="stat__num" data-count="20">0</div>
           <div class="stat__label">Templates in Collection</div>
           <div class="stat__desc">WebKits, decks, and branding assets — each catalogued and maintained.</div>
         </div>
@@ -1932,7 +1932,7 @@ animateRing();</pre>
   <section class="section section--tight">
     <div class="container">
       <div class="stats-grid reveal">
-        <div class="stat"><div class="stat__num" data-count="23">0</div><div class="stat__label">Templates Published</div><div class="stat__desc">Every one designed, documented, and maintained in-house.</div></div>
+        <div class="stat"><div class="stat__num" data-count="20">0</div><div class="stat__label">Templates Published</div><div class="stat__desc">Every one designed, documented, and maintained in-house.</div></div>
         <div class="stat"><div class="stat__num">2026</div><div class="stat__label">Founded</div><div class="stat__desc">Independent, and intentional about what we make.</div></div>
         <div class="stat"><div class="stat__num">100%</div><div class="stat__label">Digital Delivery</div><div class="stat__desc">Instant download after purchase, available worldwide.</div></div>
         <div class="stat"><div class="stat__num">14-Day</div><div class="stat__label">Refund Window</div><div class="stat__desc">A clear, published refund policy on every purchase.</div></div>
@@ -3411,6 +3411,16 @@ document.addEventListener('keydown',e=>{
           const docs=[];
           snapshot.forEach(d=>docs.push(d));
           renderLiveCards(catKey, docs);
+        }, err=>{
+          /* 29 Jul 2026 — this listener had NO error handler. When the query
+             failed the listener simply died: no cards, every counter stuck on
+             0, and nothing in the console to say why. A silent failure on the
+             page that shows your whole catalogue is worse than the original
+             fault. Firestore's message for a missing index includes a direct
+             create-it link, so print it prominently. */
+          console.error('[LDS] live catalogue query FAILED for "' + catKey +
+                        '" (' + realCat + ') — cards and counts will stay empty.');
+          console.error('[LDS] reason:', err && (err.message || err));
         });
       });
     }catch(err){
