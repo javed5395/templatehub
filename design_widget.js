@@ -69,8 +69,8 @@
       /* auto-fit everywhere: this card is a third of a row on the store pages
          and a narrow aside on the Hexa page, so it must choose its own column
          count from the width it is handed rather than from the viewport. */
-      #designWidget .dw-panels { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); align-items:stretch; }
-      #designWidget .dw-col { padding:26px 28px; min-width:0; }
+      #designWidget .dw-panels { display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); align-items:stretch; }
+      #designWidget .dw-col { padding:22px 20px; min-width:0; }
       #designWidget .dw-col:nth-child(2){ background:#F4F6FB; border-left:1px solid #e5e8f0; }
       #designWidget h3 { font-size:13px; color:#d4af37; margin:0 0 12px; font-family:'Poppins',sans-serif; }
       #designWidget h4 { font-size:10px; color:#9aa1ad; margin:14px 0 2px; text-transform:uppercase;
@@ -78,7 +78,7 @@
       #designWidget h4:first-child { margin-top:0; }
       #designWidget textarea { width:100%; box-sizing:border-box; background:#fff; border:1px solid #d8dce6; border-radius:14px;
         padding:12px; min-height:150px; font-size:12.5px; color:#1a1a2e; font-family:'Inter',sans-serif; line-height:1.6; resize:vertical; }
-      #designWidget .dw-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:9px 12px; }
+      #designWidget .dw-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(116px,1fr)); gap:9px 12px; }
       #designWidget .dw-field { display:flex; flex-direction:column; gap:4px; min-width:0; }
       #designWidget .dw-field.full { grid-column:1 / -1; }
       #designWidget label { font-size:10px; color:#6b7280; text-transform:uppercase; letter-spacing:.03em; }
