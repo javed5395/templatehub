@@ -828,31 +828,34 @@
     var t = norm(text);
     return DESIGN_VERB.test(t) && DESIGN_NOUN.test(t);
   };
-  // Free tier (owner rule, 29 Jul 2026): non-subscribers get up to 5 slides.
-  // Hexa says so herself rather than letting the visitor reach the Designer and
-  // be refused there. The real enforcement is server-side in composer_proxy —
-  // this is courtesy, not security.
+  /* Free tier note (owner rule, 29 Jul 2026), CORRECTED 29 Jul.
+     The first version tried to work out here whether the visitor was an admin
+     and then announced "opening with 5 slides". Two things were wrong with it:
+       - ldIsAdmin() lives in navbar.js, and Hexa_Promptbox.html does not load
+         navbar.js — so on the main Hexa page it was undefined and EVERY user,
+         owner included, was treated as a guest.
+       - Even where it exists it returns false until Firebase auth resolves, so a
+         fresh page load looks signed-out for the first moment.
+     The result: Hexa told the owner "making 5 slides" and then correctly built
+     10, because the SERVER exempts admins. The behaviour was right; the sentence
+     was a lie.
+     The browser cannot know who you are at this instant, so it no longer claims.
+     It states the free limit as a fact and passes the request through untouched —
+     composer_proxy applies the real cap, and admins are exempt there. */
   var HEXA_FREE_SLIDES = 5;
   window.hexaDesign = function (text) {
     var raw  = String(text || '');
     var seed = raw.slice(0, 200);
-    var isAdmin = false;
-    try { isAdmin = !!(window.ldIsAdmin && window.ldIsAdmin()); } catch (e) {}
     var m    = norm(raw).match(/\b(\d{1,3})\s*(slides?|pages?)\b/);
     var want = m ? parseInt(m[1], 10) : 0;
 
-    if (!isAdmin && want > HEXA_FREE_SLIDES) {
-      return {
-        reply: 'The free version makes up to <strong>' + HEXA_FREE_SLIDES + ' slides</strong> — you asked for ' +
-               want + '. Opening the Designer with ' + HEXA_FREE_SLIDES +
-               ' now. Subscriptions are coming soon and will lift the limit.',
-        target: 'editor.html?compose=' + encodeURIComponent(seed) + '&slides=' + HEXA_FREE_SLIDES,
-        label: 'Open Designer (' + HEXA_FREE_SLIDES + ' slides)',
-        capped: true
-      };
-    }
+    var note = (want > HEXA_FREE_SLIDES)
+      ? ' <span style="opacity:.75">(Free accounts build up to ' + HEXA_FREE_SLIDES +
+        ' slides — subscriptions are coming soon.)</span>'
+      : '';
+
     return {
-      reply: "I can design that for you right now 🎨 — opening it in the LazyDog Designer:",
+      reply: "I can design that for you right now 🎨 — opening it in the LazyDog Designer:" + note,
       target: 'editor.html?compose=' + encodeURIComponent(seed),
       label: 'Open in Designer'
     };
@@ -935,8 +938,19 @@
             interest: hexaInterest,
             page: (location.pathname || '').split('/').pop() || 'home'
           })
-        }).catch(function () {});
-      } catch (e) {}
+        }).catch(function (err) {
+          /* 29 Jul 2026: this used to swallow the failure completely while Hexa
+             still told the visitor "I've saved your email". A lead that silently
+             never arrived is worse than one that never started — you cannot even
+             know to chase it. Log it so it shows up in the console and in any
+             error reporting, and keep it in local memory so the next successful
+             call can carry it. */
+          console.error('[hexa] lead capture FAILED — email not recorded:', email, err && err.message);
+          try { localStorage.setItem('hexa_pending_lead', email); } catch (e) {}
+        });
+      } catch (e) {
+        console.error('[hexa] lead capture could not be sent:', e && e.message);
+      }
       var why = hexaInterest ? ' as soon as we add what you were looking for' : ' when fresh designs drop';
       memSet({ email: email });
       hexaInterest = '';

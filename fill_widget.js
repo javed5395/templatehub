@@ -274,10 +274,21 @@
           // that collection is now closed to the browser. `templates` is the
           // public doc and already carries pptxUrl / driveFileIds.
           var db = F.getFirestore(app), data=null;
+          /* F10 REGRESSION FIX (29 Jul 2026): pptxUrl and driveFileIds were moved
+             OUT of the public `templates` doc into the private `templates_files`
+             collection, because the public doc handed every paid kit's download
+             link to anyone with a browser. This lookup still read the public doc
+             and so came back empty. Read the private companion first (admins can
+             read it; nobody else can), and fall back to the public doc for kits
+             uploaded before the move. */
           try { var snap = await F.getDoc(F.doc(db, 'templates', designRef.id)); if (snap.exists()) data = snap.data(); } catch(_){}
-          if (data) {
-            pptxUrl    = data.pptxUrl || '';
-            pptxFileId = (data.driveFileIds && data.driveFileIds.pptx) || '';
+          var priv = null;
+          try { var psnap = await F.getDoc(F.doc(db, 'templates_files', designRef.id)); if (psnap.exists()) priv = psnap.data(); } catch(_){}
+          if (data || priv) {
+            data = data || {};
+            pptxUrl    = (priv && priv.pptxUrl) || data.pptxUrl || '';
+            pptxFileId = (priv && priv.driveFileIds && priv.driveFileIds.pptx) ||
+                         (data.driveFileIds && data.driveFileIds.pptx) || '';
             if (!pptxFileId && pptxUrl) { var mm = pptxUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/) || pptxUrl.match(/\/d\/([a-zA-Z0-9_-]+)/); pptxFileId = mm ? mm[1] : ''; }
           }
         } catch(e){}
