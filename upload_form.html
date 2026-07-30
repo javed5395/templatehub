@@ -1546,13 +1546,40 @@ window.submitForm = async function() {
           pdfDriveFileId = extractDriveFileId(pdfUrl);
         }
       } catch (pdfErr) {
-        // Clean-PDF step failed — do NOT abort the whole submission and NEVER upload
-        // the original (metadata-laden) PDF. Skip the public PDF; the search metadata
-        // is already saved separately in Firestore, so nothing leaks, and the pending
-        // record still reaches admin.
-        console.warn('[PDF] Clean-PDF step failed — skipping public PDF, continuing submit:', pdfErr);
+        // Clean-PDF step failed. NEVER upload the original (metadata-laden) PDF.
+        //
+        // ── 30 Jul 2026 · BUG FOUND IN THE WILD ────────────────────────────
+        // This catch used to swallow the failure completely: the submission
+        // carried on, the record was created with an empty pdfUrl, and the
+        // uploader was told it worked. One blog ("Editor Updated") reached the
+        // live journal that way — a card on blog.html leading to a viewer that
+        // said "This blog has no file attached yet." Nobody could have known.
+        //
+        // For a BLOG or a RESUME the PDF *is* the product — there is nothing
+        // left to publish without it, so we now ABORT and say so plainly.
+        // For a template the PDF is only a spec sheet, so we still continue,
+        // but the uploader is told to their face instead of in the console.
+        console.warn('[PDF] Clean-PDF step failed:', pdfErr);
         pdfUrl = null; pdfPublicId = null; pdfDriveFileId = null;
-        setProgress(80, 'PDF skip (metadata safe) — baaki submission continue ho rahi hai...');
+
+        if (category === 'blog' || category === 'resume_cv') {
+          var whatFailed = (pdfErr && pdfErr.message) ? pdfErr.message : 'the file could not be uploaded';
+          throw new Error(
+            'The PDF did not upload, and for a ' + (category === 'blog' ? 'blog' : 'resume') +
+            ' the PDF is the whole thing — nothing has been published.\n\n' +
+            'Reason: ' + whatFailed + '\n\n' +
+            'Check your connection and submit again.'
+          );
+        }
+
+        setProgress(80, '⚠️ PDF skipped — it failed to upload. The rest of the submission is continuing.');
+        try {
+          var warnBox = document.getElementById('uploadErrorBox');
+          if (warnBox) {
+            warnBox.style.display = 'block';
+            warnBox.textContent = '⚠️ The PDF failed to upload, so this template has no spec sheet. Everything else was saved. Edit the item later to add the PDF.';
+          }
+        } catch (e) {}
       }
     }
 
@@ -1678,7 +1705,11 @@ window.submitForm = async function() {
       // F10 and moved straight back; doing so would have broken that link on
       // all five slides pages.
       designDocUrl: designDocUrl  || '',
-      // F10: pptxUrl / pdfUrl / keyUrl / extraFiles MOVED to
+      // pdfUrl STAYS PUBLIC too: generate_pdf.py renders it from a .txt as a
+      // spec sheet about the deck, and this copy already has the Section 11
+      // metadata pages stripped. The deck itself is the PPTX.
+      pdfUrl:       pdfUrl        || '',
+      // F10: pptxUrl / keyUrl / extraFiles MOVED to
       // templates_files. They are the actual paid deliverables; keeping them in
       // a world-readable doc meant the Download button was locked while the file
       // itself sat in the page data. Buyers now get a URL from
@@ -1707,6 +1738,7 @@ window.submitForm = async function() {
         videoUrl,
         editableApps,
         coverImage:  slideUrls[0] || null,
+        pdfUrl,                // public — spec sheet, not the deck
         designDocUrl,          // public — see the note above
         designNotes
         // F10: pptxUrl / pdfUrl / keyUrl / extraFiles were duplicated here as
@@ -1726,7 +1758,6 @@ window.submitForm = async function() {
       sellerEmail:  sellerProfile.email || currentUser.email || '',
       sellerPhone:  sellerProfile.phone || '',
       pptxUrl:      pptxUrl      || '',
-      pdfUrl:       pdfUrl       || '',
       keyUrl:       keyUrl       || '',
       extraFiles:   extraUrls,
       cloudinaryIds: {

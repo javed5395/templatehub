@@ -138,14 +138,21 @@
       const p = snap.data();
       const title = p.title || (p.template && p.template.name) || 'Untitled';
       document.title = title + ' — LazyDogTemplates';
-      url = p.pdfUrl || p.designDocUrl || '';
+      // 30 Jul 2026 — also look inside `template`. The upload form writes the
+      // PDF link at the root AND inside the template object; reading only the
+      // root meant one stray record shape could show as "no file attached".
+      url = p.pdfUrl || p.designDocUrl || (p.template && p.template.pdfUrl) || '';
     } catch (err) {
       console.error('Failed to load blog record:', err);
       pagesEl.innerHTML = '<div class="bv-status">Something went wrong. <a href="blog.html">Back to the journal</a>.</div>';
       return;
     }
 
-    if (!url) { pagesEl.innerHTML = '<div class="bv-status">This blog has no file attached yet.</div>'; return; }
+    if (!url) {
+      pagesEl.innerHTML = '<div class="bv-status">This post isn\'t available yet — its file didn\'t finish uploading. '
+        + '<a href="blog.html">Back to the journal</a>.</div>';
+      return;
+    }
 
     if (url.indexOf('/image/upload/') !== -1) {
       renderPages(url, pagesEl, url);            // Cloudinary PDF → render pages as images

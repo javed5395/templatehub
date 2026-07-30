@@ -243,10 +243,23 @@
       const snap = await getDocs(q);
 
       let items = [];
+      let fileless = 0;
       snap.forEach(function(docSnap){
         const x = docSnap.data();
-        if (x && x.status === 'approved') { x._id = docSnap.id; items.push(x); }
+        if (!x || x.status !== 'approved') return;
+        // 30 Jul 2026 — a blog with no PDF is a dead card: it links to a viewer
+        // that can only say "no file attached yet". That happened live once,
+        // because a failed PDF upload used to be swallowed silently in
+        // upload_form.html. The upload form now refuses to publish a blog
+        // without its PDF, and this guard keeps any already-broken record from
+        // showing a door that leads nowhere.
+        const hasFile = !!(x.pdfUrl || x.designDocUrl || (x.template && x.template.pdfUrl));
+        if (!hasFile) { fileless++; return; }
+        x._id = docSnap.id; items.push(x);
       });
+      if (fileless) {
+        console.warn('[blog] ' + fileless + ' approved blog record(s) hidden — no PDF attached. Re-upload them.');
+      }
       items.sort(function(a, b){
         const sa = (a.uploadedAt && a.uploadedAt.seconds) || 0;
         const sb = (b.uploadedAt && b.uploadedAt.seconds) || 0;
