@@ -3216,6 +3216,16 @@ async function renderSlideIR(slideIR, deckIR, fc) {
   var cw = fc._baseWidth || fc.getWidth();
   var ch = fc._baseHeight || fc.getHeight();
   var sx = cw / (deckIR.size.w || 1), sy = ch / (deckIR.size.h || 1);
+  /* SLIDE-EDGE SCISSOR (31 Jul 2026, owner rule): PowerPoint clips every
+     shape at the slide boundary — bleed designs (a circle hanging off the
+     corner) show CUT at the edge, never spilling outside the canvas. The
+     renderer drew the full object extents, so imported bleed elements
+     leaked past the slide border in the editor AND the brain. Clip the
+     whole canvas render to the slide rectangle — not a pixel outside. */
+  fc.clipPath = new fabric.Rect({
+    left: 0, top: 0, width: cw, height: ch,
+    absolutePositioned: true
+  });
   applyBackgroundIR(slideIR.background, fc, cw, ch);
 
   /* Sequential rendering: images are AWAITED in place so every element keeps
