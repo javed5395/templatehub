@@ -6536,7 +6536,11 @@ function addFrame(kind, atX, atY) {
     if (typeof fc === 'undefined' || !fc || !fc.on) return;
     clearInterval(t);
     fc.on('object:scaling', function (e) { if (e.target && e.target.isFrame) e.target.dirty = true; });
-    fc.on('object:modified', function (e) { if (e.target && e.target.isFrame) refreshFrame(e.target); });
+    /* FIX (Fable, purple-frame bug): only refresh USER frames (frameSrc/frameKind).
+       An IMPORTED pptx picture-frame has neither — its pattern fill IS the photo,
+       and refreshFrame() wipes it to the #7C3AED placeholder purple on any
+       double-click/drag (object:modified). Guard mirrors rehydrateFrames(). */
+    fc.on('object:modified', function (e) { if (e.target && e.target.isFrame && (e.target.frameSrc || e.target.frameKind)) refreshFrame(e.target); });
   }, 300);
 })();
 
@@ -15813,6 +15817,77 @@ window.LD_loadEditorTemplates = async function () {
     e.returnValue = '';
     return '';
   });
+})();
+</script>
+<!-- ============================================================
+     DISSOLVE ADD-ON (Fable · v3) — APPENDED ONLY, NOTHING ABOVE EDITED
+     Adds "Dissolve PDF / Image → editable" to the Upload menu. Sends a flat
+     PDF / PNG / JPG (or flat PPTX) to the cloud dissolve service, receives an
+     editable .pptx, and hands it to the editor's EXISTING handlePPTXUpload().
+     Touches no existing code — pure add-on, matching this repo's add-on style.
+
+     CONFIG (set near LD_BACKEND, ~line 14824, after deploying the service):
+       window.LD_DISSOLVE_URL   = 'https://lazydog-dissolve-....run.app';
+       window.LD_DISSOLVE_TOKEN = '<same DISSOLVE_TOKEN as deploy.bat>';
+     ============================================================ -->
+<script>
+(function () {
+  "use strict";
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.pdf,.png,.jpg,.jpeg,.pptx'; inp.style.display = 'none';
+  inp.id = 'ld-dissolve-input';
+  function mount() { if (!document.getElementById('ld-dissolve-input')) document.body.appendChild(inp); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
+
+  /* inject a menu item right after "PowerPoint (.pptx)" in the Upload dropdown */
+  function injectItem() {
+    if (document.querySelector('[data-action="dissolve-flat"]')) return true;
+    var anchor = document.querySelector('.dropdown-item[data-action="upload-pptx"]')
+              || document.querySelector('[data-action="upload-pptx"]');
+    if (!anchor) return false;
+    var item = anchor.cloneNode(true);
+    item.setAttribute('data-action', 'dissolve-flat');
+    item.innerHTML = '<span class="material-icons-outlined">auto_fix_high</span>Dissolve PDF / Image → editable';
+    anchor.parentNode.insertBefore(item, anchor.nextSibling);
+    return true;
+  }
+  var n = 0, poll = setInterval(function () { n++; if (injectItem() || n > 150) clearInterval(poll); }, 200);
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest && e.target.closest('[data-action="dissolve-flat"]');
+    if (el) { e.preventDefault(); e.stopPropagation(); inp.click(); }
+  }, true);
+
+  inp.addEventListener('change', function () {
+    var f = inp.files && inp.files[0]; inp.value = '';
+    if (f) dissolveFlatFile(f);
+  });
+
+  function toast(m) { if (typeof showToast === 'function') showToast(m); else console.log(m); }
+
+  async function dissolveFlatFile(file) {
+    var base = String(window.LD_DISSOLVE_URL || '').replace(/\/$/, '');
+    if (!base) { toast('Dissolve service not set up yet (LD_DISSOLVE_URL missing)'); return; }
+    toast('Dissolving ' + (file.name || 'file') + ' … this can take a moment');
+    try {
+      var fd = new FormData(); fd.append('file', file, file.name || 'upload');
+      var headers = {};
+      if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
+      var r = await fetch(base + '/dissolve', { method: 'POST', headers: headers, body: fd });
+      if (!r.ok) { toast('Dissolve failed (' + r.status + ')'); return; }
+      var blob = await r.blob();
+      var nm = (file.name || 'design').replace(/\.[^.]+$/, '') + '_EDITABLE.pptx';
+      var pptx = new File([blob], nm,
+        { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+      if (typeof handlePPTXUpload === 'function') {
+        await handlePPTXUpload({ files: [pptx], value: '' });
+        toast('Dissolved → editable ✓');
+      } else { toast('Editor importer not ready — try again in a moment'); }
+    } catch (err) {
+      toast('Dissolve error: ' + ((err && err.message) || err));
+    }
+  }
+  window.dissolveFlatFile = dissolveFlatFile;
 })();
 </script>
 </body>
