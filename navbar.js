@@ -190,7 +190,7 @@
   // ── INJECT NAVBAR HTML ──
   var navHTML = `
 <nav id="sharedNav">
-  <div style="display:inline-flex;align-items:center;gap:0;"><a href="main.html" class="nb-logo notranslate" translate="no">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="lazydog_studio.html" class="nb-logo-studios notranslate" translate="no">LazyDog<span>Studios</span></a></div>
+  <div style="display:inline-flex;align-items:center;gap:0;"><a href="main.html" class="nb-logo notranslate" translate="no" style="display:inline-flex;align-items:center;gap:9px;"><img src="images/site%20logo.jpeg" alt="LazyDog Templates logo" class="nb-brand-logo" style="height:36px;width:36px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 1px 4px rgba(0,0,0,0.18);">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="lazydog_studio.html" class="nb-logo-studios notranslate" translate="no">LazyDog<span>Studios</span></a></div>
   <button class="nb-hamburger" id="nbHamburgerBtn" onclick="nbToggleMobileMenu()" title="Menu" aria-label="Menu">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
