@@ -1615,8 +1615,23 @@ window.submitForm = async function() {
     // leaked Section 11 to buyers. Any PDF now goes through the same
     // Section-11 stripper as the main PDF; on failure the doc is SKIPPED,
     // never uploaded raw.
+    //
+    // 31 Jul 2026 — THE METADATA ROAD, RESTORED. The owner's workflow (25 Jul,
+    // by design) drops the generated *_SYSTEM.pdf in THIS slot: it is the
+    // kit's metadata carrier. The 30 Jul stripper, meant to stop the public
+    // leak, was stripping Section 11 out of the carrier itself BEFORE it ever
+    // reached the cloud — so kits landed with almost no search codes, and
+    // nobody could see why. New rule: a file named *_SYSTEM.pdf placed here is
+    // NOT a public design brief. It skips Drive entirely and is uploaded RAW
+    // to the PRIVATE bucket (kits/<docId>_SYSTEM.pdf) after the doc is
+    // created — the same private road the main-PDF slot uses. Codes stay
+    // server-side; buyers still never see it; the public leak stays closed.
     let designDocUrl = null; let designDocFileId = null;
-    if (designDocFile) {
+    let systemPdfFromBrief = null;
+    if (designDocFile && /_SYSTEM\.pdf$/i.test(designDocFile.name)) {
+      systemPdfFromBrief = designDocFile;
+      setProgress(90, 'SYSTEM PDF detected — will go to the private metadata bucket...');
+    } else if (designDocFile) {
       try {
         let docToUpload = designDocFile;
         if (/\.pdf$/i.test(designDocFile.name)) {
@@ -1793,9 +1808,24 @@ window.submitForm = async function() {
     // process_system_pdf reads the codes there and writes kits.encoded_raw —
     // this is the ONLY path by which a kit's real metadata reaches search.
     // The public pdf uploaded above is still the stripped one.
-    if (pdfFile) {
-      setProgress(97, 'Data is loading...');
-      await uploadSystemPdf(docRef.id, pdfFile);
+    // 31 Jul 2026 — the brief-slot _SYSTEM.pdf is the PREFERRED carrier (the
+    // owner's designed workflow); the main-PDF slot remains as the other door.
+    // A failed metadata upload is now said TO THE UPLOADER'S FACE — it used to
+    // whisper into the console while the form declared success, which is how
+    // "codes never reached Firebase" stayed invisible for five days.
+    const sysCarrier = systemPdfFromBrief || pdfFile;
+    if (sysCarrier) {
+      setProgress(97, 'Uploading metadata (SYSTEM PDF) to the private bucket...');
+      const sysOk = await uploadSystemPdf(docRef.id, sysCarrier);
+      if (!sysOk && systemPdfFromBrief) {
+        try {
+          var sysWarnBox = document.getElementById('uploadErrorBox');
+          if (sysWarnBox) {
+            sysWarnBox.style.display = 'block';
+            sysWarnBox.textContent = '⚠️ The kit was saved, but the SYSTEM PDF (metadata) did NOT reach the private bucket — search codes will be missing. Open the browser console (F12) for the reason, then re-drop the _SYSTEM.pdf or contact the admin.';
+          }
+        } catch (e) {}
+      }
     }
 
     setProgress(100, 'Done!');
