@@ -616,11 +616,20 @@ function ldFontAuditPrompt(deckIR) {
   return new Promise(function (resolve) {
     try {
       var lib = window.LAZYDOG_FONT_LIB || [];
+      /* (31 Jul fix — the "size 10 middle heading" bug) The cloud parser can
+         deliver font names with quote/space/chain artifacts ("Inter ",
+         '"Inter"', "Inter, sans-serif") that FAIL the raw library lookup even
+         though the font IS in the library. The alarm then fired on a clean
+         deck, "switch to free" flagged every run __refonted, and the fit-
+         shrink loop crushed any overflow-by-design box (15.44pt × 0.94⁷ =
+         10pt). Normalise before every lookup. */
+      function ldNormFont(n) { return String(n == null ? '' : n).split(',')[0].replace(/["']/g, '').trim(); }
+      function inLibN(n) { return !!n && lib.indexOf(ldNormFont(n).toLowerCase()) !== -1; }
       var found = {};
       function scanP(p) { (p.runs || []).forEach(function (r) {
         /* show the GUARANTEED twin in the alarm, not the parser's display
            name (which can be the commercial font itself) */
-        if (r.font && lib.indexOf(String(r.font).toLowerCase()) === -1) found[r.font] = ldFreeTwinFor(r.font, r.fontDisplay);
+        if (r.font && !inLibN(r.font)) found[r.font] = ldFreeTwinFor(ldNormFont(r.font), ldNormFont(r.fontDisplay));
       }); }
       deckIR.slides.forEach(function (s) { (s.elements || []).forEach(function (e) {
         if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(scanP);
@@ -659,7 +668,17 @@ function ldFontAuditPrompt(deckIR) {
              ldFreeTwinFor never returns a non-library font, so the exported
              file is truly clean AND the preview shows the exact face the
              buyer will get (the embedded FontFace no longer masks it). */
-          if (r.font && lib.indexOf(String(r.font).toLowerCase()) === -1) { r.font = ldFreeTwinFor(r.font, r.fontDisplay); r.fontDisplay = r.font; r.__refonted = true; }
+          if (r.font && !inLibN(r.font)) {
+            var _tw = ldFreeTwinFor(ldNormFont(r.font), ldNormFont(r.fontDisplay));
+            /* SAME-FONT GUARD (31 Jul): when the "twin" is the run's own
+               family (name artifact, not a real substitution), metrics are
+               unchanged — clean the name but do NOT mark __refonted, so the
+               fit-shrink loop (which exists only to absorb DIFFERENT twin
+               metrics) can never fire and crush the box to ~10pt. */
+            var _same = _tw && ldNormFont(_tw).toLowerCase() === ldNormFont(r.font).toLowerCase();
+            r.font = _tw; r.fontDisplay = _tw;
+            if (!_same) r.__refonted = true;
+          }
         }); }
         deckIR.slides.forEach(function (s) { (s.elements || []).forEach(function (e) {
           if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(convP);
