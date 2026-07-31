@@ -154,6 +154,7 @@ function initFabric() {
   }
   fc.__ldSlideClip = __ldSlideClip;
   fc.clipPath = __ldSlideClip();
+  console.log('[LD renderer] SCISSOR-V2 ACTIVE — canvas clip installed at creation');
   var __ldLFJ = fc.loadFromJSON.bind(fc);
   fc.loadFromJSON = function (json, callback, reviver) {
     return __ldLFJ(json, function () {
