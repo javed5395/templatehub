@@ -14826,6 +14826,11 @@ window.LD_BACKEND = window.LD_BACKEND || (
     ? 'http://localhost:8080'
     : 'https://composer-proxy-irosbvpq7q-uc.a.run.app'
 );
+/* ── DISSOLVE v3 service (Fable) ── the "Dissolve PDF / Image" button calls this.
+   TODO Javed: replace CHANGE_ME_to_a_long_random_secret with the exact DISSOLVE_TOKEN value
+   from dissolve_service\deploy.bat (copy it from there, paste it between the quotes). */
+window.LD_DISSOLVE_URL   = 'https://lazydog-dissolve-143000893683.us-central1.run.app';
+window.LD_DISSOLVE_TOKEN = 'CHANGE_ME_to_a_long_random_secret';
 window.ldHeaders = function (ct) {
   var h = { 'Content-Type': ct };
   if (window.LD_AUTH_TOKEN) h['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
