@@ -140,6 +140,27 @@ function initFabric() {
   fc = new fabric.Canvas('canvas', { width: 1920, height: 1080, backgroundColor: '#ffffff', enableRetinaScaling: true, preserveObjectStacking: true }); /* selected objects keep their layer — default fabric painted the selection on TOP, so clicking the full-bleed background hid every element behind it */
   fc._baseWidth = 1920;
   fc._baseHeight = 1080;
+  /* ── SLIDE-EDGE SCISSOR (31 Jul 2026, owner rule) ─────────────────────────
+     PowerPoint clips every shape at the slide boundary — bleed designs show
+     CUT at the edge, never spilling past the canvas. Fabric draws full object
+     extents, so imported bleed elements leaked outside the slide. The clip is
+     set HERE at creation and RE-ASSERTED after every loadFromJSON, because
+     loadFromJSON resets canvas properties (page switch, undo, project open)
+     and silently wiped a clip that was only set once at import time. */
+  function __ldSlideClip() {
+    return new fabric.Rect({ left: 0, top: 0,
+      width: fc._baseWidth, height: fc._baseHeight,
+      selectable: false, evented: false });
+  }
+  fc.__ldSlideClip = __ldSlideClip;
+  fc.clipPath = __ldSlideClip();
+  var __ldLFJ = fc.loadFromJSON.bind(fc);
+  fc.loadFromJSON = function (json, callback, reviver) {
+    return __ldLFJ(json, function () {
+      fc.clipPath = __ldSlideClip();
+      if (callback) callback.apply(this, arguments);
+    }, reviver);
+  };
   fc._pxPerPt = 2; /* blank 1920px canvas = 960pt slide; import overwrites with true scale */
   fc.on('object:modified', function(){ saveState(); });
   fc.on('object:added', function(){ saveState(); });
@@ -3222,10 +3243,8 @@ async function renderSlideIR(slideIR, deckIR, fc) {
      renderer drew the full object extents, so imported bleed elements
      leaked past the slide border in the editor AND the brain. Clip the
      whole canvas render to the slide rectangle — not a pixel outside. */
-  fc.clipPath = new fabric.Rect({
-    left: 0, top: 0, width: cw, height: ch,
-    absolutePositioned: true
-  });
+  fc.clipPath = new fabric.Rect({ left: 0, top: 0, width: cw, height: ch,
+    selectable: false, evented: false });
   applyBackgroundIR(slideIR.background, fc, cw, ch);
 
   /* Sequential rendering: images are AWAITED in place so every element keeps
