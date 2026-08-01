@@ -1630,7 +1630,24 @@ window.submitForm = async function() {
     let systemPdfFromBrief = null;
     if (designDocFile && /_SYSTEM\.pdf$/i.test(designDocFile.name)) {
       systemPdfFromBrief = designDocFile;
-      setProgress(90, 'SYSTEM PDF detected — will go to the private metadata bucket...');
+      setProgress(90, 'SYSTEM PDF detected — private bucket + public brief copy...');
+      // 1 Aug 2026 — THE MISSING HALF. Routing the _SYSTEM.pdf to the private
+      // bucket (metadata) originally SKIPPED the public path entirely, so the
+      // item page lost its "Download Design Brief" link. The SYSTEM pdf serves
+      // BOTH roles: the raw original feeds the metadata engine (below, after
+      // the doc is created), and a Section-11-STRIPPED copy still goes to
+      // Drive as the public design brief — same as it always did.
+      try {
+        setProgress(90, 'Design brief: stripping Section 11 for the public copy...');
+        const cleanBrief = await stripSection11FromPdf(designDocFile);
+        setProgress(91, 'Uploading public design brief...');
+        designDocUrl    = await uploadDocToDrive(cleanBrief);
+        designDocFileId = extractDriveFileId(designDocUrl);
+      } catch (briefErr) {
+        console.warn('[DesignDoc] public brief copy failed — metadata unaffected:', briefErr);
+        designDocUrl = null; designDocFileId = null;
+        setProgress(91, '⚠️ Public design brief failed — kit will have no brief link.');
+      }
     } else if (designDocFile) {
       try {
         let docToUpload = designDocFile;
