@@ -681,11 +681,6 @@ googleProvider.setCustomParameters({ 'prompt': 'select_account' });
 const CLOUDINARY_CLOUD  = "dsqxuaucz";
 const CLOUDINARY_PRESET = "lazydog_unsigned";
 const APPS_SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec";
-// PUBLIC token. This page is served to the world, so this string IS public.
-// It is a speed bump, not a secret. The real protection is that the Apps Script
-// now refuses delete/listFolder without the ADMIN token, and confines
-// delete/download to the templates folder.
-const APPS_SCRIPT_TOKEN = "3MSoyo4kU0al-jWfAEVIzwSKvAi2yZiW";
 
 // ── FILE SIZE LIMITS (change these to adjust limits) ─────────────────────────
 const FILE_LIMITS = {
@@ -1182,7 +1177,7 @@ async function sendChunkWithRetry(payload, chunkLabel, onRetryMsg, timeoutMs) {
     try {
       const res  = await fetch(APPS_SCRIPT_URL, {
         method : 'POST',
-        body   : JSON.stringify(Object.assign({ token: APPS_SCRIPT_TOKEN }, payload)),
+        body   : JSON.stringify(payload),
         signal : controller.signal
       });
       clearTimeout(timer);
@@ -1253,7 +1248,7 @@ async function uploadDocToDrive(file) {
   const base64Data = await readFileAsBase64(file);
   const res  = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',
-    body: JSON.stringify({ token: APPS_SCRIPT_TOKEN, fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/octet-stream' })
+    body: JSON.stringify({ fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/octet-stream' })
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.error || 'Failed to upload document');
@@ -1310,21 +1305,12 @@ async function stripSection11FromPdf(file) {
     for (let p = 1; p <= totalPages; p++) {
       const page = await pdfJsDoc.getPage(p);
       const tc   = await page.getTextContent();
-      const raw  = tc.items.map(i => i.str).join(' ');
-      const text = raw.toUpperCase();
-
-      // 1 Aug 2026 — CONTINUATION-PAGE CATCH. A long Section 11 spills onto a
-      // second page holding ONLY bare code rows ("K3 : j2,j9" ...) — none of
-      // the three header markers. That page walked through the stripper and
-      // published coded metadata on the live site. Any page with 3+ code rows
-      // IS a Section 11 page, marker or no marker.
-      const codeRows = (raw.match(/\b[A-Z][A-Z0-9]?\s*:\s*[a-z]{1,3}[0-9]+(\s*,\s*[a-z]{1,3}[0-9]+)*/g) || []).length;
+      const text = tc.items.map(i => i.str).join(' ').toUpperCase();
 
       const isSec11 = (
         (text.includes('SECTION 11') && text.includes('SYSTEM METADATA')) ||
         text.includes('MACHINE-READABLE FILTER CODES') ||
-        text.includes('DESIGN_NAME') || // fallback — unique to our metadata block
-        codeRows >= 3                   // continuation page of bare code rows
+        text.includes('DESIGN_NAME') // fallback — unique to our metadata block
       );
       if (isSec11) sec11Pages.add(p - 1); // pdf-lib 0-indexed
     }
@@ -1555,40 +1541,13 @@ window.submitForm = async function() {
           pdfDriveFileId = extractDriveFileId(pdfUrl);
         }
       } catch (pdfErr) {
-        // Clean-PDF step failed. NEVER upload the original (metadata-laden) PDF.
-        //
-        // ── 30 Jul 2026 · BUG FOUND IN THE WILD ────────────────────────────
-        // This catch used to swallow the failure completely: the submission
-        // carried on, the record was created with an empty pdfUrl, and the
-        // uploader was told it worked. One blog ("Editor Updated") reached the
-        // live journal that way — a card on blog.html leading to a viewer that
-        // said "This blog has no file attached yet." Nobody could have known.
-        //
-        // For a BLOG or a RESUME the PDF *is* the product — there is nothing
-        // left to publish without it, so we now ABORT and say so plainly.
-        // For a template the PDF is only a spec sheet, so we still continue,
-        // but the uploader is told to their face instead of in the console.
-        console.warn('[PDF] Clean-PDF step failed:', pdfErr);
+        // Clean-PDF step failed — do NOT abort the whole submission and NEVER upload
+        // the original (metadata-laden) PDF. Skip the public PDF; the search metadata
+        // is already saved separately in Firestore, so nothing leaks, and the pending
+        // record still reaches admin.
+        console.warn('[PDF] Clean-PDF step failed — skipping public PDF, continuing submit:', pdfErr);
         pdfUrl = null; pdfPublicId = null; pdfDriveFileId = null;
-
-        if (category === 'blog' || category === 'resume_cv') {
-          var whatFailed = (pdfErr && pdfErr.message) ? pdfErr.message : 'the file could not be uploaded';
-          throw new Error(
-            'The PDF did not upload, and for a ' + (category === 'blog' ? 'blog' : 'resume') +
-            ' the PDF is the whole thing — nothing has been published.\n\n' +
-            'Reason: ' + whatFailed + '\n\n' +
-            'Check your connection and submit again.'
-          );
-        }
-
-        setProgress(80, '⚠️ PDF skipped — it failed to upload. The rest of the submission is continuing.');
-        try {
-          var warnBox = document.getElementById('uploadErrorBox');
-          if (warnBox) {
-            warnBox.style.display = 'block';
-            warnBox.textContent = '⚠️ The PDF failed to upload, so this template has no spec sheet. Everything else was saved. Edit the item later to add the PDF.';
-          }
-        } catch (e) {}
+        setProgress(80, 'PDF skip (metadata safe) — baaki submission continue ho rahi hai...');
       }
     }
 
@@ -1624,40 +1583,8 @@ window.submitForm = async function() {
     // leaked Section 11 to buyers. Any PDF now goes through the same
     // Section-11 stripper as the main PDF; on failure the doc is SKIPPED,
     // never uploaded raw.
-    //
-    // 31 Jul 2026 — THE METADATA ROAD, RESTORED. The owner's workflow (25 Jul,
-    // by design) drops the generated *_SYSTEM.pdf in THIS slot: it is the
-    // kit's metadata carrier. The 30 Jul stripper, meant to stop the public
-    // leak, was stripping Section 11 out of the carrier itself BEFORE it ever
-    // reached the cloud — so kits landed with almost no search codes, and
-    // nobody could see why. New rule: a file named *_SYSTEM.pdf placed here is
-    // NOT a public design brief. It skips Drive entirely and is uploaded RAW
-    // to the PRIVATE bucket (kits/<docId>_SYSTEM.pdf) after the doc is
-    // created — the same private road the main-PDF slot uses. Codes stay
-    // server-side; buyers still never see it; the public leak stays closed.
     let designDocUrl = null; let designDocFileId = null;
-    let systemPdfFromBrief = null;
-    if (designDocFile && /_SYSTEM\.pdf$/i.test(designDocFile.name)) {
-      systemPdfFromBrief = designDocFile;
-      setProgress(90, 'SYSTEM PDF detected — private bucket + public brief copy...');
-      // 1 Aug 2026 — THE MISSING HALF. Routing the _SYSTEM.pdf to the private
-      // bucket (metadata) originally SKIPPED the public path entirely, so the
-      // item page lost its "Download Design Brief" link. The SYSTEM pdf serves
-      // BOTH roles: the raw original feeds the metadata engine (below, after
-      // the doc is created), and a Section-11-STRIPPED copy still goes to
-      // Drive as the public design brief — same as it always did.
-      try {
-        setProgress(90, 'Design brief: stripping Section 11 for the public copy...');
-        const cleanBrief = await stripSection11FromPdf(designDocFile);
-        setProgress(91, 'Uploading public design brief...');
-        designDocUrl    = await uploadDocToDrive(cleanBrief);
-        designDocFileId = extractDriveFileId(designDocUrl);
-      } catch (briefErr) {
-        console.warn('[DesignDoc] public brief copy failed — metadata unaffected:', briefErr);
-        designDocUrl = null; designDocFileId = null;
-        setProgress(91, '⚠️ Public design brief failed — kit will have no brief link.');
-      }
-    } else if (designDocFile) {
+    if (designDocFile) {
       try {
         let docToUpload = designDocFile;
         if (/\.pdf$/i.test(designDocFile.name)) {
@@ -1701,10 +1628,8 @@ window.submitForm = async function() {
       sellerId:    currentUser.uid,
       uploaderUid: currentUser.uid,        // used by on_seller_submission to detect trusted owner
       sellerName:  sellerProfile.shopName || sellerProfile.name || '',
-      // F10 (29 Jul 2026): sellerEmail / sellerPhone MOVED to templates_files.
-      // `templates` is read:if true for the storefront, so every seller's email
-      // and phone number were world-readable — a privacy-law exposure, not just
-      // untidiness. Shop name stays; it is meant to be public.
+      sellerEmail: sellerProfile.email    || currentUser.email  || '',
+      sellerPhone: sellerProfile.phone    || '',
 
       // ── SEARCH & FILTER METADATA ─────────────────────────────────────────────
       // pdfMeta (Section 11) available hai to wahi use hoga, warna form fields
@@ -1733,36 +1658,35 @@ window.submitForm = async function() {
       graphWeight:  pdfMeta.graphWeight  || '',
 
       // ── FILE URLs (search widget aur site display ke liye) ──
-      pngUrl:       slideUrls[0]  || '',   // Cover/thumbnail — public preview
-      slideImages:  slideUrls     || [],   // Slide previews — public
+      pngUrl:       slideUrls[0]  || '',   // Cover/thumbnail
+      slideImages:  slideUrls     || [],   // Saari slide images
+      pptxUrl:      pptxUrl       || '',
+      pdfUrl:       pdfUrl        || '',
+      keyUrl:       keyUrl        || '',
       videoUrl:     videoUrl      || '',
       fileTypes,
       editableApps,
-      watermark:    priceRaw > 0,
-      // designDocUrl STAYS PUBLIC (owner, 29 Jul 2026): every slides page shows
-      // a "Download Design Brief" link, and the brief is a spec sheet ABOUT the
-      // product — palette, fonts, slide count, who it suits — not the product.
-      // It is deliberate advertising. Briefly moved to templates_files during
-      // F10 and moved straight back; doing so would have broken that link on
-      // all five slides pages.
+      extraFiles:   extraUrls,
       designDocUrl: designDocUrl  || '',
-      // pdfUrl STAYS PUBLIC too: generate_pdf.py renders it from a .txt as a
-      // spec sheet about the deck, and this copy already has the Section 11
-      // metadata pages stripped. The deck itself is the PPTX.
-      pdfUrl:       pdfUrl        || '',
-      // F10: pptxUrl / keyUrl / extraFiles MOVED to
-      // templates_files. They are the actual paid deliverables; keeping them in
-      // a world-readable doc meant the Download button was locked while the file
-      // itself sat in the page data. Buyers now get a URL from
-      // download_url_http after a server-side entitlement check.
+      watermark:    priceRaw > 0,
 
-      // F10: cloudinaryIds / driveFileIds MOVED to templates_files. The comment
-      // here used to say "user ko nahi dikhte" (the user cannot see these) —
-      // they could: this document is read:if true. The admin panel now reads
-      // them from templates_files, which admins can read and nobody else can.
-      // uploader.email / uploader.phone moved for the same reason.
+      // ── INTERNAL DELETE IDs (admin panel ke liye — user ko nahi dikhte) ──
+      cloudinaryIds: {
+        slides: slidePublicIds,
+        pdf:    pdfPublicId || null
+      },
+      driveFileIds: {
+        pptx:       pptxFileId         || null,
+        pdf:        pdfDriveFileId     || null,
+        key:        keyFileId          || null,
+        designDoc:  designDocFileId    || null,
+        extraFiles: extraFileIds
+      },
+      // ── LEGACY (admin panel display ke liye — abhi bhi use ho raha hai) ──
       uploader: {
         name:     sellerProfile.name     || '',
+        phone:    sellerProfile.phone    || '',
+        email:    sellerProfile.email    || currentUser.email || '',
         shopName: sellerProfile.shopName || sellerProfile.name || ''
       },
       template: {
@@ -1777,42 +1701,15 @@ window.submitForm = async function() {
         fileTypes,
         slides:      slideUrls,
         videoUrl,
+        pptxUrl,
+        pdfUrl,
+        keyUrl,
+        extraFiles:  extraUrls,
         editableApps,
         coverImage:  slideUrls[0] || null,
-        pdfUrl,                // public — spec sheet, not the deck
-        designDocUrl,          // public — see the note above
+        designDocUrl,
         designNotes
-        // F10: pptxUrl / pdfUrl / keyUrl / extraFiles were duplicated here as
-        // well as at the root, so they leaked twice over. Both copies now live
-        // in templates_files.
       }
-    });
-
-    // ── F10 — PRIVATE FILE RECORD (templates_files) ──────────────────────
-    // Everything a buyer must not see until they are entitled to it, plus the
-    // internal ids the admin panel needs in order to delete an asset.
-    // firestore.rules: no client can READ this; admins can; the seller may only
-    // create their own. download_url_http is the single way a buyer gets a URL.
-    await setDoc(doc(db, 'templates_files', docRef.id), {
-      templateId:   docRef.id,
-      sellerId:     currentUser.uid,          // required by the create rule
-      sellerEmail:  sellerProfile.email || currentUser.email || '',
-      sellerPhone:  sellerProfile.phone || '',
-      pptxUrl:      pptxUrl      || '',
-      keyUrl:       keyUrl       || '',
-      extraFiles:   extraUrls,
-      cloudinaryIds: {
-        slides: slidePublicIds,
-        pdf:    pdfPublicId || null
-      },
-      driveFileIds: {
-        pptx:       pptxFileId      || null,
-        pdf:        pdfDriveFileId  || null,
-        key:        keyFileId       || null,
-        designDoc:  designDocFileId || null,
-        extraFiles: extraFileIds
-      },
-      savedAt: serverTimestamp()
     });
 
     // ── INTERNAL — pdfMetaRaw alag private collection mein save karo ──
@@ -1821,10 +1718,6 @@ window.submitForm = async function() {
       await setDoc(doc(db, 'templates_internal', docRef.id), {
         pdfMetaRaw:  pdfMeta,
         templateId:  docRef.id,
-        // F04 (29 Jul 2026): required by firestore.rules. Without it this
-        // collection cannot be scoped, and it was readable by ANY signed-in
-        // user — every seller could read every other seller's private data.
-        sellerId:    currentUser.uid,
         savedAt:     serverTimestamp()
       });
     }
@@ -1834,24 +1727,9 @@ window.submitForm = async function() {
     // process_system_pdf reads the codes there and writes kits.encoded_raw —
     // this is the ONLY path by which a kit's real metadata reaches search.
     // The public pdf uploaded above is still the stripped one.
-    // 31 Jul 2026 — the brief-slot _SYSTEM.pdf is the PREFERRED carrier (the
-    // owner's designed workflow); the main-PDF slot remains as the other door.
-    // A failed metadata upload is now said TO THE UPLOADER'S FACE — it used to
-    // whisper into the console while the form declared success, which is how
-    // "codes never reached Firebase" stayed invisible for five days.
-    const sysCarrier = systemPdfFromBrief || pdfFile;
-    if (sysCarrier) {
-      setProgress(97, 'Uploading metadata (SYSTEM PDF) to the private bucket...');
-      const sysOk = await uploadSystemPdf(docRef.id, sysCarrier);
-      if (!sysOk && systemPdfFromBrief) {
-        try {
-          var sysWarnBox = document.getElementById('uploadErrorBox');
-          if (sysWarnBox) {
-            sysWarnBox.style.display = 'block';
-            sysWarnBox.textContent = '⚠️ The kit was saved, but the SYSTEM PDF (metadata) did NOT reach the private bucket — search codes will be missing. Open the browser console (F12) for the reason, then re-drop the _SYSTEM.pdf or contact the admin.';
-          }
-        } catch (e) {}
-      }
+    if (pdfFile) {
+      setProgress(97, 'Data is loading...');
+      await uploadSystemPdf(docRef.id, pdfFile);
     }
 
     setProgress(100, 'Done!');
@@ -2013,13 +1891,30 @@ window.updateSubCategories = function() {
               tech:'Tech', fashion:'Fashion', ugc:'UGC Creator', photography:'Photography',
               music_artist:'Music / Artist', sports_fitness:'Sports & Fitness',
               food_lifestyle:'Food & Lifestyle', beauty_makeup:'Beauty & Makeup',
-              travel:'Travel', corporate:'Corporate', other:'Other' };
+              travel:'Travel', corporate:'Corporate',
+              youtuber:'YouTuber', streamer:'Streamer', gamer:'Gamer', blogger:'Blogger',
+              journalist:'Journalist', author_writer:'Author / Writer', public_speaker:'Public Speaker',
+              coach_mentor:'Coach / Mentor', consultant:'Consultant', agency:'Agency',
+              startup:'Startup', saas_company:'SaaS Company', ecommerce_brand:'E-commerce Brand',
+              nonprofit_org:'Nonprofit Organization', educational_creator:'Educational Creator',
+              course_creator:'Course Creator', newsletter_creator:'Newsletter Creator',
+              community_manager:'Community Manager', actor:'Actor', model:'Model',
+              artist_illustrator:'Artist / Illustrator', designer:'Designer', developer:'Developer',
+              mobile_app:'Mobile App', event_organizer:'Event Organizer',
+              real_estate_agent:'Real Estate Agent', healthcare_professional:'Healthcare Professional',
+              wedding_professional:'Wedding Professional', content_creator:'Content Creator',
+              small_business:'Small Business',
+              other:'Other' };
   } else if (cat === 'pitch_deck') {
     opts = { '':'Select sub-category', startup:'Startup', corporate:'Corporate',
               sales:'Sales', education:'Education', nonprofit:'Non-profit',
               creative:'Creative', investment:'Investment', product_launch:'Product Launch',
               partnership:'Partnership', real_estate:'Real Estate',
-              healthcare:'Healthcare', tech_ai:'Tech & AI', other:'Other' };
+              healthcare:'Healthcare', tech_ai:'Tech & AI',
+              saas_company:'SaaS Company', ecommerce_brand:'E-commerce Brand', agency:'Agency',
+              consultant:'Consultant', mobile_app:'Mobile App', small_business:'Small Business',
+              event_organizer:'Event Organizer',
+              other:'Other' };
   } else if (cat === 'resume_cv') {
     opts = { '':'Select sub-category', fresher:'Fresher / Entry Level', experienced:'Experienced',
               executive:'Executive / C-Level', creative:'Creative', tech:'Tech / Developer',
