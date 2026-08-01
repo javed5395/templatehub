@@ -1528,6 +1528,13 @@ function brokenImagePlaceholder(left, top, w, h, fc, el) {
 }
 
 async function renderImageElementIR(el, sx, sy, fc) {
+  /* STALE-RENDER GUARD (slide-bleed audit): this renderer AWAITS image
+     downloads. If the user switches page mid-download, the old slide's
+     pending images must NOT land on the new slide's canvas. Capture the
+     canvas render generation at entry; every fc.add below is skipped when
+     a newer page render has since taken ownership of the canvas. */
+  var __g0 = fc ? fc.__ldRenderGen : undefined;
+  var __live = function () { return !fc || fc.__ldRenderGen === __g0; };
   var left = el.x * sx, top = el.y * sy, w = Math.abs(el.w * sx), h = Math.abs(el.h * sy);
   /* TIFF: decode to PNG through UTIF when the library is present */
   if (el.format === 'tiff' && typeof UTIF !== 'undefined') {
@@ -1593,7 +1600,7 @@ async function renderImageElementIR(el, sx, sy, fc) {
         irId: el.id, irOrigin: el.origin, flipX: !!el.flipH, flipY: !!el.flipV });
       fgrp.isFrame = true; fgrp._sx = sx; fgrp._sy = sy;
       applyCenterRotation(fgrp, el, sx, sy);
-      fc.add(fgrp);
+      if (__live()) fc.add(fgrp);
       return;
     }
   }
@@ -1623,7 +1630,7 @@ async function renderImageElementIR(el, sx, sy, fc) {
         opacity: el.opacity == null ? 1 : el.opacity });
       var pgrp = new fabric.Group([prect], { left: left, top: top, angle: el.rot || 0, irId: el.id, irOrigin: el.origin });
       applyCenterRotation(pgrp, el, sx, sy);
-      fc.add(pgrp);
+      if (__live()) fc.add(pgrp);
       return;
     }
   }
@@ -1727,7 +1734,7 @@ async function renderImageElementIR(el, sx, sy, fc) {
             top: bcy3 + rdx3 * Math.sin(rr3) + rdy3 * Math.cos(rr3) });
         }
         if (el.media) obj.set({ mediaSrc: el.media.src, mediaKind: el.media.kind });
-        fc.add(obj);
+        if (__live()) fc.add(obj);
         return;
       }
     }
@@ -3250,6 +3257,11 @@ function drawChartPng(el, pxW, pxH) {
 
 async function renderSlideIR(slideIR, deckIR, fc) {
   if (!fc || !slideIR || !deckIR) return;
+  /* STALE-RENDER GUARD (slide-bleed audit): each call takes ownership of the
+     canvas by bumping the generation. An older render still awaiting images
+     sees the bump and stops adding — slide 1's late photos can no longer
+     bleed onto slide 3. */
+  var __gen = (fc.__ldRenderGen = (fc.__ldRenderGen || 0) + 1);
   fc.clear();
   var cw = fc._baseWidth || fc.getWidth();
   var ch = fc._baseHeight || fc.getHeight();
@@ -3269,6 +3281,7 @@ async function renderSlideIR(slideIR, deckIR, fc) {
      landing on top of everything and swallowing clicks). */
   fc.targetFindTolerance = 4;
   for (var i = 0; i < slideIR.elements.length; i++) {
+    if (fc.__ldRenderGen !== __gen) return; /* a newer page render owns the canvas — stop */
     var el = slideIR.elements[i];
     if (el.type === 'shape') renderShapeElementIR(el, sx, sy, fc);
     else if (el.type === 'text') {
@@ -3324,6 +3337,7 @@ async function renderSlideIR(slideIR, deckIR, fc) {
      slideIRFromCanvas compares against irC0: untouched → the ORIGINAL file
      geometry is written back verbatim; moved/scaled → only the user's delta
      is applied to the original geometry. Export→reimport becomes a no-op. */
+  if (fc.__ldRenderGen !== __gen) return; /* stale render: skip stamp + renderAll */
   try {
     fc.getObjects().forEach(function (o) {
       if (!o.irId || o.irBody || o.irPara != null || o.irTable || o.irChart) return;
