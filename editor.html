@@ -12844,16 +12844,19 @@ async function exportPptxFile() {
             (_pp.runs || []).forEach(function (_rr) {
               if (!_rr.text || !_rr.sizePt) return;
               var _fnt = (_rr.b ? 'bold ' : '') + (_rr.sizePt * 96 / 72) + 'px "' + (_rr.fontDisplay || _rr.font || 'Calibri') + '"';
-              String(_rr.text).split(/(\s+)/).forEach(function (_wd) { if (_wd) _toks.push([_wd, _fnt]); });
+              String(_rr.text).split(/(\s+)/).forEach(function (_wd) { if (_wd) _toks.push([_wd, _fnt, _rr.spcPt || 0]); });
             });
             var _lineW = 0;
             _toks.forEach(function (_tk) {
               _mc.font = _tk[1];
-              var _wEmu = _mc.measureText(_tk[0]).width * 9525;
+              var _w1 = _mc.measureText(_tk[0]).width;
+              _mc.font = _tk[1].replace(/"[^"]*"$/, 'serif');
+              var _w2 = _mc.measureText(_tk[0]).width;
+              var _wEmu = (Math.max(_w1, _w2) * 9525 + _tk[0].length * _tk[2] * 12700) * 1.06;
               if (/^\s+$/.test(_tk[0])) { _lineW += _wEmu; return; }
-              if (_wEmu > _usable * 0.97) _worst = Math.min(_worst, (_usable * 0.95) / _wEmu);
+              if (_wEmu > _usable * 0.9) _worst = Math.min(_worst, (_usable * 0.88) / _wEmu);
               if (_lineW + _wEmu > _usable) _lineW = _wEmu; else _lineW += _wEmu;
-              if (_lineW > _usable * 0.97) _worst = Math.min(_worst, (_usable * 0.95) / _lineW);
+              if (_lineW > _usable * 0.9) _worst = Math.min(_worst, (_usable * 0.88) / _lineW);
             });
             if (_worst >= 1) return _pp;
             _changed = true;
