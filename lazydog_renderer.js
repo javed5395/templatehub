@@ -1802,13 +1802,14 @@ async function renderImageElementIR(el, sx, sy, fc) {
           left: vx0, top: vy0, angle: el.rot || 0,
           scaleX: (vx1 - vx0) / cW, scaleY: (vy1 - vy0) / cH,
           flipX: !!el.flipH, flipY: !!el.flipV, irId: el.id, irOrigin: el.origin,
+          perPixelTargetFind: true,
           opacity: el.opacity == null ? 1 : el.opacity });
         applyCenterRotation(obj, el, sx, sy);
         fc.add(obj);
         return;
       }
     }
-    obj.set({ left: left, top: top, angle: el.rot || 0, scaleX: obj.width ? w / obj.width : 1, scaleY: obj.height ? h / obj.height : 1, flipX: !!el.flipH, flipY: !!el.flipV, irId: el.id, irOrigin: el.origin, opacity: el.opacity == null ? 1 : el.opacity });
+    obj.set({ left: left, top: top, angle: el.rot || 0, scaleX: obj.width ? w / obj.width : 1, scaleY: obj.height ? h / obj.height : 1, flipX: !!el.flipH, flipY: !!el.flipV, irId: el.id, irOrigin: el.origin, perPixelTargetFind: true, opacity: el.opacity == null ? 1 : el.opacity });
     applyCenterRotation(obj, el, sx, sy);
   }
   /* full-bleed background: not click-selectable in Design mode (empty-space

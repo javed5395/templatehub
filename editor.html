@@ -11651,6 +11651,15 @@ async function exportPptxFile() {
               var _cpng = drawChartPng(_be, Math.abs(_be.w) / 4762.5, Math.abs(_be.h) / 4762.5);
               if (_cpng) { _els.push(Object.assign({}, _be, { type: 'image', format: 'png', src: _cpng, svgText: null })); continue; }
             }
+            if (_be && _be.type === 'image' && _be.format !== 'svg' && _be.src && _be.opacity != null && _be.opacity < 0.999 && _be.geom && _be.geom.custom) {
+              var _fdim = await new Promise(function (res) {
+                var im3 = new Image();
+                im3.onload = function () { try { var c3 = document.createElement('canvas'); c3.width = im3.width; c3.height = im3.height; var g3 = c3.getContext('2d'); g3.globalAlpha = _be.opacity; g3.drawImage(im3, 0, 0); res(c3.toDataURL('image/png')); } catch (e3) { res(null); } };
+                im3.onerror = function () { res(null); };
+                im3.src = _be.src;
+              });
+              if (_fdim) { _els.push(Object.assign({}, _be, { src: _fdim, opacity: 1 })); continue; }
+            }
             if (_be && _be.type === 'image' && _be.format === 'svg' && typeof rasterizeSvgElToPng === 'function') {
               var _bsrc = _be;
               if (_be.svgText && !/^data:/.test(_be.src || '')) {
@@ -11658,6 +11667,15 @@ async function exportPptxFile() {
               }
               var _spng = await rasterizeSvgElToPng(_bsrc);
               if (!_spng && _bsrc !== _be) _spng = await rasterizeSvgElToPng(_be);
+              if (_spng && _be.opacity != null && _be.opacity < 0.999) {
+                var _dim = await new Promise(function (res) {
+                  var im = new Image();
+                  im.onload = function () { try { var c2 = document.createElement('canvas'); c2.width = im.width; c2.height = im.height; var g2 = c2.getContext('2d'); g2.globalAlpha = _be.opacity; g2.drawImage(im, 0, 0); res(c2.toDataURL('image/png')); } catch (e2) { res(null); } };
+                  im.onerror = function () { res(null); };
+                  im.src = _spng;
+                });
+                if (_dim) { _els.push(Object.assign({}, _be, { src: _dim, format: 'png', svgText: null, opacity: 1 })); continue; }
+              }
               if (_spng) { _els.push(Object.assign({}, _be, { src: _spng, format: 'png', svgText: null })); continue; }
             }
           } catch (_bakeErr) {}
