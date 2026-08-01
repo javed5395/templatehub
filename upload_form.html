@@ -682,6 +682,19 @@ const CLOUDINARY_CLOUD  = "dsqxuaucz";
 const CLOUDINARY_PRESET = "lazydog_unsigned";
 const APPS_SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbxZIzvVrsLTmM9hxpK4mC251v2gZxtf6cOYro26NyTt8D2b-_DuHHzSmZVEQnhtARIB/exec";
 
+// ── APPS SCRIPT ACCESS TOKEN ─────────────────────────────────────────────────
+// apps_script_fixed.gs gates EVERY action behind _denied(data): a request with
+// no `token` field is answered { success:false, error:'unauthorized' }, which
+// is exactly what the chunk uploader was hitting. The script was hardened but
+// this page was never updated to send the token, so every upload failed.
+//
+// This is PUBLIC_TOKEN, not ADMIN_TOKEN. It is designed to ship inside public
+// browser pages (see the header comment in apps_script_fixed.gs) — it permits
+// upload and download only, scoped to FOLDER_ID. ADMIN_TOKEN (delete,
+// listFolder, listCloudinary) must NEVER appear in anything served from the
+// site; it belongs only in the local-only admin panel.
+const APPS_SCRIPT_TOKEN = "3MSoyo4kU0al-jWfAEVIzwSKvAi2yZiW";
+
 // ── FILE SIZE LIMITS (change these to adjust limits) ─────────────────────────
 const FILE_LIMITS = {
   pngFiles:  { maxMB: 4,   label: 'PNG / JPG slide'   },
@@ -944,10 +957,10 @@ function checkMagicBytes(file) {
 }
 
 // ── SECTION 11 METADATA READER ───────────────────────────────────────────────
-// PDF load karo, Section 11 dhundo, fields parse karo, global variable mein save karo.
-// Firestore mein addDoc() ke waqt yeh data use hoga.
+// Load the PDF, find Section 11, parse the fields, and save them to a global.
+// submitForm() reads that global when it calls addDoc() on Firestore.
 
-window._pdfMeta = null; // global — submitForm isko read karega
+window._pdfMeta = null; // global — read by submitForm()
 
 window.readPdfMetadata = async function(input) {
   const statusEl = document.getElementById('pdfMetaStatus');
@@ -958,10 +971,10 @@ window.readPdfMetadata = async function(input) {
 
   statusEl.style.display = 'block';
   statusEl.style.color   = 'var(--muted)';
-  statusEl.textContent   = '⏳ PDF ka Section 11 metadata read ho raha hai...';
+  statusEl.textContent   = '⏳ Reading Section 11 metadata from the PDF...';
 
   try {
-    // PDF.js se text extract karo
+    // extract the text with PDF.js
     const pdfjsLib = window.pdfjsLib;
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
@@ -969,7 +982,7 @@ window.readPdfMetadata = async function(input) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf         = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-    // Saare pages ka text ek string mein jama karo
+    // collect the text of every page into one string
     let fullText = '';
     for (let p = 1; p <= pdf.numPages; p++) {
       const page  = await pdf.getPage(p);
@@ -977,7 +990,7 @@ window.readPdfMetadata = async function(input) {
       fullText   += tc.items.map(i => i.str).join(' ') + '\n';
     }
 
-    // Section 11 block nikalo
+    // pull out the Section 11 block
     const sec11Match = fullText.match(/SECTION\s+11\s*[—\-–]*\s*SYSTEM METADATA([\s\S]*?)(?=◆\s*SECTION\s+\d+|$)/i);
     if (!sec11Match) {
       statusEl.textContent = '';
@@ -986,13 +999,13 @@ window.readPdfMetadata = async function(input) {
 
     const block = sec11Match[1];
 
-    // Helper — single value parse karo
+    // helper — parse a single value
     function parseVal(key) {
       const m = block.match(new RegExp(key + '\\s*:\\s*([^\\n]+)', 'i'));
       return m ? m[1].trim() : '';
     }
 
-    // Helper — comma list → array
+    // helper — comma list -> array
     function parseArr(key) {
       const val = parseVal(key);
       return val ? val.split(',').map(v => v.trim()).filter(Boolean) : [];
@@ -1018,13 +1031,13 @@ window.readPdfMetadata = async function(input) {
     };
 
     statusEl.style.color = 'green';
-    statusEl.textContent = `✅ Section 11 metadata mila — ${Object.keys(window._pdfMeta).length} fields ready. Submit pe Firestore mein save ho jayega.`;
+    statusEl.textContent = `✅ Section 11 metadata found — ${Object.keys(window._pdfMeta).length} fields ready. They are saved to Firestore on submit.`;
     console.log('📋 PDF Section 11 metadata:', window._pdfMeta);
 
   } catch (err) {
     console.error('PDF metadata read error:', err);
     statusEl.style.color = 'red';
-    statusEl.textContent = '❌ PDF read nahi ho saka — ' + err.message;
+    statusEl.textContent = '❌ Could not read the PDF — ' + err.message;
   }
 };
 
@@ -1175,9 +1188,11 @@ async function sendChunkWithRetry(payload, chunkLabel, onRetryMsg, timeoutMs) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
+      // token is merged in here rather than at each call site, so every action
+      // routed through this helper (uploadChunk, finalizeUpload) is authorised.
       const res  = await fetch(APPS_SCRIPT_URL, {
         method : 'POST',
-        body   : JSON.stringify(payload),
+        body   : JSON.stringify(Object.assign({ token: APPS_SCRIPT_TOKEN }, payload)),
         signal : controller.signal
       });
       clearTimeout(timer);
@@ -1248,7 +1263,7 @@ async function uploadDocToDrive(file) {
   const base64Data = await readFileAsBase64(file);
   const res  = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',
-    body: JSON.stringify({ fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/octet-stream' })
+    body: JSON.stringify({ token: APPS_SCRIPT_TOKEN, fileName: file.name, fileData: base64Data, mimeType: file.type || 'application/octet-stream' })
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.error || 'Failed to upload document');
@@ -1272,15 +1287,20 @@ window.resetSubmitForm = function() {
 };
 
 // ── SECTION 11 STRIPPER ───────────────────────────────────────────────────────
-// PDF ke har page ka text check karta hai.
-// Agar page par "SECTION 11" aur "SYSTEM METADATA" dono hain —
-// ya "MACHINE-READABLE FILTER CODES" hai — woh page remove kar deta hai.
-// Baaki sab pages original rehte hain.
-// Returns: clean File object (original PDF touch nahi hota).
+// Deletes the page(s) carrying the Section 11 metadata block. Every other page
+// is left byte-for-byte alone.
+//
+// This is safe because of the METADATA ISOLATION rule in template.html
+// (25 Jul 2026): Section 11 gets its own final page via page-break-before, with
+// its heading and code box both on it and nothing else. The marketing box and
+// the Lazydog signature live on the page before, so they can never be lost with
+// it.
+//
+// Returns: a clean File object. The original PDF is never modified.
 // ─────────────────────────────────────────────────────────────────────────────
 async function stripSection11FromPdf(file) {
   try {
-    // pdf-lib CDN se load karo (agar pehle se load nahi hai)
+    // load pdf-lib from the CDN if it is not already loaded
     if (!window.PDFLib) {
       await new Promise((resolve, reject) => {
         const s = document.createElement('script');
@@ -1291,65 +1311,98 @@ async function stripSection11FromPdf(file) {
       });
     }
 
-    // PDF.js se page text extract karo (already available in the form)
     const pdfjsLib = window.pdfjsLib;
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-    const arrayBuffer  = await file.arrayBuffer();
-    const pdfJsDoc     = await pdfjsLib.getDocument({ data: arrayBuffer.slice(0) }).promise;
-    const totalPages   = pdfJsDoc.numPages;
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfJsDoc    = await pdfjsLib.getDocument({ data: arrayBuffer.slice(0) }).promise;
+    const totalPages  = pdfJsDoc.numPages;
 
-    // Har page ka text nikalo — Section 11 wale pages ki list banao
-    const sec11Pages = new Set(); // 0-indexed
+    // ── DETECTION ────────────────────────────────────────────────────────────
+    // template.html gives Section 11 its own final page (page-break-before,
+    // the "METADATA ISOLATION" rule): the heading and the code box are both on
+    // it, and the marketing box and Lazydog signature are on the page BEFORE.
+    // So the whole page is deleted and nothing a buyer needs is on it.
+    //
+    // What is matched is the CODE ROWS, not a heading. The old version looked
+    // only for the words 'SECTION 11' / 'SYSTEM METADATA' / 'MACHINE-READABLE
+    // FILTER CODES' / 'DESIGN_NAME'; a block printed without a heading matched
+    // none of them, so nothing was stripped and a _SYSTEM.pdf reached the live
+    // site. Every Section 11 row is one of the 19 field codes, a colon, then
+    // lowercase letter+digit values. Three different field codes on one page is
+    // the signal — ordinary buyer copy never produces that.
+    const FIELD_CODES = ['DN','SL','AR','X7','K3','F4','Q2','W9','BG',
+                         'T1','Y4','P5','P6','P7','P8','M2','LG','J8','J9'];
+    const CODE_ROW_RE = new RegExp(
+      '\\b(' + FIELD_CODES.join('|') + ')\\s*:\\s*[a-z]{1,4}\\d{1,3}\\b', 'g');
+
+    const kill = [];   // 0-indexed pages to delete
     for (let p = 1; p <= totalPages; p++) {
-      const page = await pdfJsDoc.getPage(p);
-      const tc   = await page.getTextContent();
-      const text = tc.items.map(i => i.str).join(' ').toUpperCase();
+      const raw = (await (await pdfJsDoc.getPage(p)).getTextContent())
+                    .items.map(i => i.str).join(' ');
+      const up  = raw.toUpperCase();
 
-      const isSec11 = (
-        (text.includes('SECTION 11') && text.includes('SYSTEM METADATA')) ||
-        text.includes('MACHINE-READABLE FILTER CODES') ||
-        text.includes('DESIGN_NAME') // fallback — unique to our metadata block
-      );
-      if (isSec11) sec11Pages.add(p - 1); // pdf-lib 0-indexed
+      const seen = new Set();
+      CODE_ROW_RE.lastIndex = 0;
+      let m; while ((m = CODE_ROW_RE.exec(raw)) !== null) seen.add(m[1]);
+
+      const isSec11 = seen.size >= 3 ||
+                      (up.includes('SECTION 11') && up.includes('SYSTEM METADATA')) ||
+                      up.includes('MACHINE-READABLE FILTER CODES') ||
+                      up.includes('DESIGN_NAME');
+      if (isSec11) kill.push(p - 1);
     }
 
-    // Agar Section 11 kisi page par nahi mila — original wapas karo
-    if (sec11Pages.size === 0) {
-      console.log('[PDF Strip] Section 11 koi page par nahi mila — original PDF upload hogi.');
+    if (kill.length === 0) {
+      // FAIL-SAFE: a file the seller named *_SYSTEM.pdf is BY DEFINITION the
+      // private copy. If nothing was found in one of those the detector is
+      // wrong again — refuse rather than repeat the leak. The caller catches
+      // this and skips the upload, so nothing raw ever goes out.
+      if (/_SYSTEM\b/i.test(file.name)) {
+        throw new Error('File is named _SYSTEM but no Section 11 block was found — ' +
+                        'refusing to upload it publicly. Check the PDF layout.');
+      }
+      console.log('[PDF Strip] Section 11 not found on any page — uploading the original PDF.');
       return file;
     }
 
-    console.log(`[PDF Strip] Section 11 pages (0-indexed): ${[...sec11Pages].join(', ')} — remove kar rahe hain.`);
-
-    // pdf-lib se clean copy banao — Section 11 pages minus
+    // ── DELETE those pages, in place ─────────────────────────────────────────
+    // removePage on the loaded document, NOT copyPages into a new one:
+    // copyPages re-embeds every font and image and tripled a real kit from
+    // 45 KB to 123 KB for no benefit. Nothing else on any page is touched.
     const { PDFDocument } = window.PDFLib;
-    const srcDoc   = await PDFDocument.load(arrayBuffer);
-    const cleanDoc = await PDFDocument.create();
+    const doc = await PDFDocument.load(arrayBuffer);
+    for (let i = kill.length - 1; i >= 0; i--) doc.removePage(kill[i]);
+    if (doc.getPageCount() === 0) {
+      throw new Error('every page holds Section 11 — nothing left to upload');
+    }
+    const cleanBytes = await doc.save();
 
-    const keepPages = [];
-    for (let i = 0; i < srcDoc.getPageCount(); i++) {
-      if (!sec11Pages.has(i)) keepPages.push(i);
+    // ── VERIFY: no code row may survive anywhere in the output ───────────────
+    const checkDoc = await pdfjsLib.getDocument({ data: cleanBytes.slice(0) }).promise;
+    for (let p = 1; p <= checkDoc.numPages; p++) {
+      const t = (await (await checkDoc.getPage(p)).getTextContent())
+                  .items.map(x => x.str).join(' ');
+      CODE_ROW_RE.lastIndex = 0;
+      if (CODE_ROW_RE.test(t)) {
+        throw new Error('verification failed — codes still present on page ' + p);
+      }
     }
 
-    const copiedPages = await cleanDoc.copyPages(srcDoc, keepPages);
-    copiedPages.forEach(p => cleanDoc.addPage(p));
-
-    const cleanBytes = await cleanDoc.save();
-    const cleanFile  = new File(
+    const cleanFile = new File(
       [cleanBytes],
-      file.name.replace('.pdf', '_clean.pdf'),
+      file.name.replace(/\.pdf$/i, '_clean.pdf'),
       { type: 'application/pdf' }
     );
-
-    console.log(`[PDF Strip] Clean PDF ready — ${srcDoc.getPageCount()} pages → ${cleanDoc.getPageCount()} pages.`);
+    console.log(`[PDF Strip] Clean PDF ready — ${totalPages} pages in, ${checkDoc.numPages} out. ` +
+                `Deleted page(s): ${kill.map(k => k + 1).join(', ')}. Verified: no codes remain.`);
     return cleanFile;
 
   } catch (err) {
-    // Koi bhi error → upload rokdo, original expose mat karo
+    // any error -> stop the upload; never expose the original
     console.error('[PDF Strip] Error:', err);
-    throw new Error('PDF se Section 11 remove karne mein masla hua — upload rok diya gaya. Error: ' + err.message);
+    throw new Error('Failed to remove Section 11 from the PDF — upload stopped. Error: ' + err.message);
   }
 }
 
@@ -1416,7 +1469,7 @@ async function compressPdfIfNeeded(file) {
   }
 }
 
-// ── HELPER — comma-separated string ya array dono accept karta hai ──────────
+// ── HELPER — accepts either a comma-separated string or an array ───────────
 function toArr(val) {
   if (!val) return [];
   if (Array.isArray(val)) return val.map(v => v.trim()).filter(Boolean);
@@ -1522,21 +1575,21 @@ window.submitForm = async function() {
     }
 
     // 3. Upload PDF (optional)
-    // Section 11 metadata pages strip karo — phir clean PDF upload karo.
-    // Original PDF (with metadata) kabhi publicly upload nahi hoga.
+    // Strip the Section 11 metadata pages, then upload the clean PDF.
+    // The original PDF (with metadata) is never uploaded publicly.
     let pdfUrl = null; let pdfPublicId = null; let pdfDriveFileId = null;
     if (pdfFile) {
       try {
-        setProgress(70, 'PDF se Section 11 metadata pages remove kar rahe hain...');
+        setProgress(70, 'Removing Section 11 metadata pages from the PDF...');
         const cleanPdf = await stripSection11FromPdf(pdfFile);
 
         const uploadPdf = await compressPdfIfNeeded(cleanPdf);
         if (uploadPdf.size <= CLOUDINARY_PDF_MAX) {
-          setProgress(78, `Clean PDF (${(uploadPdf.size/1024/1024).toFixed(1)} MB) Cloudinary par upload ho rahi hai...`);
+          setProgress(78, `Uploading clean PDF (${(uploadPdf.size/1024/1024).toFixed(1)} MB) to Cloudinary...`);
           const r = await uploadToCloudinary(uploadPdf, `${folder}/pdf`, 'auto');
           pdfUrl = r.url; pdfPublicId = r.publicId;
         } else {
-          setProgress(75, `Clean PDF badi hai — Google Drive par ja rahi hai (${(uploadPdf.size/1024/1024).toFixed(1)} MB)...`);
+          setProgress(75, `Clean PDF is large — sending it to Google Drive instead (${(uploadPdf.size/1024/1024).toFixed(1)} MB)...`);
           pdfUrl         = await uploadDocToDrive(uploadPdf);
           pdfDriveFileId = extractDriveFileId(pdfUrl);
         }
@@ -1547,7 +1600,7 @@ window.submitForm = async function() {
         // record still reaches admin.
         console.warn('[PDF] Clean-PDF step failed — skipping public PDF, continuing submit:', pdfErr);
         pdfUrl = null; pdfPublicId = null; pdfDriveFileId = null;
-        setProgress(80, 'PDF skip (metadata safe) — baaki submission continue ho rahi hai...');
+        setProgress(80, 'PDF skipped (metadata safe) — continuing with the rest of the submission...');
       }
     }
 
@@ -1614,7 +1667,7 @@ window.submitForm = async function() {
     // 7. Save to Firestore
     setProgress(95, 'Saving to database...');
 
-    // Section 11 metadata — agar PDF se mila tha to merge karo
+    // Section 11 metadata — merge it in if it was found in the PDF
     const pdfMeta = window._pdfMeta || {};
 
     const docRef = await addDoc(collection(db, 'templates'), {
@@ -1632,7 +1685,7 @@ window.submitForm = async function() {
       sellerPhone: sellerProfile.phone    || '',
 
       // ── SEARCH & FILTER METADATA ─────────────────────────────────────────────
-      // pdfMeta (Section 11) available hai to wahi use hoga, warna form fields
+      // pdfMeta (Section 11) wins when present; otherwise the form fields are used
       title:        pdfMeta.title       || templateName,
       description:  designNotes         || '',
       category:     category,
@@ -1644,7 +1697,7 @@ window.submitForm = async function() {
       aspectRatio:  pdfMeta.aspectRatio || '',
       language:     pdfMeta.language    || 'LTR',
 
-      // Arrays — pdfMeta se aaye to wahi, warna form fields se
+      // Arrays — taken from pdfMeta when present, otherwise from the form fields
       industry:     pdfMeta.industry?.length    ? pdfMeta.industry    : toArr(industry),
       style:        pdfMeta.style?.length       ? pdfMeta.style       : toArr(document.getElementById('metaStyle')?.value),
       audience:     pdfMeta.audience?.length    ? pdfMeta.audience    : toArr(document.getElementById('metaAudience')?.value),
@@ -1657,7 +1710,7 @@ window.submitForm = async function() {
       textWeight:   pdfMeta.textWeight   || document.getElementById('metaTextWeight')?.value  || '',
       graphWeight:  pdfMeta.graphWeight  || '',
 
-      // ── FILE URLs (search widget aur site display ke liye) ──
+      // ── FILE URLs (used by the search widget and the site display) ──
       pngUrl:       slideUrls[0]  || '',   // Cover/thumbnail
       slideImages:  slideUrls     || [],   // Saari slide images
       pptxUrl:      pptxUrl       || '',
@@ -1670,7 +1723,7 @@ window.submitForm = async function() {
       designDocUrl: designDocUrl  || '',
       watermark:    priceRaw > 0,
 
-      // ── INTERNAL DELETE IDs (admin panel ke liye — user ko nahi dikhte) ──
+      // ── INTERNAL DELETE IDs (for the admin panel — never shown to users) ──
       cloudinaryIds: {
         slides: slidePublicIds,
         pdf:    pdfPublicId || null
@@ -1682,7 +1735,7 @@ window.submitForm = async function() {
         designDoc:  designDocFileId    || null,
         extraFiles: extraFileIds
       },
-      // ── LEGACY (admin panel display ke liye — abhi bhi use ho raha hai) ──
+      // ── LEGACY (used by the admin panel display — still in use) ──
       uploader: {
         name:     sellerProfile.name     || '',
         phone:    sellerProfile.phone    || '',
@@ -1712,8 +1765,8 @@ window.submitForm = async function() {
       }
     });
 
-    // ── INTERNAL — pdfMetaRaw alag private collection mein save karo ──
-    // Public templates collection mein kabhi nahi aayega
+    // ── INTERNAL — pdfMetaRaw is saved to a separate private collection ──
+    // It never reaches the public templates collection.
     if (Object.keys(pdfMeta).length) {
       await setDoc(doc(db, 'templates_internal', docRef.id), {
         pdfMetaRaw:  pdfMeta,
