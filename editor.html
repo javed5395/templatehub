@@ -11723,6 +11723,61 @@ async function exportPptxFile() {
 
 window._deckIR = null;
 
+function ldProgShow() {
+  var w = document.getElementById('ld-upprog');
+  if (!w) {
+    w = document.createElement('div');
+    w.id = 'ld-upprog';
+    w.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:99999;background:#1c1d22;color:#fff;padding:10px 16px;border-radius:10px;font:12px/1.4 Inter,system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.35);min-width:280px';
+    w.innerHTML = '<div id="ld-upprog-t" style="margin-bottom:6px"></div><div style="height:6px;border-radius:3px;background:#3a3b42;overflow:hidden"><div id="ld-upprog-f" style="height:100%;width:0%;background:#7C5CFC;transition:width .15s"></div></div>';
+    document.body.appendChild(w);
+  }
+  return w;
+}
+function ldProgSet(loaded, total, label) {
+  ldProgShow();
+  var pct = total ? Math.min(100, Math.round(loaded / total * 100)) : 0;
+  var mb = function (b) { return (b / 1048576).toFixed(1); };
+  document.getElementById('ld-upprog-t').textContent = (label || 'Uploading') + '… ' + pct + '% · ' + mb(loaded) + ' / ' + mb(total) + ' MB';
+  document.getElementById('ld-upprog-f').style.width = pct + '%';
+}
+function ldProgHide() { var w = document.getElementById('ld-upprog'); if (w) w.remove(); }
+async function ldRestoreParked(node, cache) {
+  if (Array.isArray(node)) { for (var i = 0; i < node.length; i++) await ldRestoreParked(node[i], cache); return; }
+  if (!node || typeof node !== 'object') return;
+  var ks = Object.keys(node);
+  for (var j = 0; j < ks.length; j++) {
+    var k = ks[j], v = node[k];
+    if (typeof v === 'string' && v.indexOf('gcsb64:') === 0) {
+      var d = cache[v];
+      if (!d) {
+        try {
+          var r = await fetch(v.slice(7));
+          if (r.ok) {
+            var ab = new Uint8Array(await r.arrayBuffer());
+            var s = '';
+            for (var q = 0; q < ab.length; q += 32768) s += String.fromCharCode.apply(null, ab.subarray(q, q + 32768));
+            d = btoa(s);
+            cache[v] = d;
+          }
+        } catch (e) {}
+      }
+      if (d) node[k] = d;
+    } else if (v && typeof v === 'object') { await ldRestoreParked(v, cache); }
+  }
+}
+function ldXhrSend(method, url, headers, body, onProgress) {
+  return new Promise(function (resolve, reject) {
+    var x = new XMLHttpRequest();
+    x.open(method, url);
+    Object.keys(headers || {}).forEach(function (k) { try { x.setRequestHeader(k, headers[k]); } catch (e) {} });
+    if (x.upload && onProgress) x.upload.onprogress = function (ev) { if (ev.lengthComputable) onProgress(ev.loaded, ev.total); };
+    x.onload = function () { resolve({ ok: x.status >= 200 && x.status < 300, status: x.status, text: x.responseText }); };
+    x.onerror = function () { reject(new Error('network')); };
+    x.send(body);
+  });
+}
+
 async function handlePPTXUpload(input) {
   if (!input.files || !input.files[0]) { showToast('No file selected'); return; }
   if (!fc) { alert('Editor not ready — please wait a moment and try again.'); return; }
@@ -11746,23 +11801,28 @@ async function handlePPTXUpload(input) {
     var _resp;
     try {
       if (_buf.byteLength > 30 * 1024 * 1024) {
-        showToast('Uploading large file…');
         var _u = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/upload_url', {
           method: 'POST', headers: window.ldHeaders('application/json'),
           body: JSON.stringify({ filename: file.name, contentType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' }) });
         if (!_u.ok) throw new Error('LD_STEP:Import service error (' + _u.status + '). Please try again in a moment.');
         var _uj = await _u.json();
-        var _put = await fetch(_uj.uploadUrl, { method: 'PUT', body: _buf });
+        ldProgSet(0, _buf.byteLength, 'Uploading');
+        var _put = await ldXhrSend('PUT', _uj.uploadUrl, {}, _buf, function (lo, to) { ldProgSet(lo, to, 'Uploading'); });
+        ldProgHide();
         if (!_put.ok) throw new Error('LD_STEP:Large-file upload failed (' + _put.status + '). Please try again.');
         showToast('Parsing PPTX…');
         _resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
           method: 'POST', headers: window.ldHeaders('application/json'),
           body: JSON.stringify({ gcsPath: _uj.gcsPath }) });
       } else {
-        _resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
-          method: 'POST', headers: window.ldHeaders('application/octet-stream'), body: _buf });
+        ldProgSet(0, _buf.byteLength, 'Uploading');
+        var _px = await ldXhrSend('POST', (window.LD_BACKEND || 'http://localhost:8080') + '/parse',
+          window.ldHeaders('application/octet-stream'), _buf, function (lo, to) { ldProgSet(lo, to, 'Uploading'); });
+        ldProgHide();
+        _resp = { ok: _px.ok, status: _px.status, json: function () { return Promise.resolve(JSON.parse(_px.text)); } };
       }
     } catch (netErr) {
+      ldProgHide();
       /* fetch() only throws for network/CORS failures, never for HTTP errors */
       if (netErr && /^LD_STEP:/.test(netErr.message || '')) throw new Error(netErr.message.slice(8));
       throw new Error('Could not reach the import service. Check your internet connection and try again.');
@@ -11777,6 +11837,7 @@ async function handlePPTXUpload(input) {
       var _irr = await fetch(deckIR.irUrl);
       if (!_irr.ok) throw new Error('Could not fetch the parsed deck (' + _irr.status + '). Please try again.');
       deckIR = await _irr.json();
+      await ldRestoreParked(deckIR, {});
     }
     window._deckIR = deckIR;
 
@@ -11858,6 +11919,7 @@ async function handlePPTXUpload(input) {
     alert(msg);
     showToast('PPTX import failed');
   } finally {
+    ldProgHide();
     uploadBusy(false);
   }
 }
