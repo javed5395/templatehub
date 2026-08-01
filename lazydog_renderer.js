@@ -1218,8 +1218,24 @@ function buildTextboxFromIR(el, sx, sy) {
       el.paragraphs[0].lineSpacingPts > firstRun.sizePt * 1.15 && (el.bodyAnchor || 't') === 't') {
     pitchDown = (el.paragraphs[0].lineSpacingPts - firstRun.sizePt) * 12700 * sy * 0.58;
   }
+  /* JUSTIFY (slide-9 audit): PowerPoint NEVER stretches the LAST line of a
+     justified paragraph — a single-line "Prepared by: Lazydog Studios" stays
+     compact. Fabric's plain 'justify' stretches every line (incl. single
+     lines) full-width, splitting words with huge gaps. 'justify-left'
+     justifies wrapped lines but leaves paragraph-ending lines left-aligned —
+     exactly PowerPoint's rule. IR keeps 'justify'; only fabric display maps. */
+  var fabAlign = align === 'justify' ? 'justify-left' : align;
+  /* FIRST-LINE DROP (slide-9 audit): fabric's line box is fontSize*lineHeight
+     *1.13 (its internal _fontSizeMult) — the extra 13% sits mostly above the
+     baseline, so top-anchored text draws a few px LOWER than PowerPoint and
+     landed ON the rule under it instead of a little above. Lift the box by
+     the excess (0.778 = 1 - fabric's 0.222 baseline fraction). */
+  var fabricDrop = 0;
+  if ((el.bodyAnchor || 't') === 't' && !pitchDown) {
+    fabricDrop = (baseFontPt * 12700 * sy) * firstLineHeight * 0.13 * 0.778;
+  }
   var tb = new fabric.Textbox(fullText, {
-    left: left, top: top + pitchDown, width: w, textAlign: align,
+    left: left, top: top + pitchDown - fabricDrop, width: w, textAlign: fabAlign,
     fontSize: Math.max(2, baseFontPt * 12700 * sx), /* Phase-1 proven formula */
     fontFamily: ldFF(firstRun),
     fill: firstRun ? firstRun.color : '#000000',
@@ -3384,7 +3400,7 @@ function textIRFromFabric(o, S, orig) {
   var base = { fontPx: o.fontSize || 18, fontWeight: o.fontWeight, fontStyle: o.fontStyle, underline: o.underline, fill: typeof o.fill === 'string' ? o.fill : '#000000', fontFamily: o.fontFamily, charSpacing: o.charSpacing, S: S };
   var lines = curText.split('\n');
   el.paragraphs = lines.map(function (ln, li) {
-    return { align: o.textAlign === 'center' ? 'center' : o.textAlign === 'right' ? 'right' : o.textAlign === 'justify' ? 'justify' : 'left',
+    return { align: o.textAlign === 'center' ? 'center' : o.textAlign === 'right' ? 'right' : String(o.textAlign).indexOf('justify') === 0 ? 'justify' : 'left',
              lvl: 0, bullet: null, lineSpacingPct: o.lineHeight || null, lineSpacingPts: null,
              runs: runsFromFabricLine(ln, o.styles && o.styles[li], base) };
   });
