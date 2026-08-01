@@ -3071,9 +3071,17 @@ document.addEventListener('click', function (e) {
       var left = todo.length;
       todo.forEach(function (ef) {
         try {
-          var fbin = atob(ef.ttfB64), fbuf = new Uint8Array(fbin.length);
-          for (var i = 0; i < fbin.length; i++) fbuf[i] = fbin.charCodeAt(i);
-          var face = new FontFace(ef.family, fbuf.buffer, {
+          /* gcsb64: cloud parse parked the font bytes on GCS — load by URL.
+             atob() on that string used to throw, silently killing the font. */
+          var _fsrc;
+          if (String(ef.ttfB64).indexOf('gcsb64:') === 0) {
+            _fsrc = 'url(' + ef.ttfB64.slice(7) + ')';
+          } else {
+            var fbin = atob(ef.ttfB64), fbuf = new Uint8Array(fbin.length);
+            for (var i = 0; i < fbin.length; i++) fbuf[i] = fbin.charCodeAt(i);
+            _fsrc = fbuf.buffer;
+          }
+          var face = new FontFace(ef.family, _fsrc, {
             weight: /bold/i.test(ef.style) ? 'bold' : 'normal',
             style: /italic/i.test(ef.style) ? 'italic' : 'normal' });
           face.load().then(function (f2) { document.fonts.add(f2); window._ldEmbeddedFams[ef.family.toLowerCase()] = 1; })
@@ -12992,7 +13000,7 @@ async function ldParseByPath(gcsPath) {
   return j;
 }
 /* Small self-contained progress bar (no dependency on the toast system). */
-function ldUploadProgress(frac) {
+function ldUploadProgress(frac, totalBytes) {
   var el = document.getElementById('ld-up-prog');
   if (frac == null) { if (el) el.remove(); return; }
   if (!el) {
@@ -13002,15 +13010,20 @@ function ldUploadProgress(frac) {
     document.body.appendChild(el);
   }
   var pct = Math.round(frac * 100);
-  el.innerHTML = 'Uploading… ' + pct + '%' +
+  var mb = '';
+  if (totalBytes) {
+    var totMB = totalBytes / 1048576;
+    mb = ' (' + (totMB * frac).toFixed(1) + ' of ' + totMB.toFixed(1) + ' MB)';
+  }
+  el.innerHTML = 'Uploading… ' + pct + '%' + mb +
     '<div style="height:5px;background:rgba(255,255,255,.2);border-radius:3px;margin-top:7px;overflow:hidden;">' +
     '<div style="height:100%;width:' + pct + '%;background:#7C3AED;transition:width .2s;"></div></div>';
 }
 async function ldBigUploadParse(file) {
   var ct = file.type || 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-  ldUploadProgress(0);
+  ldUploadProgress(0, file.size);
   var t = await ldRequestUploadUrl(file, ct);
-  await ldResumablePut(t.uploadUrl, file, ct, function (frac) { ldUploadProgress(frac); });
+  await ldResumablePut(t.uploadUrl, file, ct, function (frac) { ldUploadProgress(frac, file.size); });
   ldUploadProgress(null);
   showToast('Parsing PPTX…');
   return await ldParseByPath(t.gcsPath);
@@ -13075,9 +13088,17 @@ async function handlePPTXUpload(input) {
           var ef = deckIR.embeddedFonts[efj];
           if (!ef.ttfB64) continue;
           try {
-            var fbin = atob(ef.ttfB64), fbuf = new Uint8Array(fbin.length);
-            for (var fbi = 0; fbi < fbin.length; fbi++) fbuf[fbi] = fbin.charCodeAt(fbi);
-            var face = new FontFace(ef.family, fbuf.buffer, {
+            /* gcsb64: cloud parse parked the font bytes on GCS — load by URL.
+               atob() on that string used to throw, silently killing the font. */
+            var _fsrc2;
+            if (String(ef.ttfB64).indexOf('gcsb64:') === 0) {
+              _fsrc2 = 'url(' + ef.ttfB64.slice(7) + ')';
+            } else {
+              var fbin = atob(ef.ttfB64), fbuf = new Uint8Array(fbin.length);
+              for (var fbi = 0; fbi < fbin.length; fbi++) fbuf[fbi] = fbin.charCodeAt(fbi);
+              _fsrc2 = fbuf.buffer;
+            }
+            var face = new FontFace(ef.family, _fsrc2, {
               weight: /bold/i.test(ef.style) ? 'bold' : 'normal',
               style: /italic/i.test(ef.style) ? 'italic' : 'normal' });
             await face.load();
