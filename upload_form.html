@@ -1310,12 +1310,21 @@ async function stripSection11FromPdf(file) {
     for (let p = 1; p <= totalPages; p++) {
       const page = await pdfJsDoc.getPage(p);
       const tc   = await page.getTextContent();
-      const text = tc.items.map(i => i.str).join(' ').toUpperCase();
+      const raw  = tc.items.map(i => i.str).join(' ');
+      const text = raw.toUpperCase();
+
+      // 1 Aug 2026 — CONTINUATION-PAGE CATCH. A long Section 11 spills onto a
+      // second page holding ONLY bare code rows ("K3 : j2,j9" ...) — none of
+      // the three header markers. That page walked through the stripper and
+      // published coded metadata on the live site. Any page with 3+ code rows
+      // IS a Section 11 page, marker or no marker.
+      const codeRows = (raw.match(/\b[A-Z][A-Z0-9]?\s*:\s*[a-z]{1,3}[0-9]+(\s*,\s*[a-z]{1,3}[0-9]+)*/g) || []).length;
 
       const isSec11 = (
         (text.includes('SECTION 11') && text.includes('SYSTEM METADATA')) ||
         text.includes('MACHINE-READABLE FILTER CODES') ||
-        text.includes('DESIGN_NAME') // fallback — unique to our metadata block
+        text.includes('DESIGN_NAME') || // fallback — unique to our metadata block
+        codeRows >= 3                   // continuation page of bare code rows
       );
       if (isSec11) sec11Pages.add(p - 1); // pdf-lib 0-indexed
     }
