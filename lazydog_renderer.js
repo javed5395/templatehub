@@ -3429,7 +3429,16 @@ async function buildEffectiveDeckIR() {
     }
     return { id: 'blank', background: { type: 'solid', color: page.pendingBg || '#FFFFFF' }, elements: masterEls.slice() };
   });
-  return { size: size, theme: theme, slides: slides };
+  var outDeck = { size: size, theme: theme, slides: slides };
+  /* EXPORT FIDELITY (155KB-file audit): the effective deck must carry the
+     deck-level payloads too, or export ships without them. embeddedFonts is
+     the buyer's own font files ("keep original" contract); fontPolicy lets
+     the free-kit sweep + embeddedFonts-strip still fire on 'free'. */
+  if (window._deckIR) {
+    if (window._deckIR.embeddedFonts) outDeck.embeddedFonts = window._deckIR.embeddedFonts;
+    if (window._deckIR.fontPolicy) outDeck.fontPolicy = window._deckIR.fontPolicy;
+  }
+  return outDeck;
 }
 
 async function rasterizeSvgElToPng(el) {
