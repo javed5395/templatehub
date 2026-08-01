@@ -12851,7 +12851,21 @@ async function exportPptxFile() {
       body: JSON.stringify({ deck: deck })
     });
     if (!r.ok) throw new Error('cloud export ' + r.status);
-    var blob = await r.blob();
+    /* Big export (>30MB): the cloud parks the pptx on storage (Cloud Run
+       can't send >32MB directly) and returns {big:true, pptxUrl} — pull the
+       real file from there. Small exports still arrive directly, unchanged. */
+    var blob;
+    var _ect = (r.headers.get('content-type') || '');
+    if (_ect.indexOf('application/json') !== -1) {
+      var _ej = await r.json();
+      if (!(_ej && _ej.big && _ej.pptxUrl)) throw new Error('unexpected export response');
+      showToast('Downloading file… (' + Math.round((_ej.bytes || 0) / 1048576) + ' MB)');
+      var _er2 = await fetch(_ej.pptxUrl);
+      if (!_er2.ok) throw new Error('storage download ' + _er2.status);
+      blob = await _er2.blob();
+    } else {
+      blob = await r.blob();
+    }
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     var t = document.querySelector('.doc-title');
