@@ -11660,6 +11660,7 @@ async function exportPptxFile() {
               });
               if (_fdim) { _els.push(Object.assign({}, _be, { src: _fdim, opacity: 1 })); continue; }
             }
+            if (_be && _be.type === 'image' && _be.format === 'svg' && _be.svgText && deck.size && Math.abs(_be.w) >= deck.size.w * 0.97 && Math.abs(_be.h) >= deck.size.h * 0.97) { _els.push(_be); continue; }
             if (_be && _be.type === 'image' && _be.format === 'svg' && typeof rasterizeSvgElToPng === 'function') {
               var _bsrc = _be;
               if (_be.svgText && !/^data:/.test(_be.src || '')) {
