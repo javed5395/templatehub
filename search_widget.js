@@ -576,6 +576,14 @@
     var hit = 0; r.forEach(function(w) { if (d.indexOf(w) !== -1) hit++; });
     return hit / r.length;                                     // partial credit by word overlap
   }
+  // ⚠️ NOT PART OF THE SEARCH (2 Aug 2026, Javed).
+  // scoreDeck() guesses a match from the PUBLIC `templates` fields. The search
+  // is not allowed to work that way — it reads the meta codes in the private
+  // `kits` collection, server-side, and nothing else. This function is now
+  // reached only by summarizeTop() → sendMsg(), which is the old chat column
+  // that was removed from this card on 28 Jul, so in practice it never runs.
+  // Left in place rather than deleted so nothing silently breaks. Do not wire
+  // it back into the results path.
   function scoreDeck(deck, req) {
     var score = 0, max = 0;
     // EQUAL weight per field: every filled filter counts the same (max 1 each),
@@ -715,20 +723,30 @@
       paintRanked(scored);
     })
     .catch(function() {
-      // OFFLINE FALLBACK — old client-side scorer over public template fields
-      // 2 Aug 2026 — the `.filter(pct > 0)` that used to sit here is gone, to
-      // match the server: a 0% deck is still shown, painted red, rather than
-      // quietly disappearing.
-      var scored = getDecks().map(function(d) { return { deck: d, pct: scoreDeck(d, req) }; })
-        .sort(function(a, b) { return b.pct - a.pct; })
-        .slice(0, TOP_N);
-      paintRanked(scored);
+      // ── NO CLIENT-SIDE FALLBACK (2 Aug 2026, Javed) ──────────────────────
+      // The search may read ONE thing: the meta codes in the private `kits`
+      // collection — and only the server can read those. Nothing else counts
+      // as a search.
+      //
+      // A backup scorer used to sit right here. Whenever the server was
+      // unreachable it guessed matches inside the browser from the public
+      // `templates` fields. It leaked nothing, but it answered DIFFERENTLY
+      // from the real engine and the buyer had no way to tell which one he
+      // was looking at. A wrong match shown confidently is worse than an
+      // honest "not right now".
+      //
+      // DO NOT PUT A SECOND SCORER BACK HERE.
+      if (seq !== _recSeq) return;              // a newer request already won
+      var _c = document.getElementById('metaSearchResultsList');
+      if (_c) _c.innerHTML =
+        '<div id="metaSearchEmptyState">Search is unavailable for a moment — please try again shortly.</div>';
+      showBars(true);
+      renderFilteredResults(null);
     });
   }
 
   // One continuous ranked list — best match first, then the next-nearest,
-  // flowing straight down. The bar shows each deck's closeness to the *best
-  // available* match (top card always full).
+  // flowing straight down. Each bar's length IS that deck's true match %.
   function paintRanked(scored) {
     var container = document.getElementById('metaSearchResultsList');
     if (!scored.length) {

@@ -56,11 +56,15 @@
     style.textContent = `
       #dwWrap { flex:1 1 0; min-width:0; order:3; margin-top:-70px; align-self:flex-start; }
       @media (max-width:1100px){ #dwWrap { flex:1 1 100%; margin-top:0; } }
-      #designWidget { width:100%; background:#fff; overflow:hidden; max-height:64px;
+      /* 2 Aug 2026 (Javed) — closed height was 64px, so this card showed ONLY its
+         title while the fill and search cards each showed a peek of their fields.
+         Now all three sit closed at 260px and open to 1300px. If you change one,
+         change all three (fill_widget.js, search_widget.js, here). */
+      #designWidget { width:100%; background:#fff; overflow:hidden; max-height:260px;
         transition:max-height .45s cubic-bezier(.4,0,.2,1); border-radius:28px;
         box-shadow:0 10px 40px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.06);
         font-family:'Inter','Segoe UI',sans-serif; }
-      #designWidget:hover, #designWidget.locked { max-height:1200px; }
+      #designWidget:hover, #designWidget.locked { max-height:1300px; }
       #dwTeaser { padding:15px 24px; color:#1a1a2e; font-size:14px; font-weight:600;
         font-family:'Poppins',sans-serif; position:relative; }
       #dwTeaser small { display:block; color:#6b7280; font-weight:400; font-size:11.5px; margin-top:3px; font-family:'Inter',sans-serif; }
