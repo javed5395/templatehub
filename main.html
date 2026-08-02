@@ -398,7 +398,10 @@
     body.light .platform-card-name { color:#ffffff; }
     body.light .platform-card-desc { color:rgba(255,255,255,0.6); }
 
-    .stats { padding: 28px 70px 60px; background: var(--bg-stats-light); transition: background 0.45s ease; max-width: 100%; }
+    /* Top padding raised from 28px to 130px on 2 Aug 2026. "Stats" was creeping
+       into the first screen on common laptop heights, so every screenshot and
+       link preview of the homepage caught it half-cut. Pushes it below the fold. */
+    .stats { padding: 130px 70px 60px; background: var(--bg-stats-light); transition: background 0.45s ease; max-width: 100%; }
     .stats-label { font-size: 22px; font-weight: 800; color: #1a1a2e; font-family:'Poppins',sans-serif; margin-bottom: 20px; max-width: 1200px; margin-left: auto; margin-right: auto; }
     body:not(.light) .stats-label { color: #ffffff; }
     .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; max-width: 1200px; margin: 0 auto; }
