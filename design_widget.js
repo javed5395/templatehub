@@ -2,23 +2,21 @@
    PURPOSE: a NEW-DESIGN ORDER — the search card FINDS existing designs; this
    card COMMISSIONS one.
 
-   ── 30 Jul 2026 — PAIR LAYOUT + ONE DESCRIPTION BOX ───────────────────────
-   Javed's layout, sketched on a spreadsheet: LABEL LEFT, CONTROL RIGHT, three
-   pairs to a row. The old card stacked the label ABOVE the control, which made
-   every field two rows tall and turned 21 fields into one endless column. Now
-   they sit in 7 short rows.
+   ── 2 Aug 2026 — TWIN OF THE SEARCH CARD (Javed) ──────────────────────────
+   This card must LOOK like the search card sitting next to it. Two changes,
+   and they supersede the 30 Jul "pair layout" note that used to live here:
 
-       ┌ slides      2 ┬ colour     red ┬ tone      bold ┐
-       ├ background  black ┼ …          ┼ …             ┤
+     1. NO DESCRIPTION BOX. The card's own textarea is gone. On the Hexa page
+        Hexa's prompt bar (#promptInput) is still the description; on the store
+        pages there is no free-text description at all and the order is built
+        from the dropdowns alone.
+     2. LABEL ABOVE CONTROL, TWO PER ROW — copied verbatim from
+        search_widget.js (.sw-col / #filterBlock / .sw-grid / .sw-field). The
+        30 Jul layout put the label BESIDE the control three-to-a-row; that is
+        what made this card look foreign and squeezed its dropdowns.
 
-   WHERE THE DESCRIPTION COMES FROM — one box, never two:
-     • Hexa prompt page: Hexa's own prompt bar IS the description box. We
-       detect it (#promptInput) and hide our own textarea, so the visitor types
-       in one place. The page swaps the placeholder to "describe your design
-       here, or fill the boxes for more precision" when Create Design is
-       picked.
-     • Store pages: no Hexa bar, so our own textarea appears on the left of the
-       fields, exactly as before.
+   If you change the look of one card, change the other the same way — they are
+   meant to be twins.
 
    SINGLE-SELECT, NOT MULTI: the search card lets you tick several values
    because searching means "match ANY of these". Ordering means "make me THIS
@@ -70,30 +68,26 @@
         border-radius:20px; padding:5px 12px; font-size:11px; font-weight:600; color:#6b7280; cursor:pointer; font-family:'Inter',sans-serif; }
       #dwLockBtn.is-locked { background:rgba(212,175,55,.15); border-color:rgba(212,175,55,.4); color:#8a6d1f; }
 
-      /* body: optional describe column + the pair grid */
-      #designWidget .dw-body { display:grid; grid-template-columns:minmax(220px,.85fr) minmax(0,2.4fr);
-        border-top:1px solid #e5e8f0; }
-      #designWidget.dw-noDescribe .dw-body { grid-template-columns:1fr; }
-      #designWidget.dw-noDescribe .dw-describe { display:none; }
-      #designWidget .dw-describe { padding:16px 18px; border-right:1px solid #e5e8f0; }
-      #designWidget .dw-describe h3 { font-size:12px; color:#d4af37; margin:0 0 8px; font-family:'Poppins',sans-serif; }
-      #designWidget textarea { width:100%; box-sizing:border-box; background:#fff; border:1px solid #d8dce6;
-        border-radius:12px; padding:10px; min-height:120px; font-size:12px; color:#1a1a2e;
-        font-family:'Inter',sans-serif; line-height:1.6; resize:vertical; }
+      /* ── 2 Aug 2026 — MATCH THE MIDDLE (SEARCH) CARD ───────────────────────
+         The "Describe your design" column is GONE, and the fields now copy the
+         search card exactly: one #F4F6FB panel, label ABOVE its control, two
+         per row. Before this the label sat BESIDE the control three-to-a-row,
+         which is why this card looked nothing like its neighbour and squeezed
+         its dropdowns. Values below are lifted verbatim from search_widget.js
+         (.sw-col / #filterBlock / .sw-grid / .sw-field) so the two stay twins. */
+      #designWidget .dw-body { padding:22px 26px 0; background:#F4F6FB; border-top:1px solid #e5e8f0; }
+      #designWidget .dw-fields { background:#F4F6FB; border:1px solid #e5e8f0; border-radius:14px; padding:14px;
+        display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; }
+      #designWidget .dw-pair { display:flex; flex-direction:column; gap:3px; min-width:0; }
+      #designWidget .dw-pair label { font-size:10px; color:#6b7280; text-transform:uppercase;
+        letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      #designWidget .dw-pair select, #designWidget .dw-pair input { width:100%; box-sizing:border-box;
+        background:#fff; color:#1a1a2e; border:1px solid #d8dce6; border-radius:10px;
+        padding:6px 8px; font-size:12px; font-family:inherit; }
+      #designWidget .dw-pair select:focus, #designWidget .dw-pair input:focus { outline:none; border-color:#d4af37; }
 
-      /* THE PAIR GRID — label left, control right, three to a row */
-      #designWidget .dw-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(185px,1fr));
-        background:#F4F6FB; }
-      #designWidget .dw-pair { display:flex; align-items:center; gap:8px; padding:7px 12px;
-        border-right:1px solid #e9ecf3; border-bottom:1px solid #e9ecf3; min-width:0; }
-      #designWidget .dw-pair label { flex:0 0 44%; font-size:10.5px; color:#6b7280; text-transform:uppercase;
-        letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-      #designWidget .dw-pair select, #designWidget .dw-pair input { flex:1 1 auto; min-width:0; width:100%;
-        box-sizing:border-box; background:#fff; color:#1a1a2e; border:1px solid #dfe3ec; border-radius:7px;
-        padding:4px 6px; font-size:11.5px; font-family:inherit; }
-      #designWidget .dw-pair select:focus, #designWidget .dw-pair input:focus { outline:none; border-color:#b8a35a; }
-
-      #designWidget .dw-foot { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 18px; }
+      #designWidget .dw-foot { display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+        padding:12px 26px 22px; background:#F4F6FB; }
       #designWidget .dw-go { padding:9px 22px; border-radius:30px; border:none;
         background:linear-gradient(135deg,#5b7fff,#b464ff); color:#fff; font-weight:800; cursor:pointer;
         font-size:12.5px; font-family:'Poppins',sans-serif; }
@@ -213,7 +207,8 @@
       sel('emptySpace', 'Empty space', WEIGHT) +
       sel('accent', 'Accent colour', [['gold','Gold'],['blue','Blue'],['teal','Teal'],['purple','Purple'],
                                       ['green','Green'],['red','Red'],['pink','Pink'],['orange','Orange']]) +
-      sel('images', 'Image weight', [['lots of images','Lots of images'],['few images','Few images']]) +
+      // 2 Aug 2026 — "Image weight" removed (Javed): the search card has no such
+      // field, and shapes/graphs/empty space already describe the canvas.
       txt('mockups', 'Mock-up slides', 'e.g. 5 or 20%') +
       txt('ref', 'Past design', 'e.g. design 3 background') +
       txt('inspired', 'Inspired by', 'e.g. the Aurora kit layout');
@@ -221,18 +216,15 @@
     var wrap = document.createElement('div');
     wrap.id = 'dwWrap';
     wrap.innerHTML =
-      '<div id="designWidget"' + (hexaBar ? ' class="dw-noDescribe"' : '') + '>' +
+      '<div id="designWidget">' +
         '<div id="dwTeaser">🎨 Want us to MAKE a brand-new design for you?' +
           '<button id="dwLockBtn" type="button" title="Lock open">🔓 Lock open</button>' +
           '<small>' + (hexaBar
             ? 'Describe it in the prompt box above — then fill any boxes below for more precision.'
-            : 'Hover to open — describe your design, set any preferences, and Hexa designs it in the LazyDog Designer.') +
+            : 'Hover to open — pick your preferences and Hexa designs it in the LazyDog Designer.') +
           '</small>' +
         '</div>' +
         '<div class="dw-body">' +
-          '<div class="dw-describe"><h3>💬 Describe your design</h3>' +
-            '<textarea id="dwDescribe" placeholder="luxury fashion media kit, 15 slides, black background, gold accents, editorial layout…"></textarea>' +
-          '</div>' +
           '<div class="dw-fields">' + FIELDS + '</div>' +
         '</div>' +
         '<div class="dw-foot">' +
@@ -349,10 +341,11 @@
     function v(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
     function word(id) { return v(id).replace(/-/g, ' '); }
 
-    // THE description: Hexa's bar when it exists, our textarea otherwise.
+    // THE description: Hexa's prompt bar, and only that. (2 Aug 2026 — the
+    // card's own textarea was removed, so on store pages there is no free-text
+    // description at all; the order is built from the dropdowns alone.)
     function description() {
-      var el = hexaBar || document.getElementById('dwDescribe');
-      return el ? String(el.value || '').trim() : '';
+      return hexaBar ? String(hexaBar.value || '').trim() : '';
     }
 
     function orderSentence() {
@@ -382,7 +375,6 @@
         if (val) bits.push(val + ' ' + p[1]);
       });
 
-      var im = v('dw_images'); if (im) bits.push(im);
       var mk = v('dw_mockups');
       if (mk) bits.push(/%/.test(mk) ? (mk.replace(/[^\d]/g, '') + '% mockup slides') : (mk.replace(/[^\d]/g, '') + ' mockup slides'));
       var rf = v('dw_ref'); if (rf) bits.push(/design\s*\d/i.test(rf) ? ('use ' + rf.toLowerCase()) : rf);
@@ -414,7 +406,7 @@
       if (!sentence || sentence.length < 4) {
         note.textContent = hexaBar
           ? 'Describe your design in the prompt box above, or pick a few preferences.'
-          : 'Describe your design first — a sentence or a few preferences.';
+          : 'Pick a few preferences first — template type, colour, style…';
         note.style.color = '#b23a3a';
         return;
       }

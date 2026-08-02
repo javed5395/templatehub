@@ -369,7 +369,11 @@ a { color: inherit; text-decoration: none; }
      column — unreadable. The panel is now the WIDER of the two so the card
      opens as a proper two-column layout (describe | preferences), and the
      prompt box keeps a modest width on the left, where it was before. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  /* 2 Aug 2026 (Javed) — the prompt column was 1fr against the panel's 1.35fr
+     (about 43%), which left Hexa's box narrow enough to look SQUARE. The
+     numbers below ARE the percentages: prompt 56%, panel 44%. Written as
+     56fr/44fr on purpose so the next person can read the split at a glance. */
+  grid-template-columns: minmax(0, 56fr) minmax(0, 44fr);
   gap: 26px;
   /* 29 Jul 2026: was `align-items: stretch`, which forced BOTH columns to the
      same height. Opening the white fill card therefore stretched Hexa's prompt
@@ -411,7 +415,9 @@ a { color: inherit; text-decoration: none; }
   border-radius: calc(var(--radius-xl) - 2px);
   backdrop-filter: blur(30px) saturate(160%);
   -webkit-backdrop-filter: blur(30px) saturate(160%);
-  padding: 26px 26px 22px;
+  /* 2 Aug 2026 — trimmed from 26/22 as part of bringing the whole box down to
+     ~230px tall (was ~265px). See .prompt-input min-height below. */
+  padding: 24px 26px 20px;
 }
 .prompt-header {
   display: flex; align-items: center; gap: 12px;
@@ -491,7 +497,10 @@ a { color: inherit; text-decoration: none; }
   font-size: 15.5px;
   line-height: 1.6;
   resize: none;
-  min-height: 84px;
+  /* 2 Aug 2026 — 84px -> 52px, and rows="3" -> rows="2" on the textarea itself
+     (the rows attribute wins if it is taller, so BOTH had to change). This is
+     the main lever on the box's height: ~230px total now, was ~265px. */
+  min-height: 52px;
   padding: 4px 0;
   letter-spacing: -0.01em;
 }
@@ -1268,7 +1277,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
               class="prompt-input"
               id="promptInput"
               placeholder="Describe what you want to create..."
-              rows="3"
+              rows="2"
               aria-label="Describe what you want to create"></textarea>
           </div>
 

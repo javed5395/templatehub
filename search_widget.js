@@ -58,9 +58,10 @@
        forced the two-column layout to collapse into a single stacked strip. */
     /* Results (LEFT) sit PARALLEL to the card (RIGHT) in one row, instead of below it. */
     #metaSearchRow { display:flex; flex-wrap:wrap; align-items:flex-start; gap:28px; padding:0 40px; position:relative; z-index:5; }
-    #metaSearchCardWrap { flex:0 0 auto; margin-left:auto; margin-top:-70px; pointer-events:none; }
+    #metaSearchCardWrap { flex:1 1 0; min-width:0; order:2; margin-top:-70px; pointer-events:none; }
+    @media (max-width:1100px){ #metaSearchCardWrap { flex:1 1 100%; margin-top:0; } }
     #metaSearchCardWrap #searchWidget { pointer-events:auto; }
-    #searchWidget { width:min(82vw,1000px); background:#ffffff; overflow:hidden; max-height:260px; transition:max-height 0.45s cubic-bezier(0.4,0,0.2,1); cursor:default; border-radius:28px; box-shadow:0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06); font-family:'Inter','Segoe UI',sans-serif; }
+    #searchWidget { width:100%; background:#ffffff; overflow:hidden; max-height:260px; transition:max-height 0.45s cubic-bezier(0.4,0,0.2,1); cursor:default; border-radius:28px; box-shadow:0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06); font-family:'Inter','Segoe UI',sans-serif; }
     #searchWidget:hover { max-height:1300px; cursor:default; }
     #searchWidget.locked { max-height:1300px !important; cursor:default; }
     #searchWidget.force-collapsed:not(.locked), #searchWidget.force-collapsed:not(.locked):hover { max-height:260px !important; }
@@ -74,7 +75,6 @@
     #widgetLockBtn.is-locked { background:rgba(212,175,55,0.15); border-color:rgba(212,175,55,0.4); color:#8a6d1f; }
     #widgetFull { padding:0; opacity:1; color:#1a1a2e; }
     #searchWidget.expanded #widgetFull { opacity:1; }
-    #searchWidget #lockNote { display:inline-block; margin-top:10px; font-size:11px; color:#1B7F3E; }
     /* TWO-TONE split — same pattern as .sticky-card__content (plain) vs
        .sticky-card__visual (background:#F4F6FB) in landing.html: left
        column stays white, right column gets the grey-blue tone + a
@@ -162,6 +162,23 @@
                 '<select id="f_contentType"><option value="">Any</option>' +
                 '<option value="pitch-deck">Pitch Deck</option>' +
                 '<option value="media-kit">Media Kit</option></select></div>' +
+              // GROUPING (2 Aug 2026) — the 8 SMALL fields (plain dropdowns / number
+              // box) come first, 2 per row, filling the top 4 rows. The 8 BIG fields
+              // (the tall scrolling multi-select lists) all sit together underneath.
+              // Before this, Type and Colour Family were mixed in among the small
+              // ones, so a tall list sat beside a short dropdown and every row was a
+              // different height.
+              '<div class="sw-field"><label>No. of Slides</label><input type="number" id="f_slides" placeholder="e.g. 15"/></div>' +
+              '<div class="sw-field"><label>Aspect Ratio</label><select id="f_aspectRatio"><option value="">Any</option>' +
+                '<option value="16 9">16:9</option></select></div>' +
+              '<div class="sw-field"><label>Formality</label><select id="f_formality"><option value="">Any</option>' +
+                '<option value="very high">Very High</option><option value="high">High</option>' +
+                '<option value="medium high">Medium-High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>' +
+              '<div class="sw-field"><label>Text</label><select id="f_textWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Shapes</label><select id="f_shapeWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Graphs</label><select id="f_graphWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Empty Space</label><select id="f_emptySpace"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              // ── BIG fields start here (tall multi-select lists) ──
               // Y4 — TYPE: the category INSIDE the template type. Same list the
               // seller picks as Sub-Category in upload_form.html (media kit + pitch
               // deck sub-categories, deduped, 'other' dropped).
@@ -222,16 +239,6 @@
                 '<option value="content-creator">Content Creator</option>' +
                 '<option value="small-business">Small Business</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>No. of Slides</label><input type="number" id="f_slides" placeholder="e.g. 15"/></div>' +
-              '<div class="sw-field"><label>Aspect Ratio</label><select id="f_aspectRatio"><option value="">Any</option>' +
-                '<option value="16 9">16:9</option></select></div>' +
-              '<div class="sw-field"><label>Formality</label><select id="f_formality"><option value="">Any</option>' +
-                '<option value="very high">Very High</option><option value="high">High</option>' +
-                '<option value="medium high">Medium-High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>' +
-              '<div class="sw-field"><label>Text</label><select id="f_textWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
-              '<div class="sw-field"><label>Shapes</label><select id="f_shapeWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
-              '<div class="sw-field"><label>Graphs</label><select id="f_graphWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
-              '<div class="sw-field"><label>Empty Space</label><select id="f_emptySpace"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
               '<div class="sw-field"><label>Color Family</label><select id="f_colorFamily" multiple>' +
                 '<option value="black">Black</option><option value="white">White</option><option value="gray">Gray</option>' +
                 '<option value="silver">Silver</option><option value="charcoal">Charcoal</option><option value="beige">Beige</option>' +
@@ -339,7 +346,9 @@
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">' +
               '<button id="clearFiltersBtn">Clear all filters</button>' +
             '</div>' +
-            '<span id="lockNote">📌 Click anywhere outside this box to close it</span>' +
+            // 2 Aug 2026 — the "📌 Click anywhere outside this box to close it"
+            // line was removed (Javed). It was also untrue: only the Lock
+            // button opens/closes the card now, clicking outside does nothing.
             '<div id="swCrossNote"></div>' +
           '</div></div>' +
         '</div>' +

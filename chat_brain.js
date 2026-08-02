@@ -18,9 +18,12 @@
   // voice reply. Everything else falls through to the original reply.
   var OVERRIDES = {
     // --- identity / capabilities: strip voice-only phrasing ---
-    'greeting': "Hi! 👋 I'm Hexa. I can help you find pitch decks, media kits, website UI kits, or the free invoice generator — and answer questions about buying, editing, formats and licensing. What do you need?",
+    // 2 Aug 2026 (Javed) — greeting and help now name ALL FOUR things Hexa does.
+    // They used to mention only finding templates and the invoice tool, which
+    // undersold the card that MAKES designs and the card that FILLS decks.
+    'greeting': "Hi! 👋 I'm Hexa. I can <strong>find</strong> you a design, <strong>make</strong> you a brand-new one, <strong>fill</strong> a presentation with your content, or build you a <strong>free invoice</strong> — and answer anything about buying, editing, formats and licensing. What do you need?",
     'identity_assistant': "I'm Hexa, the LazyDog Templates assistant. I can help you find templates, explain pricing and licensing, and answer questions about buying, downloading and editing.",
-    'help': "You can ask me to open pitch decks, media kits, or the invoice generator — or ask anything about pricing, licenses, file formats, editing, or your order.",
+    'help': "Ask me to find a design, make you a brand-new one, prepare a presentation from your content, or open the free invoice generator — or ask anything about pricing, licenses, file formats, editing, or your order.",
     'va_howto': "Just type your question — templates, pricing, licenses, formats, editing, or your order — and I'll answer.",
     'va_language': "Type your question in plain English and I'll do my best to help.",
 
@@ -57,7 +60,22 @@
     { match: ["thank you","thanks","thankyou","thx"], reply: "Anytime! \ud83d\udc9b Anything else I can help you find?" , soft: true},
     { match: ["are you human","are you a robot","are you real","are you ai","are you a bot"], reply: "I'm Hexa — LazyDog's assistant. Real enough to genuinely help you with templates \ud83d\ude0a" , soft: true},
     { match: ["who made you","who created you","who built you"], reply: "I'm Hexa, built for LazyDog Templates to help you find, buy, and use the right design." , soft: true},
-    { match: ["what can you do","how can you help","what do you do"], reply: "I help you find templates, explain pricing & licenses, open pages, switch language, and answer questions — just ask or tap the \ud83c\udfa4 mic." , soft: true},
+    // 2 Aug 2026 (Javed) — this used to be ONE line about finding templates, and
+    // it was marked soft:true, which handed the question to the live AI. The AI
+    // did not know Hexa can MAKE designs or FILL presentations, so it answered
+    // with the old "I find templates and invoices" line. soft is now OFF, so this
+    // library answer is what the visitor actually sees — keep it up to date.
+    { match: ["what can you do","what all can you do","what all u can do","what all can u do","how can you help","what do you do","what can u do","what are you able to do"],
+      reply: "Here's what I can do for you 👇<br><br>" +
+             "🔎 <strong>Find you a design</strong> — tell me what you need and I'll pull the closest matches from the library.<br>" +
+             "🎨 <strong>Make you a brand-new design</strong> — describe it and I'll build it for you in the LazyDog Designer.<br>" +
+             "📄 <strong>Prepare your presentation</strong> — give me your content and a design, and I'll fill the deck for you.<br>" +
+             "🧾 <strong>Make you a free invoice</strong> — no account needed.<br><br>" +
+             "And I can answer anything about prices, licenses, file formats, editing or your order." },
+    // RETIRED 2 Aug 2026 — the whole line below is commented out. It was the old
+    // one-line answer, now replaced by the fuller one above. Kept only so you can
+    // see what it used to say:
+    // { match: ["what can you do"], reply: "I help you find templates, explain pricing and licenses, open pages, switch language, and answer questions — just ask or tap the \ud83c\udfa4 mic." , soft: true},
 
     // --- off-topic → polite, on-brand deflection (no API) ---
     { match: ["what is the date","whats the date","today's date","what date","what day is it","date today"], reply: "I stick to LazyDog templates, so I can't give the date — your device clock has that \ud83d\ude0a But I can help you find the perfect template!" },
