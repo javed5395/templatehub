@@ -506,9 +506,10 @@
           <input type="file" id="designDoc" accept=".pdf,.doc,.docx,.txt" onchange="showFiles('designDoc','designDocList'); readPdfMetadata(this)"/>
           <div class="upload-icon">📋</div>
           <p><strong>Click to upload your design brief</strong></p>
-          <p>PDF, Word, or TXT — max 10 MB</p>
+          <p>PDF, Word, or TXT — max 3 MB</p>
         </div>
         <div class="file-list" id="designDocList"></div>
+        <div id="briefMetaStatus" style="margin-top:8px;font-size:12px;display:none;"></div>
       </div>
       <div class="field">
         <label>Quick Description (Alternative to document upload)</label>
@@ -1006,7 +1007,11 @@ window._pdfMeta = null;      // global — read by submitForm()
 window._pdfHasCodes = null;  // true = coded Section 11 present, false = none, null = not checked
 
 window.readPdfMetadata = async function(input) {
-  const statusEl = document.getElementById('pdfMetaStatus');
+  // Each box reports under itself, and only the Design Brief box is expected to
+  // carry MC. The product deck never does — complaining about that box is noise,
+  // so it stays silent there.
+  const isBrief  = !!(input && input.id === 'designDoc');
+  const statusEl = document.getElementById(isBrief ? 'briefMetaStatus' : 'pdfMetaStatus');
   const file = input.files[0];
 
   if (!file) return;
@@ -1122,13 +1127,18 @@ window.readPdfMetadata = async function(input) {
         window._pdfHasCodes = true;
         return;
       }
-      // NOT blocked — the upload goes through. It just says so, in red.
+      // NOT blocked — the upload goes through either way.
       window._pdfHasCodes = false;
-      statusEl.style.display = 'block';
-      statusEl.style.color   = 'red';
-      statusEl.textContent   = '⚠️ Form loaded WITHOUT MC — "' + file.name + '" carries none. Normal for the ' +
-                               'product deck; the MC copy is the "..._SYSTEM.pdf" that goes in the ' +
-                               'Design Brief box. Without MC this kit will not be found by search.';
+      if (isBrief) {
+        statusEl.style.display = 'block';
+        statusEl.style.color   = 'red';
+        statusEl.textContent   = '⚠️ Loaded WITHOUT MC — "' + file.name + '" carries none. Use the ' +
+                                 '"..._SYSTEM.pdf" version of the brief, otherwise this kit will not ' +
+                                 'be found by search.';
+      } else {
+        statusEl.style.display = 'none';   // product deck without MC — normal, say nothing
+        statusEl.textContent   = '';
+      }
       return;
     }
 
@@ -1163,9 +1173,7 @@ window.readPdfMetadata = async function(input) {
     // page and not in the console — a screen-share, a screenshot or an open
     // dev-tools tab must never give away a single code.
     statusEl.style.color = 'green';
-    statusEl.textContent = codeCount
-      ? `✅ Form loaded with ${codeCount} MC`
-      : `✅ Form loaded with ${plainCount} MC`;
+    statusEl.textContent = `✅ Loaded with ${codeCount || plainCount} MC`;
     console.log('[MC] count:', codeCount || plainCount);
 
   } catch (err) {
