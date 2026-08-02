@@ -180,7 +180,7 @@
                 // 28 Jul 2026: TWO types only — Media Kit and Pitch Deck. Web Kit,
                 // Resume/CV and Digital Keynotes are removed: those rooms are not
                 // built yet, so offering them would search nothing.
-                '<select id="f_contentType"><option value="">Any</option>' +
+                '<select autocomplete="off" id="f_contentType"><option value="">Any</option>' +
                 '<option value="pitch-deck">Pitch Deck</option>' +
                 '<option value="media-kit">Media Kit</option></select></div>' +
               // GROUPING (2 Aug 2026) — the 8 SMALL fields (plain dropdowns / number
@@ -189,21 +189,28 @@
               // Before this, Type and Colour Family were mixed in among the small
               // ones, so a tall list sat beside a short dropdown and every row was a
               // different height.
-              '<div class="sw-field"><label>No. of Slides</label><input type="number" id="f_slides" placeholder="e.g. 15"/></div>' +
-              '<div class="sw-field"><label>Aspect Ratio</label><select id="f_aspectRatio"><option value="">Any</option>' +
+              // 2 Aug 2026 — autocomplete OFF. The site has a sign-in form (navbar), so
+              // Chrome's password manager was offering saved accounts on top of this
+              // box the moment a buyer clicked it. The extra attributes cover Chrome,
+              // 1Password and LastPass; nothing about the filter itself changes.
+              '<div class="sw-field"><label>No. of Slides</label>' +
+                '<input type="number" id="f_slides" name="ldt_slides" placeholder="e.g. 15" ' +
+                'autocomplete="off" inputmode="numeric" data-form-type="other" ' +
+                'data-lpignore="true" data-1p-ignore/></div>' +
+              '<div class="sw-field"><label>Aspect Ratio</label><select autocomplete="off" id="f_aspectRatio"><option value="">Any</option>' +
                 '<option value="16 9">16:9</option></select></div>' +
-              '<div class="sw-field"><label>Formality</label><select id="f_formality"><option value="">Any</option>' +
+              '<div class="sw-field"><label>Formality</label><select autocomplete="off" id="f_formality"><option value="">Any</option>' +
                 '<option value="very high">Very High</option><option value="high">High</option>' +
                 '<option value="medium high">Medium-High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>' +
-              '<div class="sw-field"><label>Text</label><select id="f_textWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
-              '<div class="sw-field"><label>Shapes</label><select id="f_shapeWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
-              '<div class="sw-field"><label>Graphs</label><select id="f_graphWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
-              '<div class="sw-field"><label>Empty Space</label><select id="f_emptySpace"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Text</label><select autocomplete="off" id="f_textWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Shapes</label><select autocomplete="off" id="f_shapeWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Graphs</label><select autocomplete="off" id="f_graphWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
+              '<div class="sw-field"><label>Empty Space</label><select autocomplete="off" id="f_emptySpace"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
               // ── BIG fields start here (tall multi-select lists) ──
               // TYPE: the category INSIDE the template type. Same list the
               // seller picks as Sub-Category in upload_form.html (media kit + pitch
               // deck sub-categories, deduped, 'other' dropped).
-              '<div class="sw-field"><label>Type</label><select id="f_type" multiple>' +
+              '<div class="sw-field"><label>Type</label><select autocomplete="off" id="f_type" multiple>' +
                 '<option value="freelancer">Freelancer</option>' +
                 '<option value="podcast">Podcast</option>' +
                 '<option value="press">Press / PR</option>' +
@@ -260,7 +267,7 @@
                 '<option value="content-creator">Content Creator</option>' +
                 '<option value="small-business">Small Business</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Color Family</label><select id="f_colorFamily" multiple>' +
+              '<div class="sw-field"><label>Color Family</label><select autocomplete="off" id="f_colorFamily" multiple>' +
                 '<option value="black">Black</option><option value="white">White</option><option value="gray">Gray</option>' +
                 '<option value="silver">Silver</option><option value="charcoal">Charcoal</option><option value="beige">Beige</option>' +
                 '<option value="neutral">Neutral</option><option value="navy">Navy</option><option value="blue">Blue</option>' +
@@ -274,7 +281,7 @@
                 '<option value="earth">Earth Tones</option><option value="monochrome">Monochrome</option><option value="dark">Dark</option>' +
                 '<option value="light">Light</option><option value="multicolor">Multicolor</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Background</label><select id="f_background" multiple>' +
+              '<div class="sw-field"><label>Background</label><select autocomplete="off" id="f_background" multiple>' +
                 '<option value="dark">Dark</option><option value="light">Light</option><option value="monochrome">Monochrome</option>' +
                 '<option value="transparent">Transparent</option><option value="solid">Solid</option><option value="gradient">Gradient</option>' +
                 '<option value="mesh-gradient">Mesh Gradient</option><option value="duotone">Duotone</option><option value="color-block">Colour Block</option>' +
@@ -286,14 +293,14 @@
                 '<option value="framed">Framed</option><option value="abstract">Abstract</option><option value="3d">3D</option>' +
                 '<option value="glassmorphism">Glassmorphism</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Style</label><select id="f_style" multiple>' +
+              '<div class="sw-field"><label>Style</label><select autocomplete="off" id="f_style" multiple>' +
                 '<option value="minimal">Minimal</option><option value="bold">Bold</option><option value="modern">Modern</option>' +
                 '<option value="elegant">Elegant</option><option value="professional">Professional</option><option value="playful">Playful</option>' +
                 '<option value="editorial">Editorial</option><option value="corporate">Corporate</option><option value="creative">Creative</option>' +
                 '<option value="luxury">Luxury</option><option value="clean">Clean</option>' +
                 '<option value="colorful">Colorful</option><option value="vintage">Vintage</option><option value="futuristic">Futuristic</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Industry</label><select id="f_industry" multiple>' +
+              '<div class="sw-field"><label>Industry</label><select autocomplete="off" id="f_industry" multiple>' +
                 '<option value="tech">Tech</option><option value="saas">SaaS</option><option value="cybersecurity">Cybersecurity</option>' +
                 '<option value="electronics">Electronics</option><option value="gaming">Gaming</option><option value="telecom">Telecom</option>' +
                 '<option value="healthcare">Healthcare</option><option value="pharma">Pharma</option><option value="mental-health">Mental Health</option>' +
@@ -313,7 +320,7 @@
                 '<option value="government">Government</option><option value="nonprofit">Nonprofit</option><option value="religion">Religion</option>' +
                 '<option value="general">General</option><option value="other">Other</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Tone</label><select id="f_tone" multiple>' +
+              '<div class="sw-field"><label>Tone</label><select autocomplete="off" id="f_tone" multiple>' +
                 '<option value="professional">Professional</option><option value="friendly">Friendly</option>' +
                 '<option value="formal">Formal</option><option value="casual">Casual</option>' +
                 '<option value="creative">Creative</option><option value="modern">Modern</option>' +
@@ -325,7 +332,7 @@
                 '<option value="premium">Premium</option><option value="executive">Executive</option>' +
                 '<option value="corporate">Corporate</option><option value="bold">Bold</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Audience</label><select id="f_audience" multiple>' +
+              '<div class="sw-field"><label>Audience</label><select autocomplete="off" id="f_audience" multiple>' +
                 '<option value="executives">Executives</option><option value="managers">Managers</option>' +
                 '<option value="team-leaders">Team Leaders</option><option value="employees">Employees</option>' +
                 '<option value="project-managers">Project Managers</option><option value="product-managers">Product Managers</option>' +
@@ -351,7 +358,7 @@
                 '<option value="influencers">Influencers</option><option value="partners">Brand Partners</option>' +
                 '<option value="sponsors">Brand Sponsors</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Best For</label><select id="f_bestFor" multiple>' +
+              '<div class="sw-field"><label>Best For</label><select autocomplete="off" id="f_bestFor" multiple>' +
                 '<option value="pitching-investors">Pitching Investors</option><option value="seed-round">Seed Round</option>' +
                 '<option value="series-a">Series A</option><option value="series-b">Series B</option>' +
                 '<option value="demo-day">Demo Day</option><option value="investor-roadshow">Investor Roadshow</option>' +

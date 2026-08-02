@@ -550,8 +550,14 @@
   // METADATA CONTRACT: the engine reads these fields off template.* — save them
   // from the upload form so ranking works: colorFamily, style, tone, audience,
   // bestFor, formality, textWeight, imageWeight, graphWeight, aspectRatio.
-  function ldtNormalizeDeck(t, deckCard) {
+  function ldtNormalizeDeck(t, deckCard, docId) {
     return {
+      // 2 Aug 2026 — THE MISSING JOIN. search_widget.js maps the server's
+      // ranked results back onto this page's cards with  bySlug[deck.id].
+      // Without an id the map stayed empty, every server result was dropped,
+      // and the card printed "Nothing matched those fields yet" even on a
+      // 100% match. The Firestore doc id is the slug the engine ranks by.
+      id: docId || '',
       name: t.name || deckCard.title,
       contentType: 'digital-keynotes',
       slides: (t.slides ? t.slides.length : (parseInt(t.slideCount, 10) || 0)),
@@ -659,7 +665,7 @@ window.dkCatMap = {};                   // reset live category map
           var uploadedAt = data.uploadedAt ? (data.uploadedAt.toDate ? data.uploadedAt.toDate() : new Date(data.uploadedAt)) : null;
           var deck = { title: title, cat: subCat, href: href, slides: t.slides, price: t.price, uploadedAt: uploadedAt };
           renderDeckCard(grid, deck);
-          window._ldtAllDecks.push(ldtNormalizeDeck(t, deck));   // feed the search engine
+          window._ldtAllDecks.push(ldtNormalizeDeck(t, deck, docSnap.id));   // feed the search engine
         });
 
         buildCatPanelFromData();   // rebuild panel with live data
