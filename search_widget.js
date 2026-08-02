@@ -98,11 +98,32 @@
     #searchWidget .sw-field select, #searchWidget .sw-field input { background:#fff; color:#1a1a2e; border:1px solid #d8dce6; border-radius:10px; padding:6px 8px; font-size:12px; }
     #searchWidget .sw-field select[multiple] { height:56px; }
     #searchWidget #clearFiltersBtn { margin-top:10px; background:transparent; border:1px solid #e0a0a0; color:#b23a3a; border-radius:10px; padding:5px 12px; cursor:pointer; font-size:11px; }
-    #metaSearchResultsArea { background:transparent; padding:16px 40px 10px; margin-top:0; font-family:'Inter',sans-serif; flex:0 0 100%; order:-1; min-width:0; }
-    /* BARS TEMPORARILY HIDDEN — delete just this one line to bring the ranked bars back. */
+    /* ── THE WHITE MATCH BARS (2 Aug 2026, Javed) ───────────────────────────
+       They live ABOVE the three cards: order:-1 puts them on the row's first
+       line, flex:0 0 100% makes that line full width.
+
+       HIDDEN UNTIL THERE IS SOMETHING TO SHOW. Before this they were always in
+       the flow — even the "No matches yet" line — which left a gap over the
+       cards on every page load. The row gets .has-results only when real
+       matches come back; see showBars() below.
+
+       The old note here claimed the bars were "TEMPORARILY HIDDEN". They were
+       not, and nothing in this file ever hid them. The note is gone. */
+    #metaSearchResultsArea { display:none; background:transparent; padding:0 0 18px; margin-top:0; font-family:'Inter',sans-serif; flex:0 0 100%; order:-1; min-width:0; }
+    #metaSearchRow.has-results #metaSearchResultsArea { display:block; }
+    /* The three cards are pulled up 70px so they overlap the dark hero strip.
+       Once bars are on screen there is nothing above to overlap, and the pull
+       would drag the cards up over the bars — so cancel it while bars show. */
+    #metaSearchRow.has-results #fillWrap,
+    #metaSearchRow.has-results #metaSearchCardWrap,
+    #metaSearchRow.has-results #dwWrap { margin-top:0; }
     #metaSearchResultsArea .sw-rankHead { font-size:12.5px; font-weight:600; color:#6b7280; margin-bottom:12px; }
-    /* two columns of up to 10 (fills top-to-bottom): ranks 1-10 left, 11-20 right — each card half width */
-    #metaSearchResultsArea .sw-rankList { display:grid; grid-auto-flow:column; grid-template-rows:repeat(5, auto); grid-template-columns:repeat(2, 1fr); gap:8px 16px; max-width:100%; }
+    /* THREE across, filling left-to-right, so all 15 (TOP_N) bars have a home.
+       The old rule was 5 rows x 2 columns = 10 slots with column flow, so bars
+       11-15 spilled into an unstyled third column. */
+    #metaSearchResultsArea .sw-rankList { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px 16px; max-width:100%; }
+    @media (max-width:1100px){ #metaSearchResultsArea .sw-rankList { grid-template-columns:repeat(2, 1fr); } }
+    @media (max-width:700px){ #metaSearchResultsArea .sw-rankList { grid-template-columns:1fr; } }
     #metaSearchResultsArea .sw-rankCard { display:flex; align-items:flex-start; gap:16px; background:#ffffff; border:1px solid #e5e8f0; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.05); padding:11px 16px; color:#1a1a2e; }
     /* left gauge column: horizontal match bar + % sits at the TOP, aligned with the deck name (width = closeness to the best match) */
     #metaSearchResultsArea .sw-rankGauge { flex:0 0 92px; display:flex; flex-direction:column; gap:5px; margin-top:3px; }
@@ -631,12 +652,21 @@
   var TOP_N = 15;                       // engine digs out the top 15 best matches
   var _recTimer = null, _recSeq = 0;
 
+  // The white bars only exist on screen when there is something to put in them.
+  // One switch, used by both exits below, so the bars and the cards' -70px pull
+  // can never disagree about whether results are showing.
+  function showBars(on) {
+    var row = document.getElementById('metaSearchRow');
+    if (row) row.classList.toggle('has-results', !!on);
+  }
+
   function renderTieredResults(req) {
     // "has input" = the user actually filled something (contentType is auto-locked on section pages).
     var hasInput = Object.keys(req).some(function(k) { return k !== 'contentType'; });
     var container = document.getElementById('metaSearchResultsList');
     if (!hasInput) {
-      container.innerHTML = '<div id="metaSearchEmptyState">No matches yet — fill in a field above (hover the strip to open it), or use the chat box.</div>';
+      container.innerHTML = '';
+      showBars(false);
       renderFilteredResults(null);
       return;
     }
@@ -674,14 +704,22 @@
           deck = { id: r.slug, name: r.name, contentType: '', slides: r.slides,
                    colorFamily: [], _match: r.match };
         }
-        scored.push({ deck: deck, pct: Math.max(1, Math.round(((r.score || 1) / top) * 100)) });
+        // TRUE match % straight from the server — this deck's share of what the
+        // buyer actually asked for. An older deploy of recommend_http does not
+        // send `pct`, so we fall back to the old relative-to-best number and the
+        // bars keep working while the function is being redeployed.
+        var pct = (typeof r.pct === 'number') ? r.pct
+                : Math.max(1, Math.round(((r.score || 1) / top) * 100));
+        scored.push({ deck: deck, pct: pct });
       });
       paintRanked(scored);
     })
     .catch(function() {
       // OFFLINE FALLBACK — old client-side scorer over public template fields
+      // 2 Aug 2026 — the `.filter(pct > 0)` that used to sit here is gone, to
+      // match the server: a 0% deck is still shown, painted red, rather than
+      // quietly disappearing.
       var scored = getDecks().map(function(d) { return { deck: d, pct: scoreDeck(d, req) }; })
-        .filter(function(s) { return s.pct > 0; })
         .sort(function(a, b) { return b.pct - a.pct; })
         .slice(0, TOP_N);
       paintRanked(scored);
@@ -694,19 +732,32 @@
   function paintRanked(scored) {
     var container = document.getElementById('metaSearchResultsList');
     if (!scored.length) {
-      container.innerHTML = '<div id="metaSearchEmptyState">No matches yet — fill in a field above (hover the strip to open it), or use the chat box.</div>';
+      container.innerHTML = '<div id="metaSearchEmptyState">Nothing matched those fields yet — try clearing one of them.</div>';
+      showBars(true);          // show the area so the "nothing matched" line is visible
       renderFilteredResults(null);
       return;
     }
+    showBars(true);
     renderFilteredResults(scored);
     var top = scored[0].pct;
     container.innerHTML =
       '<div class="sw-rankHead">Ranked by match — best first · ' + scored.length + ' deck' + (scored.length > 1 ? 's' : '') + ' · top match ' + top + '%</div>' +
       '<div class="sw-rankList">' + scored.map(function(s) {
         var d = s.deck, pct = s.pct;
-        var rel = top > 0 ? Math.round((pct / top) * 100) : 0;   // closeness to the best available
-        var hue = Math.round(120 * (pct / 100));                 // 0=red .. 120=green, by true strength
-        var color = 'hsl(' + hue + ',68%,45%)';
+        // Bar length IS the match — 40% match, 40% long. It used to be measured
+        // against the best deck on screen, which made the top bar full even when
+        // that deck was a poor fit.
+        var rel = Math.max(2, Math.min(100, pct));   // 2% floor so a 0% bar is still visible
+        // Colour scale (2 Aug 2026, Javed): green at the top, red at the bottom,
+        // so a deck that fits nothing is obviously wrong at a glance. Read
+        // top-down, first match wins — edit these six rows to retune it.
+        var color = pct >= 100 ? '#15803d'    // 100%  green
+                  : pct >=  90 ? '#4ade80'    //  90%  light green
+                  : pct >=  75 ? '#f59e0b'    //  75%  orange
+                  : pct >=  50 ? '#f97316'    //  50%  deep orange
+                  : pct >=  25 ? '#ef4444'    //  25%  red
+                  : pct >    0 ? '#dc2626'    //   1%  red
+                  :              '#991b1b';   //   0%  dark red — matches nothing
         return '<div class="sw-rankCard">' +
           '<div class="sw-rankGauge">' +
             '<div class="sw-rankGaugeBar"><span style="width:' + rel + '%;background:' + color + '"></span></div>' +
