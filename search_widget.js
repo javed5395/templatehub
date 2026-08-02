@@ -200,7 +200,7 @@
               '<div class="sw-field"><label>Graphs</label><select id="f_graphWeight"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
               '<div class="sw-field"><label>Empty Space</label><select id="f_emptySpace"><option value="">Any</option><option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="medium-high">Medium-High</option><option value="high">High</option><option value="very-high">Very High</option></select></div>' +
               // ── BIG fields start here (tall multi-select lists) ──
-              // Y4 — TYPE: the category INSIDE the template type. Same list the
+              // TYPE: the category INSIDE the template type. Same list the
               // seller picks as Sub-Category in upload_form.html (media kit + pitch
               // deck sub-categories, deduped, 'other' dropped).
               '<div class="sw-field"><label>Type</label><select id="f_type" multiple>' +

@@ -503,7 +503,7 @@
       <div class="field">
         <label>Design Brief / Description Document (Optional but Recommended)</label>
         <div class="upload-box">
-          <input type="file" id="designDoc" accept=".pdf,.doc,.docx,.txt" onchange="showFiles('designDoc','designDocList')"/>
+          <input type="file" id="designDoc" accept=".pdf,.doc,.docx,.txt" onchange="showFiles('designDoc','designDocList'); readPdfMetadata(this)"/>
           <div class="upload-icon">📋</div>
           <p><strong>Click to upload your design brief</strong></p>
           <p>PDF, Word, or TXT — max 10 MB</p>
@@ -635,7 +635,7 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 const auth = getAuth(app);
 // ── PRIVATE METADATA BUCKET (28 Jul 2026) ────────────────────────────────────
-// The PDF's SECTION 11 is written in CODES ("X7 : b1,b2"). The browser must
+// The PDF's SECTION 11 is written in CODES. The browser must
 // never decode them, so it does not try: the ORIGINAL, un-stripped PDF is
 // dropped into the private bucket as kits/<docId>_SYSTEM.pdf and the
 // process_system_pdf Cloud Function reads the codes there, server-side, with
@@ -654,11 +654,34 @@ const privateStorage = getStorage(app);   // default bucket, from firebaseConfig
 privateStorage.maxUploadRetryTime  = 12000;
 privateStorage.maxOperationRetryTime = 12000;
 
+// 2 Aug 2026 — every exit from this function used to be a console line and
+// nothing else, so the ONE step that carries a kit's metadata could be skipped,
+// time out, or fail and the upload still ended on a green "Done!". It reports
+// to the page now (the same line the metadata reader writes to), so a kit that
+// went up without its codes says so on screen.
+function _sysPdfNote(msg, colour) {
+  try {
+    const el = document.getElementById('pdfMetaStatus');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.color   = colour;
+    el.textContent   = msg;
+  } catch (e) {}
+}
+
 async function uploadSystemPdf(docId, originalPdfFile) {
   if (!docId || !originalPdfFile) return false;
+  if (window._pdfHasCodes === false) {
+    _sysPdfNote('⚠️ This file carries no MC — the kit is saved, but it will not be ' +
+                'found by search. Re-upload the _SYSTEM copy.', 'red');
+    console.warn('[MC] chosen file carries none.');
+  }
   const email = (auth.currentUser && auth.currentUser.email || '').toLowerCase();
   if (META_ADMIN_EMAILS.indexOf(email) === -1) {
     console.log('[SYSTEM PDF] not an admin account — private upload skipped.');
+    _sysPdfNote('⚠️ Metadata step skipped — only the admin accounts may write the private ' +
+                'copy that carries the codes. This kit will not be searchable until an ' +
+                'admin re-uploads it.', 'red');
     return false;
   }
   const path = 'kits/' + docId + '_SYSTEM.pdf';
@@ -675,13 +698,21 @@ async function uploadSystemPdf(docId, originalPdfFile) {
     ]);
     if (r === 'ok') {
       console.log('[SYSTEM PDF] uploaded →', PRIVATE_BUCKET_URL + '/' + path);
+      if (window._pdfHasCodes) {
+        _sysPdfNote('✅ Private copy uploaded — the server is reading its MC now.', 'green');
+      }
       return true;
     }
     console.warn('[SYSTEM PDF] timed out after 15s — most likely CORS is not set on ' +
                  PRIVATE_BUCKET_URL + '. Submission saved; metadata not read.');
+    _sysPdfNote('⚠️ The private metadata copy did not finish uploading within 15s. The kit is ' +
+                'saved but has NO codes yet — re-upload it, or drop ' + path + ' into the ' +
+                'bucket by hand and the server will pick it up.', 'red');
     return false;
   } catch (e) {
     console.warn('[SYSTEM PDF] private upload failed — metadata will not be read:', e);
+    _sysPdfNote('⚠️ The private metadata copy failed to upload (' + (e && e.message || e) +
+                '). The kit is saved but has NO codes.', 'red');
     return false;
   }
 }
@@ -712,7 +743,7 @@ const FILE_LIMITS = {
   pptxFile:  { maxMB: 80,  label: 'PPTX file'          },
   pdfFile:   { maxMB: 80,  label: 'PDF file'            },
   keyFile:   { maxMB: 150, label: 'Keynote file'        },
-  designDoc: { maxMB: 1,   label: 'Design brief doc'    },
+  designDoc: { maxMB: 3,   label: 'Design brief doc'    },   // 2 Aug 2026 — 1 → 3 MB (Javed)
   extraFile: { maxMB: 100, label: 'Extra format file'   },
   videoFile: { maxMB: 100, label: 'Preview video'       }
 };
@@ -971,18 +1002,26 @@ function checkMagicBytes(file) {
 // Load the PDF, find Section 11, parse the fields, and save them to a global.
 // submitForm() reads that global when it calls addDoc() on Firestore.
 
-window._pdfMeta = null; // global — read by submitForm()
+window._pdfMeta = null;      // global — read by submitForm()
+window._pdfHasCodes = null;  // true = coded Section 11 present, false = none, null = not checked
 
 window.readPdfMetadata = async function(input) {
   const statusEl = document.getElementById('pdfMetaStatus');
   const file = input.files[0];
-  window._pdfMeta = null;
 
   if (!file) return;
+  // Wired to BOTH the PDF box and the Design Brief box — the brief is normally
+  // the one holding the codes. A non-PDF brief (.docx/.txt) is not readable
+  // here, so it is left alone rather than reported as "no metadata".
+  if (!/\.pdf$/i.test(file.name || '')) return;
+  // A file with no codes must never wipe out a good read from the other box.
+  const _hadCodes = window._pdfHasCodes === true;
+  const _prevMeta = window._pdfMeta;
+  if (!_hadCodes) { window._pdfMeta = null; window._pdfHasCodes = null; }
 
   statusEl.style.display = 'block';
   statusEl.style.color   = 'var(--muted)';
-  statusEl.textContent   = '⏳ Reading Section 11 metadata from the PDF...';
+  statusEl.textContent   = '⏳ Checking the file for MC...';
 
   try {
     // extract the text with PDF.js
@@ -1001,19 +1040,71 @@ window.readPdfMetadata = async function(input) {
       fullText   += tc.items.map(i => i.str).join(' ') + '\n';
     }
 
-    // pull out the Section 11 block
+    // ── 2 Aug 2026 — THE BLOCKAGE THIS FIXES ─────────────────────────────────
+    // This reader used to look ONLY for the long labels (DESIGN_NAME, SLIDES,
+    // COLOR_FAMILY …). template.html has not printed those for weeks: Section 11
+    // is written in CODED rows (short key, colon, short values). Every match failed, every
+    // field came back empty, window._pdfMeta was blank, and submitForm() fell
+    // through to the form fields — eight of which read element ids that do not
+    // exist on this page (metaStyle, metaColorFamily, metaTone, metaAudience,
+    // metaBestFor, metaFormality, metaTextWeight, metaImageWeight). The only
+    // values that survived were slides + industry + category + the 'LTR'
+    // default, which is why every kit reached Firestore with exactly four
+    // codes it could infer on its own. Nothing warned about any of it — the reader
+    // returned silently when it found nothing.
+    //
+    // Both layouts are read now. The 19 field CODES are deliberately NOT copied
+    // into the templates document (it is public-read and the card prints these
+    // fields — codes would show up as "b4, b6" on screen). The codes travel the
+    // way they were designed to: inside the _SYSTEM.pdf, read server-side by
+    // process_system_pdf with the private codec. What this reader takes is only
+    // what is display-safe — the design name and the slide count — plus an
+    // honest report of whether the codes are in the file at all.
+    // NO CODE LIST IN THIS FILE. This page is public — anything named here is
+    // readable with View Source. The rows are recognised by their SHAPE only
+    // (a 1-3 character key, a colon, then a short letter+digit value), never by
+    // naming the keys. Same result, nothing given away.
+    const ROW_SHAPE  = /\b[A-Z]{1,2}[0-9]?\s*:\s*[a-z]{1,4}\d{1,3}\b/;
+    const ROW_SPLIT  = /\b([A-Z]{1,2}[0-9]?)\s*:\s*([^\s][^\n]*?)(?=\s+[A-Z]{1,2}[0-9]?\s*:|\s*$)/g;
+    const CODED_VAL  = /^(\d+|[a-z]{1,4}\d{1,3}(\s*,\s*[a-z]{1,4}\d{1,3})*)$/;
+
+    let block = '';
     const sec11Match = fullText.match(/SECTION\s+11\s*[—\-–]*\s*SYSTEM METADATA([\s\S]*?)(?=◆\s*SECTION\s+\d+|$)/i);
-    if (!sec11Match) {
-      statusEl.textContent = '';
-      return;
+    if (sec11Match) {
+      block = sec11Match[1];
+    } else if (ROW_SHAPE.test(fullText)) {
+      // No heading (or it did not survive text extraction) — the rows alone are
+      // signal enough. Start at the first one and take everything after it.
+      const tail = fullText.match(/\b[A-Z]{1,2}[0-9]?\s*:\s*[a-z]{1,4}\d{1,3}\b[\s\S]*$/);
+      if (tail) block = tail[0];
     }
 
-    const block = sec11Match[1];
+    // Split the block into its rows, WITHOUT recording which key is which:
+    // only how many there are, plus the slide count and the display name —
+    // and those two are picked by the shape of their value, not by their key.
+    const rowVals = [];
+    let  slidesFromBlock = '', nameFromBlock = '';
+    if (block) {
+      let m;
+      ROW_SPLIT.lastIndex = 0;
+      while ((m = ROW_SPLIT.exec(block)) !== null) {
+        const val = m[2].trim();
+        if (!val) continue;
+        rowVals.push(val);
+        if (!slidesFromBlock && /^\d{1,3}$/.test(val))       slidesFromBlock = val;   // slide count
+        else if (!nameFromBlock && !CODED_VAL.test(val) && /[a-z]/i.test(val))
+                                                             nameFromBlock  = val;   // display name
+      }
+    }
+    const codeCount = rowVals.length;
 
-    // helper — parse a single value
+    // helper — parse a single value from the OLD long-label layout
     function parseVal(key) {
+      if (!block) return '';
       const m = block.match(new RegExp(key + '\\s*:\\s*([^\\n]+)', 'i'));
-      return m ? m[1].trim() : '';
+      if (!m) return '';
+      // "LONG_LABEL : <key>:<values>" — drop the key prefix, keep the values
+      return m[1].trim().replace(/^[A-Z]{1,2}\d?\s*:\s*/, '');
     }
 
     // helper — comma list -> array
@@ -1022,9 +1113,33 @@ window.readPdfMetadata = async function(input) {
       return val ? val.split(',').map(v => v.trim()).filter(Boolean) : [];
     }
 
+    if (!block || (codeCount === 0 && !parseVal('DESIGN_NAME') && !parseVal('SLIDES'))) {
+      // LOUD. This used to be a silent return, so a deck with no Section 11
+      // looked exactly like a deck with one, all the way to the live site.
+      console.warn('[MC] none in', file.name);
+      if (_hadCodes) {                       // the other box already supplied them
+        window._pdfMeta = _prevMeta;
+        window._pdfHasCodes = true;
+        return;
+      }
+      // NOT blocked — the upload goes through. It just says so, in red.
+      window._pdfHasCodes = false;
+      statusEl.style.display = 'block';
+      statusEl.style.color   = 'red';
+      statusEl.textContent   = '⚠️ Form loaded WITHOUT MC — "' + file.name + '" carries none. Normal for the ' +
+                               'product deck; the MC copy is the "..._SYSTEM.pdf" that goes in the ' +
+                               'Design Brief box. Without MC this kit will not be found by search.';
+      return;
+    }
+
+    window._pdfHasCodes = codeCount > 0;
+
+    // Long-label layout (old decks) still fills every field, exactly as before.
+    // Coded layout gives up only the two display-safe values; the rest is read
+    // from the _SYSTEM.pdf server-side.
     window._pdfMeta = {
-      title:       parseVal('DESIGN_NAME'),
-      slides:      parseInt(parseVal('SLIDES')) || 0,
+      title:       parseVal('DESIGN_NAME') || nameFromBlock,
+      slides:      parseInt(parseVal('SLIDES') || slidesFromBlock || '', 10) || 0,
       aspectRatio: parseVal('ASPECT_RATIO'),
       colorFamily: parseArr('COLOR_FAMILY'),
       style:       parseArr('STYLE'),
@@ -1041,12 +1156,20 @@ window.readPdfMetadata = async function(input) {
       language:    parseVal('LANGUAGE'),
     };
 
+    const plainCount = Object.keys(window._pdfMeta).filter(k => {
+      const v = window._pdfMeta[k]; return Array.isArray(v) ? v.length : v;
+    }).length;
+    // NOTHING IS PRINTED BUT THE COUNT. No field codes, no values, not on the
+    // page and not in the console — a screen-share, a screenshot or an open
+    // dev-tools tab must never give away a single code.
     statusEl.style.color = 'green';
-    statusEl.textContent = `✅ Section 11 metadata found — ${Object.keys(window._pdfMeta).length} fields ready. They are saved to Firestore on submit.`;
-    console.log('📋 PDF Section 11 metadata:', window._pdfMeta);
+    statusEl.textContent = codeCount
+      ? `✅ Form loaded with ${codeCount} MC`
+      : `✅ Form loaded with ${plainCount} MC`;
+    console.log('[MC] count:', codeCount || plainCount);
 
   } catch (err) {
-    console.error('PDF metadata read error:', err);
+    console.error('[MC] read error:', err);
     statusEl.style.color = 'red';
     statusEl.textContent = '❌ Could not read the PDF — ' + err.message;
   }
@@ -1297,6 +1420,38 @@ window.resetSubmitForm = function() {
   document.getElementById('uploadErrorMsg').textContent     = '';
 };
 
+// ── DOES THIS PDF CARRY SECTION 11? ──────────────────────────────────────────
+// 2 Aug 2026. The metadata does NOT live in the product deck — it lives in the
+// Design Brief document ("<name>_SYSTEM.pdf", ~50 KB). The product deck is the
+// picture file that goes to Cloudinary for buyers. submitForm() used to send
+// the PRODUCT deck to the private bucket, so the cloud reader was handed a file
+// that never had a code page in it and logged "No encoded Section 11 found"
+// on every single upload. This tells the two apart by looking inside.
+window.pdfHasSection11 = async function(file) {
+  if (!file || !/\.pdf$/i.test(file.name || '')) return false;
+  try {
+    const pdfjsLib = window.pdfjsLib;
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    const buf = await file.arrayBuffer();
+    const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+    // Shape only — no key is ever named in this public file.
+    const RE = /\b([A-Z]{1,2}[0-9]?)\s*:\s*[a-z]{1,4}\d{1,3}\b/g;
+    for (let p = 1; p <= doc.numPages; p++) {
+      const raw = (await (await doc.getPage(p)).getTextContent()).items.map(i => i.str).join(' ');
+      const seen = new Set();
+      RE.lastIndex = 0;
+      let m; while ((m = RE.exec(raw)) !== null) seen.add(m[1]);
+      if (seen.size >= 3) return true;
+      if (raw.toUpperCase().includes('MACHINE-READABLE FILTER CODES')) return true;
+    }
+    return false;
+  } catch (e) {
+    console.warn('[MC check] could not read', file.name, e);
+    return false;
+  }
+};
+
 // ── SECTION 11 STRIPPER ───────────────────────────────────────────────────────
 // Deletes the page(s) carrying the Section 11 metadata block. Every other page
 // is left byte-for-byte alone.
@@ -1340,13 +1495,11 @@ async function stripSection11FromPdf(file) {
     // only for the words 'SECTION 11' / 'SYSTEM METADATA' / 'MACHINE-READABLE
     // FILTER CODES' / 'DESIGN_NAME'; a block printed without a heading matched
     // none of them, so nothing was stripped and a _SYSTEM.pdf reached the live
-    // site. Every Section 11 row is one of the 19 field codes, a colon, then
-    // lowercase letter+digit values. Three different field codes on one page is
-    // the signal — ordinary buyer copy never produces that.
-    const FIELD_CODES = ['DN','SL','AR','X7','K3','F4','Q2','W9','BG',
-                         'T1','Y4','P5','P6','P7','P8','M2','LG','J8','J9'];
-    const CODE_ROW_RE = new RegExp(
-      '\\b(' + FIELD_CODES.join('|') + ')\\s*:\\s*[a-z]{1,4}\\d{1,3}\\b', 'g');
+    // site. Rows are matched by SHAPE — a short upper-case key, a colon, a
+    // short lower-case+digit value. Three different keys on one page is the
+    // signal; ordinary buyer copy never produces that.
+    // Shape only — this file is public, so no key may be written down here.
+    const CODE_ROW_RE = /\b([A-Z]{1,2}[0-9]?)\s*:\s*[a-z]{1,4}\d{1,3}\b/g;
 
     const kill = [];   // 0-indexed pages to delete
     for (let p = 1; p <= totalPages; p++) {
@@ -1360,8 +1513,7 @@ async function stripSection11FromPdf(file) {
 
       const isSec11 = seen.size >= 3 ||
                       (up.includes('SECTION 11') && up.includes('SYSTEM METADATA')) ||
-                      up.includes('MACHINE-READABLE FILTER CODES') ||
-                      up.includes('DESIGN_NAME');
+                      up.includes('MACHINE-READABLE FILTER CODES');
       if (isSec11) kill.push(p - 1);
     }
 
@@ -1374,7 +1526,7 @@ async function stripSection11FromPdf(file) {
         throw new Error('File is named _SYSTEM but no Section 11 block was found — ' +
                         'refusing to upload it publicly. Check the PDF layout.');
       }
-      console.log('[PDF Strip] Section 11 not found on any page — uploading the original PDF.');
+      console.log('[PDF Strip] nothing to remove — uploading the original PDF.');
       return file;
     }
 
@@ -1778,12 +1930,32 @@ window.submitForm = async function() {
 
     // ── INTERNAL — pdfMetaRaw is saved to a separate private collection ──
     // It never reaches the public templates collection.
+    // 2 Aug 2026 — THIS LINE WAS KILLING EVERY GOOD UPLOAD.
+    // firestore.rules says:
+    //     match /templates_internal/{docId}
+    //       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
+    // and this write did not send sellerId, so Firestore refused it with
+    // "Missing or insufficient permissions" — which threw, and the whole submit
+    // ended on a red "Upload failed" AFTER the templates doc had been created.
+    //
+    // The cruel part: this block only runs when the PDF HAS a Section 11 block.
+    // Upload the picture deck (no codes) and it is skipped and everything looks
+    // fine; upload the correct _SYSTEM file and the submit blows up. That is why
+    // every kit that survived is a kit with no metadata.
+    //
+    // sellerId added, and the write can no longer take the submission down with
+    // it — the kit is already saved by this point, this is only a side record.
     if (Object.keys(pdfMeta).length) {
-      await setDoc(doc(db, 'templates_internal', docRef.id), {
-        pdfMetaRaw:  pdfMeta,
-        templateId:  docRef.id,
-        savedAt:     serverTimestamp()
-      });
+      try {
+        await setDoc(doc(db, 'templates_internal', docRef.id), {
+          pdfMetaRaw:  pdfMeta,
+          templateId:  docRef.id,
+          sellerId:    currentUser.uid,      // required by firestore.rules
+          savedAt:     serverTimestamp()
+        });
+      } catch (internalErr) {
+        console.warn('[templates_internal] side record not saved:', internalErr);
+      }
     }
 
     // ── METADATA (28 Jul 2026) ──────────────────────────────────────────
@@ -1791,9 +1963,29 @@ window.submitForm = async function() {
     // process_system_pdf reads the codes there and writes kits.encoded_raw —
     // this is the ONLY path by which a kit's real metadata reaches search.
     // The public pdf uploaded above is still the stripped one.
-    if (pdfFile) {
+    // 2 Aug 2026 — SEND THE FILE THAT ACTUALLY HAS THE CODES.
+    // This used to hand `pdfFile` (the product deck / picture PDF) to the
+    // private bucket unconditionally. That deck has no Section 11 in it — the
+    // codes are in the Design Brief. Result: the cloud reader downloaded the
+    // deck every time and logged "No encoded Section 11 found", so kits never
+    // received anything, and the only codes on record were the four the form
+    // itself could infer. Both files are checked now and the one carrying the
+    // code page is the one that goes up.
+    setProgress(96, 'Checking which file carries the metadata...');
+    let systemSource = null;
+    if (await pdfHasSection11(designDocFile))  systemSource = designDocFile;
+    else if (await pdfHasSection11(pdfFile))   systemSource = pdfFile;
+
+    if (systemSource) {
+      window._pdfHasCodes = true;
+      console.log('[MC] source =', systemSource.name);
       setProgress(97, 'Data is loading...');
-      await uploadSystemPdf(docRef.id, pdfFile);
+      await uploadSystemPdf(docRef.id, systemSource);
+    } else {
+      window._pdfHasCodes = false;
+      console.warn('[MC] none in either file.');
+      _sysPdfNote('⚠️ Submitted WITHOUT MC — neither file carried any, so this kit is not ' +
+                  'searchable. Re-submit with the "..._SYSTEM.pdf" in the Design Brief box.', 'red');
     }
 
     setProgress(100, 'Done!');
