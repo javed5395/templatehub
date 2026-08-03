@@ -896,6 +896,12 @@
     //       "make 4 slides for me" fell through to the browse matcher, which saw
     //       the word "slides" and replied "Opening Pitch Decks for you" — wrong
     //       answer to a creation request.
+    // 3 Aug 2026 — "every day at 11" / "email me, I'm going out" never opens the
+    // canvas: it becomes a routine or an order. Same call in all three doors.
+    if(window.hexaDesignIntent && window.hexaDesignIntent(text) && window.hexaHandleAway &&
+       window.hexaHandleAway(text, function(msg){ bubble.textContent=msg; hbScroll(); return bubble; })){
+      return;
+    }
     if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
       var dz=window.hexaDesign(text);
       bubble.textContent=dz.reply;

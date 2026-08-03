@@ -944,6 +944,28 @@
       'this tab. It will be waiting on <a href="my_designs.html">My Designs</a>.' };
   };
 
+  /* THE ONE ROUTER. Hexa has three doors — the prompt box, the chat bubble in
+     the navbar, and the little chat in the search card — and each had its own
+     copy of "what to do with a design request". The brain is shared, so the
+     decision belongs here too: each door just asks this, and if it says it
+     handled the sentence, the door stops.
+       say(text) → must print a line and return the element, so the reply can
+       be swapped in when the write finishes. */
+  window.hexaHandleAway = function (text, say) {
+    var repeat = window.hexaRepeatIntent && window.hexaRepeatIntent(text);
+    var leave  = window.hexaLeaveIntent  && window.hexaLeaveIntent(text);
+    if (!(repeat || leave) || !window.hexaPlace) return false;
+    var line = null;
+    try { line = say(repeat ? 'Setting that up as a daily routine…' : 'Placing your order…'); }
+    catch (e) { /* a door with nowhere to print still places the order */ }
+    window.hexaPlace(repeat ? 'routine' : 'order', text).then(function (r) {
+      if (line) { line.innerHTML = r.reply; }
+    }).catch(function (e) {
+      if (line) { line.textContent = 'Could not save that: ' + (e && e.message ? e.message : e); }
+    });
+    return true;
+  };
+
   window.hexaDesign = function (text) {
     var raw  = String(text || '');
     var seed = raw.slice(0, 200);

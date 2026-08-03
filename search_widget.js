@@ -871,6 +871,11 @@
     if(_lead && _lead.reply){ addMsg(_lead.reply,'engine'); return; }
     // design order — "make me a hospital kit" → Hexa ACTS (25 Jul, Javed):
     // she opens the Designer herself; the button stays as a fallback.
+    // 3 Aug 2026 — routine / order requests are handled by the brain, not here.
+    if(window.hexaDesignIntent && window.hexaDesignIntent(text) && window.hexaHandleAway &&
+       window.hexaHandleAway(text, function(msg){ return addMsg(msg,'engine'); })){
+      return;
+    }
     if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
       var _dz=window.hexaDesign(text);
       var _dm=addMsg(_dz.reply,'engine');
