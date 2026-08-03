@@ -122,6 +122,30 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ── design_schedules (REPEATING DESIGNS — OWNER ONLY, 2 Aug 2026) ─────
+    // A schedule is a standing claim on compute: it fires every day without
+    // anyone clicking anything. So only the two owner accounts may have one.
+    // A buyer places orders one at a time; the owner gets a routine.
+    match /design_schedules/{scheduleId} {
+      allow read:   if isAdmin();
+      allow create: if isAdmin()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.hour is int
+                    && request.resource.data.hour >= 0
+                    && request.resource.data.hour <= 23
+                    && request.resource.data.slides is int
+                    && request.resource.data.slides > 0
+                    && request.resource.data.sentence is string
+                    && request.resource.data.sentence.size() > 3
+                    && request.resource.data.sentence.size() < 601;
+      // pause / resume / retitle only — lastRunDate is the server's business,
+      // and a client cannot rewrite it to make a schedule fire twice.
+      allow update: if isAdmin()
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(['active', 'hour', 'slides', 'label']);
+      allow delete: if isAdmin();
+    }
+
     // ── kit_slots collection (PRIVATE) ────────────────────────────────────
     // The full per-slide capacity map. Read ONLY by the fit_content callable
     // via the Admin SDK (which bypasses these rules). Never readable by the
