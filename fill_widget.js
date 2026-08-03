@@ -249,7 +249,7 @@
       if(!isAdmin){
         alert('Filling a deck with your content is a subscriber feature.\n\n'
             + 'Subscriptions are coming soon. In the meantime you can still\n'
-            + 'generate up to 5 slides free from the designer.');
+            + 'generate up to 8 slides free from the designer.');
         return;
       }
       if(!(deckFile || designRef)){ alert('Drag a design from the page, or drop a .pptx here, first.'); return; }

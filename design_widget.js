@@ -320,14 +320,14 @@
     // ── WHO MAY ORDER (2 Aug 2026, Javed) ────────────────────────────────────
     //   not signed in  → nothing. The button stays locked and firestore.rules
     //                    refuses the write even if someone gets past the page.
-    //   signed-in free → orders in the BACKGROUND, up to 5 slides. They can
+    //   signed-in free → orders in the BACKGROUND, up to 8 slides. They can
     //                    close the tab; the deck is waiting in My Designs.
     //   paying customer→ same, with their plan's slide count.
     //   admin          → unchanged: opens the Designer immediately, as before.
     var TEST_OPEN = false;
     var isAdmin = TEST_OPEN;
     var currentUser = null;
-    var FREE_SLIDES = 5;
+    var FREE_SLIDES = 8;   /* 3 Aug 2026 — 5 → 8 (Javed) */
     var FB_CONF = { apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
                     authDomain: "templatehub-16cd7.firebaseapp.com",
                     projectId: "templatehub-16cd7" };

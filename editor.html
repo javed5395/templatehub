@@ -12952,7 +12952,22 @@ async function exportPptxFile() {
       method: 'POST', headers: window.ldHeaders('application/json'),
       body: JSON.stringify({ deck: deck })
     });
-    if (!r.ok) throw new Error('cloud export ' + r.status);
+    /* 3 Aug 2026 — THE EMAIL IS ASKED FOR HERE, NOT AT THE DOOR.
+     A signed-out visitor may build and look at their deck; the account is
+     asked for when the file is about to become theirs. Without this branch the
+     proxy's 401 surfaced as "cloud export 401", which tells a buyer nothing.
+     Sends them to sign in and brings them straight back to this deck. */
+  if (r.status === 401) {
+    var _msg = 'Sign in with your email to download this — free, no card needed.';
+    try { var _je = await r.json(); if (_je && _je.message) _msg = _je.message; } catch (e) {}
+    showToast(_msg);
+    try {
+      sessionStorage.setItem('ld_after_signin', location.href);
+      setTimeout(function () { location.href = 'upload_form.html?next=editor'; }, 2200);
+    } catch (e) {}
+    return;
+  }
+  if (!r.ok) throw new Error('cloud export ' + r.status);
     /* Big export (>30MB): the cloud parks the pptx on storage (Cloud Run
        can't send >32MB directly) and returns {big:true, pptxUrl} — pull the
        real file from there. Small exports still arrive directly, unchanged. */

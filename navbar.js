@@ -897,7 +897,7 @@
     }
     // 0.55) design order — "make me a hospital kit" → Open in Designer button.
     //       29 Jul 2026: the owner-only lock is REMOVED. Slide generation runs on
-    //       LazyDog's own engine (no model cost) and is now free up to 5 slides,
+    //       LazyDog's own engine (no model cost) and is now free up to 8 slides,
     //       enforced server-side in composer_proxy. While this was admin-gated,
     //       "make 4 slides for me" fell through to the browse matcher, which saw
     //       the word "slides" and replied "Opening Pitch Decks for you" — wrong

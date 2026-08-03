@@ -860,7 +860,7 @@
      The browser cannot know who you are at this instant, so it no longer claims.
      It states the free limit as a fact and passes the request through untouched —
      composer_proxy applies the real cap, and admins are exempt there. */
-  var HEXA_FREE_SLIDES = 5;
+  var HEXA_FREE_SLIDES = 8;   /* 3 Aug 2026 — 5 → 8 (Javed) */
   /* ── ORDER vs ROUTINE vs OPEN-IT-NOW (3 Aug 2026, Javed) ──────────────────
      Three different things a person can mean by "make me a deck":
 
