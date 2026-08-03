@@ -1,5 +1,28 @@
 (function() {
 
+  /* ── VISITOR COUNTING (3 Aug 2026) ────────────────────────────────────────
+     Google Analytics, loaded here because navbar.js is on every page — so this
+     one insertion covers the whole site, including every page added later.
+
+     It answers the question we could not answer before: did anybody actually
+     come? Five sign-in accounts looked identical whether nobody visited or two
+     hundred people did. Now we can tell the difference, and see which of
+     Twitter, LinkedIn, Facebook or Instagram sent them.
+
+     Costs nothing, touches no Firebase storage, and does not slow the page —
+     the script is async and its own domain. */
+  (function () {
+    var GA_ID = 'G-9ZV58530NT';
+    var g = document.createElement('script');
+    g.async = true;
+    g.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(g);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', GA_ID);
+  })();
+
   // ── INJECT SHARED STYLESHEET (first — before any other DOM work) ──
   var css = document.createElement('link');
   css.rel = 'stylesheet'; css.href = 'shared-styles.css';
