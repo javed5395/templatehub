@@ -317,14 +317,37 @@
     });
 
     // ── admin lock (same policy as the fill card; TEST_OPEN opens for tests) ──
+    // ── WHO MAY ORDER (2 Aug 2026, Javed) ────────────────────────────────────
+    //   not signed in  → nothing. The button stays locked and firestore.rules
+    //                    refuses the write even if someone gets past the page.
+    //   signed-in free → orders in the BACKGROUND, up to 5 slides. They can
+    //                    close the tab; the deck is waiting in My Designs.
+    //   paying customer→ same, with their plan's slide count.
+    //   admin          → unchanged: opens the Designer immediately, as before.
     var TEST_OPEN = false;
     var isAdmin = TEST_OPEN;
+    var currentUser = null;
+    var FREE_SLIDES = 5;
+    var FB_CONF = { apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+                    authDomain: "templatehub-16cd7.firebaseapp.com",
+                    projectId: "templatehub-16cd7" };
     var goBtn = document.getElementById('dwGo'), note = document.getElementById('dwNote');
+
     function applyAdmin() {
-      goBtn.disabled = !isAdmin;
-      note.textContent = isAdmin ? '' : '🔒 Only the admin can generate new designs for now.';
-      note.style.color = isAdmin ? '' : '#b23a3a';
+      goBtn.disabled = !(isAdmin || currentUser);
+      if (isAdmin) {
+        note.textContent = '';
+      } else if (currentUser) {
+        note.style.color = '';
+        note.textContent = 'Free plan builds up to ' + FREE_SLIDES + ' slides. Order it and close the tab — ' +
+                           'it is built in the background and waits for you in My Designs.';
+      } else {
+        note.style.color = '#b23a3a';
+        note.textContent = '🔒 Sign in to order a design — then you can close the tab while it builds.';
+      }
+      goBtn.textContent = (isAdmin || !currentUser) ? goBtn.textContent : 'Order this design';
     }
+
     (function checkAdmin() {
       var ADMINS = ['javed5395@gmail.com', 'lazydogtemplates@gmail.com'];
       Promise.all([
@@ -332,14 +355,53 @@
         import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
       ]).then(function (m) {
         var A = m[0], B = m[1];
-        var app = A.getApps().length ? A.getApp() : A.initializeApp({ apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain: "templatehub-16cd7.firebaseapp.com", projectId: "templatehub-16cd7" });
+        var app = A.getApps().length ? A.getApp() : A.initializeApp(FB_CONF);
         B.onAuthStateChanged(B.getAuth(app), function (u) {
+          currentUser = u || null;
           isAdmin = TEST_OPEN || !!(u && ADMINS.indexOf(String(u.email || '').toLowerCase()) > -1);
           applyAdmin();
         });
       }).catch(function () { applyAdmin(); });
     })();
     applyAdmin();
+
+    // ── place a background order ─────────────────────────────────────────────
+    // The order is a row in `design_orders`, nothing more. on_design_order picks
+    // it up server-side, checks the plan itself (the page is never trusted for
+    // that), builds the deck and writes the file back onto the row.
+    function placeOrder(sentence) {
+      var slidesRaw = parseInt((document.getElementById('dw_slides') || {}).value || '', 10);
+      var slides = (slidesRaw > 0 && slidesRaw <= 60) ? slidesRaw : FREE_SLIDES;
+      goBtn.disabled = true;
+      note.style.color = '';
+      note.textContent = '⏳ Placing your order…';
+      Promise.all([
+        import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js')
+      ]).then(function (m) {
+        var A = m[0], F = m[1];
+        var app = A.getApps().length ? A.getApp() : A.initializeApp(FB_CONF);
+        var db = F.getFirestore(app);
+        return F.addDoc(F.collection(db, 'design_orders'), {
+          uid:       currentUser.uid,
+          email:     String(currentUser.email || ''),
+          sentence:  sentence,
+          slides:    slides,
+          status:    'queued',
+          createdAt: F.serverTimestamp(),
+          page:      String(location.pathname || '')
+        });
+      }).then(function () {
+        note.style.color = '#1b7f3e';
+        note.innerHTML = '✅ Ordered. You can close this tab — it is being built now. ' +
+                         'Collect it on <a href="my_designs.html">My Designs</a>.';
+        goBtn.disabled = false;
+      }).catch(function (e) {
+        note.style.color = '#b23a3a';
+        note.textContent = 'Could not place the order: ' + (e && e.message ? e.message : e);
+        goBtn.disabled = false;
+      });
+    }
 
     // ── build ONE order sentence the composer's grammar understands ──────────
     function v(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
@@ -405,8 +467,21 @@
     });
 
     goBtn.addEventListener('click', function () {
-      if (!isAdmin) { alert('Only the admin can generate new designs for now.'); return; }
       var sentence = orderSentence();
+      if (!isAdmin) {
+        if (!currentUser) {
+          note.style.color = '#b23a3a';
+          note.textContent = '🔒 Sign in first — then you can order a design and walk away.';
+          return;
+        }
+        if (!sentence || sentence.length < 4) {
+          note.style.color = '#b23a3a';
+          note.textContent = 'Pick a few preferences first — template type, colour, style…';
+          return;
+        }
+        placeOrder(sentence);
+        return;
+      }
       if (!sentence || sentence.length < 4) {
         note.textContent = hexaBar
           ? 'Describe your design in the prompt box above, or pick a few preferences.'

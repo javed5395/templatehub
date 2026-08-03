@@ -100,6 +100,28 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ── design_orders (BACKGROUND DESIGN ORDERS, 2 Aug 2026) ──────────────
+    // A buyer places an order and walks away; on_design_order builds it.
+    // A signed-out visitor cannot create one at all — that is the whole
+    // "no sign in, no generation" rule, enforced here rather than in the page,
+    // so it holds even if someone calls Firestore directly.
+    // The client may CREATE a queued order and READ its own orders. It may
+    // never update or delete one: status, the finished file and the reject
+    // reason are the server's words, not the buyer's.
+    match /design_orders/{orderId} {
+      allow read:   if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.status == 'queued'
+                    && request.resource.data.slides is int
+                    && request.resource.data.slides > 0
+                    && (request.resource.data.slides <= 60 || isAdmin())
+                    && request.resource.data.sentence is string
+                    && request.resource.data.sentence.size() > 3
+                    && request.resource.data.sentence.size() < 601;
+      allow update, delete: if false;
+    }
+
     // ── kit_slots collection (PRIVATE) ────────────────────────────────────
     // The full per-slide capacity map. Read ONLY by the fit_content callable
     // via the Admin SDK (which bypasses these rules). Never readable by the

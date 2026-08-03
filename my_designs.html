@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Designs — LazyDogStudios</title>
+<meta name="robots" content="noindex"/>
+<link rel="stylesheet" href="shared-styles.css"/>
+<style>
+  :root { --ink:#12172b; --muted:#6b7280; --line:#e6e8f0; --green:#1b7f3e; --red:#b23a3a; }
+  body { font-family:Poppins, system-ui, sans-serif; color:var(--ink); background:#fbfbfe; margin:0; }
+  .wrap { max-width:960px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .sub { color:var(--muted); font-size:14px; margin:0 0 26px; }
+  .card { border:1px solid var(--line); border-radius:14px; background:#fff; padding:16px 18px; margin-bottom:12px; }
+  .row { display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+  .grow { flex:1 1 320px; min-width:0; }
+  .order { font-size:14px; line-height:1.5; word-break:break-word; }
+  .meta { color:var(--muted); font-size:12px; margin-top:6px; }
+  .pill { font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+  .queued  { background:#eef2ff; color:#3730a3; }
+  .running { background:#fff7ed; color:#9a3412; }
+  .done    { background:#ecfdf5; color:var(--green); }
+  .failed, .rejected { background:#fef2f2; color:var(--red); }
+  .btn { display:inline-block; background:var(--ink); color:#fff; text-decoration:none;
+         padding:9px 16px; border-radius:10px; font-size:13px; font-weight:600; }
+  .reason { color:var(--red); font-size:13px; margin-top:8px; }
+  .empty { border:1px dashed var(--line); border-radius:14px; padding:40px; text-align:center; color:var(--muted); }
+  a.plain { color:var(--ink); }
+</style>
+</head>
+<body>
+<div id="navbarMount"></div>
+<div class="wrap">
+  <h1>My Designs</h1>
+  <p class="sub">Designs you ordered from the “Want us to make a design?” card. They are built on our
+     servers — you can close the tab and come back. This page refreshes itself.</p>
+  <div id="list"><div class="empty">Loading…</div></div>
+</div>
+
+<script src="navbar.js"></script>
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, query, where, orderBy, limit, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const CONF = { apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+               authDomain: "templatehub-16cd7.firebaseapp.com",
+               projectId: "templatehub-16cd7" };
+const app  = getApps().length ? getApp() : initializeApp(CONF);
+const db   = getFirestore(app);
+const list = document.getElementById('list');
+
+const LABEL = {
+  queued:  ['queued',   'In the queue'],
+  running: ['running',  'Being built now'],
+  done:    ['done',     'Ready'],
+  failed:  ['failed',   'Did not finish'],
+  rejected:['rejected', 'Not built']
+};
+
+function when(ts) {
+  try { const d = ts && ts.toDate ? ts.toDate() : null;
+        return d ? d.toLocaleString() : ''; } catch (e) { return ''; }
+}
+
+function card(id, o) {
+  const st  = String(o.status || 'queued');
+  const lab = LABEL[st] || ['queued', st];
+  const bits = [];
+  if (o.slides) bits.push(o.slides + ' slides');
+  if (o.tier)   bits.push(o.tier + ' plan');
+  const stamp = when(o.finishedAt) || when(o.createdAt);
+  if (stamp)    bits.push(stamp);
+
+  return '<div class="card"><div class="row">' +
+      '<div class="grow">' +
+        '<div class="order">' + (o.sentence ? escapeHtml(o.sentence) : '(no description)') + '</div>' +
+        '<div class="meta">' + bits.join(' · ') + '</div>' +
+        (o.reason ? '<div class="reason">' + escapeHtml(o.reason) + '</div>' : '') +
+      '</div>' +
+      '<span class="pill ' + lab[0] + '">' + lab[1] + '</span>' +
+      (st === 'done' && o.pptx_url
+        ? '<a class="btn" href="' + o.pptx_url + '" download>Download .pptx</a>' : '') +
+    '</div></div>';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+onAuthStateChanged(getAuth(app), (user) => {
+  if (!user) {
+    list.innerHTML = '<div class="empty">Please <a class="plain" href="upload_form.html">sign in</a> ' +
+                     'to see the designs you ordered.</div>';
+    return;
+  }
+  // Live: the row updates itself the moment the server finishes the build.
+  const q = query(collection(db, 'design_orders'),
+                  where('uid', '==', user.uid),
+                  orderBy('createdAt', 'desc'),
+                  limit(50));
+  onSnapshot(q, (snap) => {
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty">Nothing here yet. Order one from the ' +
+                       '<strong>“Want us to make a design?”</strong> card on any store page.</div>';
+      return;
+    }
+    let html = '';
+    snap.forEach(d => { html += card(d.id, d.data() || {}); });
+    list.innerHTML = html;
+  }, (err) => {
+    // An index-missing error is the usual first-run cause; say so plainly.
+    list.innerHTML = '<div class="empty">Could not load your designs: ' +
+                     escapeHtml(err && err.message ? err.message : String(err)) + '</div>';
+  });
+});
+</script>
+</body>
+</html>
