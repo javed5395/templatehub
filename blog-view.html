@@ -99,25 +99,59 @@
     return pdfUrl.replace('/image/upload/', '/image/upload/f_jpg,pg_' + n + ',w_1400/');
   }
 
-  // Load page 1, 2, 3 … in order; stop when a page doesn't exist. Cap for safety.
+  // 3 Aug 2026 — this used to ask for page 1, wait for it, then ask for page 2,
+  // wait, then page 3. On a five-page volume that is five round trips one after
+  // another, and until the first one landed the page sat blank white — long
+  // enough to look broken.
+  //
+  // Now a whole batch is requested at once and we wait for the batch, not for
+  // each page. A three- or five-page post is therefore ONE wait instead of five.
+  // We still discover the length by asking for pages that may not exist, so the
+  // batch is kept small and a second one is only fetched if every page in the
+  // first came back — that way a 3-page post costs six requests, not sixty.
   function renderPages(pdfUrl, mount, fallbackUrl){
-    mount.innerHTML = '';
-    let n = 1; const MAX = 100;
-    (function next(){
-      if (n > MAX) return;
-      const img = new Image();
-      img.className = 'bv-page';
-      img.onload  = function(){ mount.appendChild(img); n++; next(); };
-      img.onerror = function(){
-        if (n === 1) {
-          var fb = safeUrl(fallbackUrl);
-          mount.innerHTML = '<div class="bv-status">Couldn\'t display this blog inline. '
-            + (fb ? '<a href="' + esc(fb) + '" target="_blank" rel="noopener">Open the PDF ↗</a>' : '')
-            + '</div>';
+    mount.innerHTML = '<div class="bv-status">Loading…</div>';
+
+    const BATCH = 6, MAX = 60;
+    const pages = [];
+    let next = 1;
+
+    function load(n){
+      return new Promise(function(done){
+        const img = new Image();
+        img.className = 'bv-page';
+        img.onload  = function(){ done(img); };
+        img.onerror = function(){ done(null); };
+        img.src = pageImageUrl(pdfUrl, n);
+      });
+    }
+
+    function show(){
+      if (!pages.length) {
+        var fb = safeUrl(fallbackUrl);
+        mount.innerHTML = '<div class="bv-status">Couldn\'t display this blog inline. '
+          + (fb ? '<a href="' + esc(fb) + '" target="_blank" rel="noopener">Open the PDF ↗</a>' : '')
+          + '</div>';
+        return;
+      }
+      mount.innerHTML = '';
+      pages.forEach(function(img){ mount.appendChild(img); });
+    }
+
+    (function round(){
+      const jobs = [];
+      for (let i = 0; i < BATCH && (next + i) <= MAX; i++) jobs.push(load(next + i));
+      if (!jobs.length) { show(); return; }
+
+      Promise.all(jobs).then(function(got){
+        let complete = true;
+        for (let j = 0; j < got.length; j++) {
+          if (!got[j]) { complete = false; break; }   // first gap = end of document
+          pages.push(got[j]);
         }
-        // else: reached the end of the pages — done.
-      };
-      img.src = pageImageUrl(pdfUrl, n);
+        if (complete && (next + BATCH) <= MAX) { next += BATCH; round(); return; }
+        show();
+      });
     })();
   }
 

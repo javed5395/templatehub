@@ -119,6 +119,53 @@
     var WEIGHT = [['none','None'],['low','Low'],['medium','Medium'],['medium-high','Medium-High'],
                   ['high','High'],['very-high','Very High']];
 
+    /* ── FONTS (3 Aug 2026) ────────────────────────────────────────────────
+       Thirty pairings, not a font list. The editor already carries all 2,043
+       fonts, so anyone wanting one specific face changes it there. What a buyer
+       filling in this card wants is a LOOK, and nobody picks a look by
+       scrolling two thousand names.
+
+       Each value is  heading|body  — the same two slots the composer calls
+       major and minor. The order sentence writes them as "heading font X, body
+       font Y", which is the exact wording orders.js already parses. So this box
+       is wired to something real from the moment it appears.
+
+       All sixty names were checked against fonts_list.json. Ordered plainest
+       first, and no two pairings are meant to feel alike. */
+    var FONTS = [
+      ['Poppins|Inter',                'Modern Sans'],
+      ['Montserrat|Open Sans',         'Clean Corporate'],
+      ['Archivo|Inter',                'Swiss Minimal'],
+      ['Work Sans|Source Sans Pro',    'Neutral Workhorse'],
+      ['Segoe UI|Calibri',             'Office Standard'],
+      ['Cambria|Candara',              'Traditional Business'],
+      ['Space Grotesk|DM Sans',        'Startup Deck'],
+      ['Sora|Figtree',                 'Clean Grotesk'],
+      ['Rubik|Karla',                  'Friendly Tech'],
+      ['Lexend|Chivo',                 'Easy Reading'],
+      ['Manrope|Mulish',               'Quiet Modern'],
+      ['Futura|Avenir',                'Geometric Cool'],
+      ['Josefin Sans|Raleway',         'Elegant Light'],
+      ['Quicksand|Nunito',             'Soft and Friendly'],
+      ['Comfortaa|Mulish',             'Rounded Approachable'],
+      ['Gill Sans|Georgia',            'Warm Humanist'],
+      ['Optima|Cabin',                 'Refined Classic'],
+      ['Oswald|Barlow',                'Tall and Narrow'],
+      ['Teko|Barlow',                  'High Energy'],
+      ['Bebas Neue|Archivo',           'Poster Display'],
+      ['Anton|Roboto',                 'Bold Statement'],
+      ['Roboto Slab|Roboto',           'Slab Confident'],
+      ['Arvo|Bitter',                  'Vintage Slab'],
+      ['IBM Plex Serif|IBM Plex Sans', 'Technical'],
+      ['Playfair Display|Lora',        'Editorial Classic'],
+      ['Merriweather|PT Sans',         'Newspaper'],
+      ['Abril Fatface|Spectral',       'Magazine'],
+      ['Didot|Lato',                   'Fashion Editorial'],
+      ['Cormorant Garamond|Lato',      'Luxury Serif'],
+      ['EB Garamond|Crimson Text',     'Timeless Print'],
+      ['Baskerville|PT Serif',         'Academic']
+    ];
+
     var CONTENT = [['pitch-deck','Pitch Deck'],['media-kit','Media Kit']];
 
     var TYPE = [['freelancer','Freelancer'],['podcast','Podcast'],['press','Press / PR'],['influencer','Influencer'],
@@ -202,6 +249,7 @@
       sel('colorFamily', 'Colour family', COLOR) +
       sel('background', 'Background', BG) +
       sel('style', 'Style', STYLE) +
+      sel('fonts', 'Fonts', FONTS) +
       sel('tone', 'Tone', TONE) +
       sel('audience', 'Audience', AUD) +
       sel('bestFor', 'Best for', BEST) +
@@ -214,7 +262,7 @@
       // 2 Aug 2026 — "Image weight" removed (Javed): the search card has no such
       // field, and shapes/graphs/empty space already describe the canvas.
       txt('mockups', 'Mock-up slides', 'e.g. 5 or 20%') +
-      txt('ref', 'Past design', 'e.g. design 3 background') +
+      txt('ref', 'Past design', 'e.g. PD-044 background') +
       txt('inspired', 'Inspired by', 'e.g. the Aurora kit layout');
 
     var wrap = document.createElement('div');
@@ -427,6 +475,17 @@
       var cf = word('dw_colorFamily'); if (cf) bits.push(cf);
       var bg = word('dw_background');  if (bg) bits.push(bg + ' background');
       var st = word('dw_style');       if (st) bits.push(st);
+
+      // Fonts must be said EARLY. orders.js looks for the first "text" in the
+      // sentence when hunting the body font, and further down we push things
+      // like "medium text" for the canvas weights. Said here, "body font Lora"
+      // is found first and the weights can never be mistaken for a font name.
+      var ft = v('dw_fonts');
+      if (ft) {
+        var fp = ft.split('|');
+        bits.push('heading font ' + fp[0] + ', body font ' + (fp[1] || fp[0]));
+      }
+
       var tn = word('dw_tone');        if (tn) bits.push(tn + ' tone');
       var au = word('dw_audience');    if (au) bits.push('for ' + au);
       var bf = word('dw_bestFor');     if (bf) bits.push('best for ' + bf);
@@ -444,7 +503,24 @@
 
       var mk = v('dw_mockups');
       if (mk) bits.push(/%/.test(mk) ? (mk.replace(/[^\d]/g, '') + '% mockup slides') : (mk.replace(/[^\d]/g, '') + ' mockup slides'));
-      var rf = v('dw_ref'); if (rf) bits.push(/design\s*\d/i.test(rf) ? ('use ' + rf.toLowerCase()) : rf);
+      // Past design — accept the code printed on every kit card (PD-044) in
+      // whatever shape it gets typed: "pd44", "MK 17", "wk-2 background". It is
+      // said back in ONE fixed form so the order always reads the same, and the
+      // three-digit padding matches the code on the card exactly.
+      var rf = v('dw_ref');
+      if (rf) {
+        var CODE_RX = /\b(PD|MK|WK|CV|KN)[\s\-_]?(\d{1,3})\b/i;
+        var cm = rf.match(CODE_RX);
+        if (cm) {
+          var canon = cm[1].toUpperCase() + '-' + ('00' + cm[2]).slice(-3);
+          var rest  = rf.replace(CODE_RX, ' ').replace(/\s+/g, ' ').trim();
+          bits.push('use design ' + canon + (rest ? ' ' + rest.toLowerCase() : ''));
+        } else if (/design\s*\d/i.test(rf)) {
+          bits.push('use ' + rf.toLowerCase());
+        } else {
+          bits.push(rf);
+        }
+      }
       var insp = v('dw_inspired'); if (insp) bits.push('inspired by ' + insp);
 
       return bits.join(', ').slice(0, 600);

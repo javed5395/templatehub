@@ -203,14 +203,32 @@
     try { if (ts && ts.seconds) return new Date(ts.seconds*1000).toLocaleDateString('en-US',{month:'long', year:'numeric'}); } catch(e){}
     return '';
   }
+  // 3 Aug 2026 — every card used to show the same grey mark, because a blog is
+  // uploaded as a PDF and no cover image is ever made from it. Cloudinary can
+  // hand us page one as a picture, which is the post's own branded header — the
+  // same trick blog-view.html already uses to show the pages themselves.
+  // The gradient stays underneath as a second layer, so a card that cannot get
+  // its cover looks exactly as it did before rather than going blank.
+  function coverUrl(p){
+    var u = p.pdfUrl || p.designDocUrl || (p.template && p.template.pdfUrl) || '';
+    if (!u || u.indexOf('/image/upload/') === -1) return '';
+    return u.replace('/image/upload/', '/image/upload/f_jpg,pg_1,w_760,h_450,c_fill,g_north/');
+  }
+
   function cardHTML(p){
     // Blogs are uploaded as PDFs — the card opens a viewer page that shows the PDF.
     var title = p.title || (p.template && p.template.name) || 'Untitled';
     var href  = 'blog-view.html?id=' + encodeURIComponent(p._id || '');
+    var cover = coverUrl(p);
+    var thumbAttr = cover
+      ? ' style="background-image:url(&quot;' + escapeHtml(cover) + '&quot;),' +
+        'linear-gradient(135deg,#0d1b4b 0%,#1a1a2e 55%,#3a2400 100%);' +
+        'background-size:cover;background-position:top center;background-repeat:no-repeat"'
+      : '';
     return '<a href="' + href + '" class="blog-card">' +
-      '<div class="blog-card-thumb">' +
+      '<div class="blog-card-thumb"' + thumbAttr + '>' +
         '<span class="blog-card-badge">' + escapeHtml(p.subCategory || 'Blog') + '</span>' +
-        '<span class="blog-card-thumb-mark">LazyDogTemplates</span>' +
+        (cover ? '' : '<span class="blog-card-thumb-mark">LazyDogTemplates</span>') +
       '</div>' +
       '<div class="blog-card-body">' +
         '<div class="blog-card-cat">Behind the Build</div>' +

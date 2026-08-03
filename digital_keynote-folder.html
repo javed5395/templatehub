@@ -518,7 +518,7 @@
     var info = document.createElement('div');
     info.className = 'pd-card-info';
     info.innerHTML =
-      '<div class="pd-card-label">Digital Keynote &bull; ' + deck.slides.length + ' slides</div>' +
+      '<div class="pd-card-label">' + (deck.code ? '<span class="pd-card-code" data-code="' + deck.code + '" title="Click to copy this design code">' + deck.code + '</span> ' : '') + 'Digital Keynote &bull; ' + deck.slides.length + ' slides</div>' +
       '<div class="pd-card-title">' + deck.title + '</div>' +
       '<div class="pd-card-meta">' +
         /* Fake rating removed 29 Jul 2026: every card carried a hardcoded
@@ -663,7 +663,7 @@ window.dkCatMap = {};                   // reset live category map
 
           // render grid card
           var uploadedAt = data.uploadedAt ? (data.uploadedAt.toDate ? data.uploadedAt.toDate() : new Date(data.uploadedAt)) : null;
-          var deck = { title: title, cat: subCat, href: href, slides: t.slides, price: t.price, uploadedAt: uploadedAt };
+          var deck = { title: title, cat: subCat, href: href, slides: t.slides, price: t.price, uploadedAt: uploadedAt, code: data.designCode || '' };
           renderDeckCard(grid, deck);
           window._ldtAllDecks.push(ldtNormalizeDeck(t, deck, docSnap.id));   // feed the search engine
         });
@@ -933,5 +933,50 @@ body.light .pd-card-rating { color: #556677 !important; }
   <a href="media_kits_folder_section.html">Media Kits</a>
 </nav>
 
+
+<!-- ── DESIGN CODE ON EVERY CARD (3 Aug 2026) ────────────────────────────────
+     Each kit carries a permanent code — PD-004, MK-017 — handed out once by
+     the server when the kit is created and never reused, not even after the
+     kit is deleted. Numbers therefore have gaps in them, and that is on
+     purpose: a code must always mean the same design or a buyer who wrote one
+     down last week gets a different deck this week with no error shown.
+
+     Clicking the code copies it, so it can be pasted straight into the
+     "Past design" box on the make-a-design card without being retyped.
+     Retyping is where people give up. -->
+<style>
+  .pd-card-code {
+    display:inline-block; font-weight:800; letter-spacing:.4px; font-size:9.5px;
+    background:rgba(212,175,55,.16); color:#d4af37;
+    border:1px solid rgba(212,175,55,.42); border-radius:4px;
+    padding:1px 6px; margin-right:5px; cursor:pointer;
+    transition:background .15s;
+  }
+  .pd-card-code:hover { background:rgba(212,175,55,.34); }
+  .pd-card-code.copied { background:#22c55e; border-color:#22c55e; color:#0b1220; }
+</style>
+<script>
+/* Capture phase, so the copy happens BEFORE the card's link navigates away. */
+document.addEventListener('click', function (e) {
+  var chip = e.target && e.target.closest ? e.target.closest('.pd-card-code') : null;
+  if (!chip) return;
+  e.preventDefault(); e.stopPropagation();
+  var code = chip.getAttribute('data-code') || chip.textContent.trim();
+  var shown = chip.textContent;
+  function done() {
+    chip.textContent = 'copied'; chip.classList.add('copied');
+    setTimeout(function () { chip.textContent = shown; chip.classList.remove('copied'); }, 900);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(done, done);
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = code; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (err) {}
+    document.body.removeChild(ta); done();
+  }
+}, true);
+</script>
 </body>
 </html>
