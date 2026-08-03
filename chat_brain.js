@@ -877,7 +877,11 @@
      What Hexa keeps out of the design words: the timing and the delivery. Those
      are instructions to US, not descriptions of the deck. */
   var REPEAT_RX  = /\b(every ?day|everyday|daily|each day|every morning|each morning|every evening|routine|schedule)\b/i;
-  var LEAVE_RX   = /\b(email me|mail me|send (it|them) to me|when i (get |come )?back|later|meanwhile|in the meantime|after (a|an|\d)|going to (office|work|out)|having (a|my) (coffee|tea|lunch)|i am (busy|out|away)|while i)\b/i;
+  /* 3 Aug 2026 — "after two minutes" and "at 10:50" are also "I am leaving,
+     have it ready": word-numbers and a clock time count too. We do NOT wait for
+     the stated moment — waiting serves nobody. We build immediately and say so,
+     which means it is ready BEFORE the time they asked for. */
+  var LEAVE_RX   = /\b(email me|mail me|send (it|them) to me|when i (get |come )?back|later|meanwhile|in the meantime|after (a|an|\d|one|two|three|four|five|ten|fifteen|twenty|thirty|half)|going to (office|work|out)|having (a|my) (coffee|tea|lunch)|i am (busy|out|away)|while i|by \d{1,2}(:\d{2})?\s*(am|pm)?|at \d{1,2}:\d{2})\b/i;
   var TIME_RX    = /\b(?:at\s*)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b|\bat\s+(\d{1,2})(?::(\d{2}))?\b/i;
   var STRIP_RX   = /\b(every ?day|everyday|daily|each day|every morning|each morning|every evening|and (keep|put) (them|it) in my designs|keep (them|it) in my designs|email me( the output)?|mail me|send (it|them) to me|when i (get |come )?back|in the meantime|meanwhile|after \d+ minutes?|after an? (hour|while)|and will email me( the output)?)\b/gi;
   /* the clock time is an instruction to us, never a design word — "at 11 am"
@@ -920,8 +924,15 @@
 
     var db    = F.getFirestore(app);
     var words = window.hexaDesignWords(text);
-    var m     = String(text || '').match(/\b(\d{1,3})\s*(slides?|pages?)\b/i);
-    var slides= m ? parseInt(m[1], 10) : 5;
+    /* "3 yellow slides" — the number and the noun are not always neighbours, so
+       an adjacent-only match read that as "no number given" and quietly built 5.
+       Allow a few words in between, and fall back to any plain number left in
+       the cleaned sentence (the clock time is already stripped out of it, so
+       "every day at 8 am" can never be mistaken for a slide count). */
+    var m = words.match(/\b(\d{1,3})\s*(?:[a-z-]+\s+){0,3}?(?:slides?|pages?)\b/i)
+         || words.match(/\b(?:slides?|pages?)\s*[:=]?\s*(\d{1,3})\b/i)
+         || words.match(/\b(\d{1,3})\b/);
+    var slides = m ? parseInt(m[1], 10) : 5;
     if (!(slides > 0 && slides <= 60)) slides = 5;
 
     if (kind === 'routine') {
