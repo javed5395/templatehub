@@ -898,7 +898,7 @@
     //       answer to a creation request.
     // 3 Aug 2026 — "every day at 11" / "email me, I'm going out" never opens the
     // canvas: it becomes a routine or an order. Same call in all three doors.
-    if(window.hexaDesignIntent && window.hexaDesignIntent(text) && window.hexaHandleAway &&
+    if(window.hexaHandleAway &&
        window.hexaHandleAway(text, function(msg){ bubble.textContent=msg; hbScroll(); return bubble; })){
       return;
     }

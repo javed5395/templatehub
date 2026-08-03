@@ -872,7 +872,7 @@
     // design order — "make me a hospital kit" → Hexa ACTS (25 Jul, Javed):
     // she opens the Designer herself; the button stays as a fallback.
     // 3 Aug 2026 — routine / order requests are handled by the brain, not here.
-    if(window.hexaDesignIntent && window.hexaDesignIntent(text) && window.hexaHandleAway &&
+    if(window.hexaHandleAway &&
        window.hexaHandleAway(text, function(msg){ return addMsg(msg,'engine'); })){
       return;
     }

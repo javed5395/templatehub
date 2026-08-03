@@ -951,10 +951,19 @@
      handled the sentence, the door stops.
        say(text) → must print a line and return the element, so the reply can
        be swapped in when the write finishes. */
+  /* A routine or an order must be recognised on its OWN, not only when the
+     design-verb detector happens to fire. "4 slides, navy, every day at 8 am"
+     has no verb in it — the store-page door strips "make me" on the way over —
+     and it used to fall through to the browse matcher, which answered
+     "Opening Pitch Decks for you" and quietly dropped the schedule.
+     The guard is the noun: this only takes over a sentence that is plainly
+     about a deck, so "email me later about pricing" is still ordinary chat. */
+  var DESIGN_NOUN_RX = /\b(slides?|deck|decks|presentation|pitch|media ?kit|web ?kit|keynote|design|designs|template)\b/i;
+
   window.hexaHandleAway = function (text, say) {
     var repeat = window.hexaRepeatIntent && window.hexaRepeatIntent(text);
     var leave  = window.hexaLeaveIntent  && window.hexaLeaveIntent(text);
-    if (!(repeat || leave) || !window.hexaPlace) return false;
+    if (!(repeat || leave) || !DESIGN_NOUN_RX.test(String(text || '')) || !window.hexaPlace) return false;
     var line = null;
     try { line = say(repeat ? 'Setting that up as a daily routine…' : 'Placing your order…'); }
     catch (e) { /* a door with nowhere to print still places the order */ }

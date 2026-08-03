@@ -2272,13 +2272,15 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
        skipped this whole block and fell through to chatCompose(), which matched
        the noun "slides" as a BROWSE. Testing design intent alongside compose
        intent — not nested under it — is the fix. */
+    /* asked FIRST: a routine/order is recognised by its own words, with no
+       design verb required — see hexaHandleAway in chat_brain.js */
+    if(window.hexaHandleAway && window.hexaHandleAway(text,function(msg){return addMsg(msg);})){ return; }
     if((window.hexaDesignIntent&&window.hexaDesignIntent(text))||(window.hexaComposeIntent&&window.hexaComposeIntent(text))){
       if(hexaMode==='chat'&&window.hexaDesignIntent&&window.hexaDesignIntent(text)){
         /* 3 Aug 2026 — "every day at 11" is a ROUTINE and "email me / I'm going
            out" is an ORDER. Neither should drag the person to the canvas: they
            just told us they are leaving. Only a plain "make me X" still opens
            the Designer straight away. */
-        if(window.hexaHandleAway && window.hexaHandleAway(text,function(msg){return addMsg(msg);})){ return; }
         var dz=(window.hexaDesign&&window.hexaDesign(text))||{target:'editor.html?compose='+encodeURIComponent(text.slice(0,200)),label:'Open in Designer',reply:'I can design that for you right now 🎨 — opening the Designer:'};
         var dm=addMsg(dz.reply+'<div style="margin-top:6px;font-size:11.5px;opacity:.75;">Taking you to the canvas…</div>');
         if(window.chatMakeActionBtn){ dm.appendChild(document.createElement('br')); dm.appendChild(window.chatMakeActionBtn(dz.target,dz.label)); }
