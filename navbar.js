@@ -865,6 +865,12 @@
     var cmd=(window.hexaCommand && window.hexaCommand(text))||null;
     if(cmd && cmd.reply){ bubble.textContent=cmd.reply; hbRemember('assistant',cmd.reply); hbScroll(); return; }
     // 0.5) lead capture — email in message / "notify me" (#4)
+    /* 3 Aug 2026 — asked BEFORE lead capture: "email me the deck" is an
+       order, not someone handing over their address. */
+    if(window.hexaHandleAway &&
+       window.hexaHandleAway(text, function(msg){ bubble.textContent=msg; hbScroll(); return bubble; })){
+      return;
+    }
     var lead=(window.hexaLeadCapture && window.hexaLeadCapture(text))||null;
     if(lead && lead.reply){ bubble.textContent=lead.reply; hbRemember('assistant',lead.reply); hbScroll(); return; }
     // 0.52) HEXA ADMIN — owner store commands (prepare/publish daily decks)
@@ -898,10 +904,6 @@
     //       answer to a creation request.
     // 3 Aug 2026 — "every day at 11" / "email me, I'm going out" never opens the
     // canvas: it becomes a routine or an order. Same call in all three doors.
-    if(window.hexaHandleAway &&
-       window.hexaHandleAway(text, function(msg){ bubble.textContent=msg; hbScroll(); return bubble; })){
-      return;
-    }
     if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
       var dz=window.hexaDesign(text);
       bubble.textContent=dz.reply;

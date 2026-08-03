@@ -867,15 +867,16 @@
     var _cmd=(window.hexaCommand && window.hexaCommand(text))||null;
     if(_cmd && _cmd.reply){ addMsg(_cmd.reply,'engine'); return; }
     // lead capture — email in message / "notify me" (#4)
+    /* 3 Aug 2026 — before lead capture, same reason as the navbar door. */
+    if(window.hexaHandleAway &&
+       window.hexaHandleAway(text, function(msg){ return addMsg(msg,'engine'); })){
+      return;
+    }
     var _lead=(window.hexaLeadCapture && window.hexaLeadCapture(text))||null;
     if(_lead && _lead.reply){ addMsg(_lead.reply,'engine'); return; }
     // design order — "make me a hospital kit" → Hexa ACTS (25 Jul, Javed):
     // she opens the Designer herself; the button stays as a fallback.
     // 3 Aug 2026 — routine / order requests are handled by the brain, not here.
-    if(window.hexaHandleAway &&
-       window.hexaHandleAway(text, function(msg){ return addMsg(msg,'engine'); })){
-      return;
-    }
     if(window.hexaDesignIntent && window.hexaDesign && window.hexaDesignIntent(text)){
       var _dz=window.hexaDesign(text);
       var _dm=addMsg(_dz.reply,'engine');

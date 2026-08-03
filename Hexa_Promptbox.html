@@ -2257,6 +2257,12 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
       });
       return;
     }
+    /* asked BEFORE lead capture (3 Aug 2026). "email me the output" is part of
+       a design order — the words "email me" made the lead-capture branch grab
+       the sentence first and reply "type your email here", swallowing the
+       order. hexaHandleAway only takes sentences that also name a deck, so a
+       real lead ("email me your pricing") still reaches lead capture. */
+    if(window.hexaHandleAway && window.hexaHandleAway(text,function(msg){return addMsg(msg);})){ return; }
     r=(window.hexaLeadCapture&&window.hexaLeadCapture(text))||null;
     if(r&&r.reply){addMsg(r.reply);return;}
     r=(window.hexaNameCapture&&window.hexaNameCapture(text))||null;
@@ -2272,9 +2278,6 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
        skipped this whole block and fell through to chatCompose(), which matched
        the noun "slides" as a BROWSE. Testing design intent alongside compose
        intent — not nested under it — is the fix. */
-    /* asked FIRST: a routine/order is recognised by its own words, with no
-       design verb required — see hexaHandleAway in chat_brain.js */
-    if(window.hexaHandleAway && window.hexaHandleAway(text,function(msg){return addMsg(msg);})){ return; }
     if((window.hexaDesignIntent&&window.hexaDesignIntent(text))||(window.hexaComposeIntent&&window.hexaComposeIntent(text))){
       if(hexaMode==='chat'&&window.hexaDesignIntent&&window.hexaDesignIntent(text)){
         /* 3 Aug 2026 — "every day at 11" is a ROUTINE and "email me / I'm going
