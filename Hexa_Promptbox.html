@@ -2274,6 +2274,21 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
        intent — not nested under it — is the fix. */
     if((window.hexaDesignIntent&&window.hexaDesignIntent(text))||(window.hexaComposeIntent&&window.hexaComposeIntent(text))){
       if(hexaMode==='chat'&&window.hexaDesignIntent&&window.hexaDesignIntent(text)){
+        /* 3 Aug 2026 — "every day at 11" is a ROUTINE and "email me / I'm going
+           out" is an ORDER. Neither should drag the person to the canvas: they
+           just told us they are leaving. Only a plain "make me X" still opens
+           the Designer straight away. */
+        var _repeat = window.hexaRepeatIntent && window.hexaRepeatIntent(text);
+        var _leave  = window.hexaLeaveIntent  && window.hexaLeaveIntent(text);
+        if((_repeat||_leave) && window.hexaPlace){
+          var _m=addMsg(_repeat?'Setting that up as a daily routine…':'Placing your order…');
+          window.hexaPlace(_repeat?'routine':'order',text).then(function(r){
+            _m.innerHTML=r.reply;
+          }).catch(function(e){
+            _m.textContent='Could not save that: '+(e&&e.message?e.message:e);
+          });
+          return;
+        }
         var dz=(window.hexaDesign&&window.hexaDesign(text))||{target:'editor.html?compose='+encodeURIComponent(text.slice(0,200)),label:'Open in Designer',reply:'I can design that for you right now 🎨 — opening the Designer:'};
         var dm=addMsg(dz.reply+'<div style="margin-top:6px;font-size:11.5px;opacity:.75;">Taking you to the canvas…</div>');
         if(window.chatMakeActionBtn){ dm.appendChild(document.createElement('br')); dm.appendChild(window.chatMakeActionBtn(dz.target,dz.label)); }

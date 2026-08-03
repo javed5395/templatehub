@@ -861,6 +861,89 @@
      It states the free limit as a fact and passes the request through untouched —
      composer_proxy applies the real cap, and admins are exempt there. */
   var HEXA_FREE_SLIDES = 5;
+  /* ── ORDER vs ROUTINE vs OPEN-IT-NOW (3 Aug 2026, Javed) ──────────────────
+     Three different things a person can mean by "make me a deck":
+
+       "make me 3 yellow slides"                        → open the Designer NOW
+       "...and email me / I'm going out / when I'm back" → ORDER it, they leave
+       "...every day at 11am"                            → a ROUTINE, every day
+
+     Until today all three did the same thing: dump the whole sentence into
+     editor.html?compose= and drag the person to the canvas — including the
+     words "every day at 11 am", which the composer then tried to read as design
+     instructions. Someone who says they are leaving should not be taken to a
+     canvas they have to sit and watch.
+
+     What Hexa keeps out of the design words: the timing and the delivery. Those
+     are instructions to US, not descriptions of the deck. */
+  var REPEAT_RX  = /\b(every ?day|everyday|daily|each day|every morning|each morning|every evening|routine|schedule)\b/i;
+  var LEAVE_RX   = /\b(email me|mail me|send (it|them) to me|when i (get |come )?back|later|meanwhile|in the meantime|after (a|an|\d)|going to (office|work|out)|having (a|my) (coffee|tea|lunch)|i am (busy|out|away)|while i)\b/i;
+  var TIME_RX    = /\b(?:at\s*)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b|\bat\s+(\d{1,2})(?::(\d{2}))?\b/i;
+  var STRIP_RX   = /\b(every ?day|everyday|daily|each day|every morning|each morning|every evening|and (keep|put) (them|it) in my designs|keep (them|it) in my designs|email me( the output)?|mail me|send (it|them) to me|when i (get |come )?back|in the meantime|meanwhile|after \d+ minutes?|after an? (hour|while)|and will email me( the output)?)\b/gi;
+  /* the clock time is an instruction to us, never a design word — "at 11 am"
+     must not reach the composer. "16:9" and a bare slide count are untouched. */
+  var TIMEWORD_RX = /\bat\s*\d{1,2}(:\d{2})?\s*(am|pm)\b|\bat\s*\d{1,2}:\d{2}\b/gi;
+
+  /* "at 11 am" → 11 · "at 9pm" → 21 · nothing said → 9 in the morning */
+  window.hexaWhenHour = function (text) {
+    var m = String(text || '').match(TIME_RX);
+    if (!m) return 9;
+    var h = parseInt(m[1] || m[4], 10);
+    var ap = (m[3] || '').toLowerCase();
+    if (isNaN(h)) return 9;
+    if (ap === 'pm' && h < 12) h += 12;
+    if (ap === 'am' && h === 12) h = 0;
+    return Math.max(0, Math.min(23, h));
+  };
+
+  /* the design words only — timing and delivery removed */
+  window.hexaDesignWords = function (text) {
+    return String(text || '').replace(STRIP_RX, ' ').replace(TIMEWORD_RX, ' ')
+             .replace(/\s{2,}/g, ' ').replace(/\s+,/g, ',').replace(/^[\s,.]+|[\s,.]+$/g, '').slice(0, 600);
+  };
+
+  window.hexaRepeatIntent = function (text) { return REPEAT_RX.test(String(text || '')); };
+  window.hexaLeaveIntent  = function (text) { return LEAVE_RX.test(String(text || '')); };
+
+  /* Writes the row and lets the server do the rest. `kind` is 'order' or
+     'routine'. Resolves to a short line Hexa can say back. */
+  window.hexaPlace = async function (kind, text) {
+    var A = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+    var B = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+    var F = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+    var app = A.getApps().length ? A.getApp() : A.initializeApp({
+      apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+      authDomain: "templatehub-16cd7.firebaseapp.com",
+      projectId: "templatehub-16cd7" });
+    var user = B.getAuth(app).currentUser;
+    if (!user) return { ok: false, reply: '🔒 Sign in first and I will build it while you are away.' };
+
+    var db    = F.getFirestore(app);
+    var words = window.hexaDesignWords(text);
+    var m     = String(text || '').match(/\b(\d{1,3})\s*(slides?|pages?)\b/i);
+    var slides= m ? parseInt(m[1], 10) : 5;
+    if (!(slides > 0 && slides <= 60)) slides = 5;
+
+    if (kind === 'routine') {
+      var hour = window.hexaWhenHour(text);
+      await F.addDoc(F.collection(db, 'design_schedules'), {
+        uid: user.uid, email: String(user.email || ''), sentence: words,
+        slides: slides, hour: hour, active: true, label: '',
+        createdAt: F.serverTimestamp()
+      });
+      var hh = (hour % 12) || 12, ap = hour < 12 ? 'am' : 'pm';
+      return { ok: true, reply: 'Done — I will build that every day at ' + hh + ':00 ' + ap +
+        ', and leave it on <a href="my_designs.html">My Designs</a>. Nothing for you to click.' };
+    }
+
+    await F.addDoc(F.collection(db, 'design_orders'), {
+      uid: user.uid, email: String(user.email || ''), sentence: words,
+      slides: slides, status: 'queued', createdAt: F.serverTimestamp(), page: 'hexa'
+    });
+    return { ok: true, reply: 'Ordered — ' + slides + ' slides. I am building it now, so you can close ' +
+      'this tab. It will be waiting on <a href="my_designs.html">My Designs</a>.' };
+  };
+
   window.hexaDesign = function (text) {
     var raw  = String(text || '');
     var seed = raw.slice(0, 200);
