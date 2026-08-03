@@ -983,27 +983,32 @@
   (function(){
     if (!document.getElementById('fontPanel')) {
 
-      // Inject fixed-height item CSS so panel never jerks on hover
-      /* 3 Aug 2026 — the font names had gone invisible: the panel worked, the
-         hover preview worked, but the list looked blank.
+      /* ── 3 Aug 2026 — WHY THE FONT NAMES WERE INVISIBLE ────────────────────
+         Not colour. Colour was a red herring and cost two attempts.
 
-         Cause: the Colour picker writes
+         The list is  display:flex; flex-direction:column  with  max-height:320px.
+         There are 25 fonts. 25 rows x 40px = 1000px, which does not fit, so flex
+         did what flex does by default and SHRANK every row to make them fit:
 
-             .hero, .hero *, .hero-section, .hero-section *,
-             .page-hero, .page-hero *, .navbar-below-strip, .navbar-below-strip *
-             { color: <picked colour> !important; }
+             320 / 25            = 12.80px      predicted
+             measured on the live page = 12.8125px
 
-         Once the panel sits inside any of those regions, that !important beat
-         the rule below, which had none — so every name took the page's own
-         text colour and vanished against the dark panel.
+         But line-height stayed at 40px and overflow is hidden. So every name was
+         being drawn on a 40px line inside a 12.8px window and clipped clean out
+         of sight. Backgrounds still paint the whole box, which is exactly why
+         hovering showed a coloured bar with nothing written on it.
 
-         Fixed by claiming the colour outright. '#fontPanel .nb-font-item' holds
-         an id, so with !important on both sides it outranks '.hero *' and the
-         picker can never blank this list again, whatever colour is chosen. */
+         'flex:none' stops the shrinking. Rows keep their 40px and the list
+         scrolls instead — measured 40px after the change, names visible.
+
+         This is why it got worse over time: with 8 fonts, 320/8 = 40px and
+         nothing looked wrong. It broke silently as fonts were added. Anyone
+         adding more fonts later needs this line to stay. */
       var fpStyle = document.createElement('style');
       fpStyle.textContent =
         '#fontPanel .nb-font-item{' +
-          'height:40px;line-height:40px;padding:0 10px;box-sizing:border-box;' +
+          'height:40px;min-height:40px;line-height:40px;flex:none;' +
+          'padding:0 10px;box-sizing:border-box;' +
           'overflow:hidden;white-space:nowrap;cursor:pointer;' +
           'font-size:15px;border-radius:0;' +
           'transition:background 0.12s,color 0.12s;' +
