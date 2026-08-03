@@ -871,6 +871,22 @@ body.light .pd-card-label { color: #556677 !important; }
 body.light .pd-card-rating { color: #556677 !important; }
 body.light .hero-section { background: #f4f4f8 !important; }
 body.light .ldt-filtered-head { color: #1a1a2e !important; }
+
+/* 3 Aug 2026 — in day mode the page title and the Categories button stayed
+   white on a near-white background, so both were all but invisible. Media
+   Kits, Website Kits and Digital Keynotes all carry these three rules; this
+   page never did. Copied from media_kits_folder_section.html character for
+   character rather than written fresh, so nothing about the strip can shift.
+   COLOUR ONLY — no background, no layout, no display, nothing that could
+   bring the hidden stripes back. */
+body.light .navbar-below-strip h1,
+/* 3 Aug 2026 — the span too. The Colour picker writes
+   '.navbar-below-strip *{color:<picked>!important}', which paints the
+   <span>Templates</span> DIRECTLY. Fixing only the h1 left the first
+   words dark and the last word white. Colour only. */
+body.light .navbar-below-strip h1 span { color: #1a1a2e !important; }
+body.light #catBtn { color: #1a1a2e !important; }
+body.light #catBtn span span { background: #1a1a2e !important; }
 </style>
 
 <!-- ══ STRIP + "REST" NOW THEMED AS ONE PIECE — works with the central navbar Colour engine (#nbCPicker) ══

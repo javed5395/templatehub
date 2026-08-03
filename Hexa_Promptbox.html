@@ -1203,7 +1203,10 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
 
 <!-- Navigation -->
 <nav class="nav" aria-label="Primary">
-  <a href="#" class="brand">
+  <!-- 3 Aug 2026 — the brand pointed at "#", so clicking the logo did nothing
+       at all. On every other page the logo goes home, and people try it here
+       for the same reason. It goes home now. -->
+  <a href="main.html" class="brand" title="Back to LazyDog Templates">
     <img src="images/site_logo_round.png" alt="LazyDog logo" style="height:36px;width:36px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:10px;box-shadow:0 2px 6px rgba(0,0,0,0.25);flex:0 0 auto;">
     <span class="brand-name">Lazy<b>Dog</b> <span class="brand-suffix">Templates</span></span>
   </a>
@@ -1229,10 +1232,20 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
            style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
                   font-weight:700;font-size:13px;overflow:hidden;flex:none;color:#fff;
                   background:linear-gradient(135deg,#7c5cff,#c86dd7);"></div>
-      <span id="hxUserName" style="font-size:13px;opacity:.9;white-space:nowrap;"></span>
+      <!-- 3 Aug 2026 — signed-in name removed here too (Javed), same reason as
+           the store pages: it ate the space the buttons needed. The avatar is
+           enough, and the write is guarded with if(nm) so nothing breaks. -->
     </div>
-    <a href="main.html" class="btn btn-accent" title="Back to the LazyDog store">
-      Main
+    <!-- 3 Aug 2026 — one button called "Main" became two doors with their own
+         names. "Main" told you nothing about where it went, and there was no
+         way at all to reach LazyDog Studios from this page.
+         Home is quiet, Studios carries the accent — it is the more interesting
+         of the two, and the green matches the Studios wordmark used sitewide. -->
+    <a href="main.html" class="btn btn-ghost" title="Back to the LazyDog store">
+      Home
+    </a>
+    <a href="lazydog_studio.html" class="btn btn-accent" title="LazyDog Studios">
+      Studios
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
     </a>
   </div>

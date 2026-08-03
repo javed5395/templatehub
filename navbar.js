@@ -235,7 +235,12 @@
     </div>
     <div class="nb-user-menu" id="nbUserMenu" style="display:none;">
       <div class="nb-user-avatar" id="nbUserAvatar" onclick="toggleNbUserDropdown()">J</div>
-      <span class="nb-user-name" id="nbUserName"></span>
+      <!-- 3 Aug 2026 — the signed-in name was removed (Javed). A long name ate
+           the room the buttons needed, and on a narrow window the logo itself
+           was being squeezed to make space for it. The avatar already says who
+           is signed in, and the name is still in the dropdown behind it.
+           The code that filled this is guarded with if(un), so nothing breaks
+           by its absence. -->
       <div class="nb-user-dropdown" id="nbUserDropdown">
         <!-- "My Downloads" and "Profile" removed 29 Jul 2026: both were
              href="#" and did nothing at all — a menu that looks like it works
@@ -979,6 +984,22 @@
     if (!document.getElementById('fontPanel')) {
 
       // Inject fixed-height item CSS so panel never jerks on hover
+      /* 3 Aug 2026 — the font names had gone invisible: the panel worked, the
+         hover preview worked, but the list looked blank.
+
+         Cause: the Colour picker writes
+
+             .hero, .hero *, .hero-section, .hero-section *,
+             .page-hero, .page-hero *, .navbar-below-strip, .navbar-below-strip *
+             { color: <picked colour> !important; }
+
+         Once the panel sits inside any of those regions, that !important beat
+         the rule below, which had none — so every name took the page's own
+         text colour and vanished against the dark panel.
+
+         Fixed by claiming the colour outright. '#fontPanel .nb-font-item' holds
+         an id, so with !important on both sides it outranks '.hero *' and the
+         picker can never blank this list again, whatever colour is chosen. */
       var fpStyle = document.createElement('style');
       fpStyle.textContent =
         '#fontPanel .nb-font-item{' +
@@ -986,9 +1007,10 @@
           'overflow:hidden;white-space:nowrap;cursor:pointer;' +
           'font-size:15px;border-radius:0;' +
           'transition:background 0.12s,color 0.12s;' +
-          'color:rgba(255,255,255,0.82);' +
+          'color:rgba(255,255,255,0.88)!important;' +
+          'opacity:1!important;' +
         '}' +
-        '#fontPanel .nb-font-item:hover{background:rgba(102,126,234,0.18);color:#fff;}';
+        '#fontPanel .nb-font-item:hover{background:rgba(102,126,234,0.22);color:#fff!important;}';
       document.head.appendChild(fpStyle);
 
       var fonts = [

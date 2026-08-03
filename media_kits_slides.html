@@ -217,6 +217,16 @@
     body.light .etsy-accordion-header { color:#1a1a2e; }
     body.light .etsy-accordion { border-top-color:rgba(0,0,0,0.15); }
     body.light .etsy-item-row { color:#333; }
+    /* 3 Aug 2026 — in day mode every LABEL in the highlights list vanished:
+       "Designed by", "Digital download", "Digital file type(s)", "9 Pages",
+       "Style", "Industry". Each label is a <strong> inside the row, and
+       .etsy-item-row strong is pinned to #ffffff for the dark theme. The line
+       above repaints the row but not the strong inside it, so the label stayed
+       white on a near-white background while its value went dark — which is
+       why half of each line was readable and half was not.
+       pitch_deck_slides.html has carried this rule all along. Copied from it.
+       ONE rule, colour only — nothing else on the card is touched. */
+    body.light .etsy-item-row strong { color:#1a1a2e; }
     body.light .etsy-sparkle-line { color:#7730cc; }
     body.light .etsy-delivery-heading { color:#1a1a2e; }
     body.light .etsy-highlights-label { color:#666; }

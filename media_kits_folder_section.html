@@ -875,7 +875,12 @@ body.light { background: #f4f4f8 !important; color: #1a1a2e !important; }
 /* Unify the whole page to one light grey — the header strip no longer stays dark,
    so title + Categories button switch to dark ink to stay readable. */
 body.light .navbar-below-strip { background: #f4f4f8 !important; }
-body.light .navbar-below-strip h1 { color: #1a1a2e !important; }
+body.light .navbar-below-strip h1,
+/* 3 Aug 2026 — the span too. The Colour picker writes
+   '.navbar-below-strip *{color:<picked>!important}', which paints the
+   <span>Templates</span> DIRECTLY. Fixing only the h1 left the first
+   words dark and the last word white. Colour only. */
+body.light .navbar-below-strip h1 span { color: #1a1a2e !important; }
 body.light #catBtn { color: #1a1a2e !important; }
 body.light #catBtn span span { background: #1a1a2e !important; }
 body.light .hero-section { background: #f4f4f8 !important; }
