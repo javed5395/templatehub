@@ -632,6 +632,73 @@ function loadKit(k) {
     else priceEl.textContent = 'USD ' + parseFloat(k.price).toFixed(2);
   }
   document.title = k.name + ' — LazyDogTemplates';
+  /* ── WHAT GOOGLE AND SOCIAL SEE FOR **THIS** KIT (3 Aug 2026) ──────────
+     The line above already renames the browser tab per kit. Everything else in
+     the <head> was still the page's fixed text, so all eleven kits handed
+     Google the identical description — and Google treats identical
+     descriptions as duplicates and shows none of them.
+
+     Each kit now describes itself: its own description, its own cover picture,
+     its own canonical address, and a Product schema carrying the price. The
+     schema is what earns a picture and a price in the search result instead of
+     a bare blue link.
+
+     The og: tags do a second job — paste a kit link into Twitter, LinkedIn,
+     Facebook or WhatsApp and it unfurls with the deck's cover and real title
+     rather than the generic site blurb. That matters for the posting you are
+     doing every day.
+
+     Nothing here changes what is downloaded, how the engine works, or what a
+     visitor can take. It is the label on the tin, not the tin. */
+  (function (kit) {
+    try {
+      function setMeta(kind, key, val) {
+        if (!val) return;
+        var el = document.head.querySelector('meta[' + kind + '="' + key + '"]');
+        if (!el) { el = document.createElement('meta'); el.setAttribute(kind, key); document.head.appendChild(el); }
+        el.setAttribute('content', val);
+      }
+      var nm = kit.name || 'Template';
+      var ds = String(kit.desc || '').replace(/\s+/g, ' ').trim();
+      if (!ds) ds = nm + ' - editable ' + (kit.slideCount || '') + ' slide template, instant download from LazyDogTemplates.';
+      if (ds.length > 158) ds = ds.slice(0, 155) + '...';
+      var img = (kit.slides && kit.slides[0]) || '';
+      var url = location.href;
+
+      setMeta('name', 'description', ds);
+      setMeta('property', 'og:type', 'product');
+      setMeta('property', 'og:title', nm + ' - LazyDogTemplates');
+      setMeta('property', 'og:description', ds);
+      setMeta('property', 'og:image', img);
+      setMeta('property', 'og:url', url);
+      setMeta('name', 'twitter:card', 'summary_large_image');
+      setMeta('name', 'twitter:title', nm + ' - LazyDogTemplates');
+      setMeta('name', 'twitter:description', ds);
+      setMeta('name', 'twitter:image', img);
+
+      var can = document.head.querySelector('link[rel="canonical"]');
+      if (!can) { can = document.createElement('link'); can.rel = 'canonical'; document.head.appendChild(can); }
+      can.href = url;
+
+      var p = parseFloat(kit.price);
+      var ld = {
+        '@context': 'https://schema.org', '@type': 'Product',
+        name: nm, description: ds, url: url,
+        image: img ? [img] : undefined,
+        sku: kit.designCode || undefined,
+        brand: { '@type': 'Brand', name: 'LazyDogTemplates' },
+        offers: {
+          '@type': 'Offer', url: url, priceCurrency: 'USD',
+          price: (isFinite(p) ? p : 0).toFixed(2),
+          availability: 'https://schema.org/InStock'
+        }
+      };
+      var s = document.getElementById('ldKitSchema');
+      if (!s) { s = document.createElement('script'); s.type = 'application/ld+json'; s.id = 'ldKitSchema'; document.head.appendChild(s); }
+      s.textContent = JSON.stringify(ld);
+    } catch (e) { /* a page that renders is worth more than perfect metadata */ }
+  })(k);
+
   document.getElementById('templateTitle').innerHTML = k.titleHTML;
   document.getElementById('templateDesc').textContent = k.desc;
   document.getElementById('specType').textContent = k.type;
