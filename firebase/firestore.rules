@@ -133,6 +133,10 @@ service cloud.firestore {
                     && request.resource.data.hour is int
                     && request.resource.data.hour >= 0
                     && request.resource.data.hour <= 23
+                    && (!('minute' in request.resource.data) ||
+                        (request.resource.data.minute is int
+                         && request.resource.data.minute >= 0
+                         && request.resource.data.minute <= 59))
                     && request.resource.data.slides is int
                     && request.resource.data.slides > 0
                     && request.resource.data.sentence is string
@@ -142,7 +146,7 @@ service cloud.firestore {
       // and a client cannot rewrite it to make a schedule fire twice.
       allow update: if isAdmin()
                     && request.resource.data.diff(resource.data)
-                         .affectedKeys().hasOnly(['active', 'hour', 'slides', 'label']);
+                         .affectedKeys().hasOnly(['active', 'hour', 'minute', 'slides', 'label']);
       allow delete: if isAdmin();
     }
 

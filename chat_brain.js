@@ -888,6 +888,15 @@
      must not reach the composer. "16:9" and a bare slide count are untouched. */
   var TIMEWORD_RX = /\bat\s*\d{1,2}(:\d{2})?\s*(am|pm)\b|\bat\s*\d{1,2}:\d{2}\b/gi;
 
+  /* "at 10:50" → 50 · "at 11 am" → 0 · nothing said → 0 */
+  window.hexaWhenMinute = function (text) {
+    var m = String(text || '').match(TIME_RX);
+    if (!m) return 0;
+    var mm = parseInt(m[2] || m[5] || '0', 10);
+    if (isNaN(mm) || mm < 0 || mm > 59) return 0;
+    return Math.round(mm / 5) * 5 % 60;      // the tick is every 5 minutes
+  };
+
   /* "at 11 am" → 11 · "at 9pm" → 21 · nothing said → 9 in the morning */
   window.hexaWhenHour = function (text) {
     var m = String(text || '').match(TIME_RX);
@@ -937,13 +946,15 @@
 
     if (kind === 'routine') {
       var hour = window.hexaWhenHour(text);
+      var minute = window.hexaWhenMinute(text);
       await F.addDoc(F.collection(db, 'design_schedules'), {
         uid: user.uid, email: String(user.email || ''), sentence: words,
-        slides: slides, hour: hour, active: true, label: '',
+        slides: slides, hour: hour, minute: minute, active: true, label: '',
         createdAt: F.serverTimestamp()
       });
       var hh = (hour % 12) || 12, ap = hour < 12 ? 'am' : 'pm';
-      return { ok: true, reply: 'Done — I will build that every day at ' + hh + ':00 ' + ap +
+      var mm = String(minute).padStart(2, '0');
+      return { ok: true, reply: 'Done — I will build that every day at ' + hh + ':' + mm + ' ' + ap +
         ', and leave it on <a href="my_designs.html">My Designs</a>. Nothing for you to click.' };
     }
 

@@ -57,8 +57,12 @@
         </div>
         <div>
           <label class="meta" style="display:block;margin-bottom:4px">At (your time)</label>
-          <select id="scHour" autocomplete="off"
-                  style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px"></select>
+          <span style="display:inline-flex;gap:6px;align-items:center">
+            <select id="scHour" autocomplete="off"
+                    style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px"></select>
+            <select id="scMinute" autocomplete="off"
+                    style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px"></select>
+          </span>
         </div>
         <button id="scAdd" class="btn" style="border:0;cursor:pointer">Add routine</button>
       </div>
@@ -126,10 +130,11 @@ function escapeHtml(s) {
 // ── REPEATING DESIGNS (owner only) ─────────────────────────────────────────
 const ADMINS = ['javed5395@gmail.com', 'lazydogtemplates@gmail.com'];
 
-function hourLabel(h) {
+function hourLabel(h, m) {
   const ampm = h < 12 ? 'am' : 'pm';
   const hh = (h % 12) || 12;
-  return hh + ':00 ' + ampm;
+  const mm = String(parseInt(m, 10) || 0).padStart(2, '0');
+  return hh + ':' + mm + ' ' + ampm;
 }
 
 function initSchedules(user) {
@@ -139,24 +144,30 @@ function initSchedules(user) {
 
   const hourSel = document.getElementById('scHour');
   hourSel.innerHTML = Array.from({length: 24}, (_, h) =>
-    '<option value="' + h + '"' + (h === 9 ? ' selected' : '') + '>' + hourLabel(h) + '</option>').join('');
+    '<option value="' + h + '"' + (h === 9 ? ' selected' : '') + '>' + hourLabel(h, 0) + '</option>').join('');
+  // five-minute steps — the scheduler ticks every 5 minutes, so anything finer
+  // would be a promise the clock cannot keep.
+  const minSel = document.getElementById('scMinute');
+  minSel.innerHTML = Array.from({length: 12}, (_, i) => i * 5)
+    .map(m => '<option value="' + m + '">:' + String(m).padStart(2, '0') + '</option>').join('');
 
   const note = document.getElementById('scNote');
   document.getElementById('scAdd').addEventListener('click', async () => {
     const sentence = document.getElementById('scSentence').value.trim();
     const slides   = parseInt(document.getElementById('scSlides').value, 10) || 5;
     const hour     = parseInt(hourSel.value, 10) || 0;
+    const minute   = parseInt(minSel.value, 10) || 0;
     if (sentence.length < 4) { note.style.color = 'var(--red)'; note.textContent = 'Describe what to make first.'; return; }
     note.style.color = ''; note.textContent = 'Saving…';
     try {
       await addDoc(collection(db, 'design_schedules'), {
         uid: user.uid, email: String(user.email || ''),
-        sentence, slides, hour, active: true,
+        sentence, slides, hour, minute, active: true,
         label: '', createdAt: serverTimestamp()
       });
       document.getElementById('scSentence').value = '';
       note.style.color = 'var(--green)';
-      note.textContent = 'Saved — it will run every day at ' + hourLabel(hour) + '.';
+      note.textContent = 'Saved — it will run every day at ' + hourLabel(hour, minute) + '.';
     } catch (e) {
       note.style.color = 'var(--red)';
       note.textContent = 'Could not save: ' + (e && e.message ? e.message : e);
@@ -172,7 +183,8 @@ function initSchedules(user) {
       const on = s.active !== false;
       html += '<div class="card"><div class="row">' +
         '<div class="grow"><div class="order">' + escapeHtml(s.sentence || '') + '</div>' +
-        '<div class="meta">' + (s.slides || 5) + ' slides · every day at ' + hourLabel(parseInt(s.hour, 10) || 0) +
+        '<div class="meta">' + (s.slides || 5) + ' slides · every day at ' +
+        hourLabel(parseInt(s.hour, 10) || 0, parseInt(s.minute, 10) || 0) +
         (s.lastRunDate ? ' · last run ' + escapeHtml(s.lastRunDate) : ' · not run yet') + '</div></div>' +
         '<span class="pill ' + (on ? 'done' : 'queued') + '">' + (on ? 'On' : 'Paused') + '</span>' +
         '<button data-act="toggle" data-id="' + d.id + '" class="btn" style="border:0;cursor:pointer;background:#eef2ff;color:#3730a3">' +
