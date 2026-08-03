@@ -1049,8 +1049,27 @@
         ["'IBM Plex Mono', monospace",  "IBM Plex Mono"]
       ];
 
+      /* 3 Aug 2026 — the names are painted INLINE, with !important, and that is
+         deliberate. Two separate runtime rules fight over the colour of every
+         element on the page:
+
+           Theme :  '.hero *, .navbar-below-strip * { color: <picked> !important }'
+           Fonts :  'body .hero *, body .navbar-below-strip * { color: <hex> !important }'
+
+         Both are written into <style> tags AFTER this panel is built, both carry
+         !important, and the Fonts one deliberately outranks the Theme one. A
+         stylesheet rule of mine can always be out-specified by the next feature
+         added to that list — which is how these names went white-on-dark and
+         disappeared in the first place.
+
+         An inline style with !important sits at the top of the cascade. Nothing
+         in a stylesheet can beat it, whatever colour is picked, forever.
+         -webkit-text-fill-color is set too, because that property overrides
+         'color' outright on WebKit and no amount of colour fixes it alone. */
       var items = fonts.map(function(f){
-        return '<div class="nb-font-item" style="font-family:'+f[0]+'" data-font="'+f[0]+'" '+
+        return '<div class="nb-font-item" data-font="'+f[0]+'" '+
+          'style="font-family:'+f[0]+';color:#ffffff!important;'+
+          '-webkit-text-fill-color:#ffffff!important;opacity:1!important;" '+
           'onmouseenter="nbPreviewFont(this)" onclick="nbLockFont(this)">'+f[1]+'</div>';
       }).join('');
 

@@ -227,6 +227,14 @@
        pitch_deck_slides.html has carried this rule all along. Copied from it.
        ONE rule, colour only — nothing else on the card is touched. */
     body.light .etsy-item-row strong { color:#1a1a2e; }
+    /* ...and the VALUE half, which was the other side of the same coin. The
+       labels are now dark but ".PNG + .PPTX + .PDF", "Professional", "media"
+       and the rest sat at #ccd6e0 — a pale grey chosen for the dark theme —
+       so once the labels went dark, THEY became the unreadable half.
+       pitch_deck_slides.html has no .ei-val class at all, which is exactly why
+       that page never had this problem: its values simply inherit the row. */
+    body.light .etsy-item-row .ei-val { color:#555; }
+    body.light .etsy-desc-text { color:#555; }
     body.light .etsy-sparkle-line { color:#7730cc; }
     body.light .etsy-delivery-heading { color:#1a1a2e; }
     body.light .etsy-highlights-label { color:#666; }
