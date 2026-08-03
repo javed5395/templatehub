@@ -242,6 +242,12 @@
              and doesn't is worse than a shorter menu. Re-add My Downloads once
              there is a purchases page for it to open (orders are now recorded
              server-side, so the data exists). -->
+        <!-- 3 Aug 2026 — My Designs. The page existed with nothing pointing at
+             it, so the only way in was typing the URL. This is the front door:
+             ordered designs, and (for the owner) the daily routines. -->
+        <a href="my_designs.html" class="nb-dd-link"
+           style="display:block;padding:9px 14px;text-decoration:none;color:inherit;font-size:13px;">
+           🎨 My Designs</a>
         <button class="nb-signout-btn" onclick="doSignOut()">Sign Out</button>
       </div>
     </div>

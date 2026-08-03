@@ -339,8 +339,9 @@
         note.textContent = '';
       } else if (currentUser) {
         note.style.color = '';
-        note.textContent = 'Free plan builds up to ' + FREE_SLIDES + ' slides. Order it and close the tab — ' +
-                           'it is built in the background and waits for you in My Designs.';
+        note.innerHTML = 'Free plan builds up to ' + FREE_SLIDES + ' slides. Order it and close the tab — ' +
+                         'it is built in the background and waits for you in ' +
+                         '<a href="my_designs.html">My Designs</a>.';
       } else {
         note.style.color = '#b23a3a';
         note.textContent = '🔒 Sign in to order a design — then you can close the tab while it builds.';
