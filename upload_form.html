@@ -1841,7 +1841,51 @@ window.submitForm = async function() {
     // Section 11 metadata — merge it in if it was found in the PDF
     const pdfMeta = window._pdfMeta || {};
 
-    const docRef = await addDoc(collection(db, 'templates'), {
+    // ── F10 PERMANENT FIX (4 Aug 2026) ───────────────────────────────────
+    // The sensitive fields no longer enter the world-readable `templates` doc
+    // at all. Until today this form wrote pptxUrl / keyUrl / extraFiles /
+    // cloudinaryIds / driveFileIds / sellerEmail / sellerPhone straight into a
+    // collection whose rule is `allow read: if true`. migrate_template_files_http
+    // cleaned the 29 docs that already existed; this stops new ones being made
+    // that way, so the migration never needs running again.
+    //
+    // ORDER IS DELIBERATE — private first, public second. Same reasoning the
+    // migration function states: if the private write fails we stop before any
+    // public record exists and nothing is half-saved. The other way round could
+    // publish a kit whose download links live nowhere, and the buyer's Download
+    // button would have nothing to hand out.
+    //
+    // Not wrapped in try/catch on purpose. The templates_internal write below is
+    // a side record and may fail quietly; this one carries the paid file links,
+    // so if it cannot be written the submission must not proceed.
+    const docRef = doc(collection(db, 'templates'));
+
+    await setDoc(doc(db, 'templates_files', docRef.id), {
+      templateId:  docRef.id,
+      sellerId:    currentUser.uid,        // required by firestore.rules
+      savedAt:     serverTimestamp(),
+
+      sellerEmail: sellerProfile.email    || currentUser.email  || '',
+      sellerPhone: sellerProfile.phone    || '',
+
+      pptxUrl:     pptxUrl    || '',
+      keyUrl:      keyUrl     || '',
+      extraFiles:  extraUrls,
+
+      cloudinaryIds: {
+        slides: slidePublicIds,
+        pdf:    pdfPublicId || null
+      },
+      driveFileIds: {
+        pptx:       pptxFileId         || null,
+        pdf:        pdfDriveFileId     || null,
+        key:        keyFileId          || null,
+        designDoc:  designDocFileId    || null,
+        extraFiles: extraFileIds
+      }
+    });
+
+    await setDoc(docRef, {
 
       // ── STATUS ──────────────────────────────────────────────
       status:     'pending',
@@ -1849,11 +1893,11 @@ window.submitForm = async function() {
       createdAt:  serverTimestamp(),
 
       // ── SELLER INFO ─────────────────────────────────────────
+      // email and phone are NOT here — they live in templates_files.
+      // sellerId and uploaderUid must stay: firestore.rules checks both on create.
       sellerId:    currentUser.uid,
       uploaderUid: currentUser.uid,        // used by on_seller_submission to detect trusted owner
       sellerName:  sellerProfile.shopName || sellerProfile.name || '',
-      sellerEmail: sellerProfile.email    || currentUser.email  || '',
-      sellerPhone: sellerProfile.phone    || '',
 
       // ── SEARCH & FILTER METADATA ─────────────────────────────────────────────
       // pdfMeta (Section 11) wins when present; otherwise the form fields are used
@@ -1882,35 +1926,25 @@ window.submitForm = async function() {
       graphWeight:  pdfMeta.graphWeight  || '',
 
       // ── FILE URLs (used by the search widget and the site display) ──
+      // pptxUrl / keyUrl / extraFiles are NOT here — templates_files holds them
+      // and download_url_http hands them out after checking the buyer paid.
+      // pdfUrl and designDocUrl stay public on purpose: the preview PDF is free
+      // to everyone and every slides page links the Design Brief directly.
+      // fileTypes is what draws the .PPTX / .PDF / .PNG badges, so the badges
+      // are unaffected by the links moving.
       pngUrl:       slideUrls[0]  || '',   // Cover/thumbnail
       slideImages:  slideUrls     || [],   // Saari slide images
-      pptxUrl:      pptxUrl       || '',
       pdfUrl:       pdfUrl        || '',
-      keyUrl:       keyUrl        || '',
       videoUrl:     videoUrl      || '',
       fileTypes,
       editableApps,
-      extraFiles:   extraUrls,
       designDocUrl: designDocUrl  || '',
       watermark:    priceRaw > 0,
 
-      // ── INTERNAL DELETE IDs (for the admin panel — never shown to users) ──
-      cloudinaryIds: {
-        slides: slidePublicIds,
-        pdf:    pdfPublicId || null
-      },
-      driveFileIds: {
-        pptx:       pptxFileId         || null,
-        pdf:        pdfDriveFileId     || null,
-        key:        keyFileId          || null,
-        designDoc:  designDocFileId    || null,
-        extraFiles: extraFileIds
-      },
       // ── LEGACY (used by the admin panel display — still in use) ──
+      // phone and email removed 4 Aug 2026 — see templates_files above.
       uploader: {
         name:     sellerProfile.name     || '',
-        phone:    sellerProfile.phone    || '',
-        email:    sellerProfile.email    || currentUser.email || '',
         shopName: sellerProfile.shopName || sellerProfile.name || ''
       },
       template: {
@@ -1925,10 +1959,8 @@ window.submitForm = async function() {
         fileTypes,
         slides:      slideUrls,
         videoUrl,
-        pptxUrl,
         pdfUrl,
-        keyUrl,
-        extraFiles:  extraUrls,
+        // pptxUrl / keyUrl / extraFiles removed 4 Aug 2026 — templates_files.
         editableApps,
         coverImage:  slideUrls[0] || null,
         designDocUrl,
