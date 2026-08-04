@@ -13294,6 +13294,18 @@ async function handlePPTXUpload(input) {
       }
       if (!_resp.ok) throw new Error('Import service error (' + _resp.status + '). Please try again in a moment.');
       deckIR = await _resp.json();
+      /* 5 Aug 2026 — the worker may now park a heavy IR in Storage on THIS route
+         too and hand back { irUrl, irPath, big:true } instead of the deck. Same
+         shape ldParseByPath has always handled; unwrap it the same way. Without
+         this the editor would receive the pointer, not recognise it, and draw an
+         empty deck. Small decks still come back inline exactly as before. */
+      if (deckIR && deckIR.big === true && deckIR.irUrl) {
+        showToast('Finishing up…');
+        ldDownloadProgress(0);
+        var _bigRes = await ldFetchLargeJson(deckIR.irUrl, function (frac) { ldDownloadProgress(frac); });
+        ldDownloadProgress(null);
+        deckIR = _bigRes.json;
+      }
     }
     window._deckIR = deckIR;
 
