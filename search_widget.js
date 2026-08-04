@@ -210,7 +210,7 @@
               // TYPE: the category INSIDE the template type. Same list the
               // seller picks as Sub-Category in upload_form.html (media kit + pitch
               // deck sub-categories, deduped, 'other' dropped).
-              '<div class="sw-field"><label>Type</label><select autocomplete="off" id="f_type" multiple>' +
+              '<div class="sw-field"><label>Sub-Category</label><select autocomplete="off" id="f_type" multiple>' +
                 '<option value="freelancer">Freelancer</option>' +
                 '<option value="podcast">Podcast</option>' +
                 '<option value="press">Press / PR</option>' +
