@@ -2533,8 +2533,12 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
     try { await signInWithEmailAndPassword(auth,email,pass); closeAuthModal(); } catch(e){err.textContent='Invalid email or password.';}
   };
   window.doSignOut = async function() { await signOut(auth); };
+  /* 4 Aug 2026 — always show the Google account chooser. Same fix as navbar.js:
+     without this Google reuses whichever account is already open and never asks. */
   window.doGoogleSignIn = async function() {
-    try { await signInWithPopup(auth,new GoogleAuthProvider()); closeAuthModal(); } catch(e){ var err=document.getElementById('authError'); if(err)err.textContent='Google sign-in failed. Try again.'; }
+    var gp = new GoogleAuthProvider();
+    gp.setCustomParameters({ prompt: 'select_account' });
+    try { await signInWithPopup(auth,gp); closeAuthModal(); } catch(e){ var err=document.getElementById('authError'); if(err)err.textContent='Google sign-in failed. Try again.'; }
   };
   window.doForgotPassword = async function() {
     const email=document.getElementById('authEmail').value.trim(), err=document.getElementById('authError');

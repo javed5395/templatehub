@@ -138,8 +138,18 @@
     try { await signInWithEmailAndPassword(auth,email,pass); closeAuthModal(); } catch(e){err.textContent='Invalid email or password.';}
   };
   window.doSignOut = async function() { await signOut(auth); var dd=document.getElementById('nbUserDropdown'); if(dd)dd.style.display='none'; };
+  /* 4 Aug 2026 — ALWAYS ASK WHICH ACCOUNT (Javed).
+     Without prompt:'select_account' Google silently reuses whichever account is
+     already open in the browser and never shows the chooser. This navbar is on
+     every page, media kits included — so picking "lazydogtemplates" could sign
+     you in as javed5395 with no warning at all. upload_form.html and
+     editor.html already set this; navbar.js, main.html and Hexa_Promptbox.html
+     did not, which made them the only three doors the wrong account could walk
+     through silently. */
   window.doGoogleSignIn = async function() {
-    try { await signInWithPopup(auth,new GoogleAuthProvider()); closeAuthModal(); } catch(e){ var err=document.getElementById('authError'); if(err)err.textContent='Google sign-in failed. Try again.'; }
+    var gp = new GoogleAuthProvider();
+    gp.setCustomParameters({ prompt: 'select_account' });
+    try { await signInWithPopup(auth,gp); closeAuthModal(); } catch(e){ var err=document.getElementById('authError'); if(err)err.textContent='Google sign-in failed. Try again.'; }
   };
   window.doForgotPassword = async function() {
     const email=document.getElementById('authEmail').value.trim(), err=document.getElementById('authError');

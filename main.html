@@ -743,6 +743,10 @@
     // Google Sign In
     window.doGoogleSignIn = async function() {
       const provider = new GoogleAuthProvider();
+      /* 4 Aug 2026 — always show the Google account chooser. Same fix as
+         navbar.js: without this Google reuses whichever account is already
+         open in the browser and never asks which one you want. */
+      provider.setCustomParameters({ prompt: 'select_account' });
       try {
         await signInWithPopup(auth, provider);
         closeAuthModal();
