@@ -168,12 +168,28 @@
 
     var CONTENT = [['pitch-deck','Pitch Deck'],['media-kit','Media Kit']];
 
+    // SUB-CATEGORY (Y4). 4 Aug 2026 — this list held only the original 26 words
+    // and had fallen behind the encoder, which accepts 54. A buyer could request
+    // half the catalogue's sub-categories and no more: youtuber, agency,
+    // designer, wedding-professional, saas-company and 23 others were missing.
+    // Now matches meta_codec.py and the search card exactly. Keep all three in step.
     var TYPE = [['freelancer','Freelancer'],['podcast','Podcast'],['press','Press / PR'],['influencer','Influencer'],
       ['brand','Brand'],['tech','Tech'],['fashion','Fashion'],['ugc','UGC Creator'],['photography','Photography'],
       ['music','Music / Artist'],['sports','Sports'],['food','Food'],['beauty','Beauty'],['travel','Travel'],
       ['corporate','Corporate'],['startup','Startup'],['sales','Sales'],['education','Education'],['nonprofit','Non-profit'],
       ['creative','Creative'],['investment','Investment'],['product-launch','Product Launch'],['partnership','Partnership'],
-      ['real-estate','Real Estate'],['healthcare','Healthcare'],['tech-ai','Tech & AI']];
+      ['real-estate','Real Estate'],['healthcare','Healthcare'],['tech-ai','Tech & AI'],
+      ['youtuber','YouTuber'],['streamer','Streamer'],['gamer','Gamer'],['blogger','Blogger'],
+      ['journalist','Journalist'],['author-writer','Author / Writer'],['public-speaker','Public Speaker'],
+      ['coach-mentor','Coach / Mentor'],['consultant','Consultant'],['agency','Agency'],
+      ['saas-company','SaaS Company'],['ecommerce-brand','E-commerce Brand'],
+      ['educational-creator','Educational Creator'],['course-creator','Course Creator'],
+      ['newsletter-creator','Newsletter Creator'],['community-manager','Community Manager'],
+      ['actor','Actor'],['model','Model'],['artist-illustrator','Artist / Illustrator'],
+      ['designer','Designer'],['developer','Developer'],['mobile-app','Mobile App'],
+      ['event-organizer','Event Organizer'],['real-estate-agent','Real Estate Agent'],
+      ['healthcare-professional','Healthcare Professional'],['wedding-professional','Wedding Professional'],
+      ['content-creator','Content Creator'],['small-business','Small Business']];
 
     var COLOR = [['black','Black'],['white','White'],['gray','Gray'],['silver','Silver'],['charcoal','Charcoal'],
       ['beige','Beige'],['neutral','Neutral'],['navy','Navy'],['blue','Blue'],['cyan','Cyan'],['teal','Teal'],['green','Green'],
@@ -242,7 +258,7 @@
       sel('contentType', 'Template type', CONTENT) +
       txt('slides', 'Slides', 'e.g. 15', 'number') +
       sel('aspectRatio', 'Aspect ratio', [['16 9', '16:9']]) +
-      sel('type', 'Type', TYPE) +
+      sel('type', 'Sub-Category', TYPE) +
       sel('industry', 'Industry', IND) +
       sel('formality', 'Formality', [['very high','Very High'],['high','High'],['medium high','Medium-High'],
                                      ['medium','Medium'],['low','Low']]) +
