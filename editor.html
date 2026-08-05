@@ -12821,96 +12821,6 @@ function slideIRFromCanvas(json, origIR, S) {
   return { id: (origIR && origIR.id) || 'edited', background: bg, elements: elements };
 }
 
-/* ── SIGN IN, ON THE CANVAS ──────────────────────────────────────────────────
-   Shown only when the cloud asks for an account at download time. Google is one
-   click; email + password is there for everyone else and creates the account on
-   the spot. On success the caller's job is retried, so the click that started
-   the download is the click that finishes it. */
-function ldAskSignIn(message, onDone) {
-  var old = document.getElementById('ldSignInWrap');
-  if (old) old.remove();
-  var w = document.createElement('div');
-  w.id = 'ldSignInWrap';
-  w.style.cssText = 'position:fixed;inset:0;background:rgba(8,10,20,.62);z-index:99999;' +
-                    'display:flex;align-items:center;justify-content:center;font-family:Poppins,system-ui,sans-serif';
-  w.innerHTML =
-    '<div style="background:#fff;border-radius:16px;padding:26px 26px 20px;width:360px;max-width:92vw;' +
-         'box-shadow:0 20px 60px rgba(0,0,0,.35);color:#12172b">' +
-      '<div style="font-size:17px;font-weight:700;margin-bottom:6px">Your deck is ready</div>' +
-      '<div id="ldSiMsg" style="font-size:13px;color:#6b7280;line-height:1.5;margin-bottom:16px"></div>' +
-      '<button id="ldSiGoogle" style="width:100%;padding:11px;border:1px solid #e6e8f0;background:#fff;' +
-        'border-radius:10px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;' +
-        'align-items:center;justify-content:center;gap:8px">' +
-        '<img alt="" width="18" height="18" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">' +
-        'Continue with Google</button>' +
-      '<div style="text-align:center;color:#9aa0ac;font-size:11px;margin:12px 0">or use your email</div>' +
-      '<input id="ldSiEmail" type="email" placeholder="you@email.com" autocomplete="email" ' +
-        'style="width:100%;padding:10px 12px;border:1px solid #e6e8f0;border-radius:10px;font:inherit;font-size:14px;margin-bottom:8px">' +
-      '<input id="ldSiPass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" ' +
-        'style="width:100%;padding:10px 12px;border:1px solid #e6e8f0;border-radius:10px;font:inherit;font-size:14px">' +
-      '<button id="ldSiEmailBtn" style="width:100%;margin-top:10px;padding:11px;border:0;background:#12172b;color:#fff;' +
-        'border-radius:10px;font:inherit;font-size:14px;font-weight:600;cursor:pointer">Sign in &amp; download</button>' +
-      '<div id="ldSiErr" style="color:#b23a3a;font-size:12px;margin-top:10px;min-height:16px"></div>' +
-      '<button id="ldSiClose" style="width:100%;margin-top:2px;padding:8px;border:0;background:none;color:#6b7280;' +
-        'font:inherit;font-size:12px;cursor:pointer">Not now</button>' +
-    '</div>';
-  document.body.appendChild(w);
-  w.querySelector('#ldSiMsg').textContent = message || 'Sign in to download — free.';
-
-  var err = w.querySelector('#ldSiErr');
-  function fail(e) {
-    var m = (e && e.code) ? String(e.code).replace('auth/', '').replace(/-/g, ' ') : (e && e.message) || 'could not sign in';
-    err.textContent = m.charAt(0).toUpperCase() + m.slice(1);
-  }
-  function done() {
-    w.remove();
-    showToast('Signed in — finishing your download…');
-    /* the token is written by onAuthStateChanged; give it a moment to land */
-    var tries = 0;
-    (function wait() {
-      if (window.LD_AUTH_TOKEN || tries++ > 20) { if (typeof onDone === 'function') onDone(); return; }
-      setTimeout(wait, 250);
-    })();
-  }
-  async function authMod() {
-    var A = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
-    var B = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
-    var app = A.getApps().length ? A.getApp() : A.initializeApp({
-      apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes',
-      authDomain: 'templatehub-16cd7.firebaseapp.com',
-      projectId: 'templatehub-16cd7' });
-    return { B: B, auth: B.getAuth(app) };
-  }
-  w.querySelector('#ldSiClose').onclick = function () { w.remove(); };
-  w.querySelector('#ldSiGoogle').onclick = async function () {
-    err.textContent = '';
-    try {
-      var m = await authMod();
-      var p = new m.B.GoogleAuthProvider();
-      p.setCustomParameters({ prompt: 'select_account' });
-      await m.B.signInWithPopup(m.auth, p);
-      done();
-    } catch (e) { fail(e); }
-  };
-  w.querySelector('#ldSiEmailBtn').onclick = async function () {
-    err.textContent = '';
-    var em = (w.querySelector('#ldSiEmail').value || '').trim();
-    var pw = w.querySelector('#ldSiPass').value || '';
-    if (!em || pw.length < 6) { err.textContent = 'Enter your email and a password of at least 6 characters.'; return; }
-    try {
-      var m = await authMod();
-      try { await m.B.signInWithEmailAndPassword(m.auth, em, pw); }
-      catch (e1) {
-        /* no account yet — make one, which is the whole point of asking */
-        if (e1 && /user-not-found|invalid-credential/.test(String(e1.code || ''))) {
-          await m.B.createUserWithEmailAndPassword(m.auth, em, pw);
-        } else { throw e1; }
-      }
-      done();
-    } catch (e) { fail(e); }
-  };
-}
-
 /* ---- browser glue: SVG rasterizer + download action ---- */
 async function exportPptxFile() {
   downloadBusy(true);
@@ -13042,22 +12952,7 @@ async function exportPptxFile() {
       method: 'POST', headers: window.ldHeaders('application/json'),
       body: JSON.stringify({ deck: deck })
     });
-    /* 3 Aug 2026 — THE EMAIL IS ASKED FOR HERE, NOT AT THE DOOR.
-     A signed-out visitor may build and look at their deck; the account is
-     asked for when the file is about to become theirs. Without this branch the
-     proxy's 401 surfaced as "cloud export 401", which tells a buyer nothing.
-     Sends them to sign in and brings them straight back to this deck. */
-  if (r.status === 401) {
-    var _msg = 'Sign in with your email to download this — free, no card needed.';
-    try { var _je = await r.json(); if (_je && _je.message) _msg = _je.message; } catch (e) {}
-    downloadBusy(false);
-    /* NOBODY LEAVES THE CANVAS (3 Aug 2026, Javed). The seller portal is where
-       the sign-in form happens to live — it is not where a buyer belongs. They
-       sign in over their own deck and the download carries on by itself. */
-    ldAskSignIn(_msg, function () { exportPptxFile(); });
-    return;
-  }
-  if (!r.ok) throw new Error('cloud export ' + r.status);
+    if (!r.ok) throw new Error('cloud export ' + r.status);
     /* Big export (>30MB): the cloud parks the pptx on storage (Cloud Run
        can't send >32MB directly) and returns {big:true, pptxUrl} — pull the
        real file from there. Small exports still arrive directly, unchanged. */
@@ -13259,7 +13154,10 @@ async function handlePPTXUpload(input) {
   uploadBusy(true);
   try {
     var deckIR;
-    if (file.size >= 25 * 1024 * 1024) {
+    /* storage-road threshold: the proxy gate caps BOTH directions at 32MB and a
+       parsed reply runs ~1.4x the file size — 18MB direct-limit keeps every
+       reply under the gate (the small-file 502/500 bug). */
+    if (file.size >= 18 * 1024 * 1024) {
       /* BIG FILE — bypass the proxy's 32 MB request cap: upload the pptx
          straight to Storage (resumable, real progress bar), then have the
          worker parse it from there. */
@@ -13294,18 +13192,6 @@ async function handlePPTXUpload(input) {
       }
       if (!_resp.ok) throw new Error('Import service error (' + _resp.status + '). Please try again in a moment.');
       deckIR = await _resp.json();
-      /* 5 Aug 2026 — the worker may now park a heavy IR in Storage on THIS route
-         too and hand back { irUrl, irPath, big:true } instead of the deck. Same
-         shape ldParseByPath has always handled; unwrap it the same way. Without
-         this the editor would receive the pointer, not recognise it, and draw an
-         empty deck. Small decks still come back inline exactly as before. */
-      if (deckIR && deckIR.big === true && deckIR.irUrl) {
-        showToast('Finishing up…');
-        ldDownloadProgress(0);
-        var _bigRes = await ldFetchLargeJson(deckIR.irUrl, function (frac) { ldDownloadProgress(frac); });
-        ldDownloadProgress(null);
-        deckIR = _bigRes.json;
-      }
     }
     window._deckIR = deckIR;
 
@@ -13386,6 +13272,7 @@ async function handlePPTXUpload(input) {
 
     renderPageThumbs();
     showToast('Loaded ' + state.pages.length + ' slide(s) ✓');
+    try { if (window.ldAutoCrackCharts) window.ldAutoCrackCharts(); } catch (e) {}
   } catch (e) {
     console.error('PPTX import failed:', e);
     /* Our thrown messages are already user-friendly; only prefix the raw
@@ -15086,6 +14973,84 @@ window.LD_BACKEND = window.LD_BACKEND || (
    from dissolve_service\deploy.bat (copy it from there, paste it between the quotes). */
 window.LD_DISSOLVE_URL   = 'https://lazydog-dissolve-143000893683.us-central1.run.app';
 window.LD_DISSOLVE_TOKEN = 'CHANGE_ME_to_a_long_random_secret';
+
+/* ── AUTO CHART-CRACK (v3 wiring) ── after an import finishes, chart-looking
+   pictures are probed in the BACKGROUND against the dissolve service's
+   /crack_chart. A confirmed chart swaps in as a native editable chart; any
+   refusal (422) leaves the picture untouched. Never delays the import. */
+(function () {
+  function looksChartish(src) {
+    return new Promise(function (res) {
+      try {
+        var im = new Image();
+        im.onload = function () {
+          try {
+            var c = document.createElement('canvas'); c.width = 64; c.height = 64;
+            var g = c.getContext('2d'); g.drawImage(im, 0, 0, 64, 64);
+            var d = g.getImageData(0, 0, 64, 64).data, buckets = {}, light = 0, sat = 0;
+            for (var p = 0; p < d.length; p += 4) {
+              var r = d[p], gg = d[p+1], b = d[p+2], a = d[p+3];
+              if (a < 30 || (r > 225 && gg > 225 && b > 225)) { light++; continue; }
+              if (Math.max(r, gg, b) - Math.min(r, gg, b) > 60) {
+                sat++;
+                var k = (r >> 5) + '-' + (gg >> 5) + '-' + (b >> 5);
+                buckets[k] = (buckets[k] || 0) + 1;
+              }
+            }
+            var tot = 4096, dom = 0;
+            for (var k2 in buckets) dom = Math.max(dom, buckets[k2]);
+            res(light / tot > 0.35 && dom / tot > 0.04 && dom / tot < 0.55 && dom / Math.max(1, sat) > 0.5);
+          } catch (e) { res(false); }
+        };
+        im.onerror = function () { res(false); };
+        im.crossOrigin = 'anonymous';
+        im.src = src;
+      } catch (e) { res(false); }
+    });
+  }
+  async function probeOne(el) {
+    var base = String(window.LD_DISSOLVE_URL || '').replace(/\/$/, '');
+    if (!base) return null;
+    var blob = await (await fetch(el.src)).blob();
+    var fd = new FormData(); fd.append('file', blob, 'chart.png');
+    var headers = {};
+    if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
+    var r = await fetch(base + '/crack_chart', { method: 'POST', headers: headers, body: fd });
+    if (!r.ok) return null;
+    return await r.json();
+  }
+  window.ldAutoCrackCharts = async function () {
+    try {
+      if (!window.LD_DISSOLVE_URL || !window._deckIR || !window._deckIR.size) return;
+      var W = window._deckIR.size.w, H = window._deckIR.size.h, cracked = 0;
+      for (var i = 0; i < state.pages.length; i++) {
+        var ir = state.pages[i].ir;
+        if (!ir || !ir.elements) continue;
+        for (var j = 0; j < ir.elements.length; j++) {
+          var el = ir.elements[j];
+          if (!el || el.type !== 'image' || el.format === 'svg' || !el.src) continue;
+          var rw = Math.abs(el.w) / W, rh = Math.abs(el.h) / H;
+          if (rw < 0.28 || rh < 0.28 || rw > 0.92 || rh > 0.92) continue;
+          if (!(await looksChartish(el.src))) continue;
+          var chart = null;
+          try { chart = await probeOne(el); } catch (e) { chart = null; }
+          if (!chart || chart.type !== 'chart') continue;
+          ir.elements[j] = Object.assign({}, chart, {
+            id: el.id, origin: el.origin || 'slide',
+            x: el.x, y: el.y, w: el.w, h: el.h, rot: el.rot || 0 });
+          cracked++;
+          state.pages[i].canvasJSON = null;
+          if (i === state.currentPage) { try { await loadPageIntoCanvas(i); } catch (e) {} }
+        }
+      }
+      if (cracked) {
+        showToast(cracked + ' chart' + (cracked > 1 ? 's' : '') + ' made editable \u2713', 5000);
+        try { renderPageThumbs(); } catch (e) {}
+      }
+    } catch (e) { console.warn('auto-crack skipped', e); }
+  };
+})();
+
 window.ldHeaders = function (ct) {
   var h = { 'Content-Type': ct };
   if (window.LD_AUTH_TOKEN) h['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
