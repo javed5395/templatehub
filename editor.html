@@ -12823,7 +12823,16 @@ function slideIRFromCanvas(json, origIR, S) {
       elements.push(tEl);
     } else if (o.type === 'image' || o.type === 'group') {
       if (orig && orig.type === 'image') {
-        elements.push(Object.assign({}, orig, common, { opacity: o.opacity != null ? o.opacity : orig.opacity }));
+        /* 6 Aug 2026 — the renderer parks a translucent image's opacity on the
+           object INSIDE its wrapper group; the group itself reports opacity 1.
+           Reading o.opacity here overwrote the IR's true value (e.g. a 24%
+           sheen texture exported fully OPAQUE and blanked the whole slide —
+           the "background became light / bottles gone" bug). Multiply in the
+           inner object's opacity so the export matches what the canvas shows. */
+        var _grpKids = (o.type === 'group') ? (o.objects || o._objects || []) : null;
+        var _innerOp = (_grpKids && _grpKids.length === 1 && _grpKids[0].opacity != null) ? _grpKids[0].opacity : 1;
+        var _effOp = (o.opacity != null ? o.opacity : 1) * _innerOp;
+        elements.push(Object.assign({}, orig, common, { opacity: (o.opacity != null || _innerOp !== 1) ? _effOp : orig.opacity }));
       } else if (o.type === 'image' && o.src) {
         var fmt = /^data:image\/svg/.test(o.src) ? 'svg' : /jpeg|jpg/.test(o.src.slice(0, 24)) ? 'jpeg' : 'png';
         elements.push(Object.assign({ id: 'edit-' + Math.random().toString(36).slice(2, 8), origin: 'slide', type: 'image', src: o.src, format: fmt, svgText: o.svgText || null, opacity: o.opacity != null ? o.opacity : 1 }, common));
