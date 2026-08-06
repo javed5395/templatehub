@@ -104,8 +104,10 @@
     document.head.appendChild(style);
 
     // ── option lists: same wording as the search card ────────────────────────
-    function sel(id, label, pairs) {
-      var o = '<option value="">Any</option>' + pairs.map(function (p) {
+    function sel(id, label, pairs, noAny) {
+      // noAny: Template type has no "Any" — "Any" is not a search. Its blank row
+      // reads "None" and carries an empty value; it is what Clear returns to.
+      var o = (noAny ? '<option value="">None</option>' : '<option value="">Any</option>') + pairs.map(function (p) {
         return '<option value="' + p[0] + '">' + p[1] + '</option>';
       }).join('');
       return '<div class="dw-pair"><label for="dw_' + id + '">' + label + '</label>' +
@@ -166,30 +168,41 @@
       ['Baskerville|PT Serif',         'Academic']
     ];
 
-    var CONTENT = [['pitch-deck','Pitch Deck'],['media-kit','Media Kit']];
+    var CONTENT = [['pitch-deck','Pitch Deck'],['media-kit','Media Kit'],
+      ['web-kit','Website Kit'],['digital-keynotes','Digital Keynotes']];
 
     // SUB-CATEGORY (Y4). 4 Aug 2026 — this list held only the original 26 words
     // and had fallen behind the encoder, which accepts 54. A buyer could request
     // half the catalogue's sub-categories and no more: youtuber, agency,
     // designer, wedding-professional, saas-company and 23 others were missing.
     // Now matches meta_codec.py and the search card exactly. Keep all three in step.
-    var TYPE = [['freelancer','Freelancer'],['podcast','Podcast'],['press','Press / PR'],['influencer','Influencer'],
-      ['brand','Brand'],['tech','Tech'],['fashion','Fashion'],['ugc','UGC Creator'],['photography','Photography'],
-      ['music','Music / Artist'],['sports','Sports'],['food','Food'],['beauty','Beauty'],['travel','Travel'],
-      ['corporate','Corporate'],['startup','Startup'],['sales','Sales'],['education','Education'],['nonprofit','Non-profit'],
-      ['creative','Creative'],['investment','Investment'],['product-launch','Product Launch'],['partnership','Partnership'],
-      ['real-estate','Real Estate'],['healthcare','Healthcare'],['tech-ai','Tech & AI'],
-      ['youtuber','YouTuber'],['streamer','Streamer'],['gamer','Gamer'],['blogger','Blogger'],
-      ['journalist','Journalist'],['author-writer','Author / Writer'],['public-speaker','Public Speaker'],
-      ['coach-mentor','Coach / Mentor'],['consultant','Consultant'],['agency','Agency'],
-      ['saas-company','SaaS Company'],['ecommerce-brand','E-commerce Brand'],
-      ['educational-creator','Educational Creator'],['course-creator','Course Creator'],
-      ['newsletter-creator','Newsletter Creator'],['community-manager','Community Manager'],
-      ['actor','Actor'],['model','Model'],['artist-illustrator','Artist / Illustrator'],
-      ['designer','Designer'],['developer','Developer'],['mobile-app','Mobile App'],
-      ['event-organizer','Event Organizer'],['real-estate-agent','Real Estate Agent'],
-      ['healthcare-professional','Healthcare Professional'],['wedding-professional','Wedding Professional'],
-      ['content-creator','Content Creator'],['small-business','Small Business']];
+    var TYPE = [
+      ['actor','Actor'],['agency','Agency'],['annual_report','Annual Report'],
+      ['artist_illustrator','Artist / Illustrator'],['author_writer','Author / Writer'],['beauty_makeup','Beauty & Makeup'],
+      ['blog_magazine','Blog / Magazine'],['blogger','Blogger'],['brand','Brand'],
+      ['brand_identity','Brand Identity'],['business_proposal','Business Proposal'],['business_website','Business Website'],
+      ['case_study','Case Study'],['coach_mentor','Coach / Mentor'],['community_manager','Community Manager'],
+      ['company_profile','Company Profile'],['consultant','Consultant'],['content_creator','Content Creator'],
+      ['corporate','Corporate'],['corporate_website','Corporate Website'],['course_creator','Course Creator'],
+      ['course_deck','Course / Training Deck'],['creative','Creative'],['designer','Designer'],
+      ['developer','Developer'],['e_commerce','E-commerce'],['ecommerce_brand','E-commerce Brand'],
+      ['education','Education'],['educational_creator','Educational Creator'],['event_organizer','Event Organizer'],
+      ['event_proposal','Event Proposal'],['fashion','Fashion'],['food_lifestyle','Food & Lifestyle'],
+      ['freelancer','Freelancer'],['gamer','Gamer'],['healthcare','Healthcare'],
+      ['healthcare_professional','Healthcare Professional'],['influencer','Influencer'],['investment','Investment'],
+      ['investor_deck','Investor Deck'],['journalist','Journalist'],['landing_page','Landing Page'],
+      ['lookbook','Lookbook'],['mobile_app','Mobile App'],['model','Model'],
+      ['music_artist','Music / Artist'],['newsletter','Newsletter Template'],['newsletter_creator','Newsletter Creator'],
+      ['nonprofit_org','Nonprofit Organization'],['one_pager','One Pager'],['partnership','Partnership'],
+      ['personal_website','Personal Website'],['photography','Photography'],['podcast','Podcast'],
+      ['portfolio','Portfolio'],['press_kit','Press Kit'],['press_pr','Press / PR'],
+      ['product_catalog','Product Catalog'],['product_launch','Product Launch'],['public_speaker','Public Speaker'],
+      ['real_estate','Real Estate'],['real_estate_agent','Real Estate Agent'],['restaurant_food','Restaurant & Food'],
+      ['saas','SaaS'],['saas_company','SaaS Company'],['sales','Sales'],
+      ['small_business','Small Business'],['sponsorship_deck','Sponsorship Deck'],['sports_fitness','Sports & Fitness'],
+      ['startup','Startup'],['streamer','Streamer'],['tech','Tech'],
+      ['tech_ai','Tech & AI'],['travel','Travel'],['ugc','UGC Creator'],
+      ['wedding_professional','Wedding Professional'],['youtuber','YouTuber'],['other','Other']];
 
     var COLOR = [['black','Black'],['white','White'],['gray','Gray'],['silver','Silver'],['charcoal','Charcoal'],
       ['beige','Beige'],['neutral','Neutral'],['navy','Navy'],['blue','Blue'],['cyan','Cyan'],['teal','Teal'],['green','Green'],
@@ -211,17 +224,26 @@
       ['creative','Creative'],['luxury','Luxury'],['clean','Clean'],['colorful','Colorful'],['vintage','Vintage'],
       ['futuristic','Futuristic']];
 
-    var IND = [['tech','Tech'],['saas','SaaS'],['cybersecurity','Cybersecurity'],['electronics','Electronics'],
-      ['gaming','Gaming'],['telecom','Telecom'],['healthcare','Healthcare'],['pharma','Pharma'],['mental-health','Mental Health'],
-      ['finance','Finance'],['fintech','FinTech'],['insurance','Insurance'],['accounting','Accounting'],['crypto','Crypto'],
-      ['education','Education'],['elearning','E-Learning'],['retail','Retail'],['food','Food'],['fashion','Fashion'],
-      ['luxury','Luxury'],['realestate','Real Estate'],['construction','Construction'],['architecture','Architecture'],
-      ['home','Home'],['furniture','Furniture'],['travel','Travel'],['sports','Sports'],['events','Events'],['media','Media'],
-      ['music','Music'],['film','Film'],['photography','Photography'],['publishing','Publishing'],['art','Art'],
-      ['marketing','Marketing'],['pr','Public Relations'],['consulting','Consulting'],['hr','Human Resources'],
-      ['recruiting','Recruiting'],['automotive','Automotive'],['manufacturing','Manufacturing'],['logistics','Logistics'],
-      ['energy','Energy'],['environment','Environment'],['agriculture','Agriculture'],['pets','Pets'],['parenting','Parenting'],
-      ['legal','Legal'],['government','Government'],['nonprofit','Nonprofit'],['religion','Religion'],['general','General'],
+    var IND = [
+      ['accounting','Accounting'],['agriculture','Agriculture'],['ai-machine-learning','AI & Machine Learning'],
+      ['architecture','Architecture'],['art','Art'],['automotive','Automotive'],
+      ['biotechnology','Biotechnology'],['construction','Construction'],['consulting','Consulting'],
+      ['crypto','Crypto'],['cybersecurity','Cybersecurity'],['data-analytics','Data Analytics'],
+      ['education','Education'],['elearning','E-Learning'],['electronics','Electronics'],
+      ['energy','Energy'],['environment','Environment'],['events','Events'],
+      ['fashion','Fashion'],['film','Film'],['finance','Finance'],
+      ['fintech','FinTech'],['food','Food'],['furniture','Furniture'],
+      ['gaming','Gaming'],['government','Government'],['healthcare','Healthcare'],
+      ['home','Home'],['hr','Human Resources'],['insurance','Insurance'],
+      ['investment-venture-capital','Investment & Venture Capital'],['legal','Legal'],['logistics','Logistics'],
+      ['luxury','Luxury'],['manufacturing','Manufacturing'],['marketing','Marketing'],
+      ['media','Media'],['mental-health','Mental Health'],['music','Music'],
+      ['nonprofit','Nonprofit'],['parenting','Parenting'],['pets','Pets'],
+      ['pharma','Pharma'],['photography','Photography'],['pr','Public Relations'],
+      ['publishing','Publishing'],['realestate','Real Estate'],['recruiting','Recruiting'],
+      ['religion','Religion'],['retail','Retail'],['saas','SaaS'],
+      ['sports','Sports'],['tech','Tech'],['telecom','Telecom'],
+      ['travel','Travel'],['web3','Web3'],['general','General'],
       ['other','Other']];
 
     var TONE = [['professional','Professional'],['friendly','Friendly'],['formal','Formal'],['casual','Casual'],
@@ -254,8 +276,36 @@
       ['social-campaign','Social Media Campaigns'],['job-applications','Job Applications'],
       ['portfolio-showcase','Portfolio Showcase']];
 
+
+    // ── SUB-CATEGORY SLICES (Y4) ───────────────────────────────────────────
+    // Picking a Template type narrows the Sub-Category box to that type's own
+    // slice. Nothing else ever appears in it. Same slices as search_widget.js,
+    // upload_form.html, sample.docx and meta_codec.py _SUB_CATEGORY.
+    var DW_SUBCAT_BY_TYPE = {
+      'media-kit'        : ['actor','agency','artist_illustrator','author_writer','beauty_makeup','blogger','brand','coach_mentor','community_manager','consultant','content_creator','corporate','course_creator','creative','designer','developer','ecommerce_brand','education','educational_creator','event_organizer','fashion','food_lifestyle','freelancer','gamer','healthcare','healthcare_professional','influencer','investment','journalist','mobile_app','model','music_artist','newsletter_creator','nonprofit_org','partnership','photography','podcast','press_pr','product_launch','public_speaker','real_estate','real_estate_agent','saas_company','sales','small_business','sports_fitness','startup','streamer','tech','tech_ai','travel','ugc','wedding_professional','youtuber','other'],
+      'pitch-deck'       : ['actor','agency','artist_illustrator','author_writer','beauty_makeup','blogger','brand','coach_mentor','community_manager','consultant','content_creator','corporate','course_creator','creative','designer','developer','ecommerce_brand','education','educational_creator','event_organizer','fashion','food_lifestyle','freelancer','gamer','healthcare','healthcare_professional','influencer','investment','journalist','mobile_app','model','music_artist','newsletter_creator','nonprofit_org','partnership','photography','podcast','press_pr','product_launch','public_speaker','real_estate','real_estate_agent','saas_company','sales','small_business','sports_fitness','startup','streamer','tech','tech_ai','travel','ugc','wedding_professional','youtuber','other'],
+      'web-kit'          : ['business_website','corporate_website','portfolio','agency','saas','startup','e_commerce','landing_page','blog_magazine','personal_website','education','healthcare','restaurant_food','real_estate','nonprofit_org'],
+      'digital-keynotes' : ['company_profile','business_proposal','brand_identity','investor_deck','product_catalog','event_proposal','portfolio','case_study','newsletter','sponsorship_deck','one_pager','lookbook','annual_report','course_deck','press_kit','other']
+    };
+    function dwApplySubCategorySlice() {
+      var sel = document.getElementById('dw_type');
+      var ct  = document.getElementById('dw_contentType');
+      if (!sel || !ct) return;
+      var keep = sel.value;
+      // no type chosen (the None row) -> the full 78; a chosen type -> its slice only
+      var list = DW_SUBCAT_BY_TYPE[ct.value] || TYPE.map(function (p) { return p[0]; });
+      var lab  = {}; TYPE.forEach(function (p) { lab[p[0]] = p[1]; });
+      sel.innerHTML = '<option value="">Any</option>';
+      list.forEach(function (v) {
+        var o = document.createElement('option');
+        o.value = v; o.textContent = lab[v] || v;
+        if (v === keep) o.selected = true;
+        sel.appendChild(o);
+      });
+    }
+
     var FIELDS =
-      sel('contentType', 'Template type', CONTENT) +
+      sel('contentType', 'Template type', CONTENT, true) +
       txt('slides', 'Slides', 'e.g. 15', 'number') +
       sel('aspectRatio', 'Aspect ratio', [['16 9', '16:9']]) +
       sel('type', 'Sub-Category', TYPE) +
@@ -548,11 +598,15 @@
       var s = orderSentence();
       preview.textContent = s ? ('Your order: ' + s) : '';
     }
+    dwApplySubCategorySlice();
+    var dwCt = document.getElementById('dw_contentType');
+    if (dwCt) dwCt.addEventListener('change', dwApplySubCategorySlice);
     wrap.addEventListener('change', refreshPreview);
     wrap.addEventListener('input', refreshPreview);
     if (hexaBar) hexaBar.addEventListener('input', refreshPreview);
 
     document.getElementById('dwClear').addEventListener('click', function () {
+      setTimeout(dwApplySubCategorySlice, 0);
       Array.prototype.forEach.call(wrap.querySelectorAll('#designWidget select, #designWidget input, #designWidget textarea'), function (el) {
         el.value = '';
       });

@@ -177,12 +177,16 @@
           '<div class="sw-col">' +
             '<div id="filterBlock"><div class="sw-grid">' +
               '<div class="sw-field" id="f_contentTypeWrap"><label>Template Type</label>' +
-                // 28 Jul 2026: TWO types only — Media Kit and Pitch Deck. Web Kit,
-                // Resume/CV and Digital Keynotes are removed: those rooms are not
-                // built yet, so offering them would search nothing.
-                '<select autocomplete="off" id="f_contentType"><option value="">Any</option>' +
+                // 6 Aug 2026: four types. NO 'Any' — 'Any' is not a search we run.
+                // The first row is 'None' with an EMPTY value: it is what Clear
+                // returns to, not a filter. Picking a real type narrows the
+                // Sub-Category box to that type's own Y4 slice (SUBCAT_BY_TYPE
+                // below), so a buyer never sees a sub-category that type cannot have.
+                '<select autocomplete="off" id="f_contentType"><option value="">None</option>' +
                 '<option value="pitch-deck">Pitch Deck</option>' +
-                '<option value="media-kit">Media Kit</option></select></div>' +
+                '<option value="media-kit">Media Kit</option>' +
+                '<option value="web-kit">Website Kit</option>' +
+                '<option value="digital-keynotes">Digital Keynotes</option></select></div>' +
               // GROUPING (2 Aug 2026) — the 8 SMALL fields (plain dropdowns / number
               // box) come first, 2 per row, filling the top 4 rows. The 8 BIG fields
               // (the tall scrolling multi-select lists) all sit together underneath.
@@ -210,64 +214,35 @@
               // TYPE: the category INSIDE the template type. Same list the
               // seller picks as Sub-Category in upload_form.html (media kit + pitch
               // deck sub-categories, deduped, 'other' dropped).
-              '<div class="sw-field"><label>Sub-Category</label><select autocomplete="off" id="f_type" multiple>' +
-                '<option value="freelancer">Freelancer</option>' +
-                '<option value="podcast">Podcast</option>' +
-                '<option value="press">Press / PR</option>' +
-                '<option value="influencer">Influencer</option>' +
-                '<option value="brand">Brand</option>' +
-                '<option value="tech">Tech</option>' +
-                '<option value="fashion">Fashion</option>' +
-                '<option value="ugc">UGC Creator</option>' +
-                '<option value="photography">Photography</option>' +
-                '<option value="music">Music / Artist</option>' +
-                '<option value="sports">Sports</option>' +
-                '<option value="food">Food</option>' +
-                '<option value="beauty">Beauty</option>' +
-                '<option value="travel">Travel</option>' +
-                '<option value="corporate">Corporate</option>' +
-                '<option value="startup">Startup</option>' +
-                '<option value="sales">Sales</option>' +
-                '<option value="education">Education</option>' +
-                '<option value="nonprofit">Non-profit</option>' +
-                '<option value="creative">Creative</option>' +
-                '<option value="investment">Investment</option>' +
-                '<option value="product-launch">Product Launch</option>' +
-                '<option value="partnership">Partnership</option>' +
-                '<option value="real-estate">Real Estate</option>' +
-                '<option value="healthcare">Healthcare</option>' +
-                '<option value="tech-ai">Tech & AI</option>' +
-                // 1 Aug 2026 — sub-categories restored from commit f0f91c1.
-                '<option value="youtuber">YouTuber</option>' +
-                '<option value="streamer">Streamer</option>' +
-                '<option value="gamer">Gamer</option>' +
-                '<option value="blogger">Blogger</option>' +
-                '<option value="journalist">Journalist</option>' +
-                '<option value="author-writer">Author / Writer</option>' +
-                '<option value="public-speaker">Public Speaker</option>' +
-                '<option value="coach-mentor">Coach / Mentor</option>' +
-                '<option value="consultant">Consultant</option>' +
-                '<option value="agency">Agency</option>' +
-                '<option value="saas-company">SaaS Company</option>' +
-                '<option value="ecommerce-brand">E-commerce Brand</option>' +
-                '<option value="educational-creator">Educational Creator</option>' +
-                '<option value="course-creator">Course Creator</option>' +
-                '<option value="newsletter-creator">Newsletter Creator</option>' +
-                '<option value="community-manager">Community Manager</option>' +
-                '<option value="actor">Actor</option>' +
-                '<option value="model">Model</option>' +
-                '<option value="artist-illustrator">Artist / Illustrator</option>' +
-                '<option value="designer">Designer</option>' +
-                '<option value="developer">Developer</option>' +
-                '<option value="mobile-app">Mobile App</option>' +
-                '<option value="event-organizer">Event Organizer</option>' +
-                '<option value="real-estate-agent">Real Estate Agent</option>' +
-                '<option value="healthcare-professional">Healthcare Professional</option>' +
-                '<option value="wedding-professional">Wedding Professional</option>' +
-                '<option value="content-creator">Content Creator</option>' +
-                '<option value="small-business">Small Business</option>' +
+              '<div class="sw-field"><label>Sub-Category</label><select autocomplete="off" id="f_type" multiple><option value="">None</option>' +
+                '<option value="actor">Actor</option><option value="agency">Agency</option><option value="annual_report">Annual Report</option>' +
+                '<option value="artist_illustrator">Artist / Illustrator</option><option value="author_writer">Author / Writer</option><option value="beauty_makeup">Beauty & Makeup</option>' +
+                '<option value="blog_magazine">Blog / Magazine</option><option value="blogger">Blogger</option><option value="brand">Brand</option>' +
+                '<option value="brand_identity">Brand Identity</option><option value="business_proposal">Business Proposal</option><option value="business_website">Business Website</option>' +
+                '<option value="case_study">Case Study</option><option value="coach_mentor">Coach / Mentor</option><option value="community_manager">Community Manager</option>' +
+                '<option value="company_profile">Company Profile</option><option value="consultant">Consultant</option><option value="content_creator">Content Creator</option>' +
+                '<option value="corporate">Corporate</option><option value="corporate_website">Corporate Website</option><option value="course_creator">Course Creator</option>' +
+                '<option value="course_deck">Course / Training Deck</option><option value="creative">Creative</option><option value="designer">Designer</option>' +
+                '<option value="developer">Developer</option><option value="e_commerce">E-commerce</option><option value="ecommerce_brand">E-commerce Brand</option>' +
+                '<option value="education">Education</option><option value="educational_creator">Educational Creator</option><option value="event_organizer">Event Organizer</option>' +
+                '<option value="event_proposal">Event Proposal</option><option value="fashion">Fashion</option><option value="food_lifestyle">Food & Lifestyle</option>' +
+                '<option value="freelancer">Freelancer</option><option value="gamer">Gamer</option><option value="healthcare">Healthcare</option>' +
+                '<option value="healthcare_professional">Healthcare Professional</option><option value="influencer">Influencer</option><option value="investment">Investment</option>' +
+                '<option value="investor_deck">Investor Deck</option><option value="journalist">Journalist</option><option value="landing_page">Landing Page</option>' +
+                '<option value="lookbook">Lookbook</option><option value="mobile_app">Mobile App</option><option value="model">Model</option>' +
+                '<option value="music_artist">Music / Artist</option><option value="newsletter">Newsletter Template</option><option value="newsletter_creator">Newsletter Creator</option>' +
+                '<option value="nonprofit_org">Nonprofit Organization</option><option value="one_pager">One Pager</option><option value="partnership">Partnership</option>' +
+                '<option value="personal_website">Personal Website</option><option value="photography">Photography</option><option value="podcast">Podcast</option>' +
+                '<option value="portfolio">Portfolio</option><option value="press_kit">Press Kit</option><option value="press_pr">Press / PR</option>' +
+                '<option value="product_catalog">Product Catalog</option><option value="product_launch">Product Launch</option><option value="public_speaker">Public Speaker</option>' +
+                '<option value="real_estate">Real Estate</option><option value="real_estate_agent">Real Estate Agent</option><option value="restaurant_food">Restaurant & Food</option>' +
+                '<option value="saas">SaaS</option><option value="saas_company">SaaS Company</option><option value="sales">Sales</option>' +
+                '<option value="small_business">Small Business</option><option value="sponsorship_deck">Sponsorship Deck</option><option value="sports_fitness">Sports & Fitness</option>' +
+                '<option value="startup">Startup</option><option value="streamer">Streamer</option><option value="tech">Tech</option>' +
+                '<option value="tech_ai">Tech & AI</option><option value="travel">Travel</option><option value="ugc">UGC Creator</option>' +
+                '<option value="wedding_professional">Wedding Professional</option><option value="youtuber">YouTuber</option><option value="other">Other</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Color Family</label><select autocomplete="off" id="f_colorFamily" multiple>' +
+              '<div class="sw-field"><label>Color Family</label><select autocomplete="off" id="f_colorFamily" multiple><option value="">None</option>' +
                 '<option value="black">Black</option><option value="white">White</option><option value="gray">Gray</option>' +
                 '<option value="silver">Silver</option><option value="charcoal">Charcoal</option><option value="beige">Beige</option>' +
                 '<option value="neutral">Neutral</option><option value="navy">Navy</option><option value="blue">Blue</option>' +
@@ -281,7 +256,7 @@
                 '<option value="earth">Earth Tones</option><option value="monochrome">Monochrome</option><option value="dark">Dark</option>' +
                 '<option value="light">Light</option><option value="multicolor">Multicolor</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Background</label><select autocomplete="off" id="f_background" multiple>' +
+              '<div class="sw-field"><label>Background</label><select autocomplete="off" id="f_background" multiple><option value="">None</option>' +
                 '<option value="dark">Dark</option><option value="light">Light</option><option value="monochrome">Monochrome</option>' +
                 '<option value="transparent">Transparent</option><option value="solid">Solid</option><option value="gradient">Gradient</option>' +
                 '<option value="mesh-gradient">Mesh Gradient</option><option value="duotone">Duotone</option><option value="color-block">Colour Block</option>' +
@@ -293,34 +268,36 @@
                 '<option value="framed">Framed</option><option value="abstract">Abstract</option><option value="3d">3D</option>' +
                 '<option value="glassmorphism">Glassmorphism</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Style</label><select autocomplete="off" id="f_style" multiple>' +
+              '<div class="sw-field"><label>Style</label><select autocomplete="off" id="f_style" multiple><option value="">None</option>' +
                 '<option value="minimal">Minimal</option><option value="bold">Bold</option><option value="modern">Modern</option>' +
                 '<option value="elegant">Elegant</option><option value="professional">Professional</option><option value="playful">Playful</option>' +
                 '<option value="editorial">Editorial</option><option value="corporate">Corporate</option><option value="creative">Creative</option>' +
                 '<option value="luxury">Luxury</option><option value="clean">Clean</option>' +
                 '<option value="colorful">Colorful</option><option value="vintage">Vintage</option><option value="futuristic">Futuristic</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Industry</label><select autocomplete="off" id="f_industry" multiple>' +
-                '<option value="tech">Tech</option><option value="saas">SaaS</option><option value="cybersecurity">Cybersecurity</option>' +
-                '<option value="electronics">Electronics</option><option value="gaming">Gaming</option><option value="telecom">Telecom</option>' +
-                '<option value="healthcare">Healthcare</option><option value="pharma">Pharma</option><option value="mental-health">Mental Health</option>' +
-                '<option value="finance">Finance</option><option value="fintech">FinTech</option><option value="insurance">Insurance</option>' +
-                '<option value="accounting">Accounting</option><option value="crypto">Crypto</option><option value="education">Education</option>' +
-                '<option value="elearning">E-Learning</option><option value="retail">Retail</option><option value="food">Food</option>' +
-                '<option value="fashion">Fashion</option><option value="luxury">Luxury</option><option value="realestate">Real Estate</option>' +
-                '<option value="construction">Construction</option><option value="architecture">Architecture</option><option value="home">Home</option>' +
-                '<option value="furniture">Furniture</option><option value="travel">Travel</option><option value="sports">Sports</option>' +
-                '<option value="events">Events</option><option value="media">Media</option><option value="music">Music</option>' +
-                '<option value="film">Film</option><option value="photography">Photography</option><option value="publishing">Publishing</option>' +
-                '<option value="art">Art</option><option value="marketing">Marketing</option><option value="pr">Public Relations</option>' +
-                '<option value="consulting">Consulting</option><option value="hr">Human Resources</option><option value="recruiting">Recruiting</option>' +
-                '<option value="automotive">Automotive</option><option value="manufacturing">Manufacturing</option><option value="logistics">Logistics</option>' +
-                '<option value="energy">Energy</option><option value="environment">Environment</option><option value="agriculture">Agriculture</option>' +
-                '<option value="pets">Pets</option><option value="parenting">Parenting</option><option value="legal">Legal</option>' +
-                '<option value="government">Government</option><option value="nonprofit">Nonprofit</option><option value="religion">Religion</option>' +
-                '<option value="general">General</option><option value="other">Other</option>' +
+              '<div class="sw-field"><label>Industry</label><select autocomplete="off" id="f_industry" multiple><option value="">None</option>' +
+                '<option value="accounting">Accounting</option><option value="agriculture">Agriculture</option><option value="ai-machine-learning">AI & Machine Learning</option>' +
+                '<option value="architecture">Architecture</option><option value="art">Art</option><option value="automotive">Automotive</option>' +
+                '<option value="biotechnology">Biotechnology</option><option value="construction">Construction</option><option value="consulting">Consulting</option>' +
+                '<option value="crypto">Crypto</option><option value="cybersecurity">Cybersecurity</option><option value="data-analytics">Data Analytics</option>' +
+                '<option value="education">Education</option><option value="elearning">E-Learning</option><option value="electronics">Electronics</option>' +
+                '<option value="energy">Energy</option><option value="environment">Environment</option><option value="events">Events</option>' +
+                '<option value="fashion">Fashion</option><option value="film">Film</option><option value="finance">Finance</option>' +
+                '<option value="fintech">FinTech</option><option value="food">Food</option><option value="furniture">Furniture</option>' +
+                '<option value="gaming">Gaming</option><option value="government">Government</option><option value="healthcare">Healthcare</option>' +
+                '<option value="home">Home</option><option value="hr">Human Resources</option><option value="insurance">Insurance</option>' +
+                '<option value="investment-venture-capital">Investment & Venture Capital</option><option value="legal">Legal</option><option value="logistics">Logistics</option>' +
+                '<option value="luxury">Luxury</option><option value="manufacturing">Manufacturing</option><option value="marketing">Marketing</option>' +
+                '<option value="media">Media</option><option value="mental-health">Mental Health</option><option value="music">Music</option>' +
+                '<option value="nonprofit">Nonprofit</option><option value="parenting">Parenting</option><option value="pets">Pets</option>' +
+                '<option value="pharma">Pharma</option><option value="photography">Photography</option><option value="pr">Public Relations</option>' +
+                '<option value="publishing">Publishing</option><option value="realestate">Real Estate</option><option value="recruiting">Recruiting</option>' +
+                '<option value="religion">Religion</option><option value="retail">Retail</option><option value="saas">SaaS</option>' +
+                '<option value="sports">Sports</option><option value="tech">Tech</option><option value="telecom">Telecom</option>' +
+                '<option value="travel">Travel</option><option value="web3">Web3</option><option value="general">General</option>' +
+                '<option value="other">Other</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Tone</label><select autocomplete="off" id="f_tone" multiple>' +
+              '<div class="sw-field"><label>Tone</label><select autocomplete="off" id="f_tone" multiple><option value="">None</option>' +
                 '<option value="professional">Professional</option><option value="friendly">Friendly</option>' +
                 '<option value="formal">Formal</option><option value="casual">Casual</option>' +
                 '<option value="creative">Creative</option><option value="modern">Modern</option>' +
@@ -332,7 +309,7 @@
                 '<option value="premium">Premium</option><option value="executive">Executive</option>' +
                 '<option value="corporate">Corporate</option><option value="bold">Bold</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Audience</label><select autocomplete="off" id="f_audience" multiple>' +
+              '<div class="sw-field"><label>Audience</label><select autocomplete="off" id="f_audience" multiple><option value="">None</option>' +
                 '<option value="executives">Executives</option><option value="managers">Managers</option>' +
                 '<option value="team-leaders">Team Leaders</option><option value="employees">Employees</option>' +
                 '<option value="project-managers">Project Managers</option><option value="product-managers">Product Managers</option>' +
@@ -358,7 +335,7 @@
                 '<option value="influencers">Influencers</option><option value="partners">Brand Partners</option>' +
                 '<option value="sponsors">Brand Sponsors</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Best For</label><select autocomplete="off" id="f_bestFor" multiple>' +
+              '<div class="sw-field"><label>Best For</label><select autocomplete="off" id="f_bestFor" multiple><option value="">None</option>' +
                 '<option value="pitching-investors">Pitching Investors</option><option value="seed-round">Seed Round</option>' +
                 '<option value="series-a">Series A</option><option value="series-b">Series B</option>' +
                 '<option value="demo-day">Demo Day</option><option value="investor-roadshow">Investor Roadshow</option>' +
@@ -477,29 +454,56 @@
     // the markup — never wipe a list. (Before the widget's crash-fix, init
     // died before reaching here, so the hardcoded options "survived"; once
     // init succeeded, empty vocab fields blanked their dropdowns.)
+    // 6 Aug 2026 — two bugs fixed here, both found by testing the card:
+    //   1. the rebuild dropped the "None" row, so a buyer who picked the wrong
+    //      value in any of these boxes could only undo it with Clear All;
+    //   2. it re-labelled EVERY option from its value, so curated labels were
+    //      destroyed — 'beauty_makeup' rendered as "Beauty_makeup", '3d' as
+    //      "3d", 'pr' as "Pr". The label written in the markup is now kept, and
+    //      only a word that arrives from the live vocab gets a generated one.
     MULTI_FILTER_FIELDS.forEach(function(field) {
       var el = document.getElementById('f_' + field);
       if (!el) return;
-      var seen = {}, merged = [];
+      var seen = {}, merged = [], labelOf = {};
       Array.prototype.forEach.call(el.options, function(op) {
         var v = norm(op.value);
-        if (v && !seen[v]) { seen[v] = 1; merged.push(v); }
+        if (!v) return;                       // the None row — re-added below
+        if (!seen[v]) { seen[v] = 1; merged.push(v); labelOf[v] = op.textContent; }
       });
       (VOCAB[field] || []).forEach(function(v) {
         if (v && !seen[v]) { seen[v] = 1; merged.push(v); }
       });
       merged.sort();
       if (!merged.length) return;   // nothing known — leave the markup as-is
-      el.innerHTML = merged.map(function(v) {
-        var label = v.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      el.innerHTML = '<option value="">None</option>' + merged.map(function(v) {
+        var label = labelOf[v] || v.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
         return '<option value="' + v + '">' + label + '</option>';
       }).join('');
     });
   }
   function readMultiSelect(id) {
     var el = document.getElementById(id);
-    return el ? Array.prototype.slice.call(el.selectedOptions).map(function(o) { return o.value; }) : [];
+    if (el) handleNoneRow(el);
+    return el ? Array.prototype.slice.call(el.selectedOptions)
+                  .map(function(o) { return o.value; })
+                  .filter(function(v) { return v !== ''; }) : [];
   }
+
+  // ── PER-FIELD RESET ───────────────────────────────────────────────────────
+  // Every multi-select opens with a "None" row carrying an empty value. Picking
+  // it wipes that one box, so a buyer who chose the wrong sub-category or
+  // industry can undo just that field instead of hitting Clear All and losing
+  // everything else. Picking any real value drops None automatically.
+  function handleNoneRow(el) {
+    if (!el || !el.multiple) return;
+    var opts = Array.prototype.slice.call(el.options);
+    var none = opts[0];
+    if (!none || none.value !== '') return;
+    if (none.selected) {
+      opts.forEach(function(o) { if (o !== none) o.selected = false; });
+    }
+  }
+
   function onFilterChange() {
     filterRequirements = {};
     var ct = document.getElementById('f_contentType').value; if (ct) filterRequirements.contentType = ct;
@@ -523,17 +527,53 @@
     });
     recomputeRequirements();
   }
+
+  // ── SUB-CATEGORY SLICES (Y4) ──────────────────────────────────────────────
+  // The Sub-Category box only ever shows the slice that belongs to the chosen
+  // Template Type. 'Any' shows all 78. Same slices as upload_form.html,
+  // sample.docx and meta_codec.py _SUB_CATEGORY. Change one, change all.
+  var SUBCAT_LABELS = {"actor": "Actor", "agency": "Agency", "annual_report": "Annual Report", "artist_illustrator": "Artist / Illustrator", "author_writer": "Author / Writer", "beauty_makeup": "Beauty & Makeup", "blog_magazine": "Blog / Magazine", "blogger": "Blogger", "brand": "Brand", "brand_identity": "Brand Identity", "business_proposal": "Business Proposal", "business_website": "Business Website", "case_study": "Case Study", "coach_mentor": "Coach / Mentor", "community_manager": "Community Manager", "company_profile": "Company Profile", "consultant": "Consultant", "content_creator": "Content Creator", "corporate": "Corporate", "corporate_website": "Corporate Website", "course_creator": "Course Creator", "course_deck": "Course / Training Deck", "creative": "Creative", "designer": "Designer", "developer": "Developer", "e_commerce": "E-commerce", "ecommerce_brand": "E-commerce Brand", "education": "Education", "educational_creator": "Educational Creator", "event_organizer": "Event Organizer", "event_proposal": "Event Proposal", "fashion": "Fashion", "food_lifestyle": "Food & Lifestyle", "freelancer": "Freelancer", "gamer": "Gamer", "healthcare": "Healthcare", "healthcare_professional": "Healthcare Professional", "influencer": "Influencer", "investment": "Investment", "investor_deck": "Investor Deck", "journalist": "Journalist", "landing_page": "Landing Page", "lookbook": "Lookbook", "mobile_app": "Mobile App", "model": "Model", "music_artist": "Music / Artist", "newsletter": "Newsletter Template", "newsletter_creator": "Newsletter Creator", "nonprofit_org": "Nonprofit Organization", "one_pager": "One Pager", "partnership": "Partnership", "personal_website": "Personal Website", "photography": "Photography", "podcast": "Podcast", "portfolio": "Portfolio", "press_kit": "Press Kit", "press_pr": "Press / PR", "product_catalog": "Product Catalog", "product_launch": "Product Launch", "public_speaker": "Public Speaker", "real_estate": "Real Estate", "real_estate_agent": "Real Estate Agent", "restaurant_food": "Restaurant & Food", "saas": "SaaS", "saas_company": "SaaS Company", "sales": "Sales", "small_business": "Small Business", "sponsorship_deck": "Sponsorship Deck", "sports_fitness": "Sports & Fitness", "startup": "Startup", "streamer": "Streamer", "tech": "Tech", "tech_ai": "Tech & AI", "travel": "Travel", "ugc": "UGC Creator", "wedding_professional": "Wedding Professional", "youtuber": "YouTuber", "other": "Other"};
+  var SUBCAT_BY_TYPE = {
+    'media-kit'        : ['actor','agency','artist_illustrator','author_writer','beauty_makeup','blogger','brand','coach_mentor','community_manager','consultant','content_creator','corporate','course_creator','creative','designer','developer','ecommerce_brand','education','educational_creator','event_organizer','fashion','food_lifestyle','freelancer','gamer','healthcare','healthcare_professional','influencer','investment','journalist','mobile_app','model','music_artist','newsletter_creator','nonprofit_org','partnership','photography','podcast','press_pr','product_launch','public_speaker','real_estate','real_estate_agent','saas_company','sales','small_business','sports_fitness','startup','streamer','tech','tech_ai','travel','ugc','wedding_professional','youtuber','other'],
+    'pitch-deck'       : ['actor','agency','artist_illustrator','author_writer','beauty_makeup','blogger','brand','coach_mentor','community_manager','consultant','content_creator','corporate','course_creator','creative','designer','developer','ecommerce_brand','education','educational_creator','event_organizer','fashion','food_lifestyle','freelancer','gamer','healthcare','healthcare_professional','influencer','investment','journalist','mobile_app','model','music_artist','newsletter_creator','nonprofit_org','partnership','photography','podcast','press_pr','product_launch','public_speaker','real_estate','real_estate_agent','saas_company','sales','small_business','sports_fitness','startup','streamer','tech','tech_ai','travel','ugc','wedding_professional','youtuber','other'],
+    'web-kit'          : ['business_website','corporate_website','portfolio','agency','saas','startup','e_commerce','landing_page','blog_magazine','personal_website','education','healthcare','restaurant_food','real_estate','nonprofit_org'],
+    'digital-keynotes' : ['company_profile','business_proposal','brand_identity','investor_deck','product_catalog','event_proposal','portfolio','case_study','newsletter','sponsorship_deck','one_pager','lookbook','annual_report','course_deck','press_kit','other']
+  };
+  var SUBCAT_ALL = ['actor','agency','annual_report','artist_illustrator','author_writer','beauty_makeup','blog_magazine','blogger','brand','brand_identity','business_proposal','business_website','case_study','coach_mentor','community_manager','company_profile','consultant','content_creator','corporate','corporate_website','course_creator','course_deck','creative','designer','developer','e_commerce','ecommerce_brand','education','educational_creator','event_organizer','event_proposal','fashion','food_lifestyle','freelancer','gamer','healthcare','healthcare_professional','influencer','investment','investor_deck','journalist','landing_page','lookbook','mobile_app','model','music_artist','newsletter','newsletter_creator','nonprofit_org','one_pager','partnership','personal_website','photography','podcast','portfolio','press_kit','press_pr','product_catalog','product_launch','public_speaker','real_estate','real_estate_agent','restaurant_food','saas','saas_company','sales','small_business','sponsorship_deck','sports_fitness','startup','streamer','tech','tech_ai','travel','ugc','wedding_professional','youtuber','other'];
+  function applySubCategorySlice() {
+    var sel = document.getElementById('f_type');
+    if (!sel) return;
+    var ctEl = document.getElementById('f_contentType');
+    var ct   = ctEl ? ctEl.value : '';
+    var keep = {}; 
+    Array.prototype.slice.call(sel.selectedOptions || []).forEach(function(o){ keep[o.value] = 1; });
+    // no type chosen (the None row) -> the full 78; a chosen type -> its slice only
+    var list = SUBCAT_BY_TYPE[ct] || SUBCAT_ALL;
+    sel.innerHTML = '<option value="">None</option>';
+    list.forEach(function(v) {
+      var o = document.createElement('option');
+      o.value = v; o.textContent = SUBCAT_LABELS[v] || v;
+      if (keep[v]) o.selected = true;
+      sel.appendChild(o);
+    });
+  }
+
   function clearFilters() {
     ['f_contentType','f_slides','f_aspectRatio','f_formality','f_textWeight','f_shapeWeight','f_graphWeight','f_emptySpace'].forEach(function(id) {
       var el = document.getElementById(id); if (el && id !== 'f_contentType') el.value = '';
     });
-    document.getElementById('f_contentType').value = pageContext || '';  // section pages fall back to their own type
+    // no 'Any' option exists — a template is always one of the four. A section
+    // page falls back to its own type; anywhere else Clear returns to the first
+    // option rather than to a blank the select cannot hold.
+    var ctSel = document.getElementById('f_contentType');
+    ctSel.value = pageContext || '';        // '' = the None row
     MULTI_FILTER_FIELDS.forEach(function(field) {
       var el = document.getElementById('f_' + field);
       Array.prototype.slice.call(el.options).forEach(function(o) { o.selected = false; });
     });
+    applySubCategorySlice();
     filterRequirements = {};
-    if (pageContext) filterRequirements.contentType = pageContext;
+    if (ctSel.value) filterRequirements.contentType = ctSel.value;
     recomputeRequirements();
   }
   // Full reset: blank every card value + chat, so the bars disappear
@@ -1069,6 +1109,8 @@
       if (e.key === 'Enter') { e.stopPropagation(); sendMsg(); }
     });
     document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+    applySubCategorySlice();
+    document.getElementById('f_contentType').addEventListener('change', applySubCategorySlice);
     ['f_contentType','f_slides','f_aspectRatio','f_formality','f_textWeight','f_shapeWeight','f_graphWeight','f_emptySpace']
       .concat(MULTI_FILTER_FIELDS.map(function(f){ return 'f_' + f; }))
       .forEach(function(id) {

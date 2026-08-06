@@ -370,19 +370,7 @@
       <div class="row">
         <div class="field">
           <label id="industryLabel">Industry <span class="required">*</span></label>
-          <select id="industry">
-            <!-- 2 Aug 2026 — sorted A-Z (Javed). It used to be grouped by theme
-                 (all the tech ones, then health, then money...), which reads
-                 fine once but is slow to scan when you already know the word
-                 you want. "General" and "Other" are deliberately pinned to the
-                 bottom rather than sitting between Gaming and Parenting — they
-                 are fallbacks, not choices.
-
-                 EVERY value below has a code in meta_codec._INDUSTRY, checked
-                 one by one. An option with no code encodes to nothing and is
-                 dropped in silence, so if you add an industry here, add it to
-                 the codec in the same change. -->
-            <option value="">Select industry</option><option value="accounting">Accounting</option><option value="agriculture">Agriculture</option><option value="architecture">Architecture</option><option value="art">Art</option><option value="automotive">Automotive</option><option value="construction">Construction</option><option value="consulting">Consulting</option><option value="crypto">Crypto</option><option value="cybersecurity">Cybersecurity</option><option value="education">Education</option><option value="elearning">E-Learning</option><option value="electronics">Electronics</option><option value="energy">Energy</option><option value="environment">Environment</option><option value="events">Events</option><option value="fashion">Fashion</option><option value="film">Film</option><option value="finance">Finance</option><option value="fintech">FinTech</option><option value="food">Food</option><option value="furniture">Furniture</option><option value="gaming">Gaming</option><option value="government">Government</option><option value="healthcare">Healthcare</option><option value="home">Home</option><option value="hr">Human Resources</option><option value="insurance">Insurance</option><option value="legal">Legal</option><option value="logistics">Logistics</option><option value="luxury">Luxury</option><option value="manufacturing">Manufacturing</option><option value="marketing">Marketing</option><option value="media">Media</option><option value="mental-health">Mental Health</option><option value="music">Music</option><option value="nonprofit">Nonprofit</option><option value="parenting">Parenting</option><option value="pets">Pets</option><option value="pharma">Pharma</option><option value="photography">Photography</option><option value="pr">Public Relations</option><option value="publishing">Publishing</option><option value="realestate">Real Estate</option><option value="recruiting">Recruiting</option><option value="religion">Religion</option><option value="retail">Retail</option><option value="saas">SaaS</option><option value="sports">Sports</option><option value="tech">Tech</option><option value="telecom">Telecom</option><option value="travel">Travel</option><option value="general">General</option><option value="other">Other</option></select>
+          <select id="industry"><option value="">Select industry</option><option value="accounting">Accounting</option><option value="agriculture">Agriculture</option><option value="ai-machine-learning">AI & Machine Learning</option><option value="architecture">Architecture</option><option value="art">Art</option><option value="automotive">Automotive</option><option value="biotechnology">Biotechnology</option><option value="construction">Construction</option><option value="consulting">Consulting</option><option value="crypto">Crypto</option><option value="cybersecurity">Cybersecurity</option><option value="data-analytics">Data Analytics</option><option value="education">Education</option><option value="elearning">E-Learning</option><option value="electronics">Electronics</option><option value="energy">Energy</option><option value="environment">Environment</option><option value="events">Events</option><option value="fashion">Fashion</option><option value="film">Film</option><option value="finance">Finance</option><option value="fintech">FinTech</option><option value="food">Food</option><option value="furniture">Furniture</option><option value="gaming">Gaming</option><option value="government">Government</option><option value="healthcare">Healthcare</option><option value="home">Home</option><option value="hr">Human Resources</option><option value="insurance">Insurance</option><option value="investment-venture-capital">Investment & Venture Capital</option><option value="legal">Legal</option><option value="logistics">Logistics</option><option value="luxury">Luxury</option><option value="manufacturing">Manufacturing</option><option value="marketing">Marketing</option><option value="media">Media</option><option value="mental-health">Mental Health</option><option value="music">Music</option><option value="nonprofit">Nonprofit</option><option value="parenting">Parenting</option><option value="pets">Pets</option><option value="pharma">Pharma</option><option value="photography">Photography</option><option value="pr">Public Relations</option><option value="publishing">Publishing</option><option value="realestate">Real Estate</option><option value="recruiting">Recruiting</option><option value="religion">Religion</option><option value="retail">Retail</option><option value="saas">SaaS</option><option value="sports">Sports</option><option value="tech">Tech</option><option value="telecom">Telecom</option><option value="travel">Travel</option><option value="web3">Web3</option><option value="general">General</option><option value="other">Other</option></select>
         </div>
         <div class="field">
           <label>Price (USD)</label>
@@ -2208,58 +2196,112 @@ window.togglePw = function(inputId, btn) {
 };
 
 // ── SUB-CATEGORY UPDATER ──────────────────────────────────────────────────────
+var SUBCATEGORY_SHARED = {
+    '': 'Select sub-category',
+    'actor': 'Actor',
+    'agency': 'Agency',
+    'artist_illustrator': 'Artist / Illustrator',
+    'author_writer': 'Author / Writer',
+    'beauty_makeup': 'Beauty & Makeup',
+    'blogger': 'Blogger',
+    'brand': 'Brand',
+    'coach_mentor': 'Coach / Mentor',
+    'community_manager': 'Community Manager',
+    'consultant': 'Consultant',
+    'content_creator': 'Content Creator',
+    'corporate': 'Corporate',
+    'course_creator': 'Course Creator',
+    'creative': 'Creative',
+    'designer': 'Designer',
+    'developer': 'Developer',
+    'ecommerce_brand': 'E-commerce Brand',
+    'education': 'Education',
+    'educational_creator': 'Educational Creator',
+    'event_organizer': 'Event Organizer',
+    'fashion': 'Fashion',
+    'food_lifestyle': 'Food & Lifestyle',
+    'freelancer': 'Freelancer',
+    'gamer': 'Gamer',
+    'healthcare': 'Healthcare',
+    'healthcare_professional': 'Healthcare Professional',
+    'influencer': 'Influencer',
+    'investment': 'Investment',
+    'journalist': 'Journalist',
+    'mobile_app': 'Mobile App',
+    'model': 'Model',
+    'music_artist': 'Music / Artist',
+    'newsletter_creator': 'Newsletter Creator',
+    'nonprofit_org': 'Nonprofit Organization',
+    'partnership': 'Partnership',
+    'photography': 'Photography',
+    'podcast': 'Podcast',
+    'press_pr': 'Press / PR',
+    'product_launch': 'Product Launch',
+    'public_speaker': 'Public Speaker',
+    'real_estate': 'Real Estate',
+    'real_estate_agent': 'Real Estate Agent',
+    'saas_company': 'SaaS Company',
+    'sales': 'Sales',
+    'small_business': 'Small Business',
+    'sports_fitness': 'Sports & Fitness',
+    'startup': 'Startup',
+    'streamer': 'Streamer',
+    'tech': 'Tech',
+    'tech_ai': 'Tech & AI',
+    'travel': 'Travel',
+    'ugc': 'UGC Creator',
+    'wedding_professional': 'Wedding Professional',
+    'youtuber': 'YouTuber',
+    'other': 'Other',
+};
+
 window.updateSubCategories = function() {
   var cat = document.getElementById('category').value;
   var row = document.getElementById('subCategoryRow');
   var sel = document.getElementById('subCategory');
   var opts = { '': 'Select sub-category' };
-  if (cat === 'media_kit') {
-    opts = { '':'Select sub-category', freelancer:'Freelancer', podcast:'Podcast',
-              press_pr:'Press / PR', influencer:'Influencer', brand:'Brand',
-              tech:'Tech', fashion:'Fashion', ugc:'UGC Creator', photography:'Photography',
-              music_artist:'Music / Artist', sports_fitness:'Sports & Fitness',
-              food_lifestyle:'Food & Lifestyle', beauty_makeup:'Beauty & Makeup',
-              travel:'Travel', corporate:'Corporate',
-              youtuber:'YouTuber', streamer:'Streamer', gamer:'Gamer', blogger:'Blogger',
-              journalist:'Journalist', author_writer:'Author / Writer', public_speaker:'Public Speaker',
-              coach_mentor:'Coach / Mentor', consultant:'Consultant', agency:'Agency',
-              startup:'Startup', saas_company:'SaaS Company', ecommerce_brand:'E-commerce Brand',
-              nonprofit_org:'Nonprofit Organization', educational_creator:'Educational Creator',
-              course_creator:'Course Creator', newsletter_creator:'Newsletter Creator',
-              community_manager:'Community Manager', actor:'Actor', model:'Model',
-              artist_illustrator:'Artist / Illustrator', designer:'Designer', developer:'Developer',
-              mobile_app:'Mobile App', event_organizer:'Event Organizer',
-              real_estate_agent:'Real Estate Agent', healthcare_professional:'Healthcare Professional',
-              wedding_professional:'Wedding Professional', content_creator:'Content Creator',
-              small_business:'Small Business',
-              other:'Other' };
-  } else if (cat === 'pitch_deck') {
-    opts = { '':'Select sub-category', startup:'Startup', corporate:'Corporate',
-              sales:'Sales', education:'Education', nonprofit:'Non-profit',
-              creative:'Creative', investment:'Investment', product_launch:'Product Launch',
-              partnership:'Partnership', real_estate:'Real Estate',
-              healthcare:'Healthcare', tech_ai:'Tech & AI',
-              saas_company:'SaaS Company', ecommerce_brand:'E-commerce Brand', agency:'Agency',
-              consultant:'Consultant', mobile_app:'Mobile App', small_business:'Small Business',
-              event_organizer:'Event Organizer',
-              other:'Other' };
+  if (cat === 'media_kit' || cat === 'pitch_deck') {
+    opts = SUBCATEGORY_SHARED;
   } else if (cat === 'resume_cv') {
     opts = { '':'Select sub-category', fresher:'Fresher / Entry Level', experienced:'Experienced',
               executive:'Executive / C-Level', creative:'Creative', tech:'Tech / Developer',
               ats_optimized:'ATS Optimized', academic:'Academic', other:'Other' };
   } else if (cat === 'web_kit') {
-    opts = { '':'Select sub-category', business_site:'Business Site', portfolio_site:'Portfolio Site',
-              ecommerce:'E-commerce', landing_page:'Landing Page', blog:'Blog',
-              agency:'Agency', saas_startup:'SaaS / Startup', personal:'Personal Site', other:'Other' };
-  } else if (cat === 'digital_keynotes') {
     opts = { '':'Select sub-category',
-              company_profile:'Company Profile', business_proposal:'Business Proposal',
-              brand_identity:'Brand Identity', investor_deck:'Investor Deck',
-              product_catalog:'Product Catalog', event_proposal:'Event Proposal',
-              portfolio:'Portfolio', case_study:'Case Study', newsletter:'Newsletter Template',
-              sponsorship_deck:'Sponsorship Deck', one_pager:'One Pager', lookbook:'Lookbook',
-              annual_report:'Annual Report', course_deck:'Course / Training Deck',
-              ugc_kit:'UGC Creator Kit', press_kit:'Press Kit', other:'Other' };
+              business_website:'Business Website',
+              corporate_website:'Corporate Website',
+              portfolio:'Portfolio',
+              agency:'Agency',
+              saas:'SaaS',
+              startup:'Startup',
+              e_commerce:'E-commerce',
+              landing_page:'Landing Page',
+              blog_magazine:'Blog / Magazine',
+              personal_website:'Personal Website',
+              education:'Education',
+              healthcare:'Healthcare',
+              restaurant_food:'Restaurant & Food',
+              real_estate:'Real Estate',
+              nonprofit_org:'Nonprofit Organization' };
+  } else if (cat === 'digital_keynotes') {
+    // 6 Aug 2026 — 'UGC Creator Kit' removed (Javed): not a keynote sub-category.
+    opts = { '':'Select sub-category',
+              company_profile:'Company Profile',
+              business_proposal:'Business Proposal',
+              brand_identity:'Brand Identity',
+              investor_deck:'Investor Deck',
+              product_catalog:'Product Catalog',
+              event_proposal:'Event Proposal',
+              portfolio:'Portfolio',
+              case_study:'Case Study',
+              newsletter:'Newsletter Template',
+              sponsorship_deck:'Sponsorship Deck',
+              one_pager:'One Pager',
+              lookbook:'Lookbook',
+              annual_report:'Annual Report',
+              course_deck:'Course / Training Deck',
+              press_kit:'Press Kit',
+              other:'Other' };
   }
   sel.innerHTML = '';
   Object.entries(opts).forEach(function(pair){
