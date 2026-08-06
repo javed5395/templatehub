@@ -2349,6 +2349,28 @@ body.show-ruler .canvas-area::after {
       </div>
     </div>
   </div>
+
+  <!-- ============================================
+       OPEN DESIGNS DOCK  (5 Aug 2026)
+       Canva-style file tabs. Vertical on the RIGHT edge on purpose: the
+       ribbon-top row is already full and a horizontal strip would eat
+       canvas height, which is the scarce axis here. This costs width,
+       and collapses to a 34px strip of dots when it is in the way.
+       Rows are injected by the "OPEN DESIGNS DOCK" script at the bottom
+       of this file — a static read of this markup shows an empty list.
+       ============================================ -->
+  <aside class="doc-dock" id="doc-dock">
+    <div class="doc-dock-head">
+      <b>Open</b>
+      <button class="doc-dock-toggle" id="doc-dock-toggle" aria-label="Collapse open designs" title="Collapse">
+        <span class="material-icons-outlined">chevron_right</span>
+      </button>
+    </div>
+    <div class="doc-list" id="doc-list"></div>
+    <button class="doc-add" id="doc-add" title="New design in a new tab">
+      <span class="material-icons-outlined">add</span><span>New</span>
+    </button>
+  </aside>
 </main>
 
 <!-- ============================================
@@ -13192,6 +13214,20 @@ async function handlePPTXUpload(input) {
       }
       if (!_resp.ok) throw new Error('Import service error (' + _resp.status + '). Please try again in a moment.');
       deckIR = await _resp.json();
+      /* 5 Aug 2026 — the worker may park a heavy IR in Storage on THIS route
+         too and hand back { irUrl, irPath, big:true } instead of the deck. Same
+         shape ldParseByPath has always handled; unwrap it the same way. Without
+         this the editor receives the pointer, deckIR.slides is undefined, and
+         import dies with "Cannot read properties of undefined (reading 'map')".
+         (This fix existed in commit 4020604 but was clobbered by the Aug-5
+         "restore 750" commit cf1c508.) */
+      if (deckIR && deckIR.big === true && deckIR.irUrl) {
+        showToast('Finishing up…');
+        ldDownloadProgress(0);
+        var _bigRes = await ldFetchLargeJson(deckIR.irUrl, function (frac) { ldDownloadProgress(frac); });
+        ldDownloadProgress(null);
+        deckIR = _bigRes.json;
+      }
     }
     window._deckIR = deckIR;
 
@@ -16113,6 +16149,377 @@ window.LD_loadEditorTemplates = async function () {
     }
   }
   window.dissolveFlatFile = dissolveFlatFile;
+})();
+</script>
+
+
+<!-- ============================================================
+     OPEN DESIGNS DOCK — appended only, nothing above is edited.
+     Multi-document tabs: every open design keeps its own pages,
+     notes, comments, masters, imported deck and per-page undo
+     stacks. Switching parks the live canvas into the outgoing
+     record and rehydrates the incoming one through the editor's
+     own loadPageIntoCanvas(), so nothing here re-implements
+     rendering, saving, importing or exporting.
+     Tabs live for the session only. Persisting every open deck
+     would mean writing several megabytes of canvasJSON per tab
+     to localStorage, which blows the quota — Projects and the
+     existing autosave slot remain the durable stores.
+     ============================================================ -->
+<style>
+.doc-dock {
+  width: 152px; flex-shrink: 0;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  transition: width var(--fast);
+}
+.doc-dock.collapsed { width: 34px; }
+.doc-dock-head {
+  height: 34px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 5px 0 10px;
+  border-bottom: 1px solid var(--border);
+}
+.doc-dock-head b {
+  flex: 1; min-width: 0;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden;
+}
+.doc-dock.collapsed .doc-dock-head { padding: 0; justify-content: center; }
+.doc-dock.collapsed .doc-dock-head b { display: none; }
+.doc-dock-toggle {
+  width: 22px; height: 22px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm); color: var(--text-secondary);
+  transition: background var(--fast), transform var(--fast);
+}
+.doc-dock-toggle:hover { background: var(--bg-hover); }
+.doc-dock-toggle .material-icons-outlined { font-size: 18px; }
+.doc-dock.collapsed .doc-dock-toggle { transform: rotate(180deg); }
+
+.doc-list {
+  flex: 1; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 6px; display: flex; flex-direction: column; gap: 3px;
+  scrollbar-width: thin;
+}
+.doc-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 5px 7px 8px;
+  border: 1px solid transparent; border-radius: var(--radius-md);
+  cursor: pointer; text-align: left;
+  transition: background var(--fast), border-color var(--fast);
+}
+.doc-tab:hover { background: var(--bg-hover); }
+.doc-tab.active { background: var(--accent-subtle); border-color: var(--accent-light); }
+.doc-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+.doc-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.doc-name {
+  font-size: 12px; font-weight: 600; line-height: 1.3;
+  color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.doc-tab.active .doc-name { color: var(--text-primary); }
+.doc-sub { font-size: 10px; line-height: 1.3; color: var(--text-muted); white-space: nowrap; }
+.doc-close {
+  width: 18px; height: 18px; flex-shrink: 0;
+  display: none; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm); color: var(--text-muted);
+}
+.doc-close .material-icons-outlined { font-size: 14px; }
+.doc-tab:hover .doc-close { display: flex; }
+.doc-close:hover { background: var(--bg-active); color: var(--text-primary); }
+
+.doc-add {
+  flex-shrink: 0; margin: 0 6px 6px; height: 30px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
+  font-family: var(--font); font-size: 11.5px; font-weight: 600;
+  color: var(--text-secondary);
+  transition: color var(--fast), border-color var(--fast), background var(--fast);
+}
+.doc-add:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-subtle); }
+.doc-add .material-icons-outlined { font-size: 15px; }
+
+.doc-dock.collapsed .doc-list { padding: 6px 4px; }
+.doc-dock.collapsed .doc-tab { justify-content: center; padding: 8px 0; }
+.doc-dock.collapsed .doc-meta,
+.doc-dock.collapsed .doc-close,
+.doc-dock.collapsed .doc-add span:last-child { display: none; }
+.doc-dock.collapsed .doc-dot { width: 10px; height: 10px; border-radius: 3px; }
+.doc-dock.collapsed .doc-add { margin: 0 4px 6px; }
+
+/* The dock is the first thing to go when the window gets tight — the
+   canvas matters more than the tab list at that width. */
+@media (max-width: 900px) { .doc-dock { display: none; } }
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  var DOT = ['#7C3AED', '#12A5A0', '#EA6A52', '#2563EB', '#DB2777',
+             '#EAB308', '#059669', '#64748B'];
+  var LS_COLLAPSED = 'ld_docdock_collapsed';
+
+  var docs = [];        /* [{ id, name, colour, pages, notes, comments, ... }] */
+  var active = 0;
+  var busy = false;
+  var seq = 0;
+
+  function el(id) { return document.getElementById(id); }
+  function toast(m) { if (typeof showToast === 'function') showToast(m); }
+  /* localStorage throws outright in private mode and in sandboxed frames.
+     The collapse preference is not worth losing the whole dock over. */
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ── Name resolution ───────────────────────────────────────────────
+     A tab shows the design's real name, in the order the editor itself
+     would consider authoritative: the linked Projects record wins, then
+     the name of whatever file was imported, then the fallback. Nothing
+     is invented and nothing is hard-coded. */
+  function liveName() {
+    try {
+      if (typeof _currentProjectId !== 'undefined' && _currentProjectId
+          && typeof _projList !== 'undefined' && _projList) {
+        var p = _projList.filter(function (x) { return x.id === _currentProjectId; })[0];
+        if (p && p.name) return p.name;
+      }
+    } catch (e) {}
+    if (window._ldDeckName) return window._ldDeckName;
+    return 'Untitled design';
+  }
+
+  function makeDoc(name) {
+    return {
+      id: 'doc' + (++seq) + Date.now(),
+      name: name || 'Untitled design',
+      renamed: false,
+      colour: DOT[(seq - 1) % DOT.length],
+      pages: null, notes: null, comments: null,
+      currentPage: 0, zoom: null,
+      deckIR: null, masters: null, projId: null, deckName: null
+    };
+  }
+
+  /* Park the live editor into a record. References, not clones: restore
+     swaps the arrays back in wholesale, and deep-copying canvasJSON for
+     every slide on every tab click would stall a large deck. */
+  function park(d) {
+    if (!d) return;
+    try { if (typeof captureCurrentPage === 'function') captureCurrentPage(); } catch (e) {}
+    d.pages = state.pages;
+    d.notes = state.notes;
+    d.comments = state.comments || [];
+    d.currentPage = state.currentPage;
+    d.zoom = state.zoom;
+    d.deckIR = window._deckIR || null;
+    d.masters = window._ldMasters || [];
+    d.deckName = window._ldDeckName || null;
+    try { d.projId = (typeof _currentProjectId !== 'undefined') ? _currentProjectId : null; }
+    catch (e) { d.projId = null; }
+    if (!d.renamed) d.name = liveName();
+  }
+
+  function hydrate(d) {
+    state.pages = d.pages && d.pages.length ? d.pages : [makeBlankPage(Date.now())];
+    state.notes = d.notes || [''];
+    state.comments = d.comments || [];
+    state.currentPage = Math.max(0, Math.min(d.currentPage || 0, state.pages.length - 1));
+    window._deckIR = d.deckIR || null;
+    window._ldMasters = d.masters || [];
+    window._ldDeckName = d.deckName || null;
+    try { _currentProjectId = d.projId || null; } catch (e) {}
+    window._currentProjectId = d.projId || null;
+
+    return loadPageIntoCanvas(state.currentPage).then(function () {
+      if (typeof ensurePageHistory === 'function') ensurePageHistory(state.currentPage);
+      if (d.zoom && typeof setZoom === 'function') setZoom(d.zoom);
+      renderPageThumbs();
+      if (typeof pageRefresh === 'function') pageRefresh();
+      if (typeof layerRefresh === 'function') layerRefresh();
+      if (typeof commentRefresh === 'function') commentRefresh();
+      if (typeof updateUndoRedo === 'function') updateUndoRedo();
+    });
+  }
+
+  /* ── Render ─────────────────────────────────────────────────────── */
+  function render() {
+    var list = el('doc-list');
+    if (!list) return;
+    var html = '';
+    docs.forEach(function (d, i) {
+      var n = d.pages ? d.pages.length : (i === active ? state.pages.length : 1);
+      html += '<div class="doc-tab' + (i === active ? ' active' : '') + '"'
+        + ' data-doc="' + i + '" title="' + esc(d.name) + ' — double-click to rename">'
+        + '<span class="doc-dot" style="background:' + d.colour + '"></span>'
+        + '<span class="doc-meta">'
+        + '<span class="doc-name">' + esc(d.name) + '</span>'
+        + '<span class="doc-sub">' + n + (n === 1 ? ' slide' : ' slides') + '</span>'
+        + '</span>'
+        + (docs.length > 1
+            ? '<span class="doc-close" data-close="' + i + '" title="Close">'
+              + '<span class="material-icons-outlined">close</span></span>'
+            : '')
+        + '</div>';
+    });
+    list.innerHTML = html;
+    var on = list.querySelector('.doc-tab.active');
+    if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest' });
+  }
+
+  /* Keep the active tab's label and slide count honest without a timer:
+     the same events that already redraw the page strip redraw the dock. */
+  function refresh() {
+    var d = docs[active];
+    if (d) {
+      d.pages = state.pages;
+      if (!d.renamed) d.name = liveName();
+    }
+    render();
+  }
+  window.ldDockRefresh = refresh;
+
+  /* ── Actions ────────────────────────────────────────────────────── */
+  function go(i) {
+    if (busy || i === active || !docs[i]) return;
+    if (window._masterMode) { toast('Leave Master view first'); return; }
+    busy = true;
+    park(docs[active]);
+    active = i;
+    render();
+    hydrate(docs[active]).then(function () {
+      busy = false;
+      toast('Switched to “' + docs[active].name + '”');
+    }, function () { busy = false; });
+  }
+
+  function add() {
+    if (busy) return;
+    if (window._masterMode) { toast('Leave Master view first'); return; }
+    busy = true;
+    park(docs[active]);
+    var d = makeDoc('Untitled design');
+    d.pages = [makeBlankPage(Date.now())];
+    d.notes = [''];
+    d.comments = [];
+    docs.push(d);
+    active = docs.length - 1;
+    render();
+    hydrate(d).then(function () {
+      busy = false;
+      toast('New design opened in a tab');
+    }, function () { busy = false; });
+  }
+
+  function close(i) {
+    if (busy || docs.length < 2 || !docs[i]) return;
+    if (!confirm('Close “' + docs[i].name + '”?\n\nAnything not saved to Projects will be lost.')) return;
+    var wasActive = (i === active);
+    docs.splice(i, 1);
+    if (wasActive) {
+      busy = true;
+      active = Math.min(i, docs.length - 1);
+      render();
+      hydrate(docs[active]).then(function () { busy = false; }, function () { busy = false; });
+    } else {
+      if (i < active) active--;
+      render();
+    }
+  }
+
+  function rename(i) {
+    var d = docs[i];
+    if (!d) return;
+    var v = prompt('Design name:', d.name);
+    if (v == null) return;
+    v = v.trim();
+    if (!v) return;
+    d.name = v;
+    d.renamed = true;
+    if (i === active) window._ldDeckName = v;
+    render();
+  }
+
+  /* ── Wiring ─────────────────────────────────────────────────────── */
+  var booted = false;
+  function boot() {
+    var dock = el('doc-dock'), list = el('doc-list');
+    if (!dock || !list || booted) return;
+    booted = true;
+
+    if (lsGet(LS_COLLAPSED) === '1') dock.classList.add('collapsed');
+
+    var tgl = el('doc-dock-toggle');
+    if (tgl) tgl.addEventListener('click', function () {
+      var c = dock.classList.toggle('collapsed');
+      lsSet(LS_COLLAPSED, c ? '1' : '0');
+      tgl.title = c ? 'Expand' : 'Collapse';
+      tgl.setAttribute('aria-label', c ? 'Expand open designs' : 'Collapse open designs');
+      if (typeof fc !== 'undefined' && fc && typeof calculateFitZoom === 'function') {
+        setTimeout(function () { try { setZoom(state.zoom); } catch (e) {} }, 180);
+      }
+    });
+
+    var addBtn = el('doc-add');
+    if (addBtn) addBtn.addEventListener('click', add);
+
+    list.addEventListener('click', function (e) {
+      var x = e.target.closest('[data-close]');
+      if (x) { e.stopPropagation(); close(+x.dataset.close); return; }
+      var t = e.target.closest('[data-doc]');
+      if (t) go(+t.dataset.doc);
+    });
+    list.addEventListener('dblclick', function (e) {
+      var t = e.target.closest('[data-doc]');
+      if (t) rename(+t.dataset.doc);
+    });
+
+    /* The first tab is whatever the editor already has open. */
+    var first = makeDoc(liveName());
+    first.pages = state.pages;
+    first.notes = state.notes;
+    first.comments = state.comments || [];
+    docs.push(first);
+    render();
+
+    /* An imported deck should name its own tab. This listens alongside
+       the importer's own handler rather than touching it — the file name
+       is read off the input, nothing else. */
+    var pptx = el('upload-pptx-input');
+    if (pptx) pptx.addEventListener('change', function () {
+      var f = pptx.files && pptx.files[0];
+      if (!f) return;
+      var nm = String(f.name || '').replace(/\.[^.]+$/, '');
+      if (!nm) return;
+      window._ldDeckName = nm;
+      var d = docs[active];
+      if (d && !d.renamed) { d.name = nm; render(); }
+    });
+
+    /* Slide count and name follow the deck. renderPageThumbs already runs
+       on every add / delete / duplicate / reorder / import, so wrapping it
+       is one hook instead of a dozen. */
+    if (typeof window.renderPageThumbs === 'function') {
+      var orig = window.renderPageThumbs;
+      window.renderPageThumbs = function () {
+        var r = orig.apply(this, arguments);
+        if (!busy) { try { refresh(); } catch (e) {} }
+        return r;
+      };
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 </script>
 </body>
