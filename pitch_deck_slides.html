@@ -690,7 +690,30 @@ function loadDesign(d) {
         if (!el) { el = document.createElement('meta'); el.setAttribute(kind, key); document.head.appendChild(el); }
         el.setAttribute('content', val);
       }
+      /* 4 Aug 2026 (Javed) — the search title now carries the category word.
+         On screen the page shows the name on one line and the category under it
+         in blue, so typing "Start Up Tech Pitch Deck" as the kit name would
+         print "Pitch Deck" twice. But "Start Up Tech" alone is a useless thing
+         to hand Google — nobody searches those three words hoping to find a
+         template.
+
+         So the category is read back out of titleHTML, which every one of these
+         pages already builds, and glued on for Google only. Nothing changes on
+         screen, nothing needs retyping, and the eleven kits already uploaded
+         get it too.
+
+         The indexOf guard means that if a kit IS named "... Pitch Deck" one
+         day, the words are not doubled up. */
       var nm = kit.name || 'Template';
+      var cat = '';
+      try {
+        var cm = String(kit.titleHTML || '').match(/<span>([^<]+)<\/span>/i);
+        if (cm) cat = cm[1].trim();
+      } catch (e) {}
+      if (cat && nm.toLowerCase().indexOf(cat.toLowerCase()) === -1) {
+        nm = nm + ' ' + cat + ' Template';
+      }
+      document.title = nm + ' - LazyDogTemplates';
       var ds = String(kit.desc || '').replace(/\s+/g, ' ').trim();
       if (!ds) ds = nm + ' - editable ' + (kit.slideCount || '') + ' slide template, instant download from LazyDogTemplates.';
       if (ds.length > 158) ds = ds.slice(0, 155) + '...';
