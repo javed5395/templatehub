@@ -2995,6 +2995,16 @@ document.addEventListener('click', function (e) {
 /* ── PASTE IMAGE (Ctrl+V from OS clipboard) ── */
 document.addEventListener('paste', function(e) {
   if (!e.clipboardData) return;
+  /* 6 Aug 2026 — a TEXT paste must never drag an image along. Windows keeps
+     the last screenshot on the clipboard next to freshly-copied text, so
+     grabbing "any image item" pasted that stale screenshot with every text
+     paste. If the clipboard carries text, or the user is typing in a text
+     field / editing a canvas text, this handler stands down. */
+  var types = Array.from(e.clipboardData.types || []);
+  if (types.indexOf('text/plain') !== -1 || types.indexOf('text/html') !== -1) return;
+  var ae = document.activeElement;
+  if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
+  if (fc && fc.getActiveObject && fc.getActiveObject() && fc.getActiveObject().isEditing) return;
   var item = Array.from(e.clipboardData.items).find(function(i){ return i.type.includes('image'); });
   if (!item || !fc) return;
   fabric.Image.fromURL(URL.createObjectURL(item.getAsFile()), function(img) {
