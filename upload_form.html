@@ -392,6 +392,30 @@
           </div>
           <p style="font-size:11px;color:var(--muted);margin-top:6px">Enter 0 for free, or a dollar amount (e.g. 15 = $15.00)</p>
         </div>
+
+        <!-- ── LIST ON THE WHOP STORE ──────────────────────────────────────
+             Ticked = the kit gets its own product page on the Whop store and
+             is submitted to the Whop Discover marketplace.
+             Unticked = it still sells normally on this site (it always gets a
+             Whop plan behind the scenes, because checkout needs one) but the
+             product stays hidden from the Whop shop window.
+             Free kits are skipped entirely — Whop needs a price.        -->
+        <div class="field" id="whopField">
+          <label>Whop Store</label>
+          <label class="app-check-label"
+                 style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;
+                        padding:12px;border:1px solid var(--border);border-radius:0;">
+            <input type="checkbox" id="listOnWhop" checked style="margin-top:2px"/>
+            <span style="font-size:13px;line-height:1.5;">
+              <strong>List this kit on the Whop store</strong><br/>
+              <span style="color:var(--muted);font-size:11px;">
+                Shows it on our Whop shop page and submits it to the Whop
+                marketplace. Untick to keep it for this site only — it still
+                sells here either way.
+              </span>
+            </span>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -1964,7 +1988,15 @@ window.submitForm = async function() {
         editableApps,
         coverImage:  slideUrls[0] || null,
         designDocUrl,
-        designNotes
+        designNotes,
+
+        // ── WHOP STORE VISIBILITY ─────────────────────────────────────────
+        // Read by whop_store_sync (firebase functions). It controls the SHOP
+        // WINDOW only: false hides the product on Whop's store page. A Whop
+        // product + plan is still created either way, because this site's own
+        // checkout needs that plan id — so unticking never makes a kit
+        // unsellable here. Free kits never reach Whop at all (no price).
+        listOnWhop:  !!document.getElementById('listOnWhop')?.checked
       }
     });
 
