@@ -701,7 +701,24 @@ function loadKit(k) {
         offers: {
           '@type': 'Offer', url: url, priceCurrency: 'USD',
           price: (isFinite(p) ? p : 0).toFixed(2),
-          availability: 'https://schema.org/InStock'
+          availability: 'https://schema.org/InStock',
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingRate: { '@type': 'MonetaryAmount', value: '0', currency: 'USD' },
+            shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'US' },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' },
+              transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' }
+            }
+          },
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'US',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 14,
+            returnFees: 'https://schema.org/FreeReturn'
+          }
         }
       };
       var s = document.getElementById('ldKitSchema');
