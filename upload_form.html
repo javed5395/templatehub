@@ -162,6 +162,23 @@
   <h1>Seller Portal</h1>
   <p class="subtitle">Upload your templates, track approvals, and grow your shop.</p>
 
+  <!-- ══ SECTION 0: CONTRIBUTOR GATE (6 Aug 2026) ══
+       Shown to a signed-in user who is NOT an admin and NOT an approved
+       contributor. Presentation only — firestore.rules is the real lock. -->
+  <div id="gateSection" style="display:none">
+    <div class="section" style="text-align:center;padding:56px 28px">
+      <div style="font-size:46px;margin-bottom:16px" id="gateIcon">🎨</div>
+      <h2 style="font-size:20px;color:var(--text);margin-bottom:12px;text-transform:none;letter-spacing:0" id="gateTitle"></h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.7;max-width:520px;margin:0 auto 26px" id="gateText"></p>
+      <a href="contributor_apply.html" id="gateCta"
+         style="display:inline-block;padding:14px 28px;background:var(--accent);color:#070714;font-weight:700;font-size:14px;text-decoration:none"></a>
+      <p style="color:var(--muted);font-size:12px;margin-top:26px">
+        Signed in as <b id="gateWho"></b> —
+        <a href="#" onclick="doSignOut();return false;" style="color:var(--accent)">sign out</a>
+      </p>
+    </div>
+  </div>
+
   <!-- ══ SECTION 1: AUTH GATE ══ -->
   <div id="authSection">
     <div class="section">
@@ -783,10 +800,44 @@ const MAGIC_SIGNATURES = {
 let currentUser    = null;
 let sellerProfile  = null;
 
+// ── CONTRIBUTOR GATE (6 Aug 2026) ────────────────────────────────────────────
+// Until the freelancer program, "signed in" meant "one of us". Now that
+// strangers can create accounts, uploading is restricted to admins and
+// APPROVED contributors.
+//
+// This check is for presentation only — it decides which panel to show. The
+// real enforcement is mayUpload() in firestore.rules, which Firestore
+// evaluates server-side. Never rely on a hidden button: anyone can open the
+// console and call Firestore directly.
+async function getUploadRight(user) {
+  if (!user) return 'none';
+  if (META_ADMIN_EMAILS.indexOf(user.email) !== -1) return 'admin';
+  try {
+    const snap = await getDoc(doc(db, 'contributor_applications', user.uid));
+    if (!snap.exists()) return 'noapp';
+    const s = snap.data().status || 'pending';
+    if (s === 'approved') return 'approved';
+    if (s === 'rejected') return 'rejected';
+    return 'pending';
+  } catch (e) {
+    // A read failure must fail CLOSED, never open.
+    console.warn('[gate] approval lookup failed', e);
+    return 'noapp';
+  }
+}
+
 // ── AUTH STATE LISTENER ──────────────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
+
+    const right = await getUploadRight(user);
+    if (right !== 'admin' && right !== 'approved') {
+      renderGate(right, user);
+      showSection('gate');
+      return;
+    }
+
     const profile = await loadSellerProfile(user.uid);
     if (!profile) {
       showSection('profileSetup');
@@ -803,8 +854,31 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+function renderGate(right, user){
+  const T = {
+    noapp: ['🎨','Contributors only',
+      'This page is for approved contributors. Apply to join the programme and, once we have reviewed your portfolio, you can submit templates here.',
+      'Apply to become a contributor'],
+    pending: ['⏳','Application under review',
+      'We have your application and are reviewing it. You will be able to upload as soon as you are approved — we will email you.',
+      ''],
+    rejected: ['—','Not approved',
+      'Your contributor application was not accepted, so uploading is not available on this account.',
+      '']
+  };
+  const [icon, title, text, cta] = T[right] || T.noapp;
+  document.getElementById('gateIcon').textContent  = icon;
+  document.getElementById('gateTitle').textContent = title;
+  document.getElementById('gateText').textContent  = text;
+  const btn = document.getElementById('gateCta');
+  if (cta) { btn.textContent = cta; btn.style.display = ''; }
+  else     { btn.style.display = 'none'; }
+  document.getElementById('gateWho').textContent = user.email || '';
+}
+
 function showSection(name) {
   document.getElementById('authSection').style.display        = name === 'auth'        ? 'block' : 'none';
+  document.getElementById('gateSection').style.display        = name === 'gate'        ? 'block' : 'none';
   document.getElementById('profileSetupSection').style.display = name === 'profileSetup' ? 'block' : 'none';
   document.getElementById('formSection').style.display        = name === 'form'        ? 'block' : 'none';
   document.getElementById('successSection').style.display     = name === 'success'     ? 'block' : 'none';

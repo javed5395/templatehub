@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<!--
+  contributor_apply.html — Contributor Program application
+  LazyDogTemplates
+
+  STANDALONE ON PURPOSE (6 Aug 2026). Not linked from the site yet — it is
+  built and testable first, then wired into the nav once the program opens.
+
+  FLOW
+    designer signs in  ->  fills this form  ->  contributor_applications/{uid}
+    written with status 'pending'  ->  admin approves  ->  status 'approved'
+    ->  only THEN may they reach upload_form.html.
+
+  WHY THE DOC ID IS THE UID
+    One application per person, and re-submitting overwrites rather than
+    creating duplicates. It also makes the security rule trivial: a signed-in
+    user may only ever touch the document whose id equals their own uid.
+
+  WHAT THE BROWSER CANNOT DO
+    It cannot set status to anything but 'pending' (firestore.rules), so nobody
+    can approve themselves. Approval is an admin-only update.
+
+  WHY PAYOUT COUNTRY IS ASKED UP FRONT
+    Paying a designer is the one part with real-world limits — some countries
+    cannot receive PayPal, some cannot open a Whop account. Better to know
+    BEFORE approving someone than to approve them and be unable to pay.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex"/>
+<title>Become a Contributor — LazyDog Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root { --accent:#d4af37; --bg:#070714; --card:#0d0d2b; --text:#e8eaf0; --muted:#8899aa; --border:rgba(212,175,55,0.2); --green:#22c55e; --red:#ef4444; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .wrap { max-width:760px; margin:0 auto; padding:48px 20px 80px; }
+  h1 { font-size:28px; font-weight:700; margin-bottom:8px; }
+  h1 span { color:var(--accent); }
+  .subtitle { color:var(--muted); font-size:14px; margin-bottom:32px; line-height:1.6; }
+  .section { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:20px; }
+  .section h2 { font-size:15px; font-weight:700; color:var(--accent); margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; }
+  .field { margin-bottom:20px; }
+  label { display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:8px; }
+  input, select, textarea { width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:0; padding:12px 16px; color:var(--text); font-family:'Poppins',sans-serif; font-size:14px; outline:none; transition:border .2s; }
+  input:focus, select:focus, textarea:focus { border-color:var(--accent); }
+  textarea { resize:vertical; min-height:96px; }
+  .required { color:var(--accent); }
+  .hint { font-size:11px; color:var(--muted); margin-top:6px; line-height:1.5; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media(max-width:640px){ .grid2 { grid-template-columns:1fr; } }
+  .chips { display:flex; flex-wrap:wrap; gap:10px; }
+  .chip { display:flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--border); cursor:pointer; font-size:13px; user-select:none; }
+  .chip input { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; }
+  .chip:has(input:checked) { border-color:var(--accent); color:var(--accent); }
+  .terms { background:rgba(212,175,55,0.06); border:1px solid var(--border); padding:18px; font-size:13px; line-height:1.8; }
+  .terms b { color:var(--accent); }
+  .btn { width:100%; padding:16px; background:var(--accent); color:#070714; border:none; font-family:'Poppins',sans-serif; font-weight:700; font-size:15px; cursor:pointer; letter-spacing:.5px; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-ghost { background:none; border:1px solid var(--border); color:var(--text); padding:12px 20px; font-family:'Poppins',sans-serif; font-size:13px; cursor:pointer; }
+  .msg { padding:14px 18px; font-size:13px; margin-bottom:20px; line-height:1.6; display:none; }
+  .msg.err { background:rgba(239,68,68,.12); border:1px solid var(--red); color:#ffb4b4; }
+  .msg.ok  { background:rgba(34,197,94,.12); border:1px solid var(--green); color:#b6f0c8; }
+  .who { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:13px; color:var(--muted); margin-bottom:20px; flex-wrap:wrap; }
+  .status-card { text-align:center; padding:40px 28px; }
+  .status-card .big { font-size:44px; margin-bottom:14px; }
+  .status-card h3 { font-size:20px; margin-bottom:10px; }
+  .status-card p { color:var(--muted); font-size:14px; line-height:1.7; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Become a <span>Contributor</span></h1>
+  <p class="subtitle">
+    Sell your templates through LazyDog Templates. Approved contributors earn
+    <b>75%</b> of net revenue on every sale of their own designs — on our site
+    and on the Whop marketplace.
+  </p>
+
+  <div class="msg err" id="errBox"></div>
+  <div class="msg ok"  id="okBox"></div>
+
+  <!-- ── SIGN IN ─────────────────────────────────────────────────────── -->
+  <div class="section" id="authSection">
+    <h2>Step 1 — Sign in</h2>
+    <p class="hint" style="margin-bottom:18px">
+      We tie your application to an account so you can track it and, once
+      approved, upload straight away.
+    </p>
+    <button class="btn" id="googleBtn">Continue with Google</button>
+    <div style="text-align:center;color:var(--muted);font-size:12px;margin:18px 0">or</div>
+    <div class="grid2">
+      <div class="field"><label>Email</label><input type="email" id="email" placeholder="you@example.com"/></div>
+      <div class="field"><label>Password</label><input type="password" id="password" placeholder="min 6 characters"/></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-ghost" style="flex:1" id="signinBtn">Sign in</button>
+      <button class="btn-ghost" style="flex:1" id="signupBtn">Create account</button>
+    </div>
+  </div>
+
+  <!-- ── VERIFY EMAIL ────────────────────────────────────────────────── -->
+  <div class="section status-card hidden" id="verifySection">
+    <div class="big">📧</div>
+    <h3>Verify your email</h3>
+    <p>We sent a verification link to <b id="verifyEmail"></b>.<br/>
+       Open it, then come back and press the button below.</p>
+    <div style="margin-top:24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-ghost" id="verifiedBtn">I have verified</button>
+      <button class="btn-ghost" id="resendBtn">Resend email</button>
+      <button class="btn-ghost" id="verifySignout">Sign out</button>
+    </div>
+  </div>
+
+  <!-- ── ALREADY APPLIED ─────────────────────────────────────────────── -->
+  <div class="section status-card hidden" id="statusSection">
+    <div class="big" id="statusIcon">⏳</div>
+    <h3 id="statusTitle">Application received</h3>
+    <p id="statusText"></p>
+    <div style="margin-top:24px"><button class="btn-ghost" id="editBtn">Edit my application</button></div>
+  </div>
+
+  <!-- ── THE FORM ────────────────────────────────────────────────────── -->
+  <form id="applyForm" class="hidden">
+
+    <div class="who">
+      <span>Signed in as <b id="whoEmail"></b></span>
+      <button type="button" class="btn-ghost" id="signoutBtn">Sign out</button>
+    </div>
+
+    <div class="section">
+      <h2>Step 2 — About you</h2>
+      <div class="grid2">
+        <div class="field">
+          <label>Full name <span class="required">*</span></label>
+          <input type="text" id="fName" placeholder="Your name"/>
+        </div>
+        <div class="field">
+          <label>Brand / studio name</label>
+          <input type="text" id="fBrand" placeholder="Optional"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Mobile number <span class="required">*</span></label>
+        <div style="display:flex;gap:10px">
+          <input type="text" id="fPhoneCode" placeholder="+92" style="max-width:110px"/>
+          <input type="tel"  id="fPhone"     placeholder="300 1234567" style="flex:1"/>
+        </div>
+        <p class="hint">Include your country code. We use this only to contact you about your application and payouts.</p>
+      </div>
+      <div class="field">
+        <label>Portfolio link <span class="required">*</span></label>
+        <input type="url" id="fPortfolio" placeholder="Behance, Dribbble, your site, Google Drive…"/>
+        <p class="hint">This is the main thing we review. Make sure it is public and shows finished work.</p>
+      </div>
+      <div class="field">
+        <label>Anything else we should know</label>
+        <textarea id="fAbout" placeholder="Years designing, tools you use, the kind of work you want to sell…"></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Step 3 — What you design</h2>
+      <div class="field">
+        <label>Select everything you can produce <span class="required">*</span></label>
+        <div class="chips" id="catChips">
+          <label class="chip"><input type="checkbox" value="pitch_deck"/> Pitch decks</label>
+          <label class="chip"><input type="checkbox" value="media_kit"/> Media kits</label>
+          <label class="chip"><input type="checkbox" value="web_kit"/> Website UI kits</label>
+          <label class="chip"><input type="checkbox" value="resume_cv"/> Resumes / CVs</label>
+          <label class="chip"><input type="checkbox" value="digital_keynotes"/> Keynotes</label>
+          <label class="chip"><input type="checkbox" value="logos"/> Logos</label>
+          <label class="chip"><input type="checkbox" value="social_kit"/> Social media kits</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Roughly how many templates could you submit per month?</label>
+        <select id="fVolume">
+          <option value="">Select…</option>
+          <option value="1-2">1–2</option>
+          <option value="3-5">3–5</option>
+          <option value="6-10">6–10</option>
+          <option value="10+">More than 10</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Step 4 — Getting paid</h2>
+      <p class="hint" style="margin-bottom:18px">
+        We ask now because payment options differ by country. Knowing this up
+        front means we never approve someone we then cannot pay.
+      </p>
+      <div class="grid2">
+        <div class="field">
+          <label>Country <span class="required">*</span></label>
+          <input type="text" id="fCountry" placeholder="e.g. Pakistan, India, UK"/>
+        </div>
+        <div class="field">
+          <label>Preferred payout method <span class="required">*</span></label>
+          <select id="fPayout">
+            <option value="">Select…</option>
+            <option value="paypal">PayPal</option>
+            <option value="wise">Wise</option>
+            <option value="bank">Bank transfer</option>
+            <option value="whop">Whop account</option>
+            <option value="crypto">Crypto (USDT)</option>
+            <option value="other">Other / not sure</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint">
+        Don't send account numbers here. Once you are approved we will collect
+        payment details securely.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2>Step 5 — Identity check</h2>
+      <p class="hint" style="margin-bottom:18px">
+        Because we send you money, we need to confirm you are a real person and
+        that the name matches the account we pay. Upload a clear photo of your
+        government ID — CNIC, passport or driving licence.
+      </p>
+      <div class="grid2">
+        <div class="field">
+          <label>ID — front <span class="required">*</span></label>
+          <input type="file" id="fIdFront" accept="image/*"/>
+          <p class="hint" id="idFrontNote"></p>
+        </div>
+        <div class="field">
+          <label>ID — back <span class="required">*</span></label>
+          <input type="file" id="fIdBack" accept="image/*"/>
+          <p class="hint" id="idBackNote"></p>
+        </div>
+      </div>
+      <p class="hint">
+        Images only, up to 8&nbsp;MB each. Stored privately — only our review
+        team can open them, they are never shown on the site, and we delete
+        them once your identity is confirmed.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2>Step 6 — The deal</h2>
+      <div class="terms">
+        You earn <b>75% of net revenue</b> on every sale of your own template.<br/>
+        "Net" means the sale price after marketplace and affiliate commissions
+        and payment processing fees. So if an affiliate or referrer brings the
+        sale, your share is calculated on what remains after their commission.<br/><br/>
+        Paid <b>monthly</b>, on earnings at least <b>14 days old</b>, once your
+        balance reaches <b>$50</b>.<br/><br/>
+        You keep ownership of your designs. You confirm the work is yours and
+        that you have the right to sell it. We review every submission and may
+        decline anything that does not meet our standards.
+      </div>
+      <div class="field" style="margin-top:20px">
+        <label class="chip" style="border:none;padding:0">
+          <input type="checkbox" id="fAgree"/>
+          <span style="color:var(--text);font-weight:400">I have read and accept these terms <span class="required">*</span></span>
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" class="btn" id="submitBtn">Submit application</button>
+  </form>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getStorage, ref as storageRef, uploadBytes }
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup,
+         sendEmailVerification, reload }
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+  authDomain: "templatehub-16cd7.firebaseapp.com",
+  projectId: "templatehub-16cd7",
+  storageBucket: "templatehub-16cd7.firebasestorage.app",
+  messagingSenderId: "143000893683",
+  appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+};
+const app     = initializeApp(firebaseConfig);
+const db      = getFirestore(app);
+const auth    = getAuth(app);
+const storage = getStorage(app);
+
+const COLLECTION = 'contributor_applications';
+const $ = id => document.getElementById(id);
+
+const authSection   = $('authSection');
+const statusSection = $('statusSection');
+const applyForm     = $('applyForm');
+
+function showErr(m){ const b=$('errBox'); b.textContent=m; b.style.display='block'; $('okBox').style.display='none'; window.scrollTo({top:0,behavior:'smooth'}); }
+function showOk(m){ const b=$('okBox'); b.textContent=m; b.style.display='block'; $('errBox').style.display='none'; window.scrollTo({top:0,behavior:'smooth'}); }
+function clearMsg(){ $('errBox').style.display='none'; $('okBox').style.display='none'; }
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+$('googleBtn').onclick = async () => {
+  clearMsg();
+  try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+  catch(e){ showErr(e.message || 'Google sign-in failed.'); }
+};
+$('signinBtn').onclick = async () => {
+  clearMsg();
+  try { await signInWithEmailAndPassword(auth, $('email').value.trim(), $('password').value); }
+  catch(e){ showErr(e.message || 'Sign-in failed.'); }
+};
+$('signupBtn').onclick = async () => {
+  clearMsg();
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, $('email').value.trim(), $('password').value);
+    // Firebase sends the verification itself — a signed link, not a code we
+    // would have to generate, email and expire ourselves. Same proof of
+    // ownership, far less that can go wrong.
+    await sendEmailVerification(cred.user);
+    showOk('Account created. Check your email and click the verification link, then press "I have verified".');
+  } catch(e){ showErr(e.message || 'Could not create the account.'); }
+};
+$('signoutBtn').onclick = () => signOut(auth);
+
+// ── EMAIL VERIFICATION ────────────────────────────────────────────────────
+// Applications are gated on a verified email address. Without it anyone could
+// apply as someone else's address, and we would have no reliable way to reach
+// a contributor about the money we owe them.
+// Google sign-ins arrive already verified, so this only affects email/password.
+$('resendBtn').onclick = async () => {
+  clearMsg();
+  try { await sendEmailVerification(auth.currentUser); showOk('Verification email sent again.'); }
+  catch(e){ showErr(e.message || 'Could not send the email.'); }
+};
+$('verifiedBtn').onclick = async () => {
+  clearMsg();
+  try {
+    await reload(auth.currentUser);          // pull fresh emailVerified from Firebase
+    if (auth.currentUser.emailVerified) location.reload();
+    else showErr('Not verified yet. Open the link in your email, then try again.');
+  } catch(e){ showErr(e.message || 'Could not check.'); }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+// Three views, only one visible at a time:
+//   signed out            -> sign-in panel
+//   signed in, applied    -> status card
+//   signed in, not applied-> the form
+const verifySection = $('verifySection');
+$('verifySignout').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    authSection.classList.remove('hidden');
+    verifySection.classList.add('hidden');
+    statusSection.classList.add('hidden');
+    applyForm.classList.add('hidden');
+    return;
+  }
+  authSection.classList.add('hidden');
+  $('whoEmail').textContent = user.email || user.uid;
+
+  // Gate: unverified email addresses cannot apply.
+  if (!user.emailVerified) {
+    $('verifyEmail').textContent = user.email || '';
+    verifySection.classList.remove('hidden');
+    statusSection.classList.add('hidden');
+    applyForm.classList.add('hidden');
+    return;
+  }
+  verifySection.classList.add('hidden');
+
+  let existing = null;
+  try {
+    const snap = await getDoc(doc(db, COLLECTION, user.uid));
+    if (snap.exists()) existing = snap.data();
+  } catch(e){ /* first-time applicants have nothing to read */ }
+
+  if (existing) { renderStatus(existing); prefill(existing); }
+  else { applyForm.classList.remove('hidden'); statusSection.classList.add('hidden'); }
+});
+
+function renderStatus(d){
+  statusSection.classList.remove('hidden');
+  applyForm.classList.add('hidden');
+  const s = (d.status || 'pending');
+  const map = {
+    pending:  ['⏳','Application received',
+               'We review every application by hand. You will hear from us by email. This usually takes a few days.'],
+    approved: ['✅','You are approved',
+               'Welcome aboard. You can now submit templates for review.'],
+    rejected: ['—','Not accepted this time',
+               (d.reviewNote || 'Thank you for applying. We are not able to accept this application right now.')]
+  };
+  const [icon,title,text] = map[s] || map.pending;
+  $('statusIcon').textContent = icon;
+  $('statusTitle').textContent = title;
+  $('statusText').textContent = text;
+  // Only a pending application may still be edited — rules enforce this too.
+  $('editBtn').style.display = (s === 'pending') ? '' : 'none';
+}
+
+$('editBtn').onclick = () => {
+  statusSection.classList.add('hidden');
+  applyForm.classList.remove('hidden');
+  clearMsg();
+};
+
+function prefill(d){
+  $('fName').value      = d.name      || '';
+  $('fBrand').value     = d.brand     || '';
+  $('fPhoneCode').value = d.phoneCode || '';
+  $('fPhone').value     = d.phone     || '';
+  $('fPortfolio').value = d.portfolio || '';
+  $('fAbout').value     = d.about     || '';
+  $('fCountry').value   = d.country   || '';
+  $('fPayout').value    = d.payoutMethod || '';
+  $('fVolume').value    = d.volume    || '';
+  $('fAgree').checked   = !!d.agreedTerms;
+  const cats = d.categories || [];
+  document.querySelectorAll('#catChips input').forEach(c => { c.checked = cats.includes(c.value); });
+  // A file input cannot be pre-filled, so show whether one is already on file.
+  // Re-uploading is optional when editing; leaving it blank keeps the old one.
+  if (d.idFrontPath) $('idFrontNote').textContent = '✓ Already uploaded — choose a file only to replace it.';
+  if (d.idBackPath)  $('idBackNote').textContent  = '✓ Already uploaded — choose a file only to replace it.';
+}
+
+/** Upload one ID image to the private contributor_ids/{uid}/ folder.
+ *  Returns the storage PATH (never a download URL — only admins may read it). */
+async function uploadId(uid, file, side){
+  const ext  = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const path = `contributor_ids/${uid}/${side}.${ext || 'jpg'}`;
+  await uploadBytes(storageRef(storage, path), file, { contentType: file.type });
+  return path;
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────
+applyForm.onsubmit = async (e) => {
+  e.preventDefault();
+  clearMsg();
+  const user = auth.currentUser;
+  if (!user) return showErr('Please sign in first.');
+
+  const cats  = [...document.querySelectorAll('#catChips input:checked')].map(c => c.value);
+  const front = $('fIdFront').files[0] || null;
+  const back  = $('fIdBack').files[0]  || null;
+
+  const data = {
+    uid:          user.uid,
+    email:        user.email || '',
+    emailVerified:true,
+    name:         $('fName').value.trim(),
+    brand:        $('fBrand').value.trim(),
+    phoneCode:    $('fPhoneCode').value.trim(),
+    phone:        $('fPhone').value.trim(),
+    portfolio:    $('fPortfolio').value.trim(),
+    about:        $('fAbout').value.trim(),
+    categories:   cats,
+    volume:       $('fVolume').value,
+    country:      $('fCountry').value.trim(),
+    payoutMethod: $('fPayout').value,
+    agreedTerms:  $('fAgree').checked,
+    status:       'pending',          // rules refuse anything else from a browser
+    submittedAt:  serverTimestamp()
+  };
+  data.phoneFull = (data.phoneCode + ' ' + data.phone).trim();
+
+  if (!data.name)         return showErr('Please enter your full name.');
+  if (!data.phoneCode || !data.phone)
+                          return showErr('Please enter your mobile number with country code.');
+  if (!data.portfolio)    return showErr('A portfolio link is required — it is the main thing we review.');
+  if (!cats.length)       return showErr('Please select at least one thing you design.');
+  if (!data.country)      return showErr('Please enter your country.');
+  if (!data.payoutMethod) return showErr('Please choose a preferred payout method.');
+  if (!data.agreedTerms)  return showErr('Please accept the terms to continue.');
+
+  // ID is required the first time. When editing an existing application the
+  // files already on file still count, so re-uploading is optional.
+  const already = await hasIdOnFile(user.uid);
+  if (!front && !already.front) return showErr('Please upload the front of your ID.');
+  if (!back  && !already.back)  return showErr('Please upload the back of your ID.');
+  for (const f of [front, back]) {
+    if (!f) continue;
+    if (!f.type.startsWith('image/')) return showErr('ID files must be images.');
+    if (f.size > 8 * 1024 * 1024)     return showErr('Each ID image must be under 8 MB.');
+  }
+
+  const btn = $('submitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    // Images go to private Storage FIRST; only the path is written to
+    // Firestore. No download URL is ever stored, so the reference is useless
+    // to anyone who is not an admin.
+    if (front) { btn.textContent = 'Uploading ID…'; data.idFrontPath = await uploadId(user.uid, front, 'front'); }
+    if (back)  { btn.textContent = 'Uploading ID…'; data.idBackPath  = await uploadId(user.uid, back,  'back');  }
+    if (front || back) data.idUploadedAt = serverTimestamp();
+
+    btn.textContent = 'Submitting…';
+    // Doc id = uid, merge:true — re-submitting updates rather than duplicating.
+    await setDoc(doc(db, COLLECTION, user.uid), data, { merge: true });
+    showOk('Application submitted. We will review it and get back to you by email.');
+    renderStatus(data);
+  } catch(err){
+    showErr('Could not submit: ' + (err.message || err));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Submit application';
+  }
+};
+
+/** Which ID images are already stored for this applicant. */
+async function hasIdOnFile(uid){
+  try {
+    const snap = await getDoc(doc(db, COLLECTION, uid));
+    const d = snap.exists() ? snap.data() : {};
+    return { front: !!d.idFrontPath, back: !!d.idBackPath };
+  } catch(e){ return { front:false, back:false }; }
+}
+</script>
+</body>
+</html>
