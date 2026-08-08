@@ -344,3 +344,142 @@
   }
   var tries=0, t=setInterval(function(){ tries++; if(boot()||tries>100) clearInterval(t); }, 100);
 })();
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   APPEND-ONLY PATCH LOG — fill_widget.js
+   House rule (Javed, 7 Aug 2026): nothing above this line is deleted or
+   rewritten. Every change is a NEW timestamped block appended here. To undo a
+   patch, delete only its own block — the original still works.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 22:05 UTC · Opus · BUG No. 11
+   "Prepare my deck" does absolutely nothing — no message, no error, no result.
+
+   THE CAUSE IS NOT WHAT THE NOTE ASSUMED, and the difference matters.
+   The click handler DOES have a text-only guard (line ~255 above:
+       if(!(deckFile || designRef)){ alert('Drag a design from the page, or drop
+                                     a .pptx here, first.'); return; }
+   …but it is UNREACHABLE. refresh() (line ~106) sets:
+       goBtn.disabled = !isAdmin || !(deckFile || designRef) || !!blocked;
+   and TEST_OPEN is false, so on a fresh page isAdmin starts false and no design
+   has been chosen. The button is therefore DISABLED — and a disabled button
+   fires no click event at all. Nothing runs, so nothing can speak. That is the
+   exact "absolutely nothing" the tester saw.
+
+   There are THREE different reasons it can be disabled, and the visitor was
+   shown none of them:
+     1. not signed in / not entitled  — deck filling is a subscriber feature
+     2. no design chosen              — nothing to fill
+     3. fit check says "too_big"      — content will not fit the chosen deck
+
+   THIS BLOCK does not unlock anything and does not touch the disabled logic —
+   the subscriber lock stays exactly as it is. It only makes the button HONEST:
+     · A transparent shield sits over the button, so a click on the disabled
+       control is still heard.
+     · Every click now produces a specific, visible message saying which of the
+       three reasons is blocking it, and what to do about it.
+     · The genuine text-only path the note asked for: if content has been typed
+       but no design chosen, Hexa offers to BUILD a deck from that content
+       instead (editor.html?compose=…), which is the flow that actually exists
+       for content-without-a-design. One click, no dead end.
+     · If both boxes are empty, it says so instead of staying mute.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 22:05 UTC · bug 11';
+
+  function install() {
+    var goBtn = document.getElementById('fwGo');
+    if (!goBtn || goBtn.dataset.ldHonest) return false;
+    goBtn.dataset.ldHonest = '1';
+
+    /* a disabled button swallows pointer events; let them through to a shield */
+    var st = document.createElement('style');
+    st.textContent =
+      '#fwGo:disabled{pointer-events:none;}' +
+      '#fwGoShield{display:inline-block;}' +
+      '#fwWhyNote{margin-top:10px;font-size:12px;line-height:1.55;color:#8a3b3b;' +
+        'font-family:Inter,sans-serif;}' +
+      '#fwWhyNote a{display:inline-block;margin-top:8px;padding:8px 16px;border-radius:24px;' +
+        'background:#d4af37;color:#1a1200;font-weight:800;text-decoration:none;font-size:12px;}';
+    document.head.appendChild(st);
+
+    var shield = document.createElement('span');
+    shield.id = 'fwGoShield';
+    goBtn.parentNode.insertBefore(shield, goBtn);
+    shield.appendChild(goBtn);
+
+    var note = document.createElement('div');
+    note.id = 'fwWhyNote';
+    shield.parentNode.insertBefore(note, shield.nextSibling);
+
+    function say(html) { note.innerHTML = html; }
+
+    shield.addEventListener('click', function () {
+      if (!goBtn.disabled) { say(''); return; }   /* real click runs as normal */
+
+      var contentEl = document.getElementById('fwContent');
+      var content = contentEl ? String(contentEl.value || '').trim() : '';
+      var deckNote = (document.getElementById('fwDeckNote') || {}).textContent || '';
+      var hasDesign = !!deckNote.trim();
+      var lockNote = (document.getElementById('fwAdminNote') || {}).textContent || '';
+      var locked = /subscriber/i.test(lockNote);
+
+      /* 1. locked */
+      if (locked) {
+        say('🔒 <strong>Filling a deck with your content is a subscriber feature</strong> — ' +
+            'subscriptions are coming soon, so this button is switched off for now. ' +
+            (content
+              ? 'You can still build a deck from the content you have typed, free, up to 8 slides:' +
+                buildLink(content)
+              : 'You can still build a deck free from the designer — type your content above and I will offer it here.'));
+        return;
+      }
+
+      /* 2. content typed, no design chosen — the text-only path */
+      if (content && !hasDesign) {
+        say('This card <strong>fills an existing design</strong> with your words, so it needs a design to fill — ' +
+            'drag one from the page, or drop a .pptx into the box above. ' +
+            '<br>If you would rather I just <strong>build</strong> a deck around what you have written, ' +
+            'that works right now:' + buildLink(content));
+        return;
+      }
+
+      /* 3. nothing at all */
+      if (!content && !hasDesign) {
+        say('Nothing to work with yet — <strong>paste your content on the left</strong> ' +
+            '(or load a .txt/.docx), and <strong>drag the design you want filled</strong> into the box above. ' +
+            'Then this button comes to life.');
+        return;
+      }
+
+      /* 4. design chosen but the fit check is blocking */
+      if (hasDesign && !content) {
+        say('Add the content you want in the deck first — paste it into the box on the left, ' +
+            'or load a .txt/.docx file.');
+        return;
+      }
+
+      say('This cannot run yet — the content does not fit the design you chose. ' +
+          'Shorten it, or pick a design with more slides, and the button will unlock.');
+    }, true);
+
+    function buildLink(content) {
+      var href = 'editor.html?compose=' + encodeURIComponent(content.slice(0, 600));
+      return '<br><a href="' + href + '">Build a deck from my content →</a>';
+    }
+
+    /* clear the message as soon as they act on it */
+    ['fwContent', 'fwDeckDrop', 'fwFileDrop'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', function () { say(''); });
+      if (el) el.addEventListener('drop', function () { say(''); });
+    });
+
+    try { console.log('[fill_widget patch] ' + PATCH + ' installed'); } catch (e) {}
+    return true;
+  }
+
+  var n = 0, t = setInterval(function () { n++; if (install() || n > 150) clearInterval(t); }, 100);
+})();

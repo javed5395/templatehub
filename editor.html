@@ -16541,5 +16541,198 @@ window.LD_loadEditorTemplates = async function () {
   else boot();
 })();
 </script>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     APPEND-ONLY PATCH LOG — editor.html
+     House rule (Javed, 7 Aug 2026): this file is shared with Fable and feeds
+     big projects. NOTHING above this line is ever deleted or rewritten. Every
+     change is a NEW timestamped block appended down here that OVERRIDES the
+     earlier definition. Newest block wins because it runs last. To undo any
+     patch, delete only its own block — the original code above still stands.
+     ══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- ──────────────────────────────────────────────────────────────────────────
+     PATCH 2026-08-07 17:40 UTC · Opus · BUG No. 2
+     "Hexa says it is designing but the editor stays completely blank"
+
+     WHAT WAS MEASURED, NOT GUESSED (live www.lazydogtemplates.com, this date):
+       editor.html?compose=design a media kit for a coffee shop
+       → POST composer-proxy…/compose_ir returned HTTP 200 with a real 8-slide
+         deck, and the editor painted it. Page load 10:05:27, slide 1 painted
+         10:06:19 — the backend took ~52 SECONDS.
+       So the generation step IS being triggered and the engine DOES work. The
+       editor was never blank forever; it was blank for the best part of a
+       minute with the only feedback being one toast that fades after a few
+       seconds. Anyone testing gives up long before the deck lands.
+
+     SECOND, SEPARATE CAUSE — the original window.ldCompose (defined ~line
+     15171 above, LEFT INTACT) has no error handling at all. Verified against a
+     mock composer, three failures ended as an unhandled promise rejection with
+     a silent blank page and nothing in the console:
+       1. fetch() throwing        — offline / DNS / CORS / proxy blocked
+       2. r.json() throwing       — backend replied HTML or a truncated body
+       3. d.deck undefined        — HTTP 200 but no deck in the payload, then
+                                    loadDeckIRIntoEditor(undefined) died on
+                                    "Cannot read properties of undefined
+                                    (reading 'slides')" with nothing shown.
+
+     WHAT THIS BLOCK DOES (additive — overrides window.ldCompose, touches
+     nothing else):
+       A. A PERSISTENT progress panel with a live second counter that stays up
+          until the deck paints or an error replaces it.
+       B. Real error handling on every exit, each with a plain-English
+          dismissible banner. A toast alone was not enough — it fades, which is
+          exactly what hid this bug.
+       C. Accepts { deck:{…} } AND a bare deck, so a backend shape change can
+          never silently blank the page again.
+       D. A watchdog: if the canvas never comes up, say so instead of the old
+          bootstrap's forever-poll.
+     The original bootstrap above still owns the ?compose= trigger. It calls
+     window.ldCompose at the moment fc appears — by then this override is the
+     one installed, because this block runs first (end of body, before
+     DOMContentLoaded creates the canvas).
+     ────────────────────────────────────────────────────────────────────────── -->
+<script>
+(function () {
+  var PATCH = '2026-08-07 17:40 UTC · bug 2';
+
+  var _busyTimer = null;
+
+  function progressStart(sentence) {
+    try {
+      progressStop();
+      var box = document.createElement('div');
+      box.id = 'ldComposeBusy';
+      box.setAttribute('role', 'status');
+      box.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);' +
+        'z-index:2147483646;max-width:min(560px,92vw);padding:14px 18px;border-radius:10px;' +
+        'background:#161033;border:1px solid #7C3AED;color:#EDE9FE;' +
+        'font:14px/1.5 Inter,system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.45);';
+      var h = document.createElement('strong');
+      h.style.cssText = 'display:block;margin-bottom:3px;';
+      h.textContent = 'Hexa is designing your deck…';
+      var p = document.createElement('span');
+      p.style.cssText = 'display:block;opacity:.85;font-size:13px;';
+      p.textContent = String(sentence || '').slice(0, 140);
+      var c = document.createElement('span');
+      c.id = 'ldComposeBusyClock';
+      c.style.cssText = 'display:block;margin-top:5px;opacity:.7;font-size:12px;';
+      c.textContent = 'This can take up to a minute — please keep this tab open. 0s';
+      box.appendChild(h); box.appendChild(p); box.appendChild(c);
+      (document.body || document.documentElement).appendChild(box);
+      var t0 = Date.now();
+      _busyTimer = setInterval(function () {
+        var el = document.getElementById('ldComposeBusyClock');
+        if (!el) return;
+        el.textContent = 'This can take up to a minute — please keep this tab open. ' +
+          Math.round((Date.now() - t0) / 1000) + 's';
+      }, 1000);
+    } catch (e) {}
+  }
+
+  function progressStop() {
+    try { if (_busyTimer) { clearInterval(_busyTimer); _busyTimer = null; } } catch (e) {}
+    try { var b = document.getElementById('ldComposeBusy'); if (b && b.parentNode) b.parentNode.removeChild(b); } catch (e) {}
+  }
+
+  function composeError(msg, detail) {
+    progressStop();
+    try { if (typeof showToast === 'function') showToast(msg, 9000); } catch (e) {}
+    try { console.error('[ldCompose ' + PATCH + '] ' + msg, detail !== undefined ? detail : ''); } catch (e) {}
+    try {
+      var old = document.getElementById('ldComposeErr');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+      var box = document.createElement('div');
+      box.id = 'ldComposeErr';
+      box.setAttribute('role', 'alert');
+      box.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);' +
+        'z-index:2147483647;max-width:min(560px,92vw);padding:14px 42px 14px 16px;' +
+        'border-radius:10px;background:#2b1119;border:1px solid #f0506e;color:#ffe9ee;' +
+        'font:14px/1.5 Inter,system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.45);';
+      var h = document.createElement('strong');
+      h.style.cssText = 'display:block;margin-bottom:4px;';
+      h.textContent = 'Hexa could not build this design';
+      var p = document.createElement('span');
+      p.style.opacity = '.92';
+      p.textContent = msg;
+      var x = document.createElement('button');
+      x.type = 'button';
+      x.textContent = '×';
+      x.setAttribute('aria-label', 'Dismiss');
+      x.style.cssText = 'position:absolute;top:5px;right:10px;background:none;border:0;' +
+        'color:#ffe9ee;font-size:20px;line-height:1;cursor:pointer;';
+      x.onclick = function () { try { box.parentNode.removeChild(box); } catch (e) {} };
+      box.appendChild(h); box.appendChild(p); box.appendChild(x);
+      (document.body || document.documentElement).appendChild(box);
+    } catch (e) {}
+  }
+
+  window.ldComposeProgress     = progressStart;
+  window.ldComposeProgressDone = progressStop;
+  window.ldComposeError        = composeError;
+
+  /* OVERRIDE. The original window.ldCompose above is untouched and still
+     readable; this definition simply runs later, so this is the one in use. */
+  window.ldCompose = async function (sentence) {
+    _composeStarted = true;
+    try { if (typeof showToast === 'function') showToast('Designing in LazyDog cloud…'); } catch (e) {}
+    progressStart(sentence);
+    // give the sign-in token a moment on cold page loads (as before)
+    for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) {
+      await new Promise(function (res) { setTimeout(res, 500); });
+    }
+    var r;
+    try {
+      r = await fetch(window.LD_BACKEND + '/compose_ir', {
+        method: 'POST',
+        headers: window.ldHeaders('application/json'),
+        body: JSON.stringify({ sentence: sentence })
+      });
+    } catch (e) {
+      composeError('We could not reach the design service, so nothing was generated. Check your connection and try again.', e);
+      return;
+    }
+    if (r.status === 401 || r.status === 403) {
+      composeError('Please sign in on the main site first, then reopen the Designer 🔐');
+      return;
+    }
+    if (!r.ok) {
+      var body = '';
+      try { body = (await r.text()).slice(0, 300); } catch (e) {}
+      composeError('The design service returned an error (' + r.status + '). Please try again in a moment.', body);
+      return;
+    }
+    var d;
+    try { d = await r.json(); }
+    catch (e) { composeError('The design service sent a reply the editor could not read. Please try again.', e); return; }
+    var deck = (d && d.deck) ? d.deck : ((d && d.slides) ? d : null);
+    if (!deck || !deck.slides || !deck.slides.length) {
+      composeError('The design service replied but sent no slides back, so nothing has been changed. Try rewording your request.', d);
+      return;
+    }
+    if (!deck.size || !deck.size.w || !deck.size.h) deck.size = { w: 12192000, h: 6858000 };
+    try { await window.loadDeckIRIntoEditor(deck); }
+    catch (e) { composeError('The design came back, but the editor could not open it.', e); return; }
+    progressStop();
+  };
+
+  /* WATCHDOG. The original bootstrap polls for the canvas forever and says
+     nothing if it never arrives. We cannot see its interval handle, so we run
+     our own clock alongside it and speak up if compose never even started. */
+  var _composeStarted = false;
+  (function () {
+    var q = null;
+    try { q = new URLSearchParams(location.search).get('compose'); } catch (e) {}
+    if (!q) return;
+    setTimeout(function () {
+      if (_composeStarted || window._deckIR) return;
+      composeError('The editor did not finish loading, so your design was never started. Please reload the page and try again.');
+    }, 60000);
+  })();
+
+  try { console.log('[editor patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+</script>
+
 </body>
 </html>

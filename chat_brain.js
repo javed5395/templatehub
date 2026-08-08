@@ -265,7 +265,10 @@
     ['download',  ['download','downloading','downlod','donwload','save the file','get the file','get my file','get it again','my file again','re download','redownload','access my','retrieve']],
     ['buy',       ['buy','buying','purchase','purchasing','order','checkout','check out','pay','paying','payment','get it now']],
     ['create',    ['make me','design me','create me','build me','generate','compose me']],
-    ['recommend', ['recommend','suggest','suggestion','best for','which should','what should i','help me choose','ideal for','right one','good for']],
+    /* 'recommendation'/'recommendations' added 7 Aug 2026 (Bug 3): matching is
+       whole-word, so "I need a recommendation for a dark saas pitch deck" never
+       matched 'recommend' and fell through to a plain "Opening Pitch Decks". */
+    ['recommend', ['recommend','recommendation','recommendations','suggest','suggestion','suggestions','best for','which should','what should i','help me choose','ideal for','right one','good for']],
     ['availability',['do you have','have you got','got any','is there','are there','available','availability','any chance','looking for','need a','need an','want a','want an']],
     ['browse',    ['open','show','see','view','browse','find','explore','list','take me','go to']]
   ];
@@ -290,6 +293,10 @@
     colour:   ['black','white','dark','light','blue','red','green','purple','violet','pink','orange','yellow','gold','silver','grey','gray','navy','teal','pastel','neon','monochrome','colourful','colorful'],
     tone:     ['minimal','modern','clean','bold','elegant','luxury','premium','playful','fun','corporate','professional','creative','vintage','retro','futuristic','simple','classic']
   };
+
+  /* Broad catch-all qualifiers. They are still recognised, but they lose to a
+     specific word found in the same sentence — see findQuals below. */
+  var GENERIC_QUAL = { startup: 1, tech: 1, agency: 1, founder: 1, business: 1 };
 
   function stemWords(t) { return ' ' + t + ' '; }
 
@@ -321,10 +328,23 @@
 
   function findQuals(t) {
     var pad = stemWords(t), out = {};
+    /* 7 Aug 2026 — BUG 3. This used to take the FIRST word in the list that
+       matched and stop, so list order decided the answer. In "a fintech
+       startup", 'startup' sits earlier in QUALS.industry than 'fintech', so
+       Hexa read the sentence as a generic "startup" and threw the specific
+       word away. Now: a SPECIFIC word always beats a broad catch-all, and
+       otherwise the longest match wins ("fashion brand" beats "fashion"). */
     Object.keys(QUALS).forEach(function (k) {
+      var best = null, bestLen = 0, bestGeneric = true;
       for (var i = 0; i < QUALS[k].length; i++) {
-        if (pad.indexOf(' ' + QUALS[k][i] + ' ') !== -1) { out[k] = QUALS[k][i]; break; }
+        var w = QUALS[k][i];
+        if (pad.indexOf(' ' + w + ' ') === -1 && pad.indexOf(' ' + w + 's ') === -1) continue;
+        var gen = !!GENERIC_QUAL[w];
+        if (best === null || (bestGeneric && !gen) || (bestGeneric === gen && w.length > bestLen)) {
+          best = w; bestLen = w.length; bestGeneric = gen;
+        }
       }
+      if (best) out[k] = best;
     });
     var n = t.match(/\b(\d{1,3})\s*(slides?|pages?)\b/);
     if (n) out.slides = n[1];
@@ -397,7 +417,7 @@
   var STRONG = { price:1, buy:1, download:1, edit:1, license:1, compare:1,
                  recommend:1, support:1 };
 
-  function hexaComposeIntent(text, strongOnly) {
+  function hexaComposeIntent(text, strongOnly, requireDetail) {
     var t = norm(text);
     if (!t || t.split(' ').length > 30) return null;
     var verb = findVerb(t);
@@ -407,6 +427,11 @@
     if (!verb) return null;
     if (strongOnly && !STRONG[verb]) return null;
     if (!strongOnly && STRONG[verb]) return null;
+    /* 7 Aug 2026 — BUG 3. requireDetail = "only answer if this ONE sentence
+       already told me the product AND at least one detail about it". Used by
+       chatCompose to let a complete sentence overtake the generic FAQ line
+       that otherwise asks the visitor for details they have already given. */
+    if (requireDetail && !(noun && Object.keys(q).length)) return null;
     if (!noun && !Object.keys(q).length
         && verb !== 'support' && verb !== 'compare' && verb !== 'license') return null;
     var a = composeAnswer(verb, noun, q);
@@ -489,6 +514,20 @@
       if (pc) return pc;
       // 0b) "open the third one" / "next one" — only if we have results
       if (window.hexaResultNav) { var rn = window.hexaResultNav(text); if (rn) return rn; }
+      /* 0α) 7 Aug 2026 — BUG 3 FIX: a COMPLETE sentence beats the generic FAQ.
+         "recommend a pitch deck for a fintech startup" used to hit the CHAT_FAQ
+         entry whose match list contains the bare word "recommend", and got
+         answered with "tell me what it's for, your industry, and any colour…"
+         — asking for the three things the visitor had just said. The visitor
+         then had to repeat themselves in keyword form ("pitch deck, fintech,
+         blue") before anything happened.
+         So: if this one sentence already names the product AND at least one
+         detail (industry / colour / style / slide count), answer it from those
+         parts instead. A vague "recommend" or "help me choose" carries no such
+         detail, returns null here, and still falls through to the FAQ line —
+         which is the right reply for a vague ask. */
+      var detailed = hexaComposeIntent(text, true, true);
+      if (detailed) return detailed;
       // 0) custom FAQ (edit CHAT_FAQ at the top of this file)
       for (var fi = 0; fi < CHAT_FAQ.length; fi++) {
         var fe = CHAT_FAQ[fi], fm = fe.match || [];
@@ -1186,4 +1225,1683 @@
     return null;
   };
 
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   APPEND-ONLY PATCH LOG — chat_brain.js
+   House rule (Javed, 7 Aug 2026): nothing above this line is deleted or
+   rewritten. Every change is a NEW timestamped block appended here that
+   OVERRIDES or WRAPS the earlier definition. Newest block wins because it runs
+   last. To undo a patch, delete only its own block — the original still works.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 18:20 UTC · Opus · BUG No. 4 + BUG No. 5
+   4: "call me about a custom deck" made Hexa think the name was "About".
+   5: a wrong name sticks and is never corrected.
+
+   MEASURED BEFORE THE FIX (17 name cases through the original
+   window.hexaNameCapture, defined ~line 680 above and LEFT INTACT):
+       "call me about a custom deck"          -> stored the name "About"
+       "call me when you can"                 -> stored "When"
+       "please have someone call me tomorrow" -> stored "Tomorrow"
+       "call me regarding my order"           -> stored "Regarding"
+       "call me about pricing"                -> stored "About"
+       "my name is Jean-Luc"                  -> stored "Jean"  (hyphen lost:
+            the old code ran on norm(), which strips - and ' to spaces)
+       11/17 correct.
+
+   AND on Bug 5, the thing that actually traps the visitor: memSet() DOES
+   overwrite, so a literal "my name is Sarah" works. But it is the ONLY wording
+   that works. Every natural correction was a dead end — verified, all left the
+   wrong name in place:
+       "that's not my name" · "don't call me About" · "stop calling me About"
+       "actually it's Sarah" · "my name is not About" · "forget my name"
+   That is why the wrong name feels permanent.
+
+   THIS BLOCK (overrides window.hexaNameCapture, additive):
+     · Reads the RAW message, not norm(), so "Jean-Luc" and "O'Brien" survive.
+     · A much longer stop-word list; it is checked first and beats everything,
+       so even "call me Tomorrow" is not taken as a name.
+     · For the loose triggers ("call me", "i am", "i'm") a word is only taken
+       as a name when it is Capitalised in the original message OR the message
+       is 4 words or fewer. "my name is X" stays unconditional — it is
+       unambiguous.
+     · NEW correction path: "that's not my name", "don't call me X", "stop
+       calling me X", "forget my name", "my name is not X" all CLEAR the stored
+       name and ask for the right one.
+     · After a clear, Hexa is briefly listening for the answer, so a bare
+       "Sarah" or "it's Sarah" is accepted — but only if the whole message is
+       essentially just that word, so "pitch deck" can never become a name.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 18:20 UTC · bugs 4+5';
+
+  /* Words that are never a person's name, however the sentence is phrased.
+     Checked before capitalisation, so "call me Tomorrow" is still rejected. */
+  var STOP = ('a an the my our your this that these those it its it s here there now then just only also so very really still ' +
+    'not no nope yes yeah ok okay sure fine good great sorry please thanks thank ' +
+    'about back later soon today tonight tomorrow yesterday when whenever asap regarding re ' +
+    'on at in to for from with and or but if once first again anytime any some someone somebody anyone everyone nobody ' +
+    'monday tuesday wednesday thursday friday saturday sunday morning afternoon evening night week month year weekend ' +
+    'interested looking searching trying wondering browsing buying asking calling waiting thinking needing wanting getting having going ' +
+    'new old free busy available ready able unable curious confused happy sad glad quick quickly urgently immediately ' +
+    'why how what where who which whose whom whether ' +
+    'hi hello hey yo greetings ' +
+    'up down out off over under before after during through ' +
+    'maybe probably definitely actually basically honestly seriously ' +
+    'customer client user buyer owner admin guest visitor human someone team support sales ' +
+    'deck decks kit kits slide slides template templates design designs presentation invoice price pricing order refund download').split(' ');
+  var STOPMAP = {};
+  for (var _i = 0; _i < STOP.length; _i++) STOPMAP[STOP[_i]] = 1;
+
+  function mem() { return (window.hexaMemory && window.hexaMemory.get()) || {}; }
+  function remember(patch) { try { if (window.hexaMemory) window.hexaMemory.set(patch); } catch (e) {} }
+
+  function tidy(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
+  function wordCount(s) { return tidy(s).split(' ').filter(Boolean).length; }
+  function titleCase(w) { return w.charAt(0).toUpperCase() + w.slice(1); }
+
+  /* Is this token allowed to be a name at all? */
+  function nameOk(w) {
+    if (!w) return false;
+    var low = w.toLowerCase();
+    if (STOPMAP[low]) return false;
+    if (low.length < 2 || low.length > 21) return false;
+    if (!/^[a-z][a-z'\-]*$/.test(low)) return false;
+    return true;
+  }
+
+  window.hexaNameCapture = function (text) {
+    var raw = tidy(text);
+    if (!raw) return null;
+
+    /* ── 1. CORRECTION / CLEAR (Bug 5) — always checked first ───────────── */
+    var isCorrection =
+      /\b(that(?:'|’)?s|thats|it(?:'|’)?s|its)\s+not\s+my\s+name\b/i.test(raw) ||
+      /\bmy\s+name\s+(?:is\s+)?not\b/i.test(raw) ||
+      /\b(?:that|this)\s+is\s+not\s+my\s+name\b/i.test(raw) ||
+      /\b(?:don(?:'|’)?t|do not|stop|quit)\s+(?:call|calling)\s+me\b/i.test(raw) ||
+      /\b(?:forget|clear|delete|remove|reset)\s+(?:my|the)\s+name\b/i.test(raw) ||
+      /\bwrong\s+name\b/i.test(raw) ||
+      /\bi(?:'|’)?m\s+not\s+(?:called\s+)?[a-z]/i.test(raw);
+
+    if (isCorrection) {
+      /* A correction may also carry the right name: "don't call me About,
+         call me Sarah" / "my name is not About it's Sarah". Take it if so. */
+      var fix = raw.match(/\b(?:call me|my name is|i(?:'|’)?m|it(?:'|’)?s)\s+([A-Za-z][A-Za-z'\-]{1,20})\s*$/i);
+      var fixName = fix && fix[1];
+      if (fixName && nameOk(fixName) && !/\bnot\b/i.test(raw.slice(raw.toLowerCase().lastIndexOf(fixName.toLowerCase()) - 6, raw.toLowerCase().lastIndexOf(fixName.toLowerCase())))) {
+        remember({ name: titleCase(fixName), await_name: 0 });
+        return { reply: 'Sorry about that — noted, ' + titleCase(fixName) + '. I will not get it wrong again. 😊' };
+      }
+      var had = mem().name;
+      remember({ name: null, await_name: 1 });
+      return { reply: had
+        ? 'Sorry about that — I have cleared "' + had + '". What should I call you?'
+        : 'Sorry about that. What should I call you?' };
+    }
+
+    /* ── 2. HEXA ASKED, SO A BARE NAME IS AN ANSWER (Bug 5) ─────────────── */
+    if (mem().await_name) {
+      var bare = raw.match(/^(?:it(?:'|’)?s\s+|i(?:'|’)?m\s+|im\s+|call me\s+|my name is\s+|the name(?:'|’)?s\s+)?([A-Za-z][A-Za-z'\-]{1,20})[.!]?$/i);
+      if (bare && nameOk(bare[1])) {
+        remember({ name: titleCase(bare[1]), await_name: 0 });
+        return { reply: 'Got it — ' + titleCase(bare[1]) + '. Lovely to meet you properly! 😊 What can I find for you?' };
+      }
+      /* not a name — stop waiting so we never mislabel a later message */
+      remember({ await_name: 0 });
+    }
+
+    /* ── 3. NORMAL INTRODUCTION (Bug 4: much stricter) ──────────────────── */
+    /* A question about the name is not someone giving their name.
+       "who told you my name is About?" must not re-save "About". */
+    if (/\?\s*$/.test(raw) || /^(who|why|how|what|where|when|which|is|are|did|do|does|can|could|would|should)\b/i.test(raw)) return null;
+    var strict = raw.match(/\b(?:my name is|my name(?:'|’)s|the name is|the name(?:'|’)s)\s+([A-Za-z][A-Za-z'\-]{1,20})\b/i);
+    var loose  = raw.match(/\b(?:call me|i am|i(?:'|’)m|im)\s+([A-Za-z][A-Za-z'\-]{1,20})\b/i);
+
+    var word = null, viaStrict = false;
+    if (strict) { word = strict[1]; viaStrict = true; }
+    else if (loose) { word = loose[1]; }
+    if (!word) return null;
+    if (!nameOk(word)) return null;
+
+    if (!viaStrict) {
+      /* "call me" / "i am" / "i'm" are everyday English, not just
+         introductions. Only trust them when the word is Capitalised the way a
+         person writes their own name, or the whole message is short enough
+         that it can only be an introduction. */
+      var capitalised = /^[A-Z]/.test(word);
+      if (!capitalised && wordCount(raw) > 4) return null;
+    }
+
+    var name = titleCase(word);
+    remember({ name: name, await_name: 0 });
+    return { reply: 'Lovely to meet you, ' + name + '! 😊 What can I find for you — a pitch deck, media kit, or web kit?' };
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 18:45 UTC · Opus · BUG No. 6
+   "Requests for a custom or bespoke project are not understood"
+
+   MEASURED BEFORE THE FIX:
+     "a custom quote for a 20 slide investor deck"
+         -> "Opening Pitch Decks for you."      (treated as casual browsing)
+     "I want to commission a bespoke brand identity"
+         -> no local answer at all
+     "do you do custom work"
+         -> "We don't take custom commissions at the moment."
+   That last one is not just unhelpful, it is FALSE. lazydog_studio.html says,
+   in its own words: "Commission a bespoke digital experience… we design and
+   build custom websites, UI systems, and brand identities." Hexa was turning
+   away the highest-value enquiry on the site.
+
+   THIS BLOCK is additive in two ways:
+     · It adds window.hexaCustomIntent(text) -> answer object or null.
+     · It WRAPS window.chatCompose instead of editing it. The custom rule is
+       tried first; everything else falls through to the original chatCompose
+       exactly as before. The stale "we don't take custom commissions" entry in
+       CHAT_FAQ is left in the file untouched — it is simply no longer reached,
+       because every phrase in its match list is caught here first.
+
+   DELIBERATELY NARROW so it cannot steal ordinary questions:
+     · "can i customise the colours" / "is it customizable" -> NOT a commission.
+       Matching is on the whole word "custom", never inside "customise".
+     · "make me a custom deck" still reaches the AI Designer first, because
+       hexaDesignIntent runs ahead of chatCompose in all three chat surfaces.
+       Only genuine commission wording (bespoke / commission / quote / hire)
+       lands here.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 18:45 UTC · bug 6';
+  var STUDIO_URL = 'lazydog_studio.html#page-custom';
+  var SUPPORT = 'support@lazydogtemplates.com';
+
+  /* Commission wording. Whole-word "custom" only, so "customise"/"customizable"
+     (an editing question about a template you already own) never matches. */
+  var CUSTOM_RX = new RegExp(
+    '\\b(' +
+      'bespoke' +
+      '|commission(?:ed|ing|s)?' +
+      '|made[ -]to[ -]order' +
+      '|one[ -]off' +
+      '|from scratch' +
+      '|tailor[ -]made|tailored for' +
+      '|hire (?:you|your team|someone|a designer)' +
+      '|work with your (?:team|studio|designers?)' +
+      '|custom (?:design|designs|deck|decks|kit|kits|project|projects|work|job|jobs|build|website|site|brand|branding|identity|quote|quotes|order|orders|brief|request|piece|pricing|package)' +
+      '|custom(?:ised|ized)? for (?:me|us|my|our)' +
+      '|made for (?:me|us) from scratch' +
+      '|do you do custom|take custom|any custom work' +
+      '|quote for (?:a|an|my|our)' +
+      '|get a quote|request a quote|ask for a quote' +
+      '|lazydog studios?' +
+    ')\\b', 'i');
+
+  /* Guards: an editing / licensing question that happens to say "custom". */
+  var NOT_CUSTOM_RX = /\b(customis|customiz)/i;
+
+  window.hexaCustomIntent = function (text) {
+    var raw = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return null;
+    if (!CUSTOM_RX.test(raw)) return null;
+    /* "can I customise it" is about editing a template you bought — unless the
+       sentence ALSO carries real commission wording. */
+    if (NOT_CUSTOM_RX.test(raw) && !/\b(bespoke|commission|quote|hire|from scratch|made to order|one off|one-off|lazydog studio)/i.test(raw)) return null;
+
+    /* Keep the request so it is not lost if they leave without writing in. */
+    try {
+      if (window.hexaMemory) window.hexaMemory.set({ custom_request: raw.slice(0, 300), last_topic: raw.slice(0, 120) });
+    } catch (e) {}
+
+    return {
+      reply: 'Yes — we do take custom work. That is <strong>LazyDog Studios</strong>: ' +
+             'bespoke decks, brand identities, UI systems and full websites, built from scratch rather than from a template. ' +
+             'Tell me a little about the project — what it is for, roughly how many slides or pages, and when you need it — ' +
+             'or email <strong>' + SUPPORT + '</strong> with those details and we will come back with a real quote. ' +
+             'Here is the studio, so you can see the work and the process first:',
+      target: STUDIO_URL,
+      label: 'See LazyDog Studios',
+      execute: false
+    };
+  };
+
+  /* WRAP, don't replace. */
+  var _prevChatCompose = window.chatCompose;
+  window.chatCompose = function (text) {
+    try {
+      var c = window.hexaCustomIntent(text);
+      if (c) return c;
+    } catch (e) {}
+    return _prevChatCompose ? _prevChatCompose.apply(this, arguments) : null;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 19:30 UTC · Opus · BUG No. 7
+   "Please have someone contact me" is treated as a newsletter signup.
+
+   MEASURED BEFORE THE FIX:
+     "please contact me at sarah@example.com"
+       -> "Perfect — I've saved sarah@example.com 📬 I'll make sure you hear
+           about it when fresh designs drop!"
+     A person asking to be contacted was told they had been added to a mailing
+     list. The lead was POSTed to lead_http with no type on it, so nothing
+     downstream could tell a callback request apart from a marketing signup —
+     nobody would ever ring them back.
+     ALSO FOUND: "can someone from your team call me" produced no local answer
+     at all and fell through to the AI.
+
+   THIS BLOCK wraps window.hexaLeadCapture (original at ~line 1120 above, left
+   intact). Callback requests are now their own lead type:
+     · type:'callback' is sent to lead_http, so it can be filtered/routed to a
+       human instead of sitting in the newsletter list.
+     · The reply says plainly that a person will get back to them, and always
+       gives support@lazydogtemplates.com as a guaranteed second path — so the
+       request survives even if the lead endpoint is down.
+     · If they ask for contact but give no email, Hexa asks for it and REMEMBERS
+       that the next email is a callback, not a subscription.
+   Newsletter signups ("notify me when new designs arrive") are untouched.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 19:30 UTC · bug 7';
+  var LEAD_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/lead_http';
+  var EMAIL_RX = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
+  var SUPPORT  = 'support@lazydogtemplates.com';
+
+  /* A request for a HUMAN to make contact — not a request for updates. */
+  var CALLBACK_RX = new RegExp(
+    '\\b(' +
+      '(?:have|get|ask)\\s+(?:someone|somebody|a (?:person|human|real person)|your team|the team)\\s+(?:to\\s+)?(?:contact|call|ring|email|reach|get back to)\\s+me' +
+      '|(?:someone|somebody|a human|a person|your team|the team)\\s+(?:should\\s+|can\\s+|could\\s+|please\\s+)?(?:contact|call|ring|email|reach)\\s+me' +
+      '|(?:please\\s+)?contact me' +
+      '|call me back|ring me back|get back to me|reach out to me|be in touch|get in touch with me' +
+      '|(?:speak|talk|chat)\\s+(?:to|with)\\s+(?:a|an)?\\s*(?:human|real person|person|someone|agent|advisor|sales|your team|the team|somebody)' +
+      '|i want to (?:speak|talk) to' +
+      '|can (?:someone|somebody|a human|a person) (?:from your team )?(?:call|contact|ring|email|reach) me' +
+      '|have a (?:person|human|real person) (?:call|contact) me' +
+    ')\\b', 'i');
+
+  /* Guard: "call me Sarah" is an introduction, and "email me the deck" is an
+     order. Neither is a request for a human to make contact. */
+  var NOT_CALLBACK_RX = /\b(call me [a-z][a-z'\-]{1,20}\s*$|my name is|email me (the|my|it|that|a|an)\b)/i;
+
+  function memGet() { try { return (window.hexaMemory && window.hexaMemory.get()) || {}; } catch (e) { return {}; } }
+  function memPut(p) { try { if (window.hexaMemory) window.hexaMemory.set(p); } catch (e) {} }
+
+  function sendLead(email, type, note) {
+    try {
+      fetch(LEAD_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          type: type,                       /* 'callback' — the new lead type */
+          lead_type: type,                  /* sent twice so either field name works downstream */
+          interest: note || '',
+          message: note || '',
+          page: (location.pathname || '').split('/').pop() || 'home'
+        })
+      }).catch(function (err) {
+        /* same honesty rule as the original lead capture: never claim it was
+           saved when it was not */
+        console.error('[hexa] CALLBACK lead FAILED — not recorded:', email, err && err.message);
+        try { localStorage.setItem('hexa_pending_lead', email); } catch (e) {}
+        try { localStorage.setItem('hexa_pending_lead_type', 'callback'); } catch (e) {}
+      });
+    } catch (e) {
+      console.error('[hexa] callback lead could not be sent:', e && e.message);
+    }
+  }
+
+  function callbackConfirm(email) {
+    return 'Got it — this is a request for a real person to get back to you, not a mailing list. ' +
+           'I have passed <strong>' + email + '</strong> to the team as a <strong>contact request</strong>; ' +
+           'they normally reply within 24 hours. ' +
+           'If it is urgent, email <strong>' + SUPPORT + '</strong> directly and it lands in the same inbox. ' +
+           'Anything I should pass on with it — what it is about, and the best time to reach you?';
+  }
+
+  var _prevLead = window.hexaLeadCapture;
+
+  window.hexaLeadCapture = function (text) {
+    var raw = String(text || '').replace(/\s+/g, ' ').trim();
+    var email = (raw.match(EMAIL_RX) || [null])[0];
+    var wantsCallback = CALLBACK_RX.test(raw) && !NOT_CALLBACK_RX.test(raw);
+    var pending = !!memGet().want_callback;
+
+    /* 1. asked for contact AND gave an address in the same breath */
+    if (wantsCallback && email) {
+      email = email.toLowerCase();
+      sendLead(email, 'callback', raw.slice(0, 300));
+      memPut({ email: email, want_callback: 0 });
+      return { reply: callbackConfirm(email) };
+    }
+
+    /* 2. they asked for contact earlier, and this message is the address */
+    if (pending && email) {
+      email = email.toLowerCase();
+      sendLead(email, 'callback', memGet().callback_note || raw.slice(0, 300));
+      memPut({ email: email, want_callback: 0 });
+      return { reply: callbackConfirm(email) };
+    }
+
+    /* 3. asked for contact but gave no address */
+    if (wantsCallback) {
+      memPut({ want_callback: 1, callback_note: raw.slice(0, 300) });
+      return { reply: 'Of course — I will get a real person to come back to you, not a newsletter. ' +
+                      'What is the best email for them to use? ' +
+                      'Type it here and I will pass it straight on with what you have told me. ' +
+                      'You can also email <strong>' + SUPPORT + '</strong> directly if you would rather not leave it with me.' };
+    }
+
+    /* everything else — newsletter signups included — behaves exactly as before */
+    return _prevLead ? _prevLead.apply(this, arguments) : null;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 19:50 UTC · Opus · BUG No. 8
+   A serious complaint about a missing paid order gets a "how to buy" tutorial.
+
+   MEASURED BEFORE THE FIX:
+     "where is my order, I paid yesterday but got nothing"
+       -> "To buy: open the order you want → pick Personal or Commercial →
+           checkout → instant download, saved to your account."
+     Someone whose money has gone missing was handed a shopping tutorial. The
+     word "order" matched the 'order' noun and "paid" matched the 'buy' verb,
+     and the answer matrix has no idea the sentence is a complaint.
+     ALSO FOUND: "I paid but received nothing" and "money taken but no
+     download" produced NO local answer at all — straight to the AI, no support
+     email, no order-number request.
+
+   The note is right that a good pattern already exists: "I was charged twice"
+   is answered properly (apologise → My Purchases → support email + payment
+   reference). This block gives "paid / nothing received" the same treatment.
+
+   Additive: wraps window.chatCompose. Runs before everything else so the
+   complaint can never be read as a shopping question again.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 19:50 UTC · bug 8';
+  var SUPPORT = 'support@lazydogtemplates.com';
+
+  /* Evidence that money has changed hands. */
+  var PAID_RX = /\b(paid|i pay|payment|charged|charge went|debited|money (?:was )?(?:taken|gone|deducted)|bought|purchased|checked out|order(?:ed)?|invoice paid|card was)\b/i;
+
+  /* Evidence that nothing arrived. */
+  var NOTHING_RX = new RegExp(
+    '\\b(' +
+      'got nothing|received nothing|nothing (?:came|arrived|received|yet)' +
+      '|(?:did ?n[o\'’]?t|didnt|have ?n[o\'’]?t|havent|has ?n[o\'’]?t|hasnt|never)\\s+(?:got|get|receive[d]?|arrive[d]?|come|show(?:n|ed)? up)' +
+      '|no (?:download|file|files|email|link|deck|order|confirmation|receipt)' +
+      '|not (?:received|arrived|delivered|come through|showing|there)' +
+      '|missing|still waiting|nothing in my (?:account|purchases|email|inbox)' +
+      '|where(?:\'|’)?s? is my order|wheres my order|where is my (?:file|download|deck|purchase)' +
+    ')\\b', 'i');
+
+  /* A how-to question is not a complaint: "how do I buy", "can I pay by card". */
+  var HOWTO_RX = /^(how (do|can|would) i|what happens (when|after)|can i pay|do you accept|which payment)/i;
+
+  window.hexaPaidNotReceivedIntent = function (text) {
+    var raw = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return false;
+    if (HOWTO_RX.test(raw)) return false;
+    /* "where is my order" is a complaint on its own — money has been spent. */
+    if (/\bwhere(?:'|’)?s?\s+is\s+my\s+order\b|\bwheres my order\b|\bwhere(?:'|’)?s my order\b/i.test(raw)) return true;
+    return PAID_RX.test(raw) && NOTHING_RX.test(raw);
+  };
+
+  var _prevCompose = window.chatCompose;
+
+  window.chatCompose = function (text) {
+    try {
+      if (window.hexaPaidNotReceivedIntent(text)) {
+        return {
+          reply: 'I am sorry — that should never happen, and I am treating this as a payment problem, not a question about how to buy. ' +
+                 'Two quick things while we sort it: ' +
+                 '<strong>1.</strong> Sign in and open <strong>My Purchases</strong> — every paid order lands there and can be re-downloaded any time. ' +
+                 '<strong>2.</strong> Check your spam folder for the receipt, as the download link is emailed too. ' +
+                 'If it is not in either place, email <strong>' + SUPPORT + '</strong> with your <strong>order number or payment reference</strong> ' +
+                 '(and the email you paid with) and we will find the payment and get your files to you — same day where we can. ' +
+                 'You have paid, so you will get the files or your money back.',
+          target: null,
+          label: null,
+          execute: false
+        };
+      }
+    } catch (e) {}
+    return _prevCompose ? _prevCompose.apply(this, arguments) : null;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 20:10 UTC · Opus · BUG No. 9
+   Hexa falsely claims it is "opening" something it doesn't actually have.
+
+   MEASURED BEFORE THE FIX:
+     "I am looking for wedding invitation templates"
+       -> "Let me check what we have for wedding — opening the templates now.
+           If nothing fits, tell me and I will note it for you."
+       …and target was null, so nothing ever opened. A promise with no action
+       behind it.
+     "do you have wedding invitations"
+       -> "We may well have something for wedding — tell me what you need it
+           for…"   (we do not, and never did)
+     ALSO FOUND, same root cause: the 'browse' branch has the identical hole —
+     any noun whose page is null ('template', 'order', 'account') produces
+     "Opening templates for you." with nowhere to go.
+
+   TWO FIXES, both additive (wraps window.chatCompose):
+     1. A real catalogue check. Product categories LazyDog does not sell are
+        answered honestly, straight away, with what we DO have and the closest
+        real alternative — instead of a vague maybe.
+     2. A general SAFETY NET for everything else: if an answer promises to
+        open / go and look, but carries no destination, the promise is rewritten
+        into an honest one. This also covers cases nobody has hit yet.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 20:10 UTC · bug 9';
+
+  /* What LazyDog actually sells, in the visitor's words. */
+  var CATALOGUE =
+    '<strong>pitch decks</strong>, <strong>media kits</strong>, ' +
+    '<strong>website UI kits</strong>, <strong>career docs</strong> (CVs, resumes, cover letters), ' +
+    '<strong>digital keynotes</strong>, and a free <strong>invoice generator</strong>';
+
+  /* Categories we do NOT stock, and the nearest real thing for each.
+     Deliberately does NOT include resume / cv / cover letter (career docs),
+     landing page / website (web kits), keynote, invoice, pitch deck,
+     media kit / press kit / rate card — those are all real categories. */
+  var NOT_STOCKED = [
+    [/\b(wedding (?:invitation|invitations|invite|invites|card|cards|stationery)|save the date|rsvp card)\b/i,
+      'wedding invitations', null],
+    [/\b(greeting card|birthday card|thank you card|christmas card|greeting cards)\b/i,
+      'greeting cards', null],
+    [/\b(business card|business cards|visiting card|name card)\b/i,
+      'business cards', null],
+    [/\b(flyer|flyers|poster|posters|brochure|brochures|leaflet|leaflets|pamphlet)\b/i,
+      'flyers and print brochures',
+      'a <strong>media kit</strong> or a <strong>pitch deck</strong> — both are fully editable .pptx files, so they print perfectly well'],
+    /* 'logo' is the dangerous one — see the note under NOT_STOCKED_EXCLUDE.
+       "how do i add my logo" is an editing question with a good existing
+       answer and must never land here. */
+    [/\b(logo|logos|logo design|brand ?mark|brand identity)\b/i,
+      'logo design as a template',
+      'a bespoke one through <strong>LazyDog Studios</strong>, which does brand identities from scratch'],
+    [/\b(food menu|drinks menu|restaurant menu|cafe menu|bar menu|menu template|menu templates|menu design)\b/i,
+      'restaurant menus', null],
+    [/\b(t ?-? ?shirt|tshirt|mug|merch|merchandise|hoodie)\b/i, 'merchandise designs', null],
+    [/\b(book cover|ebook cover|magazine|magazine template|newspaper)\b/i, 'book and magazine layouts', null],
+    [/\b(certificate|certificates|diploma|award template)\b/i, 'certificates', null],
+    [/\b(calendar|calendars|planner|planners|diary template)\b/i, 'calendars and planners', null],
+    [/\b(letterhead|letterheads|envelope template|compliment slip)\b/i, 'letterheads and stationery', null],
+    [/\b(instagram post|instagram story|social media post|social media pack|social kit|facebook post|tiktok template)\b/i,
+      'social media post packs',
+      'a <strong>media kit</strong>, which covers the same brand-presentation ground'],
+    [/\b(email template|newsletter template|mailchimp template)\b/i, 'email newsletter templates', null],
+    [/\b(infographic|infographics)\b/i, 'standalone infographics',
+      'a <strong>pitch deck</strong> — the charts and infographic shapes inside are editable and can be lifted out']
+  ];
+
+  /* The sentence must actually be a PRODUCT ENQUIRY before we tell someone we
+     do not stock something. Caught by the regression suite: without this gate
+     the logo rule hijacked "add my logo" and "how do i add my logo to the
+     invoice" — two questions that already had good answers. Owning your own
+     logo and shopping for a logo template are different conversations. */
+  var PRODUCT_CTX_RX = /\b(do you (?:have|sell|do|offer|stock|make)|have you got|got any|any\b|sell|selling|stock|offer|looking for|look for|searching for|search for|need|want|buy|buying|purchase|price|pricing|cost|template|templates|design|designs|make me|create me|build me|show me|find me|where can i|is there|are there)\b/i;
+
+  /* Never a "we don't stock that" answer — these are about a logo the visitor
+     already owns and wants to put INTO a design. */
+  var NOT_STOCKED_EXCLUDE = /\b(add|adding|insert|inserting|place|placing|put|putting|upload|uploading|change|changing|replace|replacing|remove|removing|swap|resize|position)\b[^.?!]{0,24}\blogos?\b|\b(my|our|your|their|its|the client'?s|company) logos?\b|\blogos? (?:to|on|in|onto|into) (?:the|my|a|an|each|every|any)\b/i;
+
+  window.hexaUnknownCategoryIntent = function (text) {
+    var raw = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return null;
+    if (!PRODUCT_CTX_RX.test(raw)) return null;
+    if (NOT_STOCKED_EXCLUDE.test(raw)) return null;
+    for (var i = 0; i < NOT_STOCKED.length; i++) {
+      if (NOT_STOCKED[i][0].test(raw)) {
+        var name = NOT_STOCKED[i][1], closest = NOT_STOCKED[i][2];
+        return {
+          reply: 'Being straight with you: we do not have ' + name + '. ' +
+                 'What LazyDog does have is ' + CATALOGUE + '. ' +
+                 (closest
+                    ? 'The closest fit would be ' + closest + '. Want me to open those?'
+                    : 'If one of those is close to what you need, tell me which and I will open it. ' +
+                      'If not, say the word and I will note ' + name + ' down as a request — it is how we decide what to build next.'),
+          target: null,
+          label: null,
+          execute: false,
+          notStocked: name
+        };
+      }
+    }
+    return null;
+  };
+
+  /* A reply that PROMISES an action. Note "want me to open them?" is a
+     question, not a promise, so it is deliberately not matched here. */
+  var PROMISE_RX = /\b(opening\b|let me (?:check|look|see|pull)|pulling (?:them|these|those) up|taking you|i(?:'|’)ll open|i will open|here (?:it is|they are))/i;
+
+  var _prevCompose = window.chatCompose;
+
+  window.chatCompose = function (text) {
+    var res = null;
+    try {
+      var unknown = window.hexaUnknownCategoryIntent(text);
+      if (unknown) return unknown;
+    } catch (e) {}
+
+    res = _prevCompose ? _prevCompose.apply(this, arguments) : null;
+
+    /* SAFETY NET — never promise to open something with nowhere to go. */
+    try {
+      if (res && res.reply && !res.target && PROMISE_RX.test(String(res.reply).replace(/<[^>]+>/g, ''))) {
+        res = {
+          reply: 'I do not want to promise something I cannot do — I have nothing to open for that one. ' +
+                 'What LazyDog has is ' + CATALOGUE + '. ' +
+                 'Tell me which of those is closest and I will open it properly, ' +
+                 'or describe what you are after and I will note it down as a request.',
+          target: null,
+          label: null,
+          execute: false,
+          soft: false
+        };
+      }
+    } catch (e) {}
+
+    return res;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 21:05 UTC · Opus · BUG No. 10
+   Hexa gives slide-deck answers on the Invoice Generator page.
+
+   MEASURED BEFORE THE FIX (on invoice.html):
+     "how do i add my logo to the invoice?"
+       -> "Yes — drop your logo onto any slide, or place it on the slide master
+           to have it repeat across the deck."
+     Two CHAT_FAQ entries above (~line 117 and ~line 214, both LEFT INTACT)
+     answer "add my logo" with slide-master instructions, and Hexa had no idea
+     which page she was standing on.
+
+   WORSE THAN THE NOTE SAYS — I checked invoice.html itself:
+       type="file" count = 0 · no <img> · no upload control anywhere.
+     The Invoice Generator has NO logo feature at all. So the old answer was not
+     merely "deck words on the wrong page" — it was instructions for something
+     that does not exist on that page in any form. A visitor would hunt for a
+     slide master on an invoice form and conclude the tool is broken.
+     What the generator DOES have: industry presets, design-style presets,
+     client details, invoice number and dates, currency, tax, and Download.
+
+   THIS BLOCK adds page awareness (window.hexaPageContext) and, on top of it:
+     1. A small table of page-specific answers, starting with the reported one.
+     2. A general SAFETY NET, same philosophy as the Bug 9 patch: when Hexa is
+        on the invoice page and the answer she is about to give talks about
+        slides / decks / PowerPoint / .pptx, it is replaced with an honest
+        invoice answer instead of confidently naming the wrong product.
+   Additive: wraps window.chatCompose. On every other page nothing changes.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 21:05 UTC · bug 10';
+
+  window.hexaPageContext = function () {
+    var f = '';
+    try { f = (location.pathname || '').split('/').pop().toLowerCase(); } catch (e) {}
+    if (/^invoice/.test(f))            return 'invoice';
+    if (/^editor/.test(f))             return 'editor';
+    if (/^pitch_deck/.test(f))         return 'pitch_deck';
+    if (/^media_kits?/.test(f))        return 'media_kit';
+    if (/^web_kit/.test(f))            return 'web_kit';
+    if (/^career_docs/.test(f))        return 'career_docs';
+    if (/^digital_keynote/.test(f))    return 'digital_keynote';
+    if (/^lazydog_studio/.test(f))     return 'studio';
+    if (/^hexa_promptbox/.test(f))     return 'hexa_world';
+    return 'store';
+  };
+
+  var INVOICE_TOOLS = 'industry presets, a set of design styles, your client and ' +
+    'invoice details, invoice number and dates, currency, tax, and a Download button';
+
+  /* Page-specific answers. Checked BEFORE the shared FAQ, so the right page
+     wins over the generic one. Add rows here as more pages need their own. */
+  var PAGE_ANSWERS = {
+    invoice: [
+      [/\b(add|insert|put|place|upload|include)\b[^.?!]{0,24}\blogos?\b|\blogos?\b[^.?!]{0,20}\b(on|to|in|onto|into)\b[^.?!]{0,16}\binvoice\b/i,
+        'Being straight with you: the Invoice Generator does not have a logo upload — I checked, there is no image field on it at all, ' +
+        'so anything I told you about slide masters would be nonsense here. ' +
+        'What it does give you is ' + INVOICE_TOOLS + '. ' +
+        'If a branded invoice with your logo matters to you, say so and I will note it down as a request — ' +
+        'and in the meantime you can add the logo after downloading, in Word or any PDF editor.'],
+      [/\b(how (do|can) i (use|make|create|generate)|how does (it|this) work|get started)\b/i,
+        'On this page: pick your industry and a design style, fill in your details and your client\'s, ' +
+        'set the invoice number, dates, currency and tax, then hit Download. ' +
+        'It is completely free, with no limits and no account needed.'],
+      [/\b(price|pricing|cost|how much|free|pay|subscription)\b/i,
+        'The Invoice Generator is <strong>free</strong> — no limits, no account needed, nothing to buy on this page.'],
+      [/\b(save|download|export|pdf|print)\b/i,
+        'Use the <strong>Download</strong> button on this page to save your invoice. ' +
+        'It is free and there is no limit on how many you make.']
+    ]
+  };
+
+  /* Vocabulary that only makes sense for a slide product. */
+  var DECK_WORDS_RX = /\b(slide|slides|slide master|deck|decks|powerpoint|\.pptx|pptx|google slides|keynote|presentation)\b/i;
+
+  var _prevCompose = window.chatCompose;
+
+  window.chatCompose = function (text) {
+    var page = 'store';
+    try { page = window.hexaPageContext(); } catch (e) {}
+
+    /* 1. page-specific answer wins — but only for questions that are really
+       about THIS page. Regression-driven: an ungated version answered
+       "can i pay by card" and, far worse, swallowed the Bug 8 payment
+       complaint "money taken but no download" with "use the Download button".
+       Row 0 (the logo row) needs no gate: it names the thing explicitly.
+       A payment complaint always outranks a page answer. */
+    try {
+      if (!(window.hexaPaidNotReceivedIntent && window.hexaPaidNotReceivedIntent(text))) {
+        var rows = PAGE_ANSWERS[page];
+        if (rows) {
+          var raw = String(text || '').replace(/\s+/g, ' ').trim();
+          var refersToThisPage = /\binvoice\b|\bthis\b|\bhere\b/i.test(raw);
+          for (var i = 0; i < rows.length; i++) {
+            if (i > 0 && !refersToThisPage) continue;
+            if (rows[i][0].test(raw)) {
+              return { reply: rows[i][1], target: null, label: null, execute: false };
+            }
+          }
+        }
+      }
+    } catch (e) {}
+
+    var res = _prevCompose ? _prevCompose.apply(this, arguments) : null;
+
+    /* 2. safety net — never answer in deck language on the invoice page.
+       DELIBERATELY NARROW, and the regression suite is why. A first attempt
+       fired whenever the ANSWER mentioned slides, and rewrote 358 of 893
+       corpus answers on this page — including "do you have digital keynotes"
+       and "8 slides please", which are deck questions a visitor is perfectly
+       entitled to ask while standing on the invoice page. It now fires only
+       when the QUESTION is clearly about this page ("...on the invoice",
+       "how do I do this here") and carries no deck words of its own, yet the
+       answer came back talking about slides. */
+    try {
+      var qRaw = String(text || '');
+      /* Narrower than the page-answer gate above, on purpose: this branch
+         REWRITES an answer, so a bare "here" or "this" is not enough. Caught in
+         testing — "what can i find here" had a perfectly good site overview and
+         was being replaced with a correction nobody needed. */
+      var asksAboutThisPage = /\binvoice\b|\bthis (page|tool|thing|form)\b/i.test(qRaw);
+      var questionMentionsDecks = DECK_WORDS_RX.test(qRaw) || /\b(media kit|web kit|pitch|template|templates)\b/i.test(qRaw);
+      if (page === 'invoice' && asksAboutThisPage && !questionMentionsDecks &&
+          res && res.reply &&
+          DECK_WORDS_RX.test(String(res.reply).replace(/<[^>]+>/g, ''))) {
+        res = {
+          reply: 'That answer of mine was about our slide templates, which is not what you are looking at — ' +
+                 'you are on the free <strong>Invoice Generator</strong>. ' +
+                 'Here it is ' + INVOICE_TOOLS + '. ' +
+                 'Tell me what you are trying to do on the invoice and I will answer for this page, ' +
+                 'or ask me about pitch decks and media kits and I will happily talk about those instead.',
+          target: null, label: null, execute: false
+        };
+      }
+    } catch (e) {}
+
+    return res;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed · page = ' + window.hexaPageContext()); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 21:35 UTC · Opus · BUG No. 12
+   Hexa cannot quote the exact price of a specific real product.
+
+   MEASURED BEFORE THE FIX: asking for one named design by its exact title got
+   the generic "each design shows its Personal and Commercial price on its own
+   page" answer. Hexa had no route to the real catalogue at all — only pricing
+   RULES ("one-time purchase", "no subscription"), never a number.
+
+   WHERE THE REAL PRICES LIVE (read out of pitch_deck_folder_section.html,
+   which is the page that actually renders them):
+       Firestore collection 'templates'
+         · status === 'approved'
+         · doc.template.name   -> the title shown on the card
+         · doc.template.price  -> the number printed as "USD 00.00"
+         · doc.template.slides -> slide array (a doc with none is not shown)
+         · doc.designCode      -> the PD-044 style code on every card
+         · product page        -> <category>_slides.html?firebase=<docId>
+   So Hexa now reads the SAME source the shop does. If the shop shows a price,
+   Hexa quotes that price; if the catalogue has nothing, she says so plainly
+   rather than inventing one.
+
+   HOW IT LOADS, and why it is done this way:
+     · If the page already fetched its products, window._ldtAllDecks is reused
+       instantly — zero extra reads on category pages.
+     · Otherwise the catalogue is fetched ONCE, lazily, the first time a visitor
+       actually talks to Hexa. A browser that never opens the chat costs nothing.
+     · chatCompose is synchronous, so if the very first message is a price
+       question the cache may still be in flight. That case answers honestly
+       ("fetching it now, ask me once more") instead of guessing.
+   Additive: wraps window.chatCompose.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 21:35 UTC · bug 12';
+
+  var FB_CFG = {
+    apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+    authDomain: "templatehub-16cd7.firebaseapp.com",
+    projectId: "templatehub-16cd7",
+    storageBucket: "templatehub-16cd7.firebasestorage.app",
+    messagingSenderId: "143000893683",
+    appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+  };
+
+  var PAGE_FOR_CAT = {
+    pitch_deck: 'pitch_deck_slides.html',
+    pitch_decks: 'pitch_deck_slides.html',
+    media_kit: 'media_kits_slides.html',
+    media_kits: 'media_kits_slides.html',
+    web_kit: 'web_kit_slides.html',
+    web_kits: 'web_kit_slides.html',
+    career_docs: 'career_docs_slides.html',
+    career_doc: 'career_docs_slides.html',
+    digital_keynote: 'digital_keynote_slides.html',
+    digital_keynotes: 'digital_keynote_slides.html'
+  };
+
+  var catalogue = null;      /* array once loaded */
+  var loading = false;
+  var loadFailed = false;
+
+  function norm(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /* Reuse whatever this page already fetched, if anything. */
+  function fromPage() {
+    try {
+      var d = window._ldtAllDecks;
+      if (!d || !d.length) return null;
+      return d.map(function (x) {
+        return {
+          name: x.title || x.name || '',
+          price: x.price,
+          slides: (x.slides && x.slides.length) || x.slideCount || null,
+          code: x.code || '',
+          url: x.href || x.url || null
+        };
+      }).filter(function (x) { return x.name; });
+    } catch (e) { return null; }
+  }
+
+  function loadCatalogue() {
+    if (catalogue || loading) return;
+    var page = fromPage();
+    if (page && page.length) { catalogue = page; return; }
+    loading = true;
+    (async function () {
+      try {
+        var A = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+        var F = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+        var app = A.getApps().length ? A.getApp() : A.initializeApp(FB_CFG);
+        var db = F.getFirestore(app);
+        var snap = await F.getDocs(F.query(
+          F.collection(db, 'templates'),
+          F.where('status', '==', 'approved'),
+          F.limit(300)
+        ));
+        var out = [];
+        snap.forEach(function (d) {
+          var v = d.data() || {}, t = v.template || {};
+          if (!t.name) return;
+          var cat = String(t.category || v.category || '').toLowerCase();
+          if (cat === 'blog') return;
+          var pageFile = PAGE_FOR_CAT[cat] || null;
+          out.push({
+            name: t.name,
+            price: t.price,
+            slides: (t.slides && t.slides.length) || null,
+            code: v.designCode || '',
+            cat: cat,
+            url: pageFile ? (pageFile + '?firebase=' + d.id) : null
+          });
+        });
+        catalogue = out;
+        try { console.log('[hexa] catalogue loaded: ' + out.length + ' approved designs'); } catch (e) {}
+      } catch (err) {
+        loadFailed = true;
+        console.error('[hexa] catalogue load FAILED — price answers fall back to the generic reply:', err && err.message);
+      } finally { loading = false; }
+    })();
+  }
+  window.hexaLoadCatalogue = loadCatalogue;
+  window.hexaCatalogue = function () { return catalogue; };
+
+  /* Words that appear in almost every title and so identify nothing. */
+  var GENERIC_TITLE_WORD = {};
+  ('deck decks kit kits template templates design designs slide slides presentation ' +
+   'pitch media web website career keynote keynotes invoice brand press pack bundle ' +
+   'the and for pro modern clean minimal').split(' ').forEach(function (w) { GENERIC_TITLE_WORD[w] = 1; });
+
+  /* how many designs each distinctive word belongs to (built once per load) */
+  var _rare = null;
+  function rareWords() {
+    if (_rare) return _rare;
+    _rare = {};
+    (catalogue || []).forEach(function (p) {
+      var seen = {};
+      norm(p.name).split(' ').forEach(function (w) {
+        if (w.length <= 2 || GENERIC_TITLE_WORD[w] || seen[w]) return;
+        seen[w] = 1;
+        _rare[w] = (_rare[w] || 0) + 1;
+      });
+    });
+    return _rare;
+  }
+
+  /* Scoring: exact title, then all-words, then design code. */
+  function findProduct(text) {
+    if (!catalogue || !catalogue.length) return [];
+    var q = norm(text);
+    var codeM = q.match(/\b(pd|mk|wk|cv|kn)\s?(\d{1,3})\b/);
+    var scored = [];
+    for (var i = 0; i < catalogue.length; i++) {
+      var p = catalogue[i], n = norm(p.name), s = 0;
+      if (!n) continue;
+      if (codeM && p.code && norm(p.code).replace(/\s/g, '') === (codeM[1] + codeM[2].padStart(3, '0'))) s = 1000;
+      else if (q.indexOf(n) !== -1) s = 500 + n.length;
+      else {
+        /* Match on the DISTINCTIVE words of the title only. Caught in testing:
+           a loose "any 2 words match" rule made "how much do Media Kits cost"
+           quote one specific product called "Midnight Media Kit" — a category
+           question answered with one arbitrary item's price. The distinctive
+           word ("midnight") has to be there before we name a product. */
+        var words = n.split(' ').filter(function (w) { return w.length > 2; });
+        var distinct = words.filter(function (w) { return !GENERIC_TITLE_WORD[w]; });
+        var allPresent = function (list) {
+          for (var k = 0; k < list.length; k++) if (q.indexOf(list[k]) === -1) return false;
+          return list.length > 0;
+        };
+        if (allPresent(distinct)) s = 300 + n.length;
+        else if (!distinct.length && allPresent(words)) s = 200 + n.length;
+        else {
+          /* A distinctive word that belongs to exactly ONE design in the whole
+             catalogue is enough on its own — "price of Aurora deck" should find
+             "Aurora Investor Deck". A word shared by several never is. */
+          var uniq = distinct.filter(function (w) { return rareWords()[w] === 1 && q.indexOf(w) !== -1; });
+          if (uniq.length) s = 250 + uniq.join('').length;
+        }
+      }
+      if (s) scored.push({ p: p, s: s });
+    }
+    scored.sort(function (a, b) { return b.s - a.s; });
+    return scored.slice(0, 3).map(function (x) { return x.p; });
+  }
+
+  var PRICE_Q_RX = /\b(price|prices|pricing|cost|costs|how much|what do you charge|charge for|fee)\b/i;
+
+  /* Only take over when the visitor has named something specific — a title of
+     two words or more, or a design code. A bare "how much is a pitch deck" is
+     a category question and keeps its existing, correct answer. */
+  /* Category names are NOT a specific product — "how much do Media Kits cost"
+     must keep its existing, correct category answer. */
+  var CATEGORY_TITLE_RX = /^(pitch deck|pitch decks|media kit|media kits|press kit|web kit|web kits|website kit|career doc|career docs|digital keynote|digital keynotes|invoice generator|template|templates|design|designs)$/i;
+
+  function namesSomethingSpecific(text) {
+    var raw = String(text || '');
+    if (/\b(pd|mk|wk|cv|kn)[\s\-_]?\d{1,3}\b/i.test(raw)) return true;
+    if (/["“”'']([^"“”'']{3,})["“”'']/.test(raw)) return true;
+    if (catalogue && findProduct(raw).length) return true;
+    /* A Title Cased phrase reads like a product name someone copied off a card.
+       Ignore the first word — every sentence starts with a capital. */
+    var rest = raw.replace(/\s+/g, ' ').trim().split(' ').slice(1).join(' ');
+    var m = rest.match(/\b[A-Z][A-Za-z0-9]+(?:\s+[A-Z][A-Za-z0-9]+)+/);
+    if (m && !CATEGORY_TITLE_RX.test(m[0].trim())) return true;
+    return false;
+  }
+
+  function money(v) {
+    var n = parseFloat(v);
+    if (!isFinite(n) || n <= 0) return null;
+    return 'USD ' + n.toFixed(2);
+  }
+
+  var _prevCompose = window.chatCompose;
+
+  window.chatCompose = function (text) {
+    try {
+      loadCatalogue();                       /* lazy warm-up on first message */
+      var raw = String(text || '').replace(/\s+/g, ' ').trim();
+      if (PRICE_Q_RX.test(raw) && namesSomethingSpecific(raw)) {
+        if (!catalogue && !loadFailed) {
+          return { reply: 'Let me pull the live price for that — I am fetching the catalogue now. ' +
+                          'Ask me once more in a second and I will give you the exact figure.',
+                   target: null, label: null, execute: false };
+        }
+        var hits = findProduct(raw);
+        if (hits.length) {
+          var top = hits[0], m = money(top.price);
+          if (m) {
+            return {
+              reply: '<strong>' + top.name + '</strong>' + (top.code ? ' (' + top.code + ')' : '') +
+                     ' is <strong>' + m + '</strong>' +
+                     (top.slides ? ', ' + top.slides + ' slides' : '') +
+                     '. That is a one-time purchase — no subscription — and the page shows both the ' +
+                     'Personal and Commercial options.' +
+                     (hits.length > 1 ? ' I also found "' + hits[1].name + '" if that is the one you meant.' : ''),
+              target: top.url || null,
+              label: top.url ? 'Open ' + top.name : null,
+              execute: false
+            };
+          }
+          return {
+            reply: '<strong>' + top.name + '</strong> is listed in the catalogue, but it has no price set on it yet, ' +
+                   'so I am not going to guess one. Open its page and it will show the current figure — ' +
+                   'or ask me and I will flag it.',
+            target: top.url || null,
+            label: top.url ? 'Open ' + top.name : null,
+            execute: false
+          };
+        }
+        return {
+          reply: 'I could not find a design by that exact name in the catalogue, so I will not invent a price. ' +
+                 'Tell me the title as it appears on the card (or its code, like PD-044) and I will look up the ' +
+                 'real figure. Every design is a one-time purchase with Personal and Commercial pricing on its page.',
+          target: null, label: null, execute: false
+        };
+      }
+    } catch (e) {}
+    return _prevCompose ? _prevCompose.apply(this, arguments) : null;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 23:30 UTC · Opus · BUG No. 15
+   One exact sentence about feeling sad/stressed always gets a terms/policy reply.
+
+   THE BAD RULE, found by bisecting the sentence word by word:
+     It is not "these days". It is the single word "really".
+       "I"                                 -> (no local answer, goes to AI) ✔
+       "I am feeling"                      -> (no local answer) ✔
+       "I am feeling really"               -> "That's what our current terms say…" ✘
+       "really"                            -> "That's what our current terms say…" ✘
+       "stressed" / "sad" / "these days"   -> (no local answer) ✔
+     Source: CHAT_FAQ line ~158 above (LEFT INTACT):
+       { match: ["are you sure","really","is that correct","you sure"],
+         reply: "That's what our current terms say. …" }
+     The bare word "really" is in that match list. It was written for a
+     follow-up doubt-check ("really?") after Hexa states a fact, but it fires on
+     ANY sentence containing the word. Hence the word-for-word identical reply
+     every time, on every page — it is a script, not a model.
+
+   AND THE AI WAS FINE ALL ALONG. I called chat_http directly with this exact
+   sentence today; it answered:
+       "Sorry to hear that, hope things get better for you soon…"
+   So the only thing standing between a person saying they feel low and a decent
+   answer was this one keyword short-circuiting the AI. That is why the very
+   similar "I feel very lonely and down lately" — no "really" in it — worked.
+
+   THIS BLOCK (wraps window.chatCompose; the FAQ entry is untouched):
+     1. The terms/policy reply is only allowed to stand when the message really
+        IS a short doubt-check ("really?", "are you sure?"). In any longer
+        sentence it is dropped and the message goes to the live AI.
+     2. Clear emotional-distress wording gets a warm reply marked soft:true —
+        the widgets' existing convention meaning "hand this to the live AI so it
+        is warm and context-aware, and use my line only if the AI is offline".
+        So nobody expressing distress can ever land on a terms-and-conditions
+        script, even with the network down.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 23:30 UTC · bug 15';
+
+  var TERMS_REPLY_RX  = /what'?s? our current terms say/i;
+  var DOUBT_ONLY_RX   = /^(oh[ ,]+)?(really|are you sure|you sure|is that correct|is that right|seriously|for real)\s*[?!.]*$/i;
+
+  /* Clear, first-person distress. Deliberately narrow — it must not catch
+     "this deck is depressing" or "sad colours". */
+  var DISTRESS_RX = new RegExp(
+    '\\bi(?:\'|’)?\\s?(?:a?m|feel|am feeling|\'m feeling|ve been|have been)\\b[^.?!]{0,40}' +
+    '\\b(sad|down|low|depressed|depressing|stressed|stress|anxious|anxiety|lonely|alone|' +
+    'burnt out|burned out|overwhelmed|exhausted|hopeless|miserable|struggling|unhappy|awful|terrible)\\b',
+    'i');
+
+  var _prevCompose = window.chatCompose;
+
+  window.chatCompose = function (text) {
+    var raw = String(text || '').replace(/\s+/g, ' ').trim();
+
+    /* 2. distress first — a warm line that defers to the live AI */
+    try {
+      if (DISTRESS_RX.test(raw)) {
+        return {
+          reply: 'I am sorry you are feeling like that — thank you for saying it. ' +
+                 'I am only a shop assistant, so I cannot do much, but I am happy to just chat, ' +
+                 'or to leave you be and be here when you want something. ' +
+                 'And if things feel heavy, talking to someone you trust really does help.',
+          target: null, label: null, execute: false,
+          soft: true          /* -> the widgets hand this to the live AI */
+        };
+      }
+    } catch (e) {}
+
+    var res = _prevCompose ? _prevCompose.apply(this, arguments) : null;
+
+    /* 1. the terms reply only survives a genuine short doubt-check */
+    try {
+      if (res && res.reply && TERMS_REPLY_RX.test(String(res.reply).replace(/<[^>]+>/g, '')) &&
+          !DOUBT_ONLY_RX.test(raw)) {
+        try {
+          console.warn('[chat_brain ' + PATCH + '] dropped the terms/policy script on "' +
+                       raw.slice(0, 60) + '" — passing to the AI instead');
+        } catch (e) {}
+        return null;                       /* -> caller asks the live AI */
+      }
+    } catch (e) {}
+
+    return res;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-08 02:10 UTC · Opus · HEXA REMEMBERS  (improvement, not a bug)
+
+   THE OBSERVATION, after fixing all fifteen: the single thing that makes Hexa
+   feel dim is not any one wrong answer. It is that HER MAIN ACTION DESTROYS
+   HER OWN MEMORY.
+
+   Look at what she does when she succeeds:
+       "Opening Media Kits for you."   -> window.location.href = …
+   Every successful answer navigates. hbHistory in navbar.js is a plain
+   in-memory array (line 894), so the page unload wipes it. The visitor lands
+   on the new page and is met with "Hi 👋 I'm Hexa" — the same first-time
+   greeting a stranger gets. Everything they just said is gone.
+   So the better Hexa is at her job, the faster she forgets you. Three turns
+   in, a visitor has explained themselves three times.
+
+   Worse, the live AI is handed history: hbHistory.slice(0,-1) — which after a
+   navigation is EMPTY. The backend happily accepts six turns of context
+   (_clean_history in main.py, line 946) and was being sent none.
+
+   WHAT THIS BLOCK DOES — three parts, all additive:
+     1. A conversation that survives navigation. Every turn is kept in
+        sessionStorage (per tab, cleared when the tab closes, never sent
+        anywhere on its own).
+     2. The thread is restored on the next page, under a quiet "earlier in this
+        chat" divider, and the first-time greeting is replaced with a welcome
+        back — so it reads as ONE conversation across the whole site.
+     3. That history is merged into the chat_http call, so the AI finally gets
+        the context it always had room for. Done by intercepting only that one
+        URL in fetch; every other request passes through untouched.
+   navbar.js is not edited: window.helpbotSend is wrapped, and chat_brain.js is
+   injected by navbar.js afterwards, so the wrapper wins.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-08 02:10 UTC · hexa remembers';
+  var KEY = 'hexa_thread';
+  var MAX = 24;
+
+  function pageName() {
+    try { return (location.pathname || '').split('/').pop() || 'home'; } catch (e) { return 'home'; }
+  }
+  function load() {
+    try { return JSON.parse(sessionStorage.getItem(KEY)) || []; } catch (e) { return []; }
+  }
+  function save(a) {
+    try { sessionStorage.setItem(KEY, JSON.stringify(a.slice(-MAX))); } catch (e) {}
+  }
+  function push(role, text) {
+    var t = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+    if (!t) return;
+    var a = load();
+    var last = a[a.length - 1];
+    if (last && last.role === role && last.text === t) return;      /* no echoes */
+    a.push({ role: role, text: t.slice(0, 700), page: pageName() });
+    save(a);
+  }
+  window.hexaConvo = {
+    get: load,
+    push: push,
+    clear: function () { try { sessionStorage.removeItem(KEY); } catch (e) {} },
+    /* the shape chat_http already expects */
+    asHistory: function () {
+      return load().map(function (m) {
+        return { role: m.role === 'assistant' ? 'assistant' : 'user', content: m.text };
+      });
+    }
+  };
+
+  /* ── 1 + 2. record every turn, and put the thread back on the next page ── */
+
+  function readBubble(el) {
+    if (!el) return '';
+    var copy = el.cloneNode(true);
+    try {
+      Array.prototype.forEach.call(copy.querySelectorAll('a,button'), function (n) {
+        if (n.parentNode) n.parentNode.removeChild(n);
+      });
+    } catch (e) {}
+    return (copy.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  /* Hexa's reply is written into the bubble asynchronously (typing dots first,
+     then the text, sometimes then a button) — so record it once it settles. */
+  function recordNextReply() {
+    var thread = document.getElementById('lbThread');
+    if (!thread) return;
+    var before = thread.querySelectorAll('.lb-msg.bot').length;
+    var timer = null, done = false, obs = null;
+    function finish() {
+      if (done) return;
+      done = true;
+      try { obs && obs.disconnect(); } catch (e) {}
+      clearTimeout(timer);
+      var bots = thread.querySelectorAll('.lb-msg.bot');
+      var txt = readBubble(bots[bots.length - 1]);
+      if (txt && !/^[.·…\s]*$/.test(txt)) push('assistant', txt);
+    }
+    obs = new MutationObserver(function () {
+      if (thread.querySelectorAll('.lb-msg.bot').length <= before) return;
+      clearTimeout(timer);
+      timer = setTimeout(finish, 800);
+    });
+    obs.observe(thread, { childList: true, subtree: true, characterData: true });
+    setTimeout(finish, 30000);
+  }
+
+  var _prevSend = window.helpbotSend;
+  if (typeof _prevSend === 'function') {
+    window.helpbotSend = function (text) {
+      try { push('user', text); recordNextReply(); } catch (e) {}
+      return _prevSend.apply(this, arguments);
+    };
+  }
+
+  function restoreThread() {
+    var thread = document.getElementById('lbThread');
+    if (!thread || thread.dataset.ldRestored) return;
+    var past = load();
+    if (!past.length) return;
+    thread.dataset.ldRestored = '1';
+
+    var greet = document.getElementById('lbGreet');
+    var name = '';
+    try { name = (window.hexaMemory && window.hexaMemory.get().name) || ''; } catch (e) {}
+    if (greet) {
+      greet.innerHTML = name
+        ? 'Welcome back, <strong>' + name + '</strong> 👋 — carrying on from where we were.'
+        : "We were mid-conversation 👋 — I've kept it, carry on where you left off.";
+    }
+
+    var frag = document.createDocumentFragment();
+    var div = document.createElement('div');
+    div.className = 'lb-row bot';
+    div.style.cssText = 'justify-content:center;opacity:.55;';
+    div.innerHTML = '<div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;' +
+                    'padding:6px 0;font-family:Inter,sans-serif;">earlier in this chat</div>';
+    frag.appendChild(div);
+
+    past.slice(-8).forEach(function (m) {
+      var who = m.role === 'assistant' ? 'bot' : 'user';
+      var row = document.createElement('div');
+      row.className = 'lb-row ' + who;
+      var msg = document.createElement('div');
+      msg.className = 'lb-msg ' + who;
+      msg.style.opacity = '.72';
+      msg.textContent = m.text;                    /* text only — never re-inject HTML */
+      row.appendChild(msg);
+      frag.appendChild(row);
+    });
+
+    var anchor = greet ? greet.parentNode : thread.firstChild;
+    if (anchor && anchor.nextSibling) thread.insertBefore(frag, anchor.nextSibling);
+    else thread.appendChild(frag);
+  }
+
+  var tries = 0;
+  var t = setInterval(function () {
+    tries++;
+    if (document.getElementById('lbThread')) { restoreThread(); clearInterval(t); }
+    else if (tries > 150) clearInterval(t);
+  }, 100);
+
+  /* ── 3. hand that history to the AI (only the chat endpoint is touched) ── */
+  (function () {
+    if (window.__hexaFetchWrapped) return;
+    window.__hexaFetchWrapped = true;
+    var of_ = window.fetch;
+    if (typeof of_ !== 'function') return;
+    window.fetch = function (input, init) {
+      try {
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (/\/chat_http(\?|$)/.test(url) && init && init.body && typeof init.body === 'string') {
+          var body = JSON.parse(init.body);
+          if (body && typeof body === 'object' && 'message' in body) {
+            var stored = window.hexaConvo.asHistory();
+            var inPage = Array.isArray(body.history) ? body.history : [];
+            /* stored already contains this page's turns; keep whichever set is
+               longer, then drop the message we are about to send */
+            var merged = stored.length >= inPage.length ? stored : inPage;
+            var msg = String(body.message || '').replace(/\s+/g, ' ').trim();
+            merged = merged.filter(function (h) {
+              return !(h.role === 'user' && String(h.content || '').trim() === msg);
+            }).slice(-8);
+            /* optional page/product context, supplied by a later patch */
+            try {
+              if (typeof window.hexaContextTurn === 'function') {
+                var ctx = window.hexaContextTurn();
+                if (ctx) merged = merged.concat([{ role: 'user', content: String(ctx).slice(0, 300) }]);
+              }
+            } catch (e2) {}
+            body.history = merged;
+            init = Object.assign({}, init, { body: JSON.stringify(body) });
+          }
+        }
+      } catch (e) { /* never let this break a request */ }
+      return of_.apply(this, arguments.length > 1 ? [input, init] : [input]);
+    };
+  })();
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-08 03:05 UTC · Opus · SHOP IN THE CHAT (improvement)
+
+   THE PROBLEM WITH WINNING. "show me media kits" was answered:
+       { reply:'Opening Media Kits for you.', target:'media_kits_folder_section.html',
+         execute:true }
+   and navbar.js then does window.location.href after 900ms. Hexa's best answer
+   is a redirect — she ends the conversation to succeed at it, and the previous
+   patch had to work hard just to carry the memory across that jump.
+   It also throws away everything she knows. She HAS the real catalogue now
+   (the Bug 12 patch reads Firestore: names, prices, slide counts, design codes,
+   product URLs) and was still saying "opening the folder" instead of "here are
+   three, five dollars each".
+
+   THIS BLOCK: when Hexa is about to navigate to a CATEGORY FOLDER page, she
+   instead shows the real designs in the chat — name, code, price, slide count,
+   each a link — plus a "browse all N" link for the folder page. She stops
+   navigating away, so the conversation keeps going and the person can ask
+   "which of those is cheapest" without losing their place.
+
+   DELIBERATELY CONSERVATIVE:
+     · Only category BROWSE answers are intercepted. Creation ("make me a
+       deck" -> the Designer), the invoice tool, the studio, FAQ answers and
+       everything else are untouched — they keep their own targets.
+     · If the catalogue has not loaded yet, or has nothing for that category,
+       the ORIGINAL navigate-away answer is returned unchanged. Never a worse
+       experience than before, only a better one.
+     · Prices are only ever printed from the real record. No price on file ->
+       the row just says the slide count.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-08 03:05 UTC · shop in the chat';
+  var SHOW = 3;
+
+  /* folder page -> the category key used on the product records */
+  var FOLDER_CAT = {
+    'pitch_deck_folder_section.html':   'pitchdeck',
+    'media_kits_folder_section.html':   'mediakit',
+    'web_kit_folder_file.html':         'webkit',
+    'career_docs_folder_section.html':  'careerdoc',
+    'digital_keynote-folder.html':      'digitalkeynote'
+  };
+  var FOLDER_LABEL = {
+    'pitch_deck_folder_section.html':   'pitch decks',
+    'media_kits_folder_section.html':   'media kits',
+    'web_kit_folder_file.html':         'website UI kits',
+    'career_docs_folder_section.html':  'career docs',
+    'digital_keynote-folder.html':      'digital keynotes'
+  };
+
+  function key(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z]/g, '').replace(/s$/, '');
+  }
+
+  /* a product belongs to a category if its own category field says so, or —
+     for records that came from the page's own fetch — if its product URL does */
+  function inCategory(p, wanted) {
+    var a = key(p.cat);
+    if (a && (a.indexOf(wanted) === 0 || wanted.indexOf(a) === 0)) return true;
+    var u = key(p.url);
+    return !!(u && u.indexOf(wanted) === 0);
+  }
+
+  function money(v) {
+    var n = parseFloat(v);
+    return (isFinite(n) && n > 0) ? 'USD ' + n.toFixed(2) : null;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function row(p) {
+    var bits = [];
+    var m = money(p.price);
+    if (m) bits.push('<strong>' + esc(m) + '</strong>');
+    if (p.slides) bits.push(esc(p.slides) + ' slides');
+    var meta = bits.length ? ' — ' + bits.join(' · ') : '';
+    var title = esc(p.name) + (p.code ? ' <span style="opacity:.6">(' + esc(p.code) + ')</span>' : '');
+    return p.url
+      ? '<div style="margin:7px 0;"><a href="' + esc(p.url) + '" style="font-weight:700;">' + title + '</a>' + meta + '</div>'
+      : '<div style="margin:7px 0;">' + title + meta + '</div>';
+  }
+
+  window.hexaProductsFor = function (folderPage, limit) {
+    var wanted = FOLDER_CAT[folderPage];
+    if (!wanted) return null;
+    var cat = null;
+    try { cat = window.hexaCatalogue && window.hexaCatalogue(); } catch (e) {}
+    if (!cat || !cat.length) return null;
+    var hits = cat.filter(function (p) { return p && p.name && inCategory(p, wanted); });
+    return hits.length ? hits.slice(0, limit || SHOW) : null;
+  };
+
+  var _prevCompose = window.chatCompose;
+
+  window.chatCompose = function (text) {
+    var res = _prevCompose ? _prevCompose.apply(this, arguments) : null;
+    try {
+      /* warm the catalogue the moment anyone starts browsing */
+      if (window.hexaLoadCatalogue) window.hexaLoadCatalogue();
+
+      if (!res || !res.target) return res;
+      var folder = String(res.target).split('?')[0];
+      if (!FOLDER_CAT[folder]) return res;                      /* not a category page */
+      /* Only take over a pure BROWSE answer: either she was about to navigate,
+         or the whole reply is the "Opening X for you." line. Anything with real
+         content in it — pricing, licensing, editability — keeps its own answer
+         and just carries the category link as before. */
+      var plain = String(res.reply || '').replace(/<[^>]+>/g, '').trim();
+      var pureBrowse = /^opening\b[^.]*\bfor you\.?$/i.test(plain);
+      if (!res.execute && !pureBrowse) return res;
+      /* belt and braces: a CREATION request belongs to the Designer. All three
+         chat surfaces already test design intent before chatCompose, so this
+         should never trigger — it is here so it can never regress. */
+      if (window.hexaDesignIntent && window.hexaDesignIntent(text)) return res;
+
+      var picks = window.hexaProductsFor(folder, SHOW);
+      if (!picks) return res;                                   /* nothing to show — behave as before */
+
+      var all = window.hexaCatalogue().filter(function (p) {
+        return p && p.name && inCategory(p, FOLDER_CAT[folder]);
+      }).length;
+      var label = FOLDER_LABEL[folder] || 'designs';
+
+      var html = 'Here ' + (picks.length === 1 ? 'is one of our ' : 'are ' + picks.length + ' of our ') +
+                 esc(label) + ' — click any of them:' +
+                 picks.map(row).join('') +
+                 (all > picks.length
+                   ? '<div style="margin-top:8px;"><a href="' + esc(res.target) + '">Browse all ' + all + ' ' + esc(label) + ' →</a></div>'
+                   : '') +
+                 '<div style="margin-top:8px;opacity:.75;font-size:12px;">' +
+                 'Tell me an industry, colour or budget and I will narrow it down.</div>';
+
+      return {
+        reply: html,
+        target: res.target,
+        label: 'Browse all ' + label,
+        execute: false,        /* <- the point: stop navigating away mid-conversation */
+        inlineProducts: picks.length
+      };
+    } catch (e) { return res; }
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-08 04:00 UTC · Opus · SHE KNOWS WHAT YOU ARE LOOKING AT
+
+   The gap: standing on a product page, Hexa had no idea which product. Ask
+   "how much is this?" while the price is printed six inches above her head and
+   she answered with the generic "each design shows its price on its own page".
+
+   She does not need a lookup for this — the product page has already fetched
+   the record and left it in a global. Verified on all five:
+       media_kits_slides.html      -> currentKitData      (line 533)
+       web_kit_slides.html         -> currentKitData
+       career_docs_slides.html     -> currentKitData
+       pitch_deck_slides.html      -> currentDeckData     (line 580)
+       digital_keynote_slides.html -> currentKeynoteData  (line 532)
+   Different names, slightly different fields (slideCount vs pageCount), same
+   data. This block reads whichever exists, so it costs nothing: no Firestore
+   call, no network, instant.
+
+   WHAT SHE CAN NOW DO ON A PRODUCT PAGE:
+     · open with the actual product — "That's the GlowUp Serum kit, USD 5.00,
+       12 slides. Ask me anything about it."
+     · resolve "this" and "it" — how much is this / how many slides / what
+       formats / is this editable / what is this
+     · show similar designs from the same category, in the chat
+     · and tell the live AI what the visitor is looking at, through the context
+       hook added to the memory patch above.
+   Everywhere else on the site nothing changes.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-08 04:00 UTC · product awareness';
+
+  var PAGE_CAT = {
+    'pitch_deck_slides.html':      { key: 'pitchdeck',      label: 'pitch deck',      folder: 'pitch_deck_folder_section.html' },
+    'media_kits_slides.html':      { key: 'mediakit',       label: 'media kit',       folder: 'media_kits_folder_section.html' },
+    'web_kit_slides.html':         { key: 'webkit',         label: 'website UI kit',  folder: 'web_kit_folder_file.html' },
+    'career_docs_slides.html':     { key: 'careerdoc',      label: 'career doc',      folder: 'career_docs_folder_section.html' },
+    'digital_keynote_slides.html': { key: 'digitalkeynote', label: 'digital keynote', folder: 'digital_keynote-folder.html' }
+  };
+
+  function file() {
+    try { return (location.pathname || '').split('/').pop().toLowerCase(); } catch (e) { return ''; }
+  }
+  /* HOUSE RULE (Javed, 8 Aug 2026): NOTHING on this site is free except the
+     Invoice Generator. So this never returns the word "free" for a design —
+     a missing, zero or unparseable price means we simply do not know it, and
+     Hexa says so instead of giving a paid product away in conversation. */
+  function money(v) {
+    var n = parseFloat(v);
+    return (isFinite(n) && n > 0) ? 'USD ' + n.toFixed(2) : null;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* the page has already loaded the record — just read it */
+  window.hexaCurrentProduct = function () {
+    var meta = PAGE_CAT[file()];
+    if (!meta) return null;
+    var d = null;
+    try { d = window.currentKitData || window.currentDeckData || window.currentKeynoteData || null; } catch (e) { d = null; }
+    if (!d || !d.name) return null;
+    var slides = d.slideCount || d.pageCount || (d.slides && d.slides.length) || null;
+    var id = '';
+    try { id = window._ldtProductId || new URLSearchParams(location.search).get('firebase') || ''; } catch (e) {}
+    return {
+      name: d.name,
+      price: d.price,
+      priceText: money(d.price),
+      slides: slides,
+      fileTypes: (d.fileTypes || []).slice(0, 6),
+      apps: (d.editableApps || []).slice(0, 6),
+      industry: d.industry || null,
+      desc: d.desc || null,
+      id: id,
+      catKey: meta.key,
+      catLabel: meta.label,
+      folder: meta.folder
+    };
+  };
+
+  /* what the live AI is told — honest, first person, because it is true */
+  window.hexaContextTurn = function () {
+    var p = window.hexaCurrentProduct();
+    if (!p) return null;
+    var bits = ['"' + p.name + '"'];
+    if (p.priceText) bits.push(p.priceText);
+    if (p.slides) bits.push(p.slides + ' slides');
+    return '(For context: I am on the product page for ' + bits.join(', ') + '.)';
+  };
+
+  /* ── the opening line on a product page ── */
+  function greetWithProduct() {
+    var thread = document.getElementById('lbThread');
+    var greet = document.getElementById('lbGreet');
+    if (!thread || !greet || greet.dataset.ldProduct) return false;
+    if (thread.dataset.ldRestored) return true;   /* mid-conversation — leave it alone */
+    var p = window.hexaCurrentProduct();
+    if (!p) return false;
+    greet.dataset.ldProduct = '1';
+    var bits = [];
+    if (p.priceText) bits.push('<strong>' + esc(p.priceText) + '</strong>');
+    if (p.slides) bits.push(esc(p.slides) + ' slides');
+    greet.innerHTML = "You're looking at <strong>" + esc(p.name) + '</strong>' +
+      (bits.length ? ' — ' + bits.join(' · ') : '') + '. ' +
+      'Ask me anything about it — the licence, the formats, whether it fits what you need — ' +
+      'or say <em>“show me similar”</em> and I will pull up others like it.';
+    return true;
+  }
+  var tries = 0;
+  var t = setInterval(function () {
+    tries++;
+    if (greetWithProduct() || tries > 200) clearInterval(t);
+  }, 150);
+
+  /* ── "this" / "it" now mean the thing on screen ── */
+  var ABOUT_THIS = /\b(this|it|that|the one|here)\b/i;
+
+  var _prevCompose = window.chatCompose;
+
+  window.chatCompose = function (text) {
+    try {
+      var p = window.hexaCurrentProduct();
+      if (p) {
+        var raw = String(text || '').replace(/\s+/g, ' ').trim();
+        /* "this" is implied when the visitor names no OTHER product. Caught in
+           testing: "what formats do i get" says neither "this" nor "it", but on
+           a product page it can only mean the thing on screen — while
+           "how much is a media kit" names a category and must keep the
+           category answer. */
+        var namesOther = /\b(pitch deck|pitch decks|media kit|media kits|web kit|web kits|website kit|career doc|career docs|keynote|keynotes|invoice|template|templates|design|designs)\b/i.test(raw);
+        var refers = !namesOther && (ABOUT_THIS.test(raw) || raw.split(' ').length <= 8);
+
+        /* Warm the catalogue here too. Caught in testing: the branches below
+           return early, so the lazy loader further down the chain never ran and
+           "show me similar" came back empty on a page where the products were
+           sitting right there. */
+        try { if (window.hexaLoadCatalogue) window.hexaLoadCatalogue(); } catch (e1) {}
+
+        /* similar designs — reuse the in-chat product list */
+        if (/\b(similar|like this|others like|more like|alternatives|something else like)\b/i.test(raw)) {
+          var list = window.hexaProductsFor && window.hexaProductsFor(p.folder, 4);
+          if (list) {
+            var rows = list.filter(function (x) { return x.name !== p.name; }).slice(0, 3);
+            if (rows.length) {
+              return {
+                reply: 'Others in the same range as <strong>' + esc(p.name) + '</strong>:' +
+                  rows.map(function (x) {
+                    var m = money(x.price), meta = [];
+                    if (m) meta.push('<strong>' + esc(m) + '</strong>');
+                    if (x.slides) meta.push(esc(x.slides) + ' slides');
+                    return '<div style="margin:7px 0;"><a href="' + esc(x.url || p.folder) + '" style="font-weight:700;">' +
+                           esc(x.name) + '</a>' + (meta.length ? ' — ' + meta.join(' · ') : '') + '</div>';
+                  }).join(''),
+                target: p.folder, label: 'Browse all ' + p.catLabel + 's', execute: false
+              };
+            }
+          }
+        }
+
+        if (refers) {
+          /* "is this free?" — the answer is no, and it must never be fudged */
+          if (/\b(free|no charge|cost nothing|without paying|for nothing)\b/i.test(raw)) {
+            return {
+              reply: 'No — <strong>' + esc(p.name) + '</strong> is a paid design' +
+                     (p.priceText ? ' (<strong>' + esc(p.priceText) + '</strong>)' : '') +
+                     '. Every template here is a one-time purchase, and the only free thing on the site is the ' +
+                     '<strong>Invoice Generator</strong>. Browsing and the full slide-by-slide preview are free, so you can see ' +
+                     'exactly what you are getting before you buy.',
+              target: 'invoice.html', label: 'Open Invoice Generator', execute: false
+            };
+          }
+          /* price */
+          if (/\b(price|cost|costs|how much|what do you charge|fee)\b/i.test(raw)) {
+            return {
+              reply: p.priceText
+                ? '<strong>' + esc(p.name) + '</strong> is <strong>' + esc(p.priceText) + '</strong>' +
+                  (p.slides ? ', ' + esc(p.slides) + ' slides' : '') +
+                  '. One-time purchase, no subscription — the page shows the Personal and Commercial options.'
+                : 'The live price for <strong>' + esc(p.name) + '</strong> is the one printed on this page — ' +
+                  'I do not have a figure to hand and I will not guess one. ' +
+                  'Every design is a paid one-time purchase; the only free thing on the site is the Invoice Generator.',
+              target: null, label: null, execute: false
+            };
+          }
+          /* slide / page count */
+          if (/\b(how many (slides|pages)|slide count|page count|number of (slides|pages))\b/i.test(raw)) {
+            return {
+              reply: p.slides
+                ? '<strong>' + esc(p.name) + '</strong> has <strong>' + esc(p.slides) + ' slides</strong>. You can duplicate or delete any of them.'
+                : 'The slide count for <strong>' + esc(p.name) + '</strong> is shown on this page — I do not have it to hand.',
+              target: null, label: null, execute: false
+            };
+          }
+          /* formats */
+          if (/\b(format|formats|file type|file types|what do i get|what files|which files)\b/i.test(raw)) {
+            var f = p.fileTypes.length ? p.fileTypes.join(', ') : '.PPTX and a PDF preview';
+            var a = p.apps.length ? ' It opens in ' + esc(p.apps.join(', ')) + '.' : '';
+            return {
+              reply: 'With <strong>' + esc(p.name) + '</strong> you get <strong>' + esc(f) + '</strong>.' + a,
+              target: null, label: null, execute: false
+            };
+          }
+          /* editable */
+          if (/\b(editable|can i edit|customis|customiz|change the (text|colours|colors))\b/i.test(raw)) {
+            return {
+              reply: 'Yes — <strong>' + esc(p.name) + '</strong> is fully editable: text, colours, shapes and image placeholders.' +
+                     (p.apps.length ? ' Open it in ' + esc(p.apps.join(', ')) + ' and change whatever you like.' : ''),
+              target: null, label: null, execute: false
+            };
+          }
+          /* what is this */
+          if (/^(what is (this|it)|what am i looking at|tell me about (this|it)|what'?s this)\b/i.test(raw)) {
+            var d = [];
+            if (p.priceText) d.push(p.priceText);
+            if (p.slides) d.push(p.slides + ' slides');
+            if (p.industry) d.push(p.industry);
+            return {
+              reply: 'This is <strong>' + esc(p.name) + '</strong>, a ' + esc(p.catLabel) +
+                     (d.length ? ' — ' + esc(d.join(' · ')) : '') + '.' +
+                     (p.desc ? ' ' + esc(String(p.desc).slice(0, 220)) : ''),
+              target: null, label: null, execute: false
+            };
+          }
+        }
+      }
+    } catch (e) {}
+    return _prevCompose ? _prevCompose.apply(this, arguments) : null;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
 })();

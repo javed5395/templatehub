@@ -609,7 +609,13 @@ function loadKit(k) {
   // Fix price display
   var priceEl = document.querySelector('.etsy-price');
   if (priceEl) {
-    if (!k.price || k.price === 'free' || k.price === '0' || parseFloat(k.price) === 0) priceEl.textContent = 'FREE Template';
+    /* 8 Aug 2026 — Javed: nothing on this site is free except the Invoice
+       Generator. This read 'FREE Template', so a design with a blank or zero
+       price was ADVERTISED AS FREE — while ldtIsFreePrice() below already
+       treats a blank price as PAID and keeps the download locked. The visitor
+       was told "FREE Template" and then "Locked — buy this template first."
+       An unpriced design now says so honestly instead. */
+    if (!k.price || k.price === 'free' || k.price === '0' || parseFloat(k.price) === 0) priceEl.textContent = 'Price on request';
     else if (k.price === 'pro') priceEl.textContent = 'PRO Template';
     else priceEl.textContent = 'USD ' + parseFloat(k.price).toFixed(2);
   }
@@ -906,12 +912,25 @@ function ldtRequestDownload(){
   // "owned" — nobody ever bought it — so free templates answered
   // "Locked — buy this template first." Free was literally unobtainable.
   if (ldtIsFreePrice(p && p.price)) {
-    // Free must not become a side door to unapproved submissions (F11).
-    if (currentKitData && currentKitData.status && currentKitData.status !== 'approved') {
-      ldtToast('This template is not published yet.');
-      return;
-    }
-    handleDownload();
+    /* 8 Aug 2026 — FAIL CLOSED. This used to call handleDownload() whenever the
+       price was 0 or the word "free". Nothing here is free except the Invoice
+       Generator, so a zero price is a data slip, not a giveaway — and on the
+       keynote page the original also tested `currentKitData`, which that page
+       never declares (it uses currentKeynoteData), throwing a ReferenceError so
+       the download silently never ran. Nothing is deleted — the original is
+       kept verbatim below so a free tier can be restored if one ever exists.
+
+     // if (ldtIsFreePrice(p && p.price)) {
+     //     // Free must not become a side door to unapproved submissions (F11).
+     //     if (currentKitData && currentKitData.status && currentKitData.status !== 'approved') {
+     //       ldtToast('This template is not published yet.');
+     //       return;
+     //     }
+     //     handleDownload();
+     //     return;
+     //   }
+    */
+    ldtToast('This design has no price set yet, so it cannot be downloaded. Email support@lazydogtemplates.com and we will sort it out.');
     return;
   }
 

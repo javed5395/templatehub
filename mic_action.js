@@ -416,3 +416,330 @@
   };
 
 })();
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   APPEND-ONLY PATCH LOG — mic_action.js
+   House rule (Javed, 7 Aug 2026): nothing above this line is deleted or
+   rewritten. Every change is a NEW timestamped block appended here that
+   overrides the earlier definition. To undo a patch, delete only its block.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-07 23:10 UTC · Opus · BUG No. 13 (and the cause of BUG No. 14)
+   The small chat bubble resets to the first-time welcome on a casual question.
+
+   PROVED ON THE LIVE SITE, not guessed. On www.lazydogtemplates.com/main.html:
+     · Sent "do you have media kits"  -> "Opening Media Kits for you." (fine)
+     · Sent "would you like to have a cup of tea with me?"
+         -> "Hello! Welcome to LazyDogTemplates. I can help you find pitch
+             decks, media kits, or invoices. What are you looking for?"
+     · I wrapped window.fetch first: ZERO network calls were made. So the AI was
+       never asked — the reply was manufactured on the page.
+     · window.chatCompose(text) returned null (correct: "I don't know this, send
+       it to the AI"). window.vaComposeReply(text) returned the greeting.
+     · Cause, exactly: vaMatchDictionary (line ~66 above) matches with
+           lower.includes(phrases[j])
+       a RAW SUBSTRING test. The greeting entry lists the phrase "yo".
+       "would YOu like to have a cup of tea with me?" contains "yo" inside
+       "you". One two-letter substring hijacked the whole sentence.
+   chat_brain.js's own matcher fixed this same class of bug long ago — its
+   comment reads "whole-word (or simple plural) match — 'hi' must not match
+   inside 'anything', 'this', 'white'…". That fix never reached this file.
+
+   THIS IS ALSO THE ROOT OF BUG No. 14. vaComposeReply is consulted by
+   navbar.js (line 977) and search_widget.js (line 942) as a fallback after
+   chatCompose — but NOT by Hexa_Promptbox.html. So the big "Hexa World" page
+   sends unknown sentences to the live AI and answers naturally, while the small
+   bubble hands them to this substring matcher first. That is precisely why one
+   surface "handled the same situations better" than the other. Fixing it here
+   fixes both consumers at once, without touching three files.
+
+   THE FIX (wraps window.vaComposeReply; the original stays intact above):
+   after the original produces a reply, we check whether the dictionary entry it
+   came from ACTUALLY matches on a whole-word basis. If it does not — i.e. the
+   match was a substring accident — we return null, and the caller falls through
+   to the live AI exactly as it should have. The word-level target engine
+   (vaFindTargetMatch, which is stemmed and token-based) is left alone.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-07 23:10 UTC · bugs 13 + 14';
+
+  function norm(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /* whole-word (or simple plural) — the same rule chat_brain.js uses */
+  function wholeWordHit(haystack, phrase) {
+    var p = norm(phrase);
+    if (!p) return false;
+    var pad = ' ' + norm(haystack) + ' ';
+    return pad.indexOf(' ' + p + ' ') !== -1 || pad.indexOf(' ' + p + 's ') !== -1;
+  }
+
+  var _prev = window.vaComposeReply;
+
+  window.vaComposeReply = function (text) {
+    var res = null;
+    try { res = _prev ? _prev.apply(this, arguments) : null; } catch (e) { return null; }
+    if (!res || !res.reply) return res;
+
+    try {
+      var dict = window.vaDictionary || [];
+      var owner = null;
+      for (var i = 0; i < dict.length; i++) {
+        if (dict[i] && dict[i].reply === res.reply) { owner = dict[i]; break; }
+      }
+      /* Reply did not come from a dictionary entry (the stemmed target engine
+         produced it) — leave it exactly as it was. */
+      if (!owner) return res;
+
+      var phrases = owner.phrases || [];
+      for (var j = 0; j < phrases.length; j++) {
+        if (wholeWordHit(text, phrases[j])) return res;     /* a real match */
+      }
+
+      /* Got here => the only reason this entry won was a substring accident
+         ("yo" inside "you"). Say nothing and let the caller ask the AI. */
+      try {
+        console.warn('[vaComposeReply ' + PATCH + '] dropped a substring-only match on "' +
+                     String(text).slice(0, 60) + '" (entry: ' + (owner.id || '?') + ') — passing to the AI instead');
+      } catch (e) {}
+      return null;
+    } catch (e) { return res; }
+  };
+
+  try { console.log('[mic_action patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-08 00:20 UTC · Opus · VOICE AUDIT (not one of the 15)
+   "Does Hexa listen properly, do actions, and reply?" — answer, measured:
+   she listens fine and speaks fine, but the mic that can THINK cannot TALK,
+   and the mic that TALKS cannot think.
+
+   MEASURED by stubbing SpeechRecognition + speechSynthesis and driving the
+   real code with fake transcripts:
+
+     🎤 nav-bar Voice button (#vaBtn -> toggleVoiceAssistant, this file)
+        · navigation: WORKS   "open pitch decks" -> spoken + navigates
+        · speaks every reply aloud: YES
+        · brain: NONE. vaHandleCommand never calls chatCompose and never calls
+          the AI (verified: zero network traffic). So by voice:
+              "my name is Sarah"            -> "Sorry, I did not understand that."
+              "I am feeling really stressed…"-> "Sorry, I did not understand that."
+              "how much does a pitch deck cost" -> just navigates away
+        · and it inherits the substring matcher, so ordinary speech is hijacked:
+              "can I use this commercially"   -> the first-time WELCOME GREETING
+                                                ("hi" inside "t-hi-s")
+              "…but got nothing"              -> greeting ("hi" inside "not-hi-ng")
+              "do you do custom work"         -> greeting ("yo" inside "yo-u")
+
+     🎤 chat-bubble mic (#hexaMicBtn -> hexaMic, navbar.js ~line 1003)
+        · brain: FULL. It dictates into helpbotSend, which runs the whole
+          cascade — chat_brain (all fifteen fixes) then the live AI.
+        · speaks the reply: NEVER. Not one call to speechSynthesis anywhere in
+          navbar.js, Hexa_Promptbox.html, search_widget.js or chat_brain.js.
+
+   So the good mic was mute. THIS BLOCK gives it a voice, which is the smaller
+   and safer half of the fix: the chat-bubble mic already has correct
+   whole-word matching (chat_brain) and the AI behind it, so nothing has to be
+   re-plumbed — it just needed to say its answer out loud.
+
+   Deliberate choices:
+     · It speaks ONLY when the message was DICTATED. Typing stays silent —
+       nobody wants a shop page talking at them because they typed.
+     · The ♀/♂ choice is honoured by reading the existing #vaGenderBtn label,
+       so the nav-bar voice picker keeps working for this mic too.
+     · Link/button text inside a reply is not read aloud, and the reply is
+       spoken once, after it stops changing (replies stream in).
+   window.hexaMic is OVERRIDDEN here; navbar.js's original is untouched and
+   this file is injected by navbar.js afterwards, so this definition wins.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-08 00:20 UTC · voice audit';
+
+  function preferredVoice() {
+    var wantMale = false;
+    try {
+      var b = document.getElementById('vaGenderBtn');
+      wantMale = !!(b && /male/i.test(b.textContent) && !/female/i.test(b.textContent));
+    } catch (e) {}
+    var voices = [];
+    try { voices = window.speechSynthesis.getVoices() || []; } catch (e) {}
+    if (!voices.length) return null;
+    var pick = wantMale
+      ? voices.filter(function (v) { return /david|mark|male/i.test(v.name) && !/female/i.test(v.name); })[0]
+      : voices.filter(function (v) { return /zira|female/i.test(v.name); })[0];
+    return pick || voices[0];
+  }
+
+  function speak(text) {
+    if (!text) return;
+    try {
+      var clean = String(text).replace(/\s+/g, ' ').trim().slice(0, 400);
+      if (!clean) return;
+      var u = new SpeechSynthesisUtterance(clean);
+      var v = preferredVoice();
+      if (v) u.voice = v;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch (e) { /* speech unavailable — the text is on screen regardless */ }
+  }
+  window.hexaSpeak = speak;
+
+  /* Watch the chat thread for the NEXT bot reply, read it once it settles. */
+  function speakNextReply() {
+    var thread = document.getElementById('lbThread');
+    if (!thread) return;
+    var startCount = thread.querySelectorAll('.lb-msg.bot').length;
+    var timer = null, done = false, observer = null;
+
+    function finish() {
+      if (done) return;
+      done = true;
+      try { observer && observer.disconnect(); } catch (e) {}
+      clearTimeout(timer);
+      var bots = thread.querySelectorAll('.lb-msg.bot');
+      var last = bots[bots.length - 1];
+      if (!last) return;
+      /* read the words, not the button label on the end of the bubble */
+      var copy = last.cloneNode(true);
+      try {
+        Array.prototype.forEach.call(copy.querySelectorAll('a,button'), function (n) {
+          if (n.parentNode) n.parentNode.removeChild(n);
+        });
+      } catch (e) {}
+      var txt = (copy.textContent || '').trim();
+      if (txt && !/^[.·…\s]*$/.test(txt)) speak(txt);
+    }
+
+    observer = new MutationObserver(function () {
+      var bots = thread.querySelectorAll('.lb-msg.bot');
+      if (bots.length <= startCount) return;      /* reply bubble not added yet */
+      clearTimeout(timer);
+      timer = setTimeout(finish, 700);           /* settled = stopped changing */
+    });
+    observer.observe(thread, { childList: true, subtree: true, characterData: true });
+    setTimeout(finish, 25000);                   /* hard stop, never leaks */
+  }
+
+  var _prevHexaMic = window.hexaMic;
+
+  window.hexaMic = function () {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      alert("Voice input isn't supported in this browser — please type instead.");
+      return;
+    }
+    var r = new SR();
+    r.lang = (document.documentElement.lang || 'en-US');
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    var btn = document.getElementById('hexaMicBtn');
+    if (btn) btn.textContent = '●';
+    r.onresult = function (e) {
+      var tx = '';
+      try { tx = e.results[0][0].transcript; } catch (err) {}
+      if (!tx) return;
+      var inp = document.getElementById('helpbotInput');
+      if (inp) inp.value = tx;
+      speakNextReply();                          /* <- the whole point */
+      if (window.helpbotSend) window.helpbotSend(tx);
+    };
+    r.onend   = function () { if (btn) btn.textContent = '🎤'; };
+    r.onerror = function () { if (btn) btn.textContent = '🎤'; };
+    try { r.start(); } catch (e) { if (btn) btn.textContent = '🎤'; }
+  };
+
+  try { console.log('[mic_action patch] ' + PATCH + ' installed — chat-bubble mic now speaks its replies'); } catch (e) {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-08 00:55 UTC · Opus · RETIRE THE NAV-BAR VOICE ASSISTANT
+   Decision (Javed, this session): now that the Hexa chat-box mic listens,
+   thinks, acts AND speaks, the nav-bar 🎤 Voice button is the weaker duplicate
+   and comes out. Keep one mic that does everything.
+
+   Why the nav-bar one loses, measured earlier today:
+     · no brain — vaHandleCommand never reaches chatCompose or the AI, so none
+       of the fifteen fixes exist through it
+     · substring matching — "can I use this commercially" answered with the
+       first-time welcome greeting, because "hi" sits inside "t-hi-s"
+     · recognition hardcoded to en-US while the site has a language switcher
+   The Hexa box mic beats it on every one of those, and now speaks too.
+
+   NOTHING IS DELETED — house rule. The #vaBtn and #vaBubble markup stays
+   exactly where it is in navbar.js (lines ~245 and ~626), and navbar.js is not
+   edited at all. This block only:
+     1. hides the nav-bar Voice tile and the floating voice bubble,
+     2. MOVES the real ♀/♂ picker node into the Hexa chat box — moved, not
+        recreated, so vaToggleGender() still finds it by id and the speaking
+        code above still reads it to choose the voice,
+     3. makes toggleVoiceAssistant a no-op that points at the Hexa mic, in case
+        anything still calls it, and stops any session already listening.
+   To bring the old assistant back, delete this one block.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-08 00:55 UTC · retire nav-bar voice';
+
+  function install() {
+    var vaBtn    = document.getElementById('vaBtn');
+    var vaBubble = document.getElementById('vaBubble');
+    var gender   = document.getElementById('vaGenderBtn');
+    var micBtn   = document.getElementById('hexaMicBtn');
+    /* wait until the navbar AND the chat bubble have both been injected */
+    if (!vaBtn || !vaBubble || !gender || !micBtn) return false;
+    if (document.getElementById('ldVoiceRetired')) return true;
+
+    var mark = document.createElement('meta');
+    mark.id = 'ldVoiceRetired';
+    document.head.appendChild(mark);
+
+    /* 1. hide the old entry points (hidden, not removed) */
+    var st = document.createElement('style');
+    st.textContent =
+      '#vaBtn{display:none!important;}' +
+      '#vaBubble{display:none!important;}' +
+      '#vaGenderBtn{background:#eef1ff;border:1px solid #d8ddff;color:#5b5bd6;' +
+        'border-radius:8px;padding:3px 9px;font-size:10.5px;cursor:pointer;' +
+        "font-family:Poppins,'Segoe UI',sans-serif;line-height:1.4;white-space:nowrap;}" +
+      '#vaGenderBtn:hover{background:#e2e7ff;}';
+    document.head.appendChild(st);
+    /* the tile wrapper has no id of its own — hide it so the "Voice" caption goes too */
+    try {
+      var tile = vaBtn.closest ? vaBtn.closest('.nb-fd-item') : null;
+      if (tile) tile.style.display = 'none';
+    } catch (e) {}
+
+    /* 2. MOVE the real picker node into the Hexa chat box. appendChild MOVES
+       it, so its id survives — vaToggleGender() still finds it, and the
+       speaking code above still reads it to pick the voice. */
+    try {
+      gender.removeAttribute('style');          /* drop the dark-bubble styling */
+      gender.setAttribute('title', 'Switch Hexa\u2019s speaking voice');
+      gender.setAttribute('aria-label', 'Switch speaking voice');
+      var wrap = document.createElement('span');
+      wrap.id = 'hexaVoicePickWrap';
+      wrap.style.cssText = 'display:inline-flex;align-items:center;margin-right:6px;';
+      wrap.appendChild(gender);                 /* <- the move */
+      micBtn.parentNode.insertBefore(wrap, micBtn);
+    } catch (e) {
+      try { console.warn('[' + PATCH + '] could not move the voice picker:', e && e.message); } catch (_) {}
+    }
+
+    /* 3. neutralise the old assistant */
+    try {
+      window.toggleVoiceAssistant = function () {
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+        var m = document.getElementById('hexaMicBtn');
+        if (m && m.click) m.click();            /* send anyone who lands here to the good mic */
+      };
+    } catch (e) {}
+
+    try { console.log('[mic_action patch] ' + PATCH + ' installed — one mic now, in the Hexa box'); } catch (e) {}
+    return true;
+  }
+
+  var n = 0, t = setInterval(function () { n++; if (install() || n > 200) clearInterval(t); }, 100);
+})();

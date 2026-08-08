@@ -2149,7 +2149,19 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
   (function(){
     var s = new URLSearchParams(location.search).get('seed');
     if (!s) return;
-    var clean = s.replace(/\b(make|create|generate|prepare|build|design|compose|do|me|a|an|new|please|hexa)\b/gi,' ').replace(/\s+/g,' ').trim();
+    /* 7 Aug 2026 — BUG 1 FIX (word loss in the bubble → Hexa World handoff).
+       This line used to run a GLOBAL word strip across the whole seed:
+         .replace(/\b(make|create|...|design|do|me|a|an|new|please|hexa)\b/gi,' ')
+       Those words were deleted EVERYWHERE they appeared, not just at the start,
+       so the visitor's own sentence arrived mangled:
+         sent    : "I want you to design a media kit for me"
+         arrived : "I want you to media kit for"        ← "design a" and "me" gone
+       navbar.js already encodeURIComponent()s the sentence and URLSearchParams
+       decodes it correctly, so the encode/decode step was never the problem —
+       this filter was. The seed is the visitor's words and is handed straight to
+       the composer, which reads a whole sentence perfectly well. So: no word
+       filtering at all now, only whitespace tidy-up. The message lands identical. */
+    var clean = String(s).replace(/\s+/g, ' ').trim();
     var t = document.getElementById('promptInput');
     if (t && clean.length > 2) t.value = clean;
   })();
