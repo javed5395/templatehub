@@ -16734,5 +16734,72 @@ window.LD_loadEditorTemplates = async function () {
 })();
 </script>
 
+<!-- ──────────────────────────────────────────────────────────────────────────
+     PATCH 2026-08-08 06:10 UTC · Opus · FRESH DESIGN BEATS THE OLD SESSION
+     Reported: "the editor shows an old leftover deck instead of building the
+     new one — in a brand new tab, after clearing site data, in under a second."
+
+     CAUSE, found in the autosave block above (~line 16080):
+         if (document.readyState === 'complete') setTimeout(restore, 500);
+         else window.addEventListener('load', function(){ setTimeout(restore, 500); });
+     That restore() has NO ?compose= guard. The other two restore paths in this
+     file (the fill-plan readers, ~lines 15218 and 15337) both begin with
+         if (new URLSearchParams(location.search).get('compose')) return;
+     — this one was missed. So with ?compose= present the sequence is:
+         t+0.0s  ldCompose() starts; the real deck takes ~50s to come back
+         t+0.5s  restore() reads the __autosave__ slot and REPLACES state.pages
+                 with the previous session, toasting "Picked up where you left
+                 off". That is the sub-second "old deck" — a restore, never a
+                 generation, exactly as observed.
+     A new tab does not help because the autosave lives in IndexedDB, which is
+     shared per-origin across tabs.
+
+     FIX, and deliberately NOT a delete: when a fresh design is requested we
+     MOVE the recovery slot to a normal, named project so nothing is lost, then
+     free the __autosave__ id and keep it clear for a few seconds so restore()
+     finds nothing and steps aside. Ordinary editing sessions are untouched —
+     without ?compose= this block does nothing at all.
+     ────────────────────────────────────────────────────────────────────────── -->
+<script>
+(function () {
+  var PATCH = '2026-08-08 06:10 UTC · fresh design beats old session';
+  var q = null;
+  try { q = new URLSearchParams(location.search).get('compose'); } catch (e) {}
+  var fill = null;
+  try { fill = localStorage.getItem('lazydog_fill_material'); } catch (e) {}
+  if (!q && !fill) return;                    /* normal session — do nothing */
+
+  var AUTO_ID = '__autosave__';
+  var moved = false;
+
+  function sweep() {
+    if (typeof projAll !== 'function') return;
+    projAll().then(function (list) {
+      var rec = (list || []).filter(function (p) { return p && p.id === AUTO_ID; })[0];
+      if (!rec) return;
+      if (!moved && rec.pages && rec.pages.length) {
+        moved = true;
+        try {
+          var keep = JSON.parse(JSON.stringify(rec));
+          keep.id = 'recovered_' + rec.updated;
+          keep.isAutosave = false;
+          keep.name = 'Recovered session (kept before a new design)';
+          projPut(keep);                       /* nothing is thrown away */
+          console.log('[' + PATCH + '] previous session preserved as "' + keep.name + '"');
+        } catch (e) {}
+      }
+      try { projDelete(AUTO_ID); } catch (e) {}
+    }).catch(function () {});
+  }
+
+  /* run now, and keep the slot clear across restore()'s load+500ms window */
+  sweep();
+  var n = 0, t = setInterval(function () { n++; sweep(); if (n > 24) clearInterval(t); }, 250);
+  window.addEventListener('load', function () { sweep(); setTimeout(sweep, 300); });
+
+  try { console.log('[editor patch] ' + PATCH + ' armed — a fresh design will not be overwritten by the old session'); } catch (e) {}
+})();
+</script>
+
 </body>
 </html>

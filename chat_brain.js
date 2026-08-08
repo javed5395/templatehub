@@ -2932,3 +2932,144 @@
 
   try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
 })();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-08 06:40 UTC · Opus · FOUR FIELD REPORTS
+
+   (A) "Bold text showing as raw code" — CONFIRMED, and it was mine.
+       navbar.js renders each handler's reply differently:
+           bubble.innerHTML = composed.reply     <- chatCompose answers
+           bubble.textContent = lead.reply       <- LEAD CAPTURE answers
+       My contact-request replies contained <strong>, so on that one path the
+       tags printed literally. Lead replies are now stripped to plain text at
+       the source; every other path keeps its formatting.
+
+   (B) "call me back" was not recognised as a contact request — also mine.
+       The guard meant to stop "call me Sarah" being read as a callback,
+           /call me [a-z][a-z'-]{1,20}\s*$/
+       also matched "call me back", "call me tomorrow", "call me later". Those
+       are callbacks, not names. The guard now only fires on a word that could
+       actually be a name.
+
+   (C) "Chat goes completely silent on certain phrasings" — could NOT be
+       reproduced here: through the real navbar cascade, "call me about a
+       custom deck" and "please call me about a custom deck for my startup"
+       both answer correctly. Rather than guess at a cause I cannot see, this
+       makes silence IMPOSSIBLE: a watchdog checks the reply bubble a few
+       seconds after every message, and if it is still empty or still showing
+       the typing dots it writes an honest line and logs the message that did
+       it, so the next report arrives with evidence attached.
+
+   (D) "It said it doesn't store names, right after using my name" — the local
+       brain remembers, but the live AI was never told, so it answered from its
+       own policy text. The name now travels with the page context, and a
+       direct "do you remember my name?" is answered locally from memory.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-08 06:40 UTC · field reports A-D';
+
+  function plain(s) {
+    return String(s == null ? '' : s)
+      .replace(/<br\s*\/?>/gi, ' ')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+  }
+
+  /* ── (A) lead replies must be plain text — navbar prints them as text ── */
+  var _prevLead = window.hexaLeadCapture;
+  /* "call me back / later / tomorrow / when you can" IS a contact request. The
+     earlier guard, written to stop "call me Sarah" being read as a callback,
+     was swallowing these too — so they produced no reply at all. Re-ask the
+     original handler in a form it recognises, so the real callback logic
+     (including the lead POST) still does the work. */
+  var CALLBACK_ADVERB_RX = /\bcall me\s+(back|later|soon|tomorrow|today|tonight|asap|urgently|when you can|when you get a chance|any ?time)\b/i;
+  var EMAIL_RX2 = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
+  window.hexaLeadCapture = function (text) {
+    var raw = String(text || '');
+    var r = _prevLead ? _prevLead.apply(this, arguments) : null;
+    if (!r && CALLBACK_ADVERB_RX.test(raw)) {
+      var em = (raw.match(EMAIL_RX2) || [null])[0];
+      r = _prevLead ? _prevLead(em ? ('please contact me at ' + em) : 'please contact me') : null;
+    }
+    if (r && r.reply) r = Object.assign({}, r, { reply: plain(r.reply) });
+    return r;
+  };
+
+  /* ── (B) "call me back / later / tomorrow" is a callback, not a name ── */
+  var NOT_A_NAME = ('back later soon now today tonight tomorrow yesterday asap urgently ' +
+    'please quickly again anytime when whenever regarding about re first thing ' +
+    'sometime someday immediately directly personally').split(' ');
+  var _prevName = window.hexaNameCapture;
+  window.hexaNameCapture = function (text) {
+    var raw = String(text || '').replace(/\s+/g, ' ').trim();
+    var m = raw.match(/\bcall me\s+([A-Za-z][A-Za-z'\-]{1,20})\s*[.!?]*$/i);
+    if (m && NOT_A_NAME.indexOf(m[1].toLowerCase()) !== -1) return null;  /* not a name */
+    return _prevName ? _prevName.apply(this, arguments) : null;
+  };
+
+  /* ── (D) the AI is told who it is speaking to, and "what's my name" is
+         answered from memory rather than from the model's policy text ── */
+  var _prevCtx = window.hexaContextTurn;
+  window.hexaContextTurn = function () {
+    var bits = [];
+    try {
+      var n = (window.hexaMemory && window.hexaMemory.get().name) || '';
+      if (n) bits.push('My name is ' + n + ' — you already know it, I told you.');
+    } catch (e) {}
+    var prev = null;
+    try { prev = _prevCtx ? _prevCtx.apply(this, arguments) : null; } catch (e) {}
+    if (prev) bits.push(prev);
+    return bits.length ? bits.join(' ') : null;
+  };
+
+  var _prevCompose = window.chatCompose;
+  window.chatCompose = function (text) {
+    try {
+      var raw = String(text || '').replace(/\s+/g, ' ').trim();
+      if (/\b(do you (remember|know) my name|what(?:'|’)?s my name|what is my name|who am i)\b/i.test(raw)) {
+        var name = '';
+        try { name = (window.hexaMemory && window.hexaMemory.get().name) || ''; } catch (e) {}
+        return {
+          reply: name
+            ? 'Yes — you are <strong>' + plain(name) + '</strong>. I keep it in this browser only, so I can greet you properly; it is not sent anywhere and you can clear it any time by telling me to forget your name.'
+            : 'I do not have a name for you yet. Tell me what to call you and I will remember it in this browser — nowhere else.',
+          target: null, label: null, execute: false
+        };
+      }
+    } catch (e) {}
+    return _prevCompose ? _prevCompose.apply(this, arguments) : null;
+  };
+
+  /* ── (C) a bubble can never be left silent again ── */
+  var _prevSend = window.helpbotSend;
+  if (typeof _prevSend === 'function') {
+    window.helpbotSend = function (text) {
+      var r = _prevSend.apply(this, arguments);
+      try {
+        var thread = document.getElementById('lbThread');
+        if (thread) {
+          var before = thread.querySelectorAll('.lb-msg.bot').length;
+          setTimeout(function () {
+            try {
+              var bots = thread.querySelectorAll('.lb-msg.bot');
+              var last = bots[bots.length - 1];
+              if (bots.length <= before || !last) return;          /* no bubble to police */
+              var txt = (last.textContent || '').replace(/[\s·.…]/g, '');
+              var stillTyping = !!last.querySelector('.lb-typing');
+              if (txt && !stillTyping) return;                     /* answered fine */
+              console.error('[hexa watchdog ' + PATCH + '] no reply produced for: ' +
+                            JSON.stringify(String(text).slice(0, 120)));
+              last.innerHTML = 'Sorry — something went wrong answering that one, and I do not want to leave you ' +
+                'staring at nothing. Try rewording it, or email <strong>support@lazydogtemplates.com</strong> ' +
+                'and a person will pick it up.';
+            } catch (e) {}
+          }, 12000);
+        }
+      } catch (e) {}
+      return r;
+    };
+  }
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
