@@ -2658,6 +2658,13 @@
       var plain = String(res.reply || '').replace(/<[^>]+>/g, '').trim();
       var pureBrowse = /^opening\b[^.]*\bfor you\.?$/i.test(plain);
       if (!res.execute && !pureBrowse) return res;
+      /* 8 Aug 2026 — Hexa is an ACTION bot, not only a chat bot. An EXPLICIT
+         command ("open media kits", "take me to pitch decks", "go to invoice")
+         is an instruction, and she obeys it literally — she still takes you
+         there. Only a softer browse ("show me media kits", "media kits",
+         "do you have media kits") is answered with the products in the chat,
+         because that is a question, not an order. */
+      if (/\b(open|take me|go to|goto|bring me|bring up|navigate|jump to|send me)\b/i.test(String(text || ''))) return res;
       /* belt and braces: a CREATION request belongs to the Designer. All three
          chat surfaces already test design intent before chatCompose, so this
          should never trigger — it is here so it can never regress. */
