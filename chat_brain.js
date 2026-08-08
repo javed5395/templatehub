@@ -2034,18 +2034,38 @@
     return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
-  /* Reuse whatever this page already fetched, if anything. */
+  /* Reuse whatever this page already fetched, if anything.
+
+     8 Aug 2026 — CORRECTED AGAINST THE LIVE SITE. My first version read
+     x.title / x.price / x.href straight off _ldtAllDecks, which is what the
+     folder page's own `deck` object looks like. But the array actually holds
+     the output of ldtNormalizeDeck(), whose shape is:
+         { id, name, contentType:'media-kit', slides:12 (a NUMBER),
+           industry, colorFamily[], ..., _card:{ title, cat, href, slides[],
+           price, uploadedAt, code } }
+     — the sellable detail (price, href, code) lives on _card, and `slides` is
+     a number at the top level but an array inside _card. So every product came
+     back with price undefined and url null, hexaProductsFor() matched nothing,
+     and the in-chat product list silently never appeared on the live site.
+     Note `_card.cat` is a SUB-category ("beauty_makeup"), not the product
+     category — the category is contentType ("media-kit"), so that is what we
+     match on, with the href as a second route. */
   function fromPage() {
     try {
       var d = window._ldtAllDecks;
       if (!d || !d.length) return null;
       return d.map(function (x) {
+        var c = (x && x._card) || {};
+        var slides = (c.slides && c.slides.length)
+                  || (typeof x.slides === 'number' ? x.slides : (x.slides && x.slides.length))
+                  || x.slideCount || null;
         return {
-          name: x.title || x.name || '',
-          price: x.price,
-          slides: (x.slides && x.slides.length) || x.slideCount || null,
-          code: x.code || '',
-          url: x.href || x.url || null
+          name: c.title || x.name || x.title || '',
+          price: (c.price != null && c.price !== '') ? c.price : x.price,
+          slides: slides,
+          code: c.code || x.code || '',
+          cat: x.contentType || x.category || '',
+          url: c.href || x.href || x.url || null
         };
       }).filter(function (x) { return x.name; });
     } catch (e) { return null; }
