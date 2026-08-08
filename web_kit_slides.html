@@ -498,6 +498,8 @@ document.addEventListener('click',function(e){
   </div>
 </div>
 
+<div id="ldReviewsMount" style="max-width:1100px;margin:0 auto;padding:0 24px;"></div>
+
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div style="font-size:48px;margin-bottom:16px;">📥</div>
@@ -829,6 +831,7 @@ function loadKit(k) {
     row.appendChild(thumbEl);
   }
   showSlide(1);
+  if (window.ldMountReviews) window.ldMountReviews(window._ldtProductId, 'ldReviewsMount');
 }
 
 var currentSlideNum = 1;
@@ -1151,6 +1154,7 @@ function toggleLearnMore(btn){
 </div>
 <script src="va_dictionary.js"></script>
 <script src="navbar.js"></script>
+<script src="reviews_widget.js"></script>
 <script defer src="commerce-loader.js"></script>
 <script src="footerbar.js"></script>
 <nav>
