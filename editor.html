@@ -16801,5 +16801,283 @@ window.LD_loadEditorTemplates = async function () {
 })();
 </script>
 
+
+<!-- ──────────────────────────────────────────────────────────────────────────
+     PATCH 2026-08-08 15:10 UTC · Opus · GROW A DESIGN INSTEAD OF REPLACING IT
+     NOTHING ABOVE THIS LINE IS CHANGED. Everything here is added.
+
+     REPORTED (Javed): "a design is made and the user wants to alter it, or add
+     more slides, or add mock-up slides."
+
+     WHAT WAS WRONG
+     A. "AI ▸ Slide — One slide from a sentence" called ldCompose(), which ends
+        in loadDeckIRIntoEditor() — and that REPLACES state.pages outright. The
+        button promised one extra slide and instead threw the whole deck away.
+        It also could never make one slide: orders.js clamps with
+        Math.max(2, ...), so ", 1 slide" always came back as 2.
+     B. There was no way at all to say "give me five more slides in this style".
+        The only route was AI ▸ Presentation, which replaces everything.
+     C. Mock-ups could only be ordered up front — order.mockups is applied
+        inside designKit() at compose time and nowhere else.
+
+     WHAT THIS DOES
+     One new call, ldComposeAppend(), asks the composer for slides exactly as
+     before but SPLICES them in after the current slide instead of replacing
+     the deck. Nothing is deleted, the aspect ratio is left alone, and the
+     40-slide cap the rest of the editor uses is respected.
+     The composer needed no change: "in this style" is the design number the
+     open deck already carries, and mock-ups are picked out of the returned
+     plan, whose entries end in ":mockup".
+     ────────────────────────────────────────────────────────────────────────── -->
+<script>
+(function () {
+  var PATCH = '2026-08-08 15:10 UTC · grow a design instead of replacing it';
+
+  /* ── 1. REMEMBER WHICH DESIGN IS OPEN ──────────────────────────────────
+     registerDesign() stamps every composed deck with its number, so it is
+     already sitting on the IR the editor was handed. It was simply never
+     read. Wrapping the loader catches it on every route — a fresh compose,
+     a reopened project, the fill pipeline. */
+  (function rememberDesignNo() {
+    if (!window.loadDeckIRIntoEditor) { setTimeout(rememberDesignNo, 400); return; }
+    if (window.loadDeckIRIntoEditor.__ldRemembers) return;
+    var orig = window.loadDeckIRIntoEditor;
+    var wrapped = async function (deckIR) {
+      try {
+        var n = deckIR && deckIR._designNo;
+        if (n == null && deckIR && deckIR.deck) {
+          var m = String(deckIR.deck).match(/design\s*(\d{1,6})/i);
+          if (m) n = +m[1];
+        }
+        if (n != null) window.LD_DESIGN_NO = n;
+      } catch (e) {}
+      return orig.apply(this, arguments);
+    };
+    wrapped.__ldRemembers = true;
+    window.loadDeckIRIntoEditor = wrapped;
+  })();
+
+  function busy(on, msg) { try { aiSetBusy(on, msg); } catch (e) {} }
+  function say(m) { try { showToast(m); } catch (e) { try { console.log(m); } catch (e2) {} } }
+
+  /* ── 2. ASK THE COMPOSER, THEN ADD — NEVER REPLACE ─────────────────────
+     opts = { keep: n | null, onlyMockups: true, prefer: 'cover'|'data'|… }
+     The plan that comes back is "kit#idx:kind" per slide, so the kind of each
+     returned slide is known without guessing at its contents. */
+  window.ldComposeAppend = async function (sentence, opts) {
+    opts = opts || {};
+    if (!window.LD_BACKEND) { say('Designer backend not reachable from here'); return 0; }
+    for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
+
+    var r;
+    try {
+      r = await fetch(window.LD_BACKEND + '/compose_ir', {
+        method: 'POST',
+        headers: window.ldHeaders ? window.ldHeaders('application/json') : { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sentence: sentence })
+      });
+    } catch (e) { say('Could not reach the design service — nothing was changed'); return 0; }
+
+    if (r.status === 401 || r.status === 403) { say('Please sign in on the main site first 🔐'); return 0; }
+    if (!r.ok) { say('The design service returned an error (' + r.status + ') — nothing was changed'); return 0; }
+
+    var d; try { d = await r.json(); } catch (e) { say('The reply could not be read — nothing was changed'); return 0; }
+    var deck = (d && d.deck) ? d.deck : null;
+    var slides = (deck && deck.slides) || [];
+    var plan = (d && d.plan) || (deck && deck._plan) || [];
+    if (!slides.length) { say('The design service sent no slides back — nothing was changed'); return 0; }
+    if (d && d.designNo != null) window.LD_DESIGN_NO = d.designNo;
+
+    function kindAt(i) {
+      var p = String(plan[i] || '');
+      var c = p.lastIndexOf(':');
+      return c > -1 ? p.slice(c + 1) : '';
+    }
+
+    /* choose which of the returned slides are actually wanted */
+    var picked = [];
+    if (opts.onlyMockups) {
+      slides.forEach(function (s, i) { if (kindAt(i) === 'mockup') picked.push(s); });
+      if (!picked.length) { say('No mock-up slides came back — nothing was changed'); return 0; }
+    } else if (opts.prefer) {
+      var exact = [], rest = [];
+      slides.forEach(function (s, i) {
+        var k = kindAt(i);
+        if (k === 'mockup') return;
+        (k === opts.prefer ? exact : rest).push(s);
+      });
+      picked = exact.concat(rest);
+    } else {
+      slides.forEach(function (s, i) { if (kindAt(i) !== 'mockup') picked.push(s); });
+    }
+    if (opts.keep) picked = picked.slice(0, opts.keep);
+    if (!picked.length) { say('Nothing matched — nothing was changed'); return 0; }
+
+    /* the same 40-slide ceiling the rest of the editor keeps */
+    var room = 40 - state.pages.length;
+    if (room <= 0) { say('Maximum 40 slides — remove one first'); return 0; }
+    if (picked.length > room) { picked = picked.slice(0, room); say('Only ' + room + ' more slides fit (40 max)'); }
+
+    /* fonts first, exactly as loadDeckIRIntoEditor does, or the new slides
+       paint in a fallback face for a second and reflow */
+    try {
+      var fs = {};
+      picked.forEach(function (s) {
+        (s.elements || []).forEach(function (e) {
+          if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(function (p) {
+            (p.runs || []).forEach(function (rn) { if (rn.font) fs[rn.font] = 1; });
+          });
+        });
+      });
+      var names = Object.keys(fs);
+      if (window.loadDeckFonts && names.length) await new Promise(function (res) { window.loadDeckFonts(names, res); });
+    } catch (e) {}
+
+    /* SPLICE, never assign — the deck that is open is untouched */
+    try { captureCurrentPage(); } catch (e) {}
+    var at = (state.currentPage == null ? state.pages.length - 1 : state.currentPage) + 1;
+    picked.forEach(function (slideIR, i) {
+      var page = makeBlankPage(Date.now() + i);
+      page.ir = slideIR;
+      state.pages.splice(at + i, 0, page);
+      state.notes.splice(at + i, 0, '');
+    });
+    /* keep the deck IR in step so saving and exporting see the new slides */
+    try {
+      if (window._deckIR && window._deckIR.slides) {
+        Array.prototype.splice.apply(window._deckIR.slides, [at, 0].concat(picked));
+      }
+    } catch (e) {}
+
+    state.currentPage = at;
+    await loadPageIntoCanvas(state.currentPage);
+    try { renderPageThumbs && renderPageThumbs(); } catch (e) {}
+    try { pageRefresh && pageRefresh(); } catch (e) {}
+    try { saveState && saveState(); } catch (e) {}
+    return picked.length;
+  };
+
+  /* ── 3. (A) "AI ▸ Slide" NOW ADDS ONE SLIDE ────────────────────────────
+     orders.js will not build fewer than two slides, so five are ordered and
+     the one that fits the description is kept. The words the buyer used say
+     which kind they meant, and the returned plan says which kind each slide
+     is — no guessing at the artwork. */
+  function slideKindFor(text) {
+    var t = String(text || '').toLowerCase();
+    if (/\b(title|cover|hero|opening|front|first)\b/.test(t)) return 'cover';
+    if (/\b(thank|closing|ending|final|last|contact|get in touch)\b/.test(t)) return 'closing';
+    if (/\b(chart|graph|data|metric|kpi|number|figure|revenue|traction)\b/.test(t)) return 'data';
+    if (/\b(photo|image|picture|gallery|visual|moodboard)\b/.test(t)) return 'gallery';
+    if (/\b(section|divider|chapter|break)\b/.test(t)) return 'section';
+    return 'content';
+  }
+
+  window.aiGenerateDeck = function (oneSlide) {
+    if (window.LD_IS_ADMIN === false) { say('Only the admin can generate decks'); return; }
+
+    if (!oneSlide) {
+      /* AI ▸ Presentation still builds a whole new deck — that is its job —
+         but it used to do it without a word of warning, wiping open work. */
+      if (state.pages && state.pages.length > 1 &&
+          !confirm('This builds a NEW deck and replaces the ' + state.pages.length +
+                   ' slides open here.\n\nTo keep them and add to them, use "Add slides" instead.\n\nReplace everything?')) return;
+      if (typeof window.ldCompose !== 'function') { say('Designer backend not reachable from here'); return; }
+      var q0 = prompt('Describe the deck you want:\n(e.g. "a hospital media kit, black background, 8 slides, lots of images")');
+      if (!q0 || !q0.trim()) return;
+      busy(true, 'Designing in the cloud…');
+      var p = window.ldCompose(q0.trim());
+      if (p && p.then) p.then(function () { busy(false); }).catch(function () { busy(false); });
+      else setTimeout(function () { busy(false); }, 1500);
+      return;
+    }
+
+    var q = prompt('Describe the slide you want:\n(e.g. "a dark fintech title slide with a bold headline")');
+    if (!q || !q.trim()) return;
+    var style = window.LD_DESIGN_NO != null ? ('use design ' + window.LD_DESIGN_NO + ' style, ') : '';
+    busy(true, 'Designing one slide…');
+    window.ldComposeAppend(style + q.trim() + ', 5 slides', { keep: 1, prefer: slideKindFor(q) })
+      .then(function (n) { busy(false); if (n) say('Slide added ✓'); })
+      .catch(function () { busy(false); say('Could not add the slide'); });
+  };
+
+  /* ── 4. (B) ADD MORE SLIDES IN THIS DESIGN'S STYLE ─────────────────────
+     "use design N style" is what the composer already understands, and the
+     open deck knows its own N — so the extra slides come out of the same
+     palette, the same fonts and the same donor kits. */
+  window.aiAddSlides = function () {
+    if (window.LD_IS_ADMIN === false) { say('Only the admin can generate slides'); return; }
+    var howMany = prompt('How many more slides in this style?', '5');
+    if (!howMany) return;
+    var n = Math.max(1, Math.min(20, parseInt(String(howMany).replace(/[^0-9]/g, ''), 10) || 0));
+    if (!n) { say('Give a number between 1 and 20'); return; }
+
+    var about = prompt('Anything in particular?\n(optional — e.g. "more charts", "photo slides", or leave blank)', '') || '';
+    if (window.LD_DESIGN_NO == null && !about.trim()) {
+      about = prompt('This deck has no design number on it, so describe the look:\n(e.g. "dark navy corporate pitch deck")', '') || '';
+      if (!about.trim()) { say('Nothing to go on — cancelled'); return; }
+    }
+    var style = window.LD_DESIGN_NO != null ? ('use design ' + window.LD_DESIGN_NO + ' style, ') : '';
+    /* two extra so the cover and the closing can be dropped — a middle-of-the
+       deck addition should not arrive as another title slide */
+    busy(true, 'Adding ' + n + ' slides…');
+    window.ldComposeAppend(style + about.trim() + (about.trim() ? ', ' : '') + (n + 2) + ' slides', { keep: n })
+      .then(function (added) { busy(false); if (added) say(added + (added === 1 ? ' slide' : ' slides') + ' added ✓'); })
+      .catch(function () { busy(false); say('Could not add the slides'); });
+  };
+
+  /* ── 5. (C) ADD MOCK-UP SLIDES TO A DESIGN THAT ALREADY EXISTS ─────────
+     library.js already builds mock-ups — real layouts with the text swapped
+     for "replace me" placeholders — but only while a design is first made.
+     Ordering a tiny deck with mock-ups on it and keeping ONLY the mock-ups
+     needs no change to the composer at all: the plan marks them ":mockup". */
+  window.aiAddMockups = function () {
+    if (window.LD_IS_ADMIN === false) { say('Only the admin can generate slides'); return; }
+    var howMany = prompt('How many mock-up slides?\n(ready-to-fill slides in this design’s style)', '3');
+    if (!howMany) return;
+    var n = Math.max(1, Math.min(20, parseInt(String(howMany).replace(/[^0-9]/g, ''), 10) || 0));
+    if (!n) { say('Give a number between 1 and 20'); return; }
+    var style = window.LD_DESIGN_NO != null ? ('use design ' + window.LD_DESIGN_NO + ' style, ') : '';
+    if (!style && !confirm('This deck has no design number on it, so the mock-ups will be built in a fresh look rather than matching it.\n\nCarry on?')) return;
+    busy(true, 'Adding ' + n + ' mock-up slides…');
+    window.ldComposeAppend(style + '4 slides, ' + n + ' mockup slides', { onlyMockups: true, keep: n })
+      .then(function (added) { busy(false); if (added) say(added + ' mock-up ' + (added === 1 ? 'slide' : 'slides') + ' added ✓'); })
+      .catch(function () { busy(false); say('Could not add the mock-ups'); });
+  };
+
+  /* ── 6. THE TWO NEW BUTTONS ────────────────────────────────────────────
+     Injected into the AI panel after it renders, rather than editing the
+     markup above — the original panel builder is left exactly as it is. */
+  function injectCards() {
+    var grid = document.querySelector('#panel-body .ai-grid, .ai-grid');
+    if (!grid || grid.querySelector('[data-action="ai-more-slides"]')) return;
+    var mk = function (act, icon, name, sub) {
+      var b = document.createElement('button');
+      b.className = 'ai-card';
+      b.setAttribute('data-action', act);
+      b.innerHTML = '<span class="material-icons-outlined">' + icon + '</span>'
+                  + '<span class="ai-n">' + name + '</span>'
+                  + '<span class="ai-s">' + sub + '</span>';
+      return b;
+    };
+    grid.appendChild(mk('ai-more-slides', 'library_add', 'Add slides', 'More, in this style'));
+    grid.appendChild(mk('ai-mockups', 'dashboard_customize', 'Add mock-ups', 'Ready-to-fill slides'));
+  }
+  setInterval(injectCards, 700);
+
+  /* our own listener, in the capture phase, so the switch above never sees an
+     action it has no case for */
+  document.addEventListener('click', function (ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest('[data-action]');
+    if (!b) return;
+    var a = b.dataset.action;
+    if (a !== 'ai-more-slides' && a !== 'ai-mockups') return;
+    ev.preventDefault(); ev.stopPropagation();
+    if (a === 'ai-more-slides') window.aiAddSlides(); else window.aiAddMockups();
+  }, true);
+
+  try { console.log('[editor patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+</script>
+
 </body>
 </html>
