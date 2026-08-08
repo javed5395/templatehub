@@ -3195,3 +3195,118 @@
 
   try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
 })();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-08 10:05 UTC · Opus · SPEAK THE COMPOSER'S GRAMMAR
+
+   Read out of bridge/composer_service/orders.js (the private order grammar —
+   NOT modified, NOT deployed, only read). Two exact rules explain why colour
+   never reached a deck:
+
+   1. BACKGROUND. The parser only sets a background colour when a colour word
+      sits IMMEDIATELY before the word background/bg/theme/base:
+          var isBg = new RegExp('\\b'+c+'\\s*(bg|background|theme|base)\\b')
+          ...
+          order.palette.bg = bg || '#101014';        <- the default we always saw
+      The card emits "…, blue, gradient background, …". "blue" is followed by
+      "gradient", so isBg is false and the background falls to the default on
+      every single order. When the BACKGROUND field itself names a colour
+      ("dark", "light") it already works — it is the treatment words
+      (gradient, solid, photo, mesh…) that carry no colour and leave it unset.
+
+   2. COLOUR VOCABULARY. orders.js knows exactly 20 colour words. The card
+      offers 35. Burgundy, charcoal, coral, cyan, lavender, lime, olive,
+      silver, terracotta, yellow and beige are not in the parser's table, so
+      choosing them did nothing at all — not even an accent.
+
+   WHAT THIS BLOCK DOES — rewrites the ORDER SENTENCE only, on its way out.
+   The composer, orders.js and the design card are all untouched.
+     · a colourless "<treatment> background" is given the colour the visitor
+       actually chose:      "blue, gradient background" -> "blue background"
+     · colours the parser cannot read are mapped to their nearest known one:
+       burgundy->maroon, cyan->teal, yellow->gold, charcoal->grey, and so on
+     · "use design 38" with no part named becomes "use design 38 style", which
+       server.js line 351 treats as the WHOLE palette rather than background
+       only — that is what "build me one from that design" should mean
+
+   RULES IT KEEPS: the more specific field always wins. If BACKGROUND already
+   names a colour, that colour stays the background and the colour family
+   stays the accent. If the visitor left BACKGROUND blank, nothing is invented
+   — their colour remains an accent exactly as today.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-08 10:05 UTC · composer grammar';
+
+  /* the 20 words orders.js actually understands — kept verbatim, in its order */
+  var KNOWN = ['black','dark','navy','blue','white','light','cream','grey','gray',
+               'green','teal','purple','violet','red','maroon','gold','golden',
+               'orange','pink','brown'];
+  var IS_KNOWN = {};
+  KNOWN.forEach(function (c) { IS_KNOWN[c] = 1; });
+
+  /* card colours the parser has never heard of -> nearest word it does know */
+  var NEAREST = {
+    burgundy:'maroon', charcoal:'grey', coral:'orange', cyan:'teal',
+    lavender:'purple', lime:'green', olive:'green', silver:'grey',
+    terracotta:'brown', yellow:'gold', beige:'cream', monochrome:'grey',
+    neutral:'grey', pastel:'cream', 'earth tones':'brown', 'warm tones':'orange',
+    'cool tones':'teal', neon:'purple', multicolor:'blue', multicolour:'blue'
+  };
+
+  /* treatment words the card offers for BACKGROUND that carry no colour */
+  var TREATMENT = ('gradient|mesh gradient|solid|photo|geometric|textured|pattern|abstract|' +
+                   'blurred|bokeh|duotone|framed|grid|illustration|organic|paper|metallic|' +
+                   'glassmorphism|3d|transparent|watercolour|watercolor|split screen|' +
+                   'colour block|color block|full bleed image|full-bleed image');
+
+  function normaliseForComposer(sentence) {
+    var s = String(sentence == null ? '' : sentence);
+    if (!s) return s;
+
+    /* 1. unknown colour -> nearest known one (word-boundary, case-insensitive) */
+    Object.keys(NEAREST).forEach(function (word) {
+      var rx = new RegExp('\\b' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+      if (rx.test(s)) s = s.replace(rx, NEAREST[word]);
+    });
+
+    /* 2. a colourless "<treatment> background" takes the chosen colour.
+          Only fires when the visitor actually picked a colour; never invents one. */
+    var treatRx = new RegExp('\\b(' + TREATMENT + ')\\s+(background|bg|theme|base)\\b', 'i');
+    var tm = s.match(treatRx);
+    if (tm) {
+      var alreadyColoured = new RegExp('\\b(' + KNOWN.join('|') + ')\\s+(background|bg|theme|base)\\b', 'i').test(s);
+      if (!alreadyColoured) {
+        var cm = s.match(new RegExp('\\b(' + KNOWN.join('|') + ')\\b', 'i'));
+        if (cm) s = s.replace(treatRx, cm[1].toLowerCase() + ' ' + tm[2]);
+      }
+    }
+
+    /* 3. "use design 38"  ->  "use design 38 style"  (whole palette, not just bg) */
+    s = s.replace(/\buse\s+design\s+(\d{1,5})\b(?!\s*(background|bg|palette|colou?rs?|style|look|layout))/gi,
+                  'use design $1 style');
+
+    return s;
+  }
+  window.hexaNormaliseOrder = normaliseForComposer;
+
+  var _prevDesign = window.hexaDesign;
+  window.hexaDesign = function (text) {
+    var out = _prevDesign ? _prevDesign.apply(this, arguments) : null;
+    try {
+      if (out && out.target) {
+        var i = out.target.indexOf('compose=');
+        if (i > -1) {
+          var seed  = decodeURIComponent(out.target.slice(i + 8));
+          var fixed = normaliseForComposer(seed);
+          if (fixed !== seed) {
+            out = Object.assign({}, out, { target: out.target.slice(0, i + 8) + encodeURIComponent(fixed) });
+            try { console.log('[' + PATCH + ']\n   was: ' + seed + '\n   now: ' + fixed); } catch (e) {}
+          }
+        }
+      }
+    } catch (e) { /* anything unexpected: the original order stands untouched */ }
+    return out;
+  };
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
