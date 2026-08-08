@@ -586,8 +586,21 @@
       var rf = v('dw_ref');
       if (rf) {
         var CODE_RX = /\b(PD|MK|WK|CV|KN)[\s\-_]?(\d{1,3})\b/i;
+        /* 8 Aug 2026 — MORE THAN ONE PAST DESIGN. Only the first code was ever
+           read, so "PD-044 and PD-012" quietly became a copy of PD-044. Every
+           code in the box is said now, and two or more are said as a mix —
+           which is what the composer blends. */
+        var ALL_RX = /\b(PD|MK|WK|CV|KN)[\s\-_]?(\d{1,3})\b/gi;
+        var all = [], hit;
+        while ((hit = ALL_RX.exec(rf)) !== null) {
+          var one = hit[1].toUpperCase() + '-' + ('00' + hit[2]).slice(-3);
+          if (all.indexOf(one) === -1) all.push(one);
+        }
         var cm = rf.match(CODE_RX);
-        if (cm) {
+        if (all.length > 1) {
+          var restM = rf.replace(ALL_RX, ' ').replace(/\band\b|,|\+|&/gi, ' ').replace(/\s+/g, ' ').trim();
+          bits.push('mix design ' + all.join(' and design ') + (restM ? ' ' + restM.toLowerCase() : ''));
+        } else if (cm) {
           var canon = cm[1].toUpperCase() + '-' + ('00' + cm[2]).slice(-3);
           var rest  = rf.replace(CODE_RX, ' ').replace(/\s+/g, ' ').trim();
           bits.push('use design ' + canon + (rest ? ' ' + rest.toLowerCase() : ''));
