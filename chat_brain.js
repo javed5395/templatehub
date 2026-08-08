@@ -3073,3 +3073,125 @@
 
   try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
 })();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PATCH 2026-08-08 08:15 UTC · Opus · "USE DESIGN PD-044" NOW FINDS THE DESIGN
+
+   THE MISMATCH, proved against live Firestore. Two different numbering
+   systems were being used at the two ends of the same sentence:
+
+     · The CARD and every product card speak the CATALOGUE CODE.
+       design_widget.js emits:            "use design MK-009"
+     · The COMPOSER resolves a DESIGN NUMBER. engine/server.py, the uploader
+       that mints them, says so in its own comment:
+           "Every kit gets a sequential design number from the SAME counter the
+            composer uses — 'use design N background' then works …
+            (registry: designs/{n})"
+
+     They are NOT the same sequence:
+           MK-001 -> 20     MK-005 -> 32     MK-008 -> 37
+           MK-002 -> 25     MK-007 -> 35     MK-009 -> 38
+           PD-001 -> 19     PD-002 -> 21     PD-011 -> 36
+     So "use design MK-009" asks for GlowUp Serum and the composer cannot
+     resolve it — which is exactly what was seen: ordering MK-009 produced the
+     Cloud Stream kit instead. The wrong design, silently.
+
+   THE FIX — front end only. Nothing server-side, nothing private, nothing in
+   engine/ or meta_codec.py is touched. Before the sentence leaves for the
+   composer, a catalogue code is translated into the design number the composer
+   actually understands:
+           "use design MK-009 background"  ->  "use design 38 background"
+   The pair (designCode, designNo) is read from the SAME public `templates`
+   collection the shop pages already read. No new permissions, no secrets.
+
+   FAILS SAFE, deliberately: if the map has not loaded, or the code is not in
+   the catalogue, the sentence is passed through COMPLETELY UNCHANGED — exactly
+   today's behaviour. This can only ever turn a broken reference into a working
+   one; it can never break a working sentence.
+   ────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var PATCH = '2026-08-08 08:15 UTC · design code -> design number';
+
+  var CODE_TO_NO = null;      /* null = not loaded yet */
+  var loading = false;
+
+  window.hexaDesignNoMap = function () { return CODE_TO_NO; };
+
+  function canon(code) {
+    var m = String(code || '').match(/\b(PD|MK|WK|CV|KN)[\s\-_]?(\d{1,3})\b/i);
+    return m ? (m[1].toUpperCase() + '-' + ('00' + m[2]).slice(-3)) : null;
+  }
+
+  window.hexaLoadDesignNumbers = function () {
+    if (CODE_TO_NO || loading) return;
+    loading = true;
+    (async function () {
+      try {
+        var A = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+        var F = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+        var app = A.getApps().length ? A.getApp() : A.initializeApp({
+          apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+          authDomain: "templatehub-16cd7.firebaseapp.com",
+          projectId: "templatehub-16cd7"
+        });
+        var db = F.getFirestore(app);
+        var snap = await F.getDocs(F.query(
+          F.collection(db, 'templates'), F.where('status', '==', 'approved'), F.limit(300)));
+        var map = {};
+        snap.forEach(function (d) {
+          var v = d.data() || {}, t = v.template || {};
+          var c = canon(v.designCode);
+          var n = (v.designNo != null) ? v.designNo : t.designNo;
+          if (c && n != null && !isNaN(parseInt(n, 10))) map[c] = parseInt(n, 10);
+        });
+        CODE_TO_NO = map;
+        try { console.log('[hexa] design-number map loaded: ' + Object.keys(map).length + ' codes'); } catch (e) {}
+      } catch (err) {
+        CODE_TO_NO = null;   /* stay unloaded -> sentences pass through untouched */
+        console.warn('[hexa] design-number map unavailable — "use design PD-044" will be sent as typed:', err && err.message);
+      } finally { loading = false; }
+    })();
+  };
+
+  /* Translate every catalogue code in a sentence into its design number. */
+  window.hexaResolveDesignCodes = function (sentence) {
+    var s = String(sentence == null ? '' : sentence);
+    if (!CODE_TO_NO) return s;                       /* not loaded — untouched */
+    return s.replace(/\b(PD|MK|WK|CV|KN)[\s\-_]?(\d{1,3})\b/gi, function (whole, pre, num) {
+      var c = pre.toUpperCase() + '-' + ('00' + num).slice(-3);
+      var n = CODE_TO_NO[c];
+      return (n == null) ? whole : String(n);        /* unknown code — untouched */
+    });
+  };
+
+  var _prevDesign = window.hexaDesign;
+  window.hexaDesign = function (text) {
+    var out = _prevDesign ? _prevDesign.apply(this, arguments) : null;
+    try {
+      if (out && out.target && CODE_TO_NO) {
+        var i = out.target.indexOf('compose=');
+        if (i > -1) {
+          var seed = decodeURIComponent(out.target.slice(i + 8));
+          var fixed = window.hexaResolveDesignCodes(seed);
+          if (fixed !== seed) {
+            out = Object.assign({}, out, { target: out.target.slice(0, i + 8) + encodeURIComponent(fixed) });
+            try { console.log('[' + PATCH + '] "' + seed + '"  ->  "' + fixed + '"'); } catch (e) {}
+          }
+        }
+      }
+    } catch (e) { /* any trouble: the original target stands */ }
+    return out;
+  };
+
+  /* Warm the map where a code can actually be typed, and on first chat use. */
+  var tries = 0;
+  var t = setInterval(function () {
+    tries++;
+    if (document.getElementById('dw_ref') || document.getElementById('helpbotInput')) {
+      window.hexaLoadDesignNumbers();
+      clearInterval(t);
+    } else if (tries > 150) clearInterval(t);
+  }, 200);
+
+  try { console.log('[chat_brain patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
