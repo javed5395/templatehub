@@ -538,8 +538,18 @@
 
       var ty = word('dw_type');        if (ty) bits.push(ty);
       var ind = word('dw_industry');   if (ind) bits.push(ind);
-      var cf = word('dw_colorFamily'); if (cf) bits.push(cf);
-      var bg = word('dw_background');  if (bg) bits.push(bg + ' background');
+      /* ── 8 Aug 2026 — SAY WHICH SLOT THE COLOUR IS FOR ────────────────────
+         "Colour family" is the DECK'S colour. Said bare — just "blue" — the
+         composer's grammar could only read it as an accent, and every deck
+         ordered blue still came back near-black. It is said with its noun now.
+         And when a colour family IS chosen, the Background box is a finish
+         (gradient, photo, mesh) not a second colour, so it is said as a finish
+         — otherwise "blue background, dark background" left two colours
+         fighting over the same slot and the darker one always won. */
+      var cf = word('dw_colorFamily');
+      var bg = word('dw_background');
+      if (cf) bits.push(cf + ' background');
+      if (bg) bits.push(bg + (cf ? ' finish' : ' background'));
       var st = word('dw_style');       if (st) bits.push(st);
 
       // Fonts must be said EARLY. orders.js looks for the first "text" in the
