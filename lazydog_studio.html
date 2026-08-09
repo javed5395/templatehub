@@ -27,6 +27,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- 9 Aug 2026 — same commerce brain as main.html and the slide pages, so the
+     basket is ONE basket across the whole site (same localStorage key). This
+     page previously had a private array that was written to and never read. -->
+<script defer src="commerce-loader.js"></script>
+<!-- Whop embedded checkout, exactly as whop-checkout.js loads it on the slide
+     pages: the payment card opens ON this site instead of redirecting away. -->
+<script async defer id="whop-loader" src="https://js.whop.com/static/checkout/loader.js"></script>
 <style>
 /* ============== RESET ============== */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -297,11 +304,21 @@ body::before{
   font-weight:500;
 }
 .menu-btn{
-  display:flex;
+  /* 9 Aug 2026 — the hamburger BUTTON never existed in the markup, only this
+     CSS. Below 1024px .chrome__nav is hidden, so phones had no navigation at
+     all: the menu overlay was built and styled but nothing could open it.
+     Button added to the header; hidden on desktop, shown on tablet/phone. */
+  display:none;
   flex-direction:column;
   gap:5px;
   padding:8px 0;
   margin-left:8px;
+  cursor:pointer;
+}
+@media (max-width:1024px){ .menu-btn{display:flex} }
+.menu-btn__label{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--whisper);
 }
 .menu-btn__lines{
   width:24px;height:10px;position:relative;
@@ -399,6 +416,21 @@ body::before{
   transition:opacity .6s var(--ease),visibility .6s;
 }
 .menu-overlay.is-open{opacity:1;visibility:visible}
+/* 9 Aug 2026 — overlay sat BELOW the header (z-index 90 vs 100) and could not
+   scroll, so on a phone the lower menu items were unreachable. */
+.menu-overlay{z-index:120;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.menu-close{
+  position:absolute;top:28px;right:28px;z-index:2;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;
+  text-transform:uppercase;color:var(--bone);cursor:pointer;
+  background:none;border:1px solid rgba(242,238,229,0.35);
+  border-radius:100px;padding:10px 18px;
+}
+.menu-close:hover{border-color:var(--bone)}
+@media (max-width:1024px){
+  .menu-overlay{padding:88px 24px 48px}
+  .menu-overlay__inner{grid-template-columns:1fr;gap:44px}
+}
 .menu-overlay__inner{
   display:grid;
   grid-template-columns:1.4fr 1fr;
@@ -1023,6 +1055,10 @@ body::before{
     </div>
   </nav>
   <div class="chrome__actions">
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="menuOverlay" data-cursor-label="Menu">
+      <span class="menu-btn__lines"></span>
+      <span class="menu-btn__label">Menu</span>
+    </button>
     <button class="cart-btn" data-cursor-label="Cart">
       <i class="fa-solid fa-bag-shopping"></i>
       <span>Cart</span>
@@ -1061,6 +1097,7 @@ body::before{
 
 <!-- ============== MENU OVERLAY ============== -->
 <div class="menu-overlay" id="menuOverlay">
+  <button class="menu-close" id="menuCloseBtn" aria-label="Close menu">Close &times;</button>
   <div class="menu-overlay__inner">
     <ul class="menu-list">
       <li class="menu-item" data-page="home"><span class="menu-item__num">01</span>Home</li>
@@ -1155,7 +1192,7 @@ body::before{
               <h3 class="product-card__name">The <em>Meridian</em></h3>
               <div class="product-card__meta"><span>1 Page</span><span>HTML/CSS/JS</span><span>Docs Included</span></div>
             </div>
-            <div class="product-card__price">$249</div>
+            <div class="product-card__price">—</div>
           </div>
         </article>
         <article class="product-card product-card--md reveal reveal-delay-1" data-page="product" data-cursor-label="Explore">
@@ -1392,17 +1429,23 @@ body::before{
           </div>
           <div class="product-detail__price">
             <div>
-              <div class="product-detail__price-amount"><em id="productPersonalPrice">$249</em></div>
+              <!-- 9 Aug 2026 — value blanked, element kept. It is filled from the
+                   live record the moment a real product is opened. It used to
+                   read $249/$374 for a "Meridian WebKit" that does not exist. -->
+              <div class="product-detail__price-amount"><em id="productPersonalPrice">—</em></div>
               <div class="product-detail__price-label">Personal License · One-time</div>
             </div>
             <div>
-              <div class="product-detail__price-amount"><em id="productCommercialPrice">$374</em></div>
+              <div class="product-detail__price-amount"><em id="productCommercialPrice">—</em></div>
               <div class="product-detail__price-label">Commercial License · +50%</div>
             </div>
           </div>
           <div class="product-detail__actions">
-            <button class="btn-primary" id="productAddPersonalBtn" data-cursor-label="Purchase" onclick="addToCart('Meridian WebKit — Personal License','$249')"><i class="fa-solid fa-bag-shopping"></i> Add Personal</button>
-            <button class="btn-primary" id="productAddCommercialBtn" data-cursor-label="Purchase" onclick="addToCart('Meridian WebKit — Commercial License','$374')"><i class="fa-solid fa-bag-shopping"></i> Add Commercial</button>
+            <!-- Buttons kept; they are re-labelled and re-wired to the live kit
+                 by ldsOpenPackage(). Default state sends the visitor to the
+                 Store instead of a product that does not exist. -->
+            <button class="btn-primary" id="productAddPersonalBtn" data-cursor-label="Store" onclick="navigateTo('marketplace')"><i class="fa-solid fa-bag-shopping"></i> Choose a Product</button>
+            <button class="btn-primary" id="productAddCommercialBtn" data-cursor-label="Store" onclick="navigateTo('marketplace')" style="display:none"><i class="fa-solid fa-bag-shopping"></i> Buy Commercial</button>
             <button class="btn-secondary" id="productLivePreviewBtn" data-cursor-label="Preview"><i class="fa-solid fa-eye"></i> Live Preview</button>
           </div>
         </div>
@@ -2043,7 +2086,7 @@ animateRing();</pre>
         </div>
         <div class="faq-item">
           <div class="faq-item__q">Can I get a refund? <span class="faq-item__icon"><i class="fa-solid fa-plus"></i></span></div>
-          <div class="faq-item__a">Yes. We offer a 14-day refund window. You are eligible if you request within 14 days of purchase and have not yet downloaded the product, or if a technical issue prevented download. Email support@lazydogtemplates.com with your order details.</div>
+          <div class="faq-item__a">Yes. We offer a 14-day refund window. You are eligible if you request within 14 days of purchase and have not yet downloaded the product, or if a technical issue prevented download. If the product has already been downloaded, it is not eligible for a refund, regardless of the reason. Email support@lazydogtemplates.com with your order details.</div>
         </div>
       </div>
     </div>
@@ -2121,7 +2164,14 @@ animateRing();</pre>
   <section class="section section--tight">
     <div class="container">
       <div class="contact-grid reveal">
-        <form id="contactForm" onsubmit="return submitForm(event)">
+        <!-- 9 Aug 2026 — posts to a form-delivery service which emails
+             support@lazydogtemplates.com. The mailto action stays as the
+             no-JavaScript fallback so the form is never a dead end. -->
+        <form id="contactForm" action="mailto:support@lazydogtemplates.com" method="post" enctype="text/plain" onsubmit="return submitForm(event)">
+          <!-- Spam trap. Real people never see this or fill it in; bots do,
+               and anything that fills it is silently dropped. -->
+          <input type="checkbox" name="botcheck" id="ldsBotcheck" tabindex="-1" autocomplete="off"
+                 style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" aria-hidden="true">
           <div class="form-field">
             <label>Your name</label>
             <input type="text" name="name" required placeholder="As you'd like to be addressed">
@@ -2149,7 +2199,7 @@ animateRing();</pre>
             <label>Message</label>
             <textarea name="message" rows="4" required placeholder="Tell us what you're working on, what you need, or what you'd like to know."></textarea>
           </div>
-          <button type="submit" class="form-submit" data-cursor-label="Send">
+          <button type="submit" class="form-submit" id="contactSubmitBtn" data-cursor-label="Send">
             Send Message <i class="fa-solid fa-arrow-right"></i>
           </button>
         </form>
@@ -2388,7 +2438,7 @@ animateRing();</pre>
           <div class="faq-item__a">
             Refunds are generally not available for:
             <ul style="margin-top:12px;padding-left:20px;line-height:2">
-              <li>Digital products that have already been successfully downloaded.</li>
+              <li>Digital products that have already been successfully downloaded. Once a product has been downloaded, it is not eligible for a refund, regardless of the reason.</li>
               <li>Requests submitted after the 14-day refund window.</li>
               <li>Purchases where the customer has violated the Terms &amp; Conditions.</li>
               <li>Change-of-mind requests after successful download of the digital product.</li>
@@ -2564,24 +2614,20 @@ function setProductPricing(p){
   if(cBtn)cBtn.setAttribute('onclick',`addToCart('${clean} — Commercial License','${commercial}')`);
 }
 
-const webkitProducts=[
-  {id:'LDS-001',kit:'aerospace',name:'Aerospace <em>Technology</em>',cat:'WebKit · Corporate',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$219',desc:'A premium single-page lander for the aerospace and deep-tech sector. Bold, authoritative design language built to convey precision, scale, and innovation.',cardImg:'https://picsum.photos/seed/mp-01/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-meridian/900/1100.jpg'},
-  {id:'LDS-002',kit:'aistartup',name:'AI Startup',cat:'WebKit · Tech',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$249',desc:'A sleek, high-converting lander for AI and tech startups. Clean typography, confident layout, and a design language built for the next generation of software companies.',cardImg:'https://picsum.photos/seed/mp-02/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-atelier/900/1100.jpg'},
-  {id:'LDS-003',kit:'aura',name:'Aura <em>Medical Institute</em>',cat:'WebKit · Healthcare',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$149',desc:'A calm, clinical lander for medical institutes and specialist practices. Reassuring typography and a clean layout built to earn trust before the first appointment.',cardImg:'https://picsum.photos/seed/mp-03/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-aura/900/1100.jpg'},
-  {id:'LDS-004',kit:'cortex',name:'Cortex',cat:'WebKit · Tech',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$149',desc:'A dark, precision-built lander for deep-tech and R&D-driven companies. Sharp contrast and technical typography built to signal serious engineering.',cardImg:'https://picsum.photos/seed/mp-04/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-cortex/900/1100.jpg'},
-  {id:'LDS-005',kit:'dezley',name:'Dezley',cat:'WebKit · Personal Brand',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$89',desc:'A minimal personal-brand lander built for creators and consultants who need a fast, confident presence online without unnecessary complexity.',cardImg:'https://picsum.photos/seed/mp-05/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-dezley/900/1100.jpg'},
-  {id:'LDS-006',kit:'eduwebkit',name:'Education <em>WebKit</em>',cat:'WebKit · Education',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$179',desc:'A friendly, structured lander for schools, courses, and learning platforms. Clear hierarchy built to guide prospective students toward enrollment.',cardImg:'https://picsum.photos/seed/mp-06/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-eduwebkit/900/1100.jpg'},
-  {id:'LDS-007',kit:'eduwebkit5',name:'Education <em>WebKit 5</em>',cat:'WebKit · Education',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$189',desc:'An updated take on our education lander with richer visuals and expanded sections — built for institutions that want more depth without losing clarity.',cardImg:'https://picsum.photos/seed/mp-07/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-eduwebkit5/900/1100.jpg'},
-  {id:'LDS-008',kit:'healthcare',name:'Healthcare',cat:'WebKit · Healthcare',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$189',desc:'A trustworthy lander for clinics and healthcare providers. Soft, reassuring visuals paired with clear calls to action for booking and enquiries.',cardImg:'https://picsum.photos/seed/mp-08/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-healthcare/900/1100.jpg'},
-  {id:'LDS-009',kit:'healthcare2',name:'Healthcare <em>V2</em>',cat:'WebKit · Healthcare',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$199',desc:'A refreshed healthcare lander with a bolder layout and expanded service sections — built for larger practices and multi-specialty clinics.',cardImg:'https://picsum.photos/seed/mp-09/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-healthcare2/900/1100.jpg'},
-  {id:'LDS-010',kit:'hotels',name:'Hotels &amp; <em>Resort</em>',cat:'WebKit · Hospitality',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$229',desc:'An elegant lander for luxury hotels and resorts. Warm, immersive design language that evokes comfort and prestige — built for properties that want to convert visitors into guests.',cardImg:'https://picsum.photos/seed/mp-10/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-maison/900/1100.jpg'},
-  {id:'LDS-011',kit:'launchflow',name:'Launchflow',cat:'WebKit · SaaS',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$119',desc:'A fast, conversion-focused lander for product launches and early-stage SaaS. Built to turn early traffic into waitlist signups.',cardImg:'https://picsum.photos/seed/mp-11/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-launchflow/900/1100.jpg'},
-  {id:'LDS-012',kit:'mediterian',name:'Mediterian',cat:'WebKit · Hospitality',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$209',desc:'A sun-drenched lander inspired by Mediterranean coastal hospitality. Warm imagery and relaxed typography built for resorts and travel brands.',cardImg:'https://picsum.photos/seed/mp-12/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-mediterian/900/1100.jpg'},
-  {id:'LDS-013',kit:'propfirm',name:'Prop <em>Firm</em>',cat:'WebKit · Finance',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$259',desc:'A sharp, high-trust lander for proprietary trading firms. Data-forward design language built to convey performance and discipline.',cardImg:'https://picsum.photos/seed/mp-13/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-propfirm/900/1100.jpg'},
-  {id:'LDS-014',kit:'resturentaurelia',name:'Resturent <em>Aurelia</em>',cat:'WebKit · Restaurant',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$189',desc:'An intimate, appetite-driven lander for fine-dining restaurants. Rich imagery and elegant typography built to set the mood before guests arrive.',cardImg:'https://picsum.photos/seed/mp-14/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-resturentaurelia/900/1100.jpg'},
-  {id:'LDS-015',kit:'saaskit',name:'Saaskit',cat:'WebKit · SaaS',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$179',desc:'A versatile SaaS lander with clean feature sections and pricing-ready layout — built for software products that need to explain themselves fast.',cardImg:'https://picsum.photos/seed/mp-15/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-saaskit/900/1100.jpg'},
-  {id:'LDS-016',kit:'schools52',name:'Schools52',cat:'WebKit · Education',type:'Single-page Lander',stack:'HTML / CSS / JS',price:'$199',desc:'A network-ready lander built for multi-campus school groups. Structured layout designed to represent many locations under one clear brand.',cardImg:'https://picsum.photos/seed/mp-16/600/800.jpg',spreadImg:'https://picsum.photos/seed/sig-schools52/900/1100.jpg'}
-];
+/* ── 9 Aug 2026 — FROZEN DEMO CATALOGUE REMOVED ───────────────────────
+   16 hardcoded LDS-001..016 WebKits with picsum.photos stock art and
+   invented $89-$374 prices. They were withdrawn from the site but stayed
+   on the Collection page because that page rendered THIS array instead of
+   Firestore. renderCollectionSpreads() below now reads the same live
+   approved records the Store grid uses, so anything removed from the
+   store disappears here on the next snapshot — automatically.
+   Kept as an empty array so renderWebkitCards()/openProduct() stay safe. */
+const webkitProducts=[];
+
+/* Live catalogue registry — filled by the Firestore listener further down. */
+window.LDS_LIVE       = window.LDS_LIVE || {webkit:[],keynote:[],deck:[],resume:[],media:[]};
+window.LDS_CAT_LABELS = {webkit:'WebKit',keynote:'Digital Keynote',deck:'Pitch Deck',resume:'Resume / CV',media:'Media Kit'};
+window.LDS_CAT_ORDER  = ['webkit','keynote','deck','resume','media'];
 
 function renderWebkitCards(){
   const grid=document.getElementById('marketplaceGrid');
@@ -2605,37 +2651,88 @@ function renderWebkitCards(){
 function renderCollectionSpreads(){
   const container=document.getElementById('collectionSpreads');
   if(!container)return;
-  const html=webkitProducts.map(p=>`
-      <article class="featured-spread reveal" data-kit="${p.kit}" data-cursor-label="Explore">
-        <div class="featured-spread__media" style="background-image:url('${p.spreadImg}')">
-          <div class="featured-spread__media-label">${p.id} · ${p.name.replace(/<[^>]+>/g,'')}</div>
-        </div>
-        <div class="featured-spread__info">
-          <span class="featured-spread__num">${p.id} · WebKit</span>
-          <h2 class="featured-spread__title">${p.name}</h2>
-          <div class="featured-spread__meta">
-            <div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Category</span><span class="featured-spread__meta-value">${p.cat}</span></div>
-            <div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Type</span><span class="featured-spread__meta-value">${p.type}</span></div>
-            <div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Stack</span><span class="featured-spread__meta-value">${p.stack}</span></div>
-            <div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Price</span><span class="featured-spread__meta-value">${p.price} Personal · ${commercialPrice(p.price)} Commercial</span></div>
-          </div>
-          <p class="featured-spread__desc">${p.desc}</p>
-          <a href="#" class="featured-spread__pkg" data-cursor-label="Details" style="display:inline-block;margin-bottom:14px;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);padding:10px 20px;text-decoration:none;font-family:var(--font-sans);">Complete Product Package Details</a>
-        </div>
-      </article>`).join('');
-  container.innerHTML=html;
 
-  // Make the whole card open the Product Detail page — populated with
-  // THIS card's own data — except the "Explore the WebKit" link, which
-  // should open the live demo instead.
-  container.querySelectorAll('.featured-spread').forEach(card=>{
-    card.addEventListener('click',e=>{
-      if(e.target.closest('.featured-spread__cta'))return;
-      e.preventDefault();
-      openProduct(card.dataset.kit);
+  const esc = v => String(v==null?'':v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const pretty = v => String(v||'').replace(/[_-]+/g,' ').trim().replace(/\b\w/g,c=>c.toUpperCase());
+
+  const LIVE=window.LDS_LIVE||{}, LABELS=window.LDS_CAT_LABELS||{},
+        ORDER=window.LDS_CAT_ORDER||Object.keys(LIVE);
+
+  const rows=[];
+  ORDER.forEach(k=>(LIVE[k]||[]).forEach(t=>rows.push({catKey:k,t})));
+
+  if(!rows.length){
+    container.innerHTML=
+      '<div style="text-align:center;padding:90px 24px;border:1px solid var(--hairline)">'+
+        '<span class="featured-spread__num">The Collection</span>'+
+        '<h2 class="featured-spread__title" style="margin:14px 0 18px">Nothing here yet.</h2>'+
+        '<p class="featured-spread__desc" style="max-width:520px;margin:0 auto 26px">'+
+          'Our flagship artifacts are still in the studio. The full catalogue of pitch decks '+
+          'and media kits is live in the Store.</p>'+
+        '<a href="#" data-page="marketplace" data-cursor-label="Store" '+
+          'style="display:inline-block;font-family:var(--font-sans);font-size:0.72rem;'+
+          'letter-spacing:0.12em;text-transform:uppercase;color:var(--ink);'+
+          'border:1px solid var(--ink);padding:12px 22px;text-decoration:none">Browse the Store</a>'+
+      '</div>';
+    container.querySelectorAll('[data-page]').forEach(el=>{
+      el.addEventListener('click',ev=>{ev.preventDefault();navigateTo(el.dataset.page);});
     });
+    return;
+  }
+
+  container.innerHTML=rows.map(({catKey,t},i)=>{
+    const label=LABELS[catKey]||'Artifact';
+    const name =t.name||'Untitled';
+    const sub  =t.subCategory?pretty(t.subCategory):'';
+    const img  =t.coverImage||(t.slides&&t.slides[0])||'';
+    const price=parseFloat(t.price);
+    const priceTxt=(price>0)
+      ? '$'+Math.round(price)+' Personal · '+commercialPrice('$'+price)+' Commercial'
+      : 'Free';
+    const slideN=t.slideCount||(t.slides?t.slides.length:0)||'—';
+    const third=(catKey==='webkit')
+      ? {l:'Stack', v:(t.fileTypes&&t.fileTypes.length?t.fileTypes.join(' / '):'HTML / CSS / JS')}
+      : {l:'Slides',v:slideN};
+    const desc=t.designNotes||(name+' — a '+label.toLowerCase()+' from the LazyDog collection, ready to adapt.');
+    const num ='LDS-'+String(i+1).padStart(3,'0');
+
+    return '<article class="featured-spread reveal" data-live-collection="1" data-idx="'+i+'" data-cursor-label="Explore">'+
+      '<div class="featured-spread__media" style="background-image:url(\''+esc(img)+'\')">'+
+        '<div class="featured-spread__media-label">'+esc(num)+' · '+esc(name)+'</div>'+
+      '</div>'+
+      '<div class="featured-spread__info">'+
+        '<span class="featured-spread__num">'+esc(num)+' · '+esc(label)+'</span>'+
+        '<h2 class="featured-spread__title">'+esc(name)+'</h2>'+
+        '<div class="featured-spread__meta">'+
+          '<div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Category</span><span class="featured-spread__meta-value">'+esc(label)+(sub?' · '+esc(sub):'')+'</span></div>'+
+          '<div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Type</span><span class="featured-spread__meta-value">'+esc(t.docType?pretty(t.docType):label)+'</span></div>'+
+          '<div class="featured-spread__meta-item"><span class="featured-spread__meta-label">'+third.l+'</span><span class="featured-spread__meta-value">'+esc(third.v)+'</span></div>'+
+          '<div class="featured-spread__meta-item"><span class="featured-spread__meta-label">Price</span><span class="featured-spread__meta-value">'+esc(priceTxt)+'</span></div>'+
+        '</div>'+
+        '<p class="featured-spread__desc">'+esc(desc)+'</p>'+
+        '<a href="#" data-lds-open="'+i+'" data-cursor-label="Details" '+
+          'style="display:inline-block;margin-bottom:14px;font-family:var(--font-sans);'+
+          'font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink);'+
+          'border:1px solid var(--ink);padding:10px 20px;text-decoration:none">Product Details &amp; Pricing</a>'+
+      '</div>'+
+    '</article>';
+  }).join('');
+
+  const open=i=>{
+    const row=rows[i]; if(!row)return;
+    if(typeof window.ldsOpenPackage==='function') window.ldsOpenPackage(row.t,row.catKey);
+    else navigateTo('product');
+  };
+  container.querySelectorAll('.featured-spread[data-live-collection]').forEach(card=>{
+    card.addEventListener('click',ev=>{ev.preventDefault();open(+card.dataset.idx);});
+  });
+  container.querySelectorAll('[data-lds-open]').forEach(a=>{
+    a.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();open(+a.dataset.ldsOpen);});
   });
 }
+
 
 function openProduct(kitId){
   const p=webkitProducts.find(x=>x.kit===kitId);
@@ -2766,7 +2863,8 @@ function navigateTo(pageId){
     l.classList.toggle('is-active',targetPage===pageId||(pageId==='product'&&targetPage==='signature')||(pageId==='custom'&&targetPage==='services'));
   });
 
-  document.getElementById('menuOverlay').classList.remove('is-open');
+  if(typeof setMenu==='function') setMenu(false);
+  else document.getElementById('menuOverlay').classList.remove('is-open');
 
   setTimeout(()=>{
     target.querySelectorAll('.reveal').forEach(el=>{
@@ -2797,6 +2895,22 @@ document.querySelectorAll('[data-page]').forEach(el=>{
 
 /* ============== MENU ============== */
 const menuOverlay=document.getElementById('menuOverlay');
+
+/* 9 Aug 2026 — nothing in this file ever OPENED the menu. There were two
+   remove('is-open') calls and no add(), and no button to fire one. Wired up. */
+const menuBtn=document.getElementById('menuBtn');
+const menuCloseBtn=document.getElementById('menuCloseBtn');
+function setMenu(open){
+  menuOverlay.classList.toggle('is-open',open);
+  if(menuBtn){
+    menuBtn.classList.toggle('is-open',open);
+    menuBtn.setAttribute('aria-expanded',open?'true':'false');
+  }
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+if(menuBtn)      menuBtn.addEventListener('click',e=>{e.preventDefault();setMenu(!menuOverlay.classList.contains('is-open'));});
+if(menuCloseBtn) menuCloseBtn.addEventListener('click',e=>{e.preventDefault();setMenu(false);});
+menuOverlay.addEventListener('click',e=>{ if(e.target===menuOverlay) setMenu(false); });
 
 /* ============== REVEAL ============== */
 const observer=new IntersectionObserver(entries=>{
@@ -2920,31 +3034,327 @@ document.querySelectorAll('.faq-item').forEach(item=>{
 });
 
 /* ============== FORMS ============== */
-function submitForm(e){
+/* ══════════ CONTACT FORM ═══════════════════════════════════════════════
+   History: this was preventDefault() -> reset() -> return false. No endpoint,
+   no mail, no storage — it wiped the fields so it LOOKED sent and silently
+   binned every enquiry.
+
+   A static page cannot send email by itself, so the message is POSTed to a
+   form-delivery service which emails it to support@lazydogtemplates.com.
+
+   ── TO GO LIVE: paste the access key on the next line. ──────────────────
+   Get it free at https://web3forms.com — enter support@lazydogtemplates.com,
+   they email you a key, paste it below, push. Nothing else needs to change.
+
+   Until the key is filled in, the form falls back to opening the visitor's
+   mail app so it is never a dead end. Swapping provider later means changing
+   only these two lines — the form and everything around it stays as it is. */
+const LDS_SUPPORT_EMAIL  = 'support@lazydogtemplates.com';
+const LDS_FORM_ENDPOINT  = 'https://api.web3forms.com/submit';
+const LDS_FORM_KEY       = '787455ed-8651-4417-96fe-20f8bb956910';  // Web3Forms public access key (safe in client code)
+
+function ldsMailtoFallback(name,email,subject,message){
+  const body =
+    'Name: '+name+'\n'+
+    'Email: '+email+'\n'+
+    'Subject: '+subject+'\n'+
+    '-----------------------------\n\n'+
+    message+'\n\n'+
+    '-----------------------------\n'+
+    'Sent from the LazyDog Studios contact form';
+  return 'mailto:'+LDS_SUPPORT_EMAIL+
+         '?subject='+encodeURIComponent('['+subject+'] '+name)+
+         '&body='+encodeURIComponent(body);
+}
+
+async function submitForm(e){
   e.preventDefault();
-  e.target.reset();
+  const form=e.target;
+  const get=n=>{const el=form.querySelector('[name="'+n+'"]');return el?String(el.value||'').trim():'';};
+  const name=get('name'), email=get('email');
+  const subject=get('subject')||'General enquiry', message=get('message');
+
+  // Spam trap: a bot filled the hidden box. Look successful, send nothing.
+  const bot=form.querySelector('[name="botcheck"]');
+  if(bot && bot.checked){ ldsContactNote('Thank you — your message has been sent.','ok'); return false; }
+
+  if(!name||!email||!message){
+    ldsContactNote('Please fill in your name, email and message.','error');
+    return false;
+  }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+    ldsContactNote('That email address does not look right — please check it.','error');
+    return false;
+  }
+
+  // No key yet → hand the message to the visitor's mail app rather than lose it.
+  if(!LDS_FORM_KEY){
+    window.location.href = ldsMailtoFallback(name,email,subject,message);
+    ldsContactNote('Opening your email app with the message ready to send — press send there to reach us. '+
+                   'If nothing opened, email us directly at '+LDS_SUPPORT_EMAIL+'.','ok');
+    return false;
+  }
+
+  const btn=document.getElementById('contactSubmitBtn');
+  const btnHTML=btn?btn.innerHTML:'';
+  if(btn){ btn.disabled=true; btn.innerHTML='Sending…'; }
+  ldsContactNote('Sending your message…','busy');
+
+  try{
+    const res=await fetch(LDS_FORM_ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        access_key: LDS_FORM_KEY,
+        subject:    '['+subject+'] '+name,
+        from_name:  'LazyDog Studios website',
+        name:       name,
+        email:      email,     // becomes the reply-to, so you just hit Reply
+        replyto:    email,
+        enquiry:    subject,
+        message:    message,
+        page:       'lazydog_studio.html'
+      })
+    });
+    let ok=res.ok;
+    try{ const j=await res.json(); ok = ok && (j.success!==false); }catch(_){}
+
+    if(ok){
+      form.reset();
+      ldsContactNote('Thank you — your message has reached us. We reply to every message personally, '+
+                     'usually within two business days.','ok');
+    } else {
+      throw new Error('rejected');
+    }
+  }catch(err){
+    /* Never swallow a failure: the visitor keeps everything they typed and is
+       given a working way to reach us instead of a message that vanished. */
+    ldsContactNote('','error');
+    const note=document.getElementById('contactNote');
+    if(note){
+      note.innerHTML='We could not send that automatically. Nothing you typed has been lost — '+
+        '<a href="'+ldsMailtoFallback(name,email,subject,message)+'" style="color:var(--oxblood);text-decoration:underline">'+
+        'click here to send it from your email app</a>, or write to '+LDS_SUPPORT_EMAIL+'.';
+    }
+  }finally{
+    if(btn){ btn.disabled=false; btn.innerHTML=btnHTML; }
+  }
   return false;
 }
 
-let cartItems=[];
-function addToCart(name,price){
-  cartItems.push({name,price});
-  const countEl=document.getElementById('cartCount');
-  if(countEl){
-    countEl.textContent=cartItems.length;
-    countEl.style.display='flex';
+/* Feedback line under the form. The original reset the fields instantly, which
+   read as "sent" — we only clear them once delivery is actually confirmed. */
+function ldsContactNote(msg,kind){
+  const form=document.getElementById('contactForm');
+  if(!form)return;
+  let note=document.getElementById('contactNote');
+  if(!note){
+    note=document.createElement('div');
+    note.id='contactNote';
+    note.style.cssText='margin-top:18px;font-family:var(--font-sans);font-size:0.9rem;line-height:1.55;padding:14px 16px;border:1px solid var(--hairline);background:var(--bone-2)';
+    form.appendChild(note);
   }
+  note.style.borderColor = (kind==='error') ? 'var(--oxblood)'
+                         : (kind==='busy')  ? 'var(--hairline-strong)' : 'var(--sage)';
+  note.style.color        = (kind==='error') ? 'var(--oxblood)' : 'var(--ink)';
+  note.textContent=msg;
+}
+
+/* ══════════ CART — 9 Aug 2026 ══════════════════════════════════════════
+   Was: `let cartItems=[]` — pushed to, never read. No panel, no checkout, no
+   memory. Now it drives the SAME basket as the rest of the site
+   (financail folder/cart_core.js via commerce-loader.js), so an item added
+   here is in the same cart on main.html and survives a refresh.            */
+
+function ldsCart(){
+  return (window.Commerce && window.Commerce.cart) ? window.Commerce.cart : null;
+}
+function ldsMoney(v){
+  if(v==='free'||v===0||v==null) return 'Free';
+  const n=Number(v); return isNaN(n) ? String(v) : ('USD '+n.toFixed(2));
+}
+function ldsCartCount(){
+  const c=ldsCart(); if(!c||!c.getItems) return 0;
+  return (c.getItems()||[]).reduce((s,i)=>s+(i.quantity||1),0);
+}
+function ldsUpdateCartBadge(){
+  const el=document.getElementById('cartCount'); if(!el) return;
+  const n=ldsCartCount();
+  el.textContent = n>99 ? '99+' : String(n);
+  el.style.display = n>0 ? 'flex' : 'none';
+}
+
+/* addToCart keeps its old NAME and signature so every existing caller and every
+   onclick string built by ldsOpenPackage keeps working — but it now writes to
+   the real basket. `price` arrives as a display string like "$27". */
+function addToCart(name, price, productId, sellerId){
+  const cart=ldsCart();
+  const numeric=parseFloat(String(price).replace(/[^0-9.]/g,''));
+  const ok = cart && cart.addItem && cart.addItem({
+    productId: String(productId || ('lds-'+String(name).toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,60))),
+    title:     String(name),
+    price:     isNaN(numeric) ? 0 : numeric,
+    sellerId:  String(sellerId || 'lazydogtemplates')
+  });
+
   const btn=(typeof event!=='undefined'&&event&&event.currentTarget)||null;
   if(btn&&!btn.dataset.locked){
     const original=btn.innerHTML;
     btn.dataset.locked='1';
-    btn.innerHTML='<i class="fa-solid fa-check"></i> Added to Cart';
-    setTimeout(()=>{
-      btn.innerHTML=original;
-      delete btn.dataset.locked;
-    },1400);
+    btn.innerHTML = ok ? '<i class="fa-solid fa-check"></i> Added to Cart'
+                       : '<i class="fa-solid fa-triangle-exclamation"></i> Cart Unavailable';
+    setTimeout(()=>{ btn.innerHTML=original; delete btn.dataset.locked; },1400);
   }
+  ldsUpdateCartBadge();
+  if(ok && document.getElementById('ldsCartPanel')?.dataset.open==='1') ldsRenderCart();
+  return ok;
 }
+
+/* ── Cart panel — same contents and actions as the main site's panel,
+      drawn in this page's own palette. ───────────────────────────────── */
+function ldsBuildCartPanel(){
+  if(document.getElementById('ldsCartPanel')) return;
+  const p=document.createElement('div');
+  p.id='ldsCartPanel';
+  p.style.cssText='position:fixed;top:104px;right:24px;width:360px;max-width:92vw;max-height:74vh;'+
+    'overflow:auto;background:var(--bone);color:var(--ink);border:1px solid var(--hairline-strong);'+
+    'box-shadow:0 18px 50px rgba(22,19,15,.22);z-index:100001;display:none;font-family:var(--font-sans)';
+  p.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--hairline)">'+
+      '<strong style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase">Your Cart</strong>'+
+      '<button id="ldsCartClose" aria-label="Close" style="background:none;border:none;font-size:20px;line-height:1;cursor:pointer;color:var(--ink)">&times;</button>'+
+    '</div>'+
+    '<div id="ldsCartBody" style="padding:6px 14px"></div>'+
+    '<div id="ldsCartFoot" style="padding:14px 18px;border-top:1px solid var(--hairline)"></div>';
+  document.body.appendChild(p);
+  p.querySelector('#ldsCartClose').addEventListener('click',()=>ldsCloseCart());
+  document.addEventListener('click',e=>{
+    const panel=document.getElementById('ldsCartPanel');
+    if(!panel||panel.dataset.open!=='1') return;
+    if(panel.contains(e.target)) return;
+    const btn=document.querySelector('.cart-btn');
+    if(btn&&(btn===e.target||btn.contains(e.target))) return;
+    ldsCloseCart();
+  });
+}
+function ldsRenderCart(){
+  const body=document.getElementById('ldsCartBody'), foot=document.getElementById('ldsCartFoot');
+  if(!body||!foot) return;
+  const cart=ldsCart();
+  const items=(cart&&cart.getItems)?(cart.getItems()||[]):[];
+  const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  if(!cart){
+    body.innerHTML='<div style="padding:26px 6px;text-align:center;color:var(--whisper);font-size:0.9rem">Cart is loading…</div>';
+    foot.innerHTML=''; return;
+  }
+  if(!items.length){
+    body.innerHTML='<div style="padding:28px 6px;text-align:center;color:var(--whisper);font-size:0.9rem">Your cart is empty.</div>';
+    foot.innerHTML=''; return;
+  }
+  body.innerHTML=items.map(it=>
+    '<div style="display:flex;align-items:center;gap:10px;padding:12px 2px;border-bottom:1px solid var(--hairline-2)">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.title)+((it.quantity>1)?' &times;'+it.quantity:'')+'</div>'+
+        '<div style="font-size:0.78rem;color:var(--oxblood)">'+esc(ldsMoney(it.price))+'</div>'+
+      '</div>'+
+      '<button data-lds-cart-remove="'+esc(it.productId)+'" style="background:none;border:1px solid var(--hairline-strong);color:var(--ink);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;cursor:pointer;font-family:var(--font-mono)">Remove</button>'+
+    '</div>').join('');
+  const total=(cart.getTotal?cart.getTotal():0);
+  foot.innerHTML=
+    '<div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:0.9rem"><span>Total</span><strong>'+esc(ldsMoney(total))+'</strong></div>'+
+    '<button id="ldsCartCheckout" style="width:100%;padding:13px;border:1px solid var(--ink);background:var(--ink);color:var(--bone);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer">Checkout</button>'+
+    '<p style="margin-top:10px;font-size:0.72rem;line-height:1.5;color:var(--whisper)">Buying a single item? Open it and use <strong>Buy</strong> — that pays instantly through Whop.</p>';
+  body.querySelectorAll('[data-lds-cart-remove]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      if(cart.removeItem) cart.removeItem(b.dataset.ldsCartRemove);
+      ldsRenderCart(); ldsUpdateCartBadge();
+    });
+  });
+  const co=foot.querySelector('#ldsCartCheckout');
+  if(co) co.addEventListener('click',ldsCartCheckout);
+}
+/* Matches nbCartCheckout() on the main site. A single Whop checkout covers ONE
+   plan, so a multi-item basket cannot be paid in one go yet. Rather than
+   pretend, say so — and point at the per-item Buy button, which does work. */
+function ldsCartCheckout(){
+  const items=(ldsCart()&&ldsCart().getItems)?(ldsCart().getItems()||[]):[];
+  if(items.length===1){
+    const only=items[0];
+    if(only.whopPlanId){ ldsOpenWhop(only.whopPlanId, only.title); return; }
+  }
+  alert('Checkout for a whole basket is coming soon — we are still connecting it.\n\n'+
+        'Your cart is saved. To buy now, open any item and use its Buy button — that goes straight to Whop.');
+}
+function ldsOpenCart(){
+  ldsBuildCartPanel();
+  const p=document.getElementById('ldsCartPanel');
+  if(p.dataset.open==='1'){ ldsCloseCart(); return; }
+  ldsRenderCart();
+  p.style.display='block'; p.dataset.open='1';
+}
+function ldsCloseCart(){
+  const p=document.getElementById('ldsCartPanel');
+  if(p){ p.style.display='none'; p.dataset.open='0'; }
+}
+
+/* ══════════ WHOP — 13 ══════════════════════════════════════════════════
+   Was: window.open('https://whop.com/checkout/plan_x') — the buyer was thrown
+   off the site to a full page. The slide pages on the main site open Whop's
+   payment card in a modal ON the page (whop-checkout.js). Same here now, with
+   the same loader script and the same data-whop-checkout-plan-id embed. If the
+   Whop script is blocked or slow, it falls back to the old redirect rather
+   than leaving the buyer with a dead button.                              */
+function ldsOpenWhop(planRaw, productName){
+  const m=String(planRaw||'').match(/plan_[A-Za-z0-9]+/);
+  const plan=m?m[0]:'';
+  const fallback='https://whop.com/checkout/'+plan;
+  if(!plan){ alert('This item is being set up for sale — please check back shortly.'); return; }
+
+  const ov=document.createElement('div');
+  ov.className='lds-whop';
+  ov.style.cssText='position:fixed;inset:0;z-index:100002;background:rgba(22,19,15,.62);display:flex;align-items:center;justify-content:center;padding:16px';
+  const box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:12px;max-width:460px;width:100%;max-height:92vh;overflow:auto;position:relative';
+  const x=document.createElement('button');
+  x.textContent='✕';
+  x.setAttribute('aria-label','Close checkout');
+  x.style.cssText='position:absolute;top:8px;right:10px;z-index:2;border:0;background:transparent;font-size:20px;cursor:pointer';
+  x.onclick=()=>ov.remove();
+  const co=document.createElement('div');
+  co.setAttribute('data-whop-checkout-plan-id',plan);
+  co.setAttribute('data-whop-checkout-theme','light');
+  const note=document.createElement('div');
+  note.style.cssText='padding:10px 14px 14px;font:400 12px/1.5 system-ui,sans-serif;color:#555;text-align:center';
+  note.innerHTML='Secure payment by Whop'+(productName?(' · '+String(productName).replace(/[<>]/g,'')):'')+
+                 '<br><a href="'+fallback+'" target="_blank" rel="noopener" style="color:#7A2E1F">Card not loading? Open checkout in a new tab</a>';
+  box.appendChild(x); box.appendChild(co); box.appendChild(note);
+  ov.appendChild(box); document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+
+  if(window.wco && window.wco.mount){ try{ window.wco.mount(co); }catch(e){} }
+  // If Whop never renders anything, don't strand the buyer.
+  setTimeout(()=>{
+    if(document.body.contains(ov) && co.childElementCount===0 && !co.querySelector('iframe')){
+      ov.remove();
+      window.open(fallback,'_blank','noopener');
+    }
+  },3500);
+}
+
+/* Wire the header cart button + keep the badge live. */
+document.addEventListener('DOMContentLoaded',()=>{
+  const btn=document.querySelector('.cart-btn');
+  if(btn) btn.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); ldsOpenCart(); });
+  ldsUpdateCartBadge();
+});
+['cart:updated','cart:item-added','cart:item-removed','cart:cleared'].forEach(ev=>{
+  window.addEventListener(ev,()=>{ ldsUpdateCartBadge();
+    if(document.getElementById('ldsCartPanel')?.dataset.open==='1') ldsRenderCart(); });
+});
+// commerce-loader.js is deferred, so the basket may arrive after this script.
+setTimeout(ldsUpdateCartBadge,400);
+setTimeout(ldsUpdateCartBadge,1500);
 
 /* ============== HERO PARALLAX ============== */
 const heroBg=document.querySelector('.hero__bg');
@@ -2962,7 +3372,7 @@ if(heroBg){
 /* ============== KEYBOARD ============== */
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&menuOverlay.classList.contains('is-open')){
-    menuOverlay.classList.remove('is-open');
+    setMenu(false);
   }
   if(e.key==='Escape'&&document.getElementById('ldsLightbox').classList.contains('is-open')){
     window.ldsCloseLightbox();
@@ -3195,24 +3605,46 @@ document.addEventListener('keydown',e=>{
         // Free kits, and paid kits whose plan has not been created yet, fall
         // back to the on-site cart rather than opening a broken link.
         const planId = String(t.whopPlanId || '').match(/plan_[A-Za-z0-9]+/);
-        const whopUrl = t.whopPurchaseUrl || (planId ? 'https://whop.com/checkout/' + planId[0] : '');
+        const plan    = planId ? planId[0] : '';
+        const whopUrl = t.whopPurchaseUrl || (plan ? 'https://whop.com/checkout/' + plan : '');
         const esc1 = v => String(v).replace(/'/g, "\\'");
+        const pid  = t.__docId   || '';
+        const sid  = t.__sellerId || 'lazydogtemplates';
+
+        /* 9 Aug 2026 — was window.open(whopUrl): the buyer was thrown off the
+           site onto a full Whop page. Now the Whop payment card opens in a
+           modal ON this page, the same way the main site's slide pages do.
+           ldsOpenWhop() falls back to the old redirect if Whop fails to load. */
         if(productEl.addP){
-          if(price>0 && whopUrl){
-            productEl.addP.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Buy Personal';
+          if(price>0 && plan){
+            productEl.addP.style.display='';
+            productEl.addP.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Buy Personal · ' + personal;
+            productEl.addP.setAttribute('onclick',
+              "ldsOpenWhop('" + esc1(plan) + "','" + esc1(name) + " — Personal License')");
+          } else if(price>0 && whopUrl){
+            productEl.addP.style.display='';
+            productEl.addP.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Buy Personal · ' + personal;
             productEl.addP.setAttribute('onclick',
               "window.open('" + esc1(whopUrl) + "','_blank','noopener')");
           } else {
-            productEl.addP.innerHTML = PRODUCT_DEFAULT.addP;
+            productEl.addP.style.display='';
+            productEl.addP.innerHTML = '<i class="fa-solid fa-download"></i> Download · Free';
             productEl.addP.setAttribute('onclick',
-              "addToCart('" + esc1(name) + " — Personal License','" + personal + "')");
+              "addToCart('" + esc1(name) + "','" + personal + "','" + esc1(pid) + "','" + esc1(sid) + "')");
           }
         }
+        /* Commercial has no Whop plan of its own, so it stays a basket action —
+           but it is now labelled honestly as such instead of looking like a
+           second, equal buy button. */
         if(productEl.addC){
-          // no Whop plan exists at the commercial price — on-site cart only
-          productEl.addC.innerHTML = PRODUCT_DEFAULT.addC;
-          productEl.addC.setAttribute('onclick',
-            "addToCart('" + esc1(name) + " — Commercial License','" + commercial + "')");
+          if(price>0){
+            productEl.addC.style.display='';
+            productEl.addC.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Add Commercial · ' + commercial;
+            productEl.addC.setAttribute('onclick',
+              "addToCart('" + esc1(name) + " — Commercial License','" + commercial + "','" + esc1(pid) + "-commercial','" + esc1(sid) + "')");
+          } else {
+            productEl.addC.style.display='none';
+          }
         }
 
         ldsProductGallery = { items: galleryFor(t), meta:{title:name, meta:label} };
@@ -3379,8 +3811,10 @@ document.addEventListener('keydown',e=>{
 
         const [,label] = CATS[catKey];
         docs.forEach(docSnap=>{
-          const data  = docSnap.data();
+          const data  = docSnap.data() || {};
           const t     = data.template || {};
+          t.__docId    = docSnap.id;
+          t.__sellerId = data.sellerId || data.uploaderUid || 'lazydogtemplates';
           const thumb = t.coverImage || (t.slides && t.slides[0]) || '';
           const price = parseFloat(t.price);
           const commercial = (price>0) ? Math.round(price*1.5) : 0;
@@ -3410,6 +3844,25 @@ document.addEventListener('keydown',e=>{
         setCategoryCountLabel(catKey, docs.length);
         if(typeof updateFilterCounts==='function') updateFilterCounts();
         ldsSyncLiveTotals();
+
+        /* 9 Aug 2026 — the missing wire. renderLiveCards already fed the Store
+           grid and the category counts; the Collection page was the one output
+           it never reached, which is why withdrawn kits lingered there. Publish
+           this category, then rebuild the Collection from the registry. Skipped
+           while a single kit is open so we don't yank the page away mid-read. */
+        window.LDS_LIVE = window.LDS_LIVE || {};
+        window.LDS_LIVE[catKey] = docs.map(d=>{
+          const data=d.data()||{};
+          const tpl=data.template||{};
+          /* the cart needs a stable id and a seller; both live on the PARENT
+             document, not inside template{}, so carry them across. */
+          tpl.__docId   = d.id;
+          tpl.__sellerId= data.sellerId || data.uploaderUid || 'lazydogtemplates';
+          return tpl;
+        });
+        const spreadsEl=document.getElementById('collectionSpreads');
+        if(!(spreadsEl && spreadsEl.querySelector('[data-live-spread]'))
+           && typeof renderCollectionSpreads==='function') renderCollectionSpreads();
       }
 
       /* 29 Jul 2026 — one source of truth for "how many products do we have".
