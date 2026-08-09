@@ -390,7 +390,7 @@
           <select id="industry"><option value="">Select industry</option><option value="accounting">Accounting</option><option value="agriculture">Agriculture</option><option value="ai-machine-learning">AI & Machine Learning</option><option value="architecture">Architecture</option><option value="art">Art</option><option value="automotive">Automotive</option><option value="biotechnology">Biotechnology</option><option value="construction">Construction</option><option value="consulting">Consulting</option><option value="crypto">Crypto</option><option value="cybersecurity">Cybersecurity</option><option value="data-analytics">Data Analytics</option><option value="education">Education</option><option value="elearning">E-Learning</option><option value="electronics">Electronics</option><option value="energy">Energy</option><option value="environment">Environment</option><option value="events">Events</option><option value="fashion">Fashion</option><option value="film">Film</option><option value="finance">Finance</option><option value="fintech">FinTech</option><option value="food">Food</option><option value="furniture">Furniture</option><option value="gaming">Gaming</option><option value="government">Government</option><option value="healthcare">Healthcare</option><option value="home">Home</option><option value="hr">Human Resources</option><option value="insurance">Insurance</option><option value="investment-venture-capital">Investment & Venture Capital</option><option value="legal">Legal</option><option value="logistics">Logistics</option><option value="luxury">Luxury</option><option value="manufacturing">Manufacturing</option><option value="marketing">Marketing</option><option value="media">Media</option><option value="mental-health">Mental Health</option><option value="music">Music</option><option value="nonprofit">Nonprofit</option><option value="parenting">Parenting</option><option value="pets">Pets</option><option value="pharma">Pharma</option><option value="photography">Photography</option><option value="pr">Public Relations</option><option value="publishing">Publishing</option><option value="realestate">Real Estate</option><option value="recruiting">Recruiting</option><option value="religion">Religion</option><option value="retail">Retail</option><option value="saas">SaaS</option><option value="sports">Sports</option><option value="tech">Tech</option><option value="telecom">Telecom</option><option value="travel">Travel</option><option value="web3">Web3</option><option value="general">General</option><option value="other">Other</option></select>
         </div>
         <div class="field">
-          <label>Price (USD)</label>
+          <label>Single-use price (USD)</label>
           <div style="display:flex;gap:10px;align-items:center">
             <input type="number" id="price" placeholder="e.g. 15" min="0" step="0.01" style="flex:1"/>
             <button type="button" onclick="document.getElementById('price').value='0'" style="padding:12px 16px;background:rgba(212,175,55,0.15);border:1px solid var(--border);border-radius:0;color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;font-family:Poppins,sans-serif">Set Free</button>
@@ -398,12 +398,22 @@
           <p style="font-size:11px;color:var(--muted);margin-top:6px">Enter 0 for free, or a dollar amount (e.g. 15 = $15.00)</p>
         </div>
 
+        <!-- ── COMMERCIAL LICENCE PRICE (9 Aug 2026) ───────────────────────
+             Set by whoever uploads. Leave blank and the backend falls back to
+             1.5x rounded up, which is how every kit worked before this box
+             existed — so an empty field is safe, not broken.               -->
+        <div class="field" id="commPriceField">
+          <label>Commercial licence price (USD)</label>
+          <input type="number" id="commercialPrice" placeholder="leave blank for automatic" min="0" step="0.01"/>
+          <div id="commHint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6"></div>
+        </div>
+
         <!-- ── AFFILIATE COMMISSION (9 Aug 2026) ───────────────────────────
              What a MARKETER earns for bringing a sale of this kit.
-             Whoever uploads chooses, because this comes out of the sale before
-             the 75/25 split — so it is mostly the uploader's own money buying
-             that promotion. Range 0-40; the server clamps it too, since a
-             number typed into a browser is a suggestion, not a fact.       -->
+             Whoever uploads chooses, because the marketer is paid out of the
+             CONTRIBUTOR's share, not the site's — so it is their own money
+             buying that promotion. Range 0-40; the server clamps it too, since
+             a number typed into a browser is a suggestion, not a fact.     -->
         <div class="field" id="affField">
           <label>Marketer commission</label>
           <div style="display:flex;gap:8px;align-items:center">
@@ -887,7 +897,32 @@ function ldtAffResolve() {
            wasCapped: pct > 40.0001 };
 }
 
+/* Shows what the commercial licence will actually be charged at — including
+   the automatic figure when the box is left empty, so nobody has to guess what
+   "automatic" means. Mirrors _commercial_price() in whop_store_sync.py. */
+function ldtPaintCommercial() {
+  var hint = document.getElementById('commHint');
+  if (!hint) return;
+  var price = parseFloat((document.getElementById('price') || {}).value);
+  var comm  = parseFloat((document.getElementById('commercialPrice') || {}).value);
+  var money = function (n) { return '$' + (Math.round(n * 100) / 100).toFixed(2); };
+
+  if (!isFinite(price) || price <= 0) {
+    hint.textContent = 'Set a price above first.';
+    return;
+  }
+  if (isFinite(comm) && comm > 0) {
+    hint.innerHTML = 'Buyers see <b>' + money(price) + '</b> single-use and <b>'
+                   + money(comm) + '</b> commercial.';
+    return;
+  }
+  var auto = Math.ceil(price * 1.5);
+  hint.innerHTML = 'Left blank, so commercial will be <b>' + money(auto)
+                 + '</b> — 1.5&times; rounded up. Type your own figure to override.';
+}
+
 function ldtPaintAffiliate() {
+  ldtPaintCommercial();
   var box = document.getElementById('affMath');
   if (!box) return;
   var r = ldtAffResolve();
@@ -940,7 +975,8 @@ function ldtSetAffMode(mode) {
 }
 
 document.addEventListener('input', function (e) {
-  if (e.target && (e.target.id === 'price' || e.target.id === 'affiliateValue')) {
+  if (e.target && (e.target.id === 'price' || e.target.id === 'affiliateValue'
+                   || e.target.id === 'commercialPrice')) {
     ldtPaintAffiliate();
   }
 });
@@ -2224,7 +2260,16 @@ window.submitForm = async function() {
           return isFinite(v) && v > 0 ? v : 0;
         })(),
         affiliatePercent: (typeof ldtAffResolve === 'function'
-                            ? ldtAffResolve().capped : 40)
+                            ? ldtAffResolve().capped : 40),
+
+        // ── COMMERCIAL LICENCE PRICE ──────────────────────────────────────
+        // Read by whop_store_sync._commercial_price. Null (not 0) when left
+        // blank, so the backend can tell "not set" from "set to nothing" and
+        // fall back to 1.5x rather than skipping the commercial plan entirely.
+        commercialPrice: (function(){
+          var v = parseFloat((document.getElementById('commercialPrice')||{}).value);
+          return (isFinite(v) && v > 0) ? Math.round(v * 100) / 100 : null;
+        })()
       }
     });
 
