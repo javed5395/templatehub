@@ -182,6 +182,23 @@
     /* ── ETSY-STYLE PANEL ── */
     .etsy-panel { display:flex; flex-direction:column; gap:10px; }
     .etsy-price { font-size:22px; font-weight:700; color:#fff; }
+    /* -- Licence chooser (9 Aug 2026) --------------------------------------
+       Personal vs Commercial. Commercial is 1.5x rounded UP to a whole dollar,
+       the SAME rule as _commercial_price() in whop_store_sync.py. The amounts
+       shown are read from the kit's whopCommercialPrice, written by the backend
+       when the Whop plan is created, so the price on screen is literally the
+       price on the plan. Do not compute it here. */
+    .lic-row { display:flex; gap:8px; margin:10px 0 6px; }
+    .lic-btn { flex:1; cursor:pointer; border:1px solid #2a3560; background:#141a38;
+               color:#cfd8ff; border-radius:10px; padding:9px 8px; font-family:'Poppins',sans-serif;
+               font-size:12px; font-weight:600; line-height:1.35; transition:.15s; text-align:center; }
+    .lic-btn:hover { border-color:#4d7cff; }
+    .lic-btn.is-on { border-color:#64c8ff; background:#1b2550; color:#fff; box-shadow:0 0 0 1px #64c8ff inset; }
+    .lic-amt { display:block; font-size:15px; font-weight:800; margin-top:2px; }
+    .lic-note { font-size:11px; color:#8899aa; margin-bottom:10px; line-height:1.45; }
+    body.light .lic-btn { background:#f4f5fb; border-color:#d8dcea; color:#3a4260; }
+    body.light .lic-btn.is-on { background:#e8eeff; border-color:#3f6fd8; color:#12203f; box-shadow:0 0 0 1px #3f6fd8 inset; }
+    body.light .lic-note { color:#6b7280; }
     .etsy-keywords { font-size:12px; color:#8899aa; }
     .etsy-seller-row { display:flex; align-items:center; justify-content:space-between; }
     .etsy-seller-name { font-size:13px; color:#64c8ff; font-weight:600; }
@@ -457,6 +474,13 @@ document.addEventListener('click',function(e){
     <div class="template-desc" id="templateDesc"></div>
     <div class="etsy-panel">
       <div class="etsy-price">USD 13.00</div>
+      <!-- Hidden until the kit data proves a Commercial plan exists on Whop.
+           Never show a licence we cannot actually charge for. -->
+      <div class="lic-row" id="licRow" style="display:none;">
+        <button type="button" class="lic-btn is-on" data-lic="personal">Personal<span class="lic-amt" id="licAmtPersonal">--</span></button>
+        <button type="button" class="lic-btn" data-lic="commercial">Commercial<span class="lic-amt" id="licAmtCommercial">--</span></button>
+      </div>
+      <div class="lic-note" id="licNote" style="display:none;"></div>
       <div class="etsy-keywords" id="etsyKeywords"></div>
       <div class="etsy-seller-row">
         <span class="etsy-seller-name">LazyDogTemplates</span>
@@ -582,6 +606,11 @@ function getMkUrl(k, n, transform) {
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKitData = {
       whopPlanId:   (typeof docData!=='undefined' && docData ? (docData.whopPlanId||'') : '') || (t.whopPlanId||''),
+      // Commercial licence (9 Aug 2026). Both are written by the backend when
+      // the Whop plan is created. If either is missing the chooser stays
+      // hidden -- we never advertise a licence Whop cannot charge for.
+      whopCommercialPlanId: t.whopCommercialPlanId || '',
+      whopCommercialPrice:  t.whopCommercialPrice  || null,
       name:         t.name || 'Untitled Website Kit',
       titleHTML:    (t.name || 'Untitled Website Kit') + '<br/><span>Website Kit</span>',
       desc:         t.designNotes || t.description || 'A professional website kit template.',
@@ -610,8 +639,75 @@ function getMkUrl(k, n, transform) {
   }
 })();
 
+/* -- LICENCE CHOOSER (9 Aug 2026) --------------------------------------------
+   window.ldtLicence is the single source of truth for which licence the buyer
+   selected. whop-checkout.js reads it to pick the matching Whop plan, so the
+   plan that gets charged is always the one whose price is on screen.
+
+   The chooser only appears when the kit has BOTH a commercial plan id and a
+   commercial price from the backend. A kit missing either stays Personal-only --
+   showing a price with no plan behind it is how you take money and deliver
+   nothing. */
+window.ldtLicence = 'personal';
+
+function ldtLicencePrice(k, licence){
+  if (licence === 'commercial') return parseFloat(k.whopCommercialPrice);
+  return parseFloat(k.price);
+}
+
+function ldtPaintPrice(k){
+  var el = document.querySelector('.etsy-price');
+  if (!el) return;
+  if (!k.price || k.price === 'free' || k.price === '0' || parseFloat(k.price) === 0) {
+    el.textContent = 'Price on request'; return;
+  }
+  if (k.price === 'pro') { el.textContent = 'PRO Template'; return; }
+  var amt = ldtLicencePrice(k, window.ldtLicence);
+  if (!isFinite(amt)) amt = parseFloat(k.price);
+  el.textContent = 'USD ' + amt.toFixed(2);
+}
+
+function ldtInitLicence(k){
+  var row  = document.getElementById('licRow');
+  var note = document.getElementById('licNote');
+  if (!row) return;
+
+  var paid = k.price && k.price !== 'free' && k.price !== 'pro' && parseFloat(k.price) > 0;
+  var comm = parseFloat(k.whopCommercialPrice);
+  if (!paid || !k.whopCommercialPlanId || !isFinite(comm) || comm <= 0) {
+    row.style.display = 'none';
+    if (note) note.style.display = 'none';
+    window.ldtLicence = 'personal';
+    return;
+  }
+
+  document.getElementById('licAmtPersonal').textContent   = '$' + parseFloat(k.price).toFixed(2);
+  document.getElementById('licAmtCommercial').textContent = '$' + comm.toFixed(2);
+  row.style.display = 'flex';
+  if (note) note.style.display = 'block';
+
+  function paintNote(){
+    if (!note) return;
+    note.textContent = (window.ldtLicence === 'commercial')
+      ? 'Commercial: use it in work you sell or deliver to clients, and in paid advertising.'
+      : 'Personal: use it for yourself or one business of your own. Not for resale.';
+  }
+
+  row.querySelectorAll('.lic-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      window.ldtLicence = btn.getAttribute('data-lic') || 'personal';
+      row.querySelectorAll('.lic-btn').forEach(function(b){ b.classList.remove('is-on'); });
+      btn.classList.add('is-on');
+      ldtPaintPrice(k);
+      paintNote();
+    });
+  });
+  paintNote();
+}
+
 function loadKit(k) {
   currentKitData = k;
+  ldtInitLicence(k);
   document.getElementById('breadcrumbName').textContent = k.name;
   // Fix price display
   var priceEl = document.querySelector('.etsy-price');
@@ -878,10 +974,15 @@ var _dlIsPdf = false;
 function ldtCurrentProduct(){
   var k = currentKitData || {};
   var pid = window._ldtProductId || (new URLSearchParams(location.search)).get('firebase') || '';
+  /* The cart must remember WHICH licence was chosen, not just the kit -- two
+     buyers can add the same kit at different licences and prices. */
+  var lic = (window.ldtLicence === 'commercial') ? 'commercial' : 'personal';
   return {
     productId: String(pid), id: String(pid),
-    title: String(k.name || 'Website Kit'),
-    price: k.price,
+    title: String(k.name || 'Website Kit') + (lic === 'commercial' ? ' (Commercial)' : ''),
+    price: ldtLicencePrice(k, lic),
+    licence: lic,
+    planId: String(lic === 'commercial' ? (k.whopCommercialPlanId || '') : (k.whopPlanId || '')),
     sellerId: String(window._ldtSellerId || '')
   };
 }
