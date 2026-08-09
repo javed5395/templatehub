@@ -21,9 +21,10 @@
     can approve themselves. Approval is an admin-only update.
 
   WHY PAYOUT COUNTRY IS ASKED UP FRONT
-    Paying a designer is the one part with real-world limits — some countries
-    cannot receive PayPal, some cannot open a Whop account. Better to know
-    BEFORE approving someone than to approve them and be unable to pay.
+    Paying a designer is the one part with real-world limits. We pay through
+    Whop (free, no conversion loss), but not every country can open a Whop
+    account, and some restrict crypto. Better to know BEFORE approving someone
+    than to approve them and then be unable to pay them.
 -->
 <html lang="en">
 <head>
@@ -202,20 +203,26 @@
         </div>
         <div class="field">
           <label>Preferred payout method <span class="required">*</span></label>
+          <!-- 9 Aug 2026: Whop first and recommended. A Whop-to-Whop transfer
+               costs nothing and converts nothing, so more of the money reaches
+               the contributor. Every other rail loses 3-8% to withdrawal fees
+               and double currency conversion. PayPal/Wise removed — we cannot
+               fund them without converting twice. -->
           <select id="fPayout">
             <option value="">Select…</option>
-            <option value="paypal">PayPal</option>
-            <option value="wise">Wise</option>
-            <option value="bank">Bank transfer</option>
-            <option value="whop">Whop account</option>
+            <option value="whop">Whop account — recommended, free and fastest</option>
             <option value="crypto">Crypto (USDT)</option>
-            <option value="other">Other / not sure</option>
+            <option value="other">Other / not sure — let's discuss</option>
           </select>
         </div>
       </div>
       <p class="hint">
-        Don't send account numbers here. Once you are approved we will collect
-        payment details securely.
+        <b>We pay through Whop.</b> It is free, it arrives quickly, and none of it
+        is lost to bank charges or currency conversion — so more of your money
+        reaches you. If you don't have a Whop account yet you can open one free
+        when you're approved.<br/><br/>
+        Don't send any account numbers or wallet addresses here. We ask for those
+        only when your first payment is due.
       </p>
     </div>
 
