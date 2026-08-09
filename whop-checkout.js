@@ -40,7 +40,24 @@
   }
   function isPaid(d){ var p=String(d.price==null?'':d.price).trim().toLowerCase();
     return !(p===''||p==='free'||p==='0'||parseFloat(p)===0); }
-  function planId(d){ var v=d.whopPlanId||d.whop_plan_id||''; var m=String(v).match(/plan_[A-Za-z0-9]+/); return m?m[0]:''; }
+  /* 9 Aug 2026 — licence-aware. window.ldtLicence is set by the licence chooser
+     on the slide page ('personal' | 'commercial'); pages without a chooser
+     simply leave it undefined and get Personal, exactly as before.
+
+     Falls back to the Personal plan if a Commercial plan id is missing. That
+     under-charges rather than failing the sale, and it can never charge the
+     Commercial price against the Personal plan — the price the buyer sees comes
+     from whopCommercialPrice, which is only shown when the plan exists. */
+  function planId(d, licence){
+    var v = '';
+    if (licence === 'commercial') v = d.whopCommercialPlanId || d.whop_commercial_plan_id || '';
+    if (!v) v = d.whopPlanId || d.whop_plan_id || '';
+    var m = String(v).match(/plan_[A-Za-z0-9]+/);
+    return m ? m[0] : '';
+  }
+  function chosenLicence(){
+    return (window.ldtLicence === 'commercial') ? 'commercial' : 'personal';
+  }
   function toast(m){ if (typeof ldtToast==='function') ldtToast(m); }
 
   function currentUser(){
@@ -149,7 +166,8 @@
   window.buyItNow = function(){
     var d=data();
     if (isPaid(d)){
-      var p=planId(d);
+      var lic = chosenLicence();
+      var p   = planId(d, lic);
       if (p){
         var user = currentUser();
         if (!user || !user.email) {
