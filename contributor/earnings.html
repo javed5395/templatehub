@@ -83,14 +83,16 @@
     </div>
 
     <div class="note">
-      <b>How your share is worked out.</b> You receive <b>75% of the net</b> on every sale.
-      Net means what is left after the payment provider's fees and, if the buyer arrived through
-      an affiliate's link, that affiliate's commission. Those are real figures taken from the
-      payment itself — not estimates — and every line below shows you exactly what was deducted.
+      <b>How your share is worked out.</b> The site takes <b>20%</b> of the sale price, or
+      <b>25%</b> on templates priced at $5 or less. You keep the rest.
       <br/><br/>
-      Because an affiliate commission is a real cost of that sale, the same template can earn you
-      a different amount depending on how the buyer found it. Both figures are shown so you can
-      always check the arithmetic.
+      <b>Payment processing fees are ours, not yours.</b> They come out of the site's share, so
+      they never reduce what you earn.
+      <br/><br/>
+      If you set a marketer commission on a template and a marketer brings the sale, that
+      commission comes out of your side — you chose it, so it is your money spent on promotion.
+      A sale with no marketer simply pays you the full 80% (or 75%). Both cases are shown below,
+      taken from the real payment, so you can always check the arithmetic.
     </div>
 
     <div style="overflow-x:auto;">
@@ -100,9 +102,9 @@
             <th>Template</th>
             <th class="hide-sm">Date</th>
             <th class="num">Sold for</th>
-            <th class="num hide-sm">Fees</th>
-            <th class="num hide-sm">Net</th>
-            <th class="num">Your 75%</th>
+            <th class="num hide-sm">Site</th>
+            <th class="num hide-sm">Marketer</th>
+            <th class="num">You earned</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -207,8 +209,8 @@ onAuthStateChanged(auth, async (user) => {
       <td class="kit">${esc(d.kitTitle || d.kitId || 'Template')}<span class="lic ${lic}">${lic==='c'?'COMMERCIAL':'PERSONAL'}</span></td>
       <td class="hide-sm">${when(d.paidAt)}</td>
       <td class="num">${money(d.grossUsd)}</td>
-      <td class="num hide-sm fees">−${money(d.feesUsd)}</td>
-      <td class="num hide-sm">${money(d.netUsd)}</td>
+      <td class="num hide-sm fees">−${money(d.siteUsd)}${d.sitePercent ? ` <span style="opacity:.6">(${Math.round(d.sitePercent)}%)</span>` : ''}</td>
+      <td class="num hide-sm fees">${Number(d.marketerUsd) > 0 ? '−' + money(d.marketerUsd) : '—'}</td>
       <td class="num"><b>${money(d.earnedUsd)}</b></td>
       <td><span class="pill s-${esc(st)}">${esc(LABEL[st] || st)}</span></td>
     </tr>`;

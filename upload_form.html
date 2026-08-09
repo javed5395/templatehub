@@ -888,18 +888,26 @@ function ldtPaintAffiliate() {
 
   var money = function (n) { return '$' + (Math.round(n * 100) / 100).toFixed(2); };
   var marketer = r.price * (r.capped / 100);
-  var fee      = r.price * 0.027 + 0.30;       // approximate, domestic card
-  var net      = Math.max(r.price - marketer - fee, 0);
   var isContributor = (window._ldtUploadRight === 'approved');
-  var yours    = isContributor ? net * 0.75 : net;
+
+  /* THE SPLIT — must match contributor_ledger.py exactly:
+       site takes 25% at or below $5, otherwise 20%, of the SALE PRICE;
+       the marketer is paid from the CONTRIBUTOR's side;
+       Whop's processing fees come out of the SITE's share, never theirs.     */
+  var sitePct  = (r.price <= 5) ? 25 : 20;
+  var siteCut  = r.price * sitePct / 100;
+  var yours    = isContributor ? Math.max(r.price - siteCut - marketer, 0)
+                               : Math.max(r.price - marketer - (r.price * 0.027 + 0.30), 0);
 
   box.innerHTML =
       'Sale <b>' + money(r.price) + '</b>'
+    + (isContributor
+        ? '<br/>Site commission (' + sitePct + '%) ' + money(siteCut)
+        : '<br/>Whop fees about ' + money(r.price * 0.027 + 0.30))
     + '<br/>Marketer takes ' + (r.capped ? '<b>' + money(marketer) + '</b> ('
         + (Math.round(r.capped * 10) / 10) + '%)' : '<b>nothing</b>')
-    + '<br/>Whop fees about ' + money(fee)
-    + '<br/><b style="color:var(--accent)">You keep about ' + money(yours) + '</b>'
-    + (isContributor ? ' <span style="opacity:.75">(your 75% share)</span>' : '')
+    + '<br/><b style="color:var(--accent)">You keep ' + money(yours) + '</b>'
+    + (isContributor ? ' <span style="opacity:.75">— we pay the processing fees</span>' : '')
     + (r.wasCapped
         ? '<br/><span style="color:#e5a13c">That works out to '
           + Math.round(r.pct) + '% — capped at 40%, so the marketer gets '

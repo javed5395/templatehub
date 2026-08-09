@@ -9,7 +9,9 @@
 <!--
   CONTRIBUTOR TERMS.
   EVERY NUMBER ON THIS PAGE MUST MATCH firebase/functions/contributor_ledger.py:
-      CONTRIBUTOR_SHARE    = 0.75   -> "75% of net"
+      SITE_PCT_NORMAL      = 20     -> "20% above $5"  (contributor keeps 80%)
+      SITE_PCT_CHEAP       = 25     -> "25% at or below $5" (keeps 75%)
+      CHEAP_THRESHOLD      = 5.00
       HOLD_DAYS            = 20     -> "20 days"
       PAYOUT_THRESHOLD_USD = 50     -> "$50"
   If the code changes and this page does not, we are publishing a promise the
@@ -48,9 +50,10 @@ Last updated 9 August 2026.</p>
 
 <div class="box key">
   <b>The short version.</b> You design templates. We review them, sell them, and handle
-  payments, hosting and support. You keep the copyright. You earn <b>75% of the net</b> on
-  every sale. Money is released <b>20 days</b> after a buyer pays, and we send it once your
-  balance reaches <b>$50</b>.
+  payments, hosting and support. You keep the copyright. You earn <b>80%</b> of the sale price
+  (75% on templates at $5 or less), and <b>we pay the payment processing fees, not you</b>.
+  Money is released <b>20 days</b> after a buyer pays, and we send it once your balance
+  reaches <b>$50</b>.
 </div>
 
 <h2>1. Applying</h2>
@@ -92,33 +95,41 @@ template so that it can be shown and advertised.</p>
   <tr><td><b>Commercial</b></td><td>Use it in work they sell or deliver to clients, and in paid advertising.</td><td class="num">1.5×, rounded up</td></tr>
 </table>
 <p>Commercial is always 1.5 times the personal price, rounded up to a whole dollar. A $5 template
-has an $8 commercial licence. You earn on both, on the same 75% terms.</p>
+has an $8 commercial licence. You earn on both, on the same terms — and note the commercial
+price is what decides the rate, so an $8 commercial licence is charged 20%, not 25%.</p>
 <p>Neither licence lets a buyer resell your template as a template, or claim it as their own design.</p>
 
 <h2>5. What you earn</h2>
-<p>You receive <b>75% of the net</b> on every sale. Net is the sale price after:</p>
-<ul>
-  <li>the payment provider's fees, and</li>
-  <li>any affiliate commission, if the buyer arrived through an affiliate's link.</li>
-</ul>
-<p>These are the real figures charged on that specific payment, not estimates. Your earnings page
-shows every sale with the exact deductions, so you can always check the arithmetic.</p>
-
-<h3>Worked example — a $6 template</h3>
+<p>We take a commission on the sale price. You keep the rest.</p>
 <table>
-  <tr><th></th><th class="num">Bought directly</th><th class="num">Bought via an affiliate link</th></tr>
-  <tr><td>Sale price</td><td class="num">$6.00</td><td class="num">$6.00</td></tr>
-  <tr><td>Affiliate commission</td><td class="num">—</td><td class="num">−$2.40</td></tr>
-  <tr><td>Payment fees</td><td class="num">−$0.46</td><td class="num">−$0.46</td></tr>
-  <tr><td><b>Net</b></td><td class="num"><b>$5.54</b></td><td class="num"><b>$3.14</b></td></tr>
-  <tr><td><b>You receive (75%)</b></td><td class="num"><b>$4.16</b></td><td class="num"><b>$2.36</b></td></tr>
+  <tr><th>Your template's price</th><th class="num">Our commission</th><th class="num">You keep</th></tr>
+  <tr><td>Above $5</td><td class="num">20%</td><td class="num"><b>80%</b></td></tr>
+  <tr><td>$5 or less</td><td class="num">25%</td><td class="num"><b>75%</b></td></tr>
+</table>
+<div class="box key">
+  <b>Payment processing fees are ours, not yours.</b> Card charges, currency costs, the payment
+  provider's cut — all of it comes out of our commission. They never reduce your share. On a
+  cheap template those fees can be most of what we keep, which is why the rate is 25% below $5.
+</div>
+
+<h3>If you use a marketer</h3>
+<p>You can set a commission for marketers who promote your template. That commission is paid from
+<b>your</b> side, not ours — you choose the rate, so it is your money being spent on promotion.</p>
+<table>
+  <tr><th></th><th class="num">No marketer</th><th class="num">30% marketer</th></tr>
+  <tr><td>Sale price</td><td class="num">$10.00</td><td class="num">$10.00</td></tr>
+  <tr><td>Our commission (20%)</td><td class="num">−$2.00</td><td class="num">−$2.00</td></tr>
+  <tr><td>Marketer</td><td class="num">—</td><td class="num">−$3.00</td></tr>
+  <tr><td><b>You receive</b></td><td class="num"><b>$8.00</b></td><td class="num"><b>$5.00</b></td></tr>
 </table>
 <div class="box warn">
   <b>Please read this part twice.</b> The same template earns you a different amount depending on
-  how the buyer found it. An affiliate commission is a real cost of that sale, so it comes out
-  before the split. We would rather you know this now than discover it in your first payout.
-  Affiliate commission is currently up to 40%.
+  whether a marketer brought the sale, because their commission comes out of your share. You set
+  that rate yourself when you upload — anything from 0% to 40% — so the choice is entirely yours.
+  Set it to zero and you keep the full amount, but no marketer will promote your template.
 </div>
+<p>Every figure above is taken from the real payment, not estimated. Your earnings page shows each
+sale with the exact deductions, so you can always check the arithmetic.</p>
 
 <h2>6. When and how you get paid</h2>
 <ul>
@@ -174,7 +185,7 @@ paid to you on the normal schedule. Templates already sold stay licensed to thei
 <ul>
   <li>We do not promise any level of sales, or any sales at all.</li>
   <li>We do not promise to accept a template, or to keep it on sale.</li>
-  <li>We may change prices, and we may run discounts or promotions. Your 75% is always
+  <li>We may change prices, and we may run discounts or promotions. Your share is always
       calculated on what the sale actually brought in.</li>
 </ul>
 
@@ -193,7 +204,8 @@ it applies, and it will not apply to sales already made.</p>
 
 <div class="updated">
   LazyDogTemplates contributor terms — version 1, 9 August 2026.<br/>
-  Revenue share 75% of net · 20-day hold · $50 minimum payout.
+  You keep 80% above $5, 75% at or below · we pay the processing fees ·
+  20-day hold · $50 minimum payout.
 </div>
 
 </div>
