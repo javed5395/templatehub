@@ -290,7 +290,18 @@ body::before{
 }
 .chrome .brand{padding:6px 14px 6px 6px;border-radius:100px}
 .chrome .cart-btn,.chrome .menu-btn{padding:8px 16px;border-radius:100px}
-.chrome__actions{display:flex;align-items:center;gap:20px}
+.chrome__actions{display:flex;align-items:center;gap:14px}
+.main-site-btn{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.15em;
+  text-transform:uppercase;color:var(--ink);
+  border:1px solid var(--hairline-strong);border-radius:100px;padding:8px 16px;
+  background:rgba(242,238,229,0.82);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  transition:color .3s,border-color .3s,background .3s;
+}
+.main-site-btn:hover{color:var(--bone);background:var(--oxblood);border-color:var(--oxblood)}
+@media (max-width:640px){ .main-site-btn span{display:none} .main-site-btn{padding:8px 12px} }
 .cart-btn{
   display:flex;
   align-items:center;
@@ -1114,6 +1125,12 @@ body::before{
     </div>
   </nav>
   <div class="chrome__actions">
+    <!-- 9 Aug 2026 — this page is a single-page app: every section change pushes a
+         history entry, so after browsing a few sections the only route back to the
+         main site was pressing Back over and over. Explicit exit. -->
+    <a href="/" class="main-site-btn" data-cursor-label="Main Site" title="Back to the main LazyDogTemplates website">
+      <i class="fa-solid fa-arrow-left"></i><span>Main Site</span>
+    </a>
     <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="menuOverlay" data-cursor-label="Menu">
       <span class="menu-btn__lines"></span>
       <span class="menu-btn__label">Menu</span>
@@ -1160,6 +1177,7 @@ body::before{
   <div class="menu-overlay__inner">
     <ul class="menu-list">
       <li class="menu-item" data-page="home"><span class="menu-item__num">01</span>Home</li>
+      <li class="menu-item" style="opacity:.75"><a href="/" style="display:block"><span class="menu-item__num">&larr;</span>Main Website</a></li>
       <li class="menu-item" data-page="categories"><span class="menu-item__num">02</span>Categories</li>
       <li class="menu-item" data-page="marketplace"><span class="menu-item__num">03</span>Store</li>
       <li class="menu-item" data-page="signature"><span class="menu-item__num">04</span>Collection</li>
@@ -2601,7 +2619,10 @@ animateRing();</pre>
         <div class="footer__social">
           <a href="https://x.com/lazydogtemplate" target="_blank" rel="noopener"
              data-cursor-label="Follow" aria-label="X (Twitter)" title="X (Twitter)">
-            <i class="fa-brands fa-x-twitter"></i></a>
+            <!-- 9 Aug 2026 — was <i class="fa-brands fa-x-twitter">, which renders
+                 as an EMPTY circle: that icon landed in Font Awesome 6.4.2 and this
+                 page loads 6.4.0. Inline SVG, same path footerbar.js uses. -->
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
           <!-- Facebook added 2 Aug 2026. The Page, not the personal profile.
                Numeric id until Facebook unlocks the username. -->
           <a href="https://www.facebook.com/profile.php?id=61592577276958" target="_blank" rel="noopener"
@@ -2621,7 +2642,9 @@ animateRing();</pre>
       </div>
       <div class="footer__col">
         <div class="footer__col-title">Collection</div>
+        <!-- exit route out of the studio, mirrored from the header -->
         <ul>
+          <li><a href="/">&larr; Main Website</a></li>
           <li><a href="#" data-page="signature">Collection</a></li>
           <li><a href="#" data-page="marketplace">Store</a></li>
           <li><a href="#" data-page="categories">Categories</a></li>

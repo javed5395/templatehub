@@ -107,6 +107,12 @@
       <a href="https://www.linkedin.com/company/lazydogtemplates" title="LinkedIn" class="ic-li" target="_blank" rel="noopener">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
       </a>
+<!-- Email added 9 Aug 2026 — the footer had four ways to follow us and no way
+           to write to us. "Contact Us" further down is a text link that is easy to
+           miss; an icon in the same row is where people look. -->
+      <a href="mailto:support@lazydogtemplates.com" title="support@lazydogtemplates.com" class="ic-mail" aria-label="Email us">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M1.5 5.25A2.25 2.25 0 013.75 3h16.5a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0120.25 21H3.75a2.25 2.25 0 01-2.25-2.25V5.25zm2.4-.75l7.494 6.017a1.05 1.05 0 001.312 0L20.2 4.5H3.9zM21 6.31l-7.31 5.87a2.55 2.55 0 01-3.19 0L3 6.31V18.75c0 .414.336.75.75.75h16.5a.75.75 0 00.75-.75V6.31z"/></svg>
+      </a>
 <!-- YouTube icon removed 29 Jul 2026: href="#", no channel behind it. -->
     </div>
     <div class="footer-legal-row">
