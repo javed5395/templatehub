@@ -616,31 +616,36 @@
           <span class="payout-toggle-arrow open" id="payoutArrow">∨</span>
         </div>
         <div id="payoutBody" style="margin-top:14px;">
+          <!-- ── WHOP ONLY (9 Aug 2026) ──────────────────────────────────────
+               PayPal / Bank / Stripe tabs removed. Two reasons:
+
+               1. We cannot fund them. Sales settle in Whop; sending to PayPal
+                  or a bank means converting USD to local currency and back,
+                  losing 3-8% that belonged to the contributor.
+               2. The bank tab collected IBAN and SWIFT numbers. We told
+                  contributors we would not hold their account details, and a
+                  field that stores them makes that untrue. The safest place
+                  for data like that is nowhere.
+
+               A Whop payout is internal: no withdrawal fee, no conversion, and
+               all we need is a username.                                    -->
           <div class="payout-status payout-status-warn" id="payoutStatus">
-            ⚠️ No payout method set up yet — required only when withdrawing earnings. You can add it now or any time later.
+            ⚠️ No payout details yet — only needed when you withdraw. Add it now or any time later.
           </div>
-          <div class="payout-tabs">
-            <button class="payout-tab active" id="ptabPaypal" onclick="switchPayoutMethod('paypal')">💸 PayPal</button>
-            <button class="payout-tab" id="ptabBank"   onclick="switchPayoutMethod('bank')">🏦 Bank</button>
-            <button class="payout-tab" id="ptabStripe" onclick="switchPayoutMethod('stripe')">⚡ Stripe</button>
-          </div>
-          <div id="payoutPaypal">
+          <div id="payoutWhop">
             <div class="field">
-              <label>PayPal Email Address</label>
-              <input type="email" id="paypalEmail" placeholder="your@paypal.com" autocomplete="email"/>
-            </div>
-          </div>
-          <div id="payoutBank" style="display:none;">
-            <div class="field"><label>Account Holder Name</label><input type="text" id="bankHolderName" placeholder="Full name on account"/></div>
-            <div class="field"><label>Bank Name</label><input type="text" id="bankName" placeholder="e.g. Standard Chartered"/></div>
-            <div class="field"><label>Account Number / IBAN</label><input type="text" id="bankAccount" placeholder="Account number or IBAN"/></div>
-            <div class="field"><label>SWIFT / BIC Code</label><input type="text" id="bankSwift" placeholder="e.g. SCBLPKKA"/></div>
-            <div class="field"><label>Country</label><input type="text" id="bankCountry" placeholder="e.g. Pakistan"/></div>
-          </div>
-          <div id="payoutStripe" style="display:none;">
-            <div class="field">
-              <label>Stripe Account Email</label>
-              <input type="email" id="stripeEmail" placeholder="your@stripe.com" autocomplete="email"/>
+              <label>Your Whop username or account email</label>
+              <input type="text" id="whopAccount" placeholder="e.g. yourname or you@email.com" autocomplete="off"/>
+              <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
+                We pay through Whop — it is free, it arrives quickly, and nothing
+                is lost to bank charges or currency conversion, so more of your
+                money reaches you. An account is free to open at
+                <a href="https://whop.com" target="_blank" rel="noopener" style="color:var(--accent)">whop.com</a>.
+                <br/><br/>
+                Can't open one where you live? Leave this blank and tell us — we
+                will agree something else before your first payment.
+                <b>Never type a bank account or card number here.</b>
+              </p>
             </div>
           </div>
           <div class="payout-actions">
@@ -2601,29 +2606,19 @@ window.resetForm = function() {
 async function loadPayoutDetails(uid) {
   try {
     const snap = await getDoc(doc(db, 'sellers', uid));
-    if (snap.exists()) {
-      const data = snap.data();
-      const payout = data.payout || {};
-      if (payout.method) {
-        switchPayoutMethod(payout.method);
-        if (payout.method === 'paypal' && payout.paypalEmail) {
-          document.getElementById('paypalEmail').value = payout.paypalEmail;
-        }
-        if (payout.method === 'bank') {
-          if (payout.bankHolderName) document.getElementById('bankHolderName').value = payout.bankHolderName;
-          if (payout.bankName)       document.getElementById('bankName').value       = payout.bankName;
-          if (payout.bankAccount)    document.getElementById('bankAccount').value    = payout.bankAccount;
-          if (payout.bankSwift)      document.getElementById('bankSwift').value      = payout.bankSwift;
-          if (payout.bankCountry)    document.getElementById('bankCountry').value    = payout.bankCountry;
-        }
-        if (payout.method === 'stripe' && payout.stripeEmail) {
-          document.getElementById('stripeEmail').value = payout.stripeEmail;
-        }
-        // Update status banner to green
-        const statusEl = document.getElementById('payoutStatus');
+    if (!snap.exists()) return;
+    const payout = (snap.data() || {}).payout || {};
+    /* whopAccount is the only field now. Older records may still hold
+       paypalEmail / bank* / stripeEmail from before 9 Aug 2026 — those are NOT
+       read back into the form, so they quietly stop being used and nothing
+       re-saves them. */
+    if (payout.whopAccount) {
+      const el = document.getElementById('whopAccount');
+      if (el) el.value = payout.whopAccount;
+      const statusEl = document.getElementById('payoutStatus');
+      if (statusEl) {
         statusEl.className = 'payout-status payout-status-ok';
-        const methodLabel = payout.method === 'paypal' ? 'PayPal' : payout.method === 'bank' ? 'Bank Transfer' : 'Stripe';
-        statusEl.textContent = `✅ Payout method set: ${methodLabel}. You can update it any time.`;
+        statusEl.textContent = `✅ We'll pay you through Whop (${payout.whopAccount}). You can change this any time.`;
       }
     }
   } catch(err) {
@@ -2640,49 +2635,28 @@ window.savePayoutDetails = async function() {
 
   if (!currentUser) { errEl.textContent = 'Please sign in first.'; errEl.style.display = 'block'; return; }
 
-  // Detect active method
-  const activeTab = document.querySelector('.payout-tab.active');
-  const method = activeTab ? activeTab.id.replace('ptab','').toLowerCase() : 'paypal';
-
-  let payoutData = { method, updatedAt: serverTimestamp() };
-
-  if (method === 'paypal') {
-    const email = document.getElementById('paypalEmail').value.trim();
-    if (!email) { errEl.textContent = 'Please enter your PayPal email.'; errEl.style.display = 'block'; return; }
-    if (!email.includes('@')) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return; }
-    payoutData.paypalEmail = email;
-
-  } else if (method === 'bank') {
-    const holderName = document.getElementById('bankHolderName').value.trim();
-    const bankName   = document.getElementById('bankName').value.trim();
-    const account    = document.getElementById('bankAccount').value.trim();
-    const swift      = document.getElementById('bankSwift').value.trim();
-    const country    = document.getElementById('bankCountry').value.trim();
-    if (!holderName || !bankName || !account) {
-      errEl.textContent = 'Account holder name, bank name, and account number are required.';
-      errEl.style.display = 'block'; return;
-    }
-    payoutData.bankHolderName = holderName;
-    payoutData.bankName       = bankName;
-    payoutData.bankAccount    = account;
-    payoutData.bankSwift      = swift;
-    payoutData.bankCountry    = country;
-
-  } else if (method === 'stripe') {
-    const email = document.getElementById('stripeEmail').value.trim();
-    if (!email) { errEl.textContent = 'Please enter your Stripe account email.'; errEl.style.display = 'block'; return; }
-    if (!email.includes('@')) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return; }
-    payoutData.stripeEmail = email;
+  const account = (document.getElementById('whopAccount') || {}).value || '';
+  const acct = account.trim();
+  if (!acct) {
+    errEl.textContent = 'Enter your Whop username or account email — or press "Do this later".';
+    errEl.style.display = 'block'; return;
   }
+  /* Refuse anything that looks like a card or bank number. We promised not to
+     hold those, and a promise that depends on nobody pasting the wrong thing
+     into the wrong box is not a promise. */
+  if (/\d[\d\s-]{10,}/.test(acct)) {
+    errEl.textContent = 'That looks like an account or card number. Enter your Whop username or the email on your Whop account instead — we never store bank details.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const payoutData = { method: 'whop', whopAccount: acct, updatedAt: serverTimestamp() };
 
   try {
     await setDoc(doc(db, 'sellers', currentUser.uid), { payout: payoutData }, { merge: true });
-    // Update status banner
     const statusEl = document.getElementById('payoutStatus');
     statusEl.className = 'payout-status payout-status-ok';
-    const methodLabel = method === 'paypal' ? 'PayPal' : method === 'bank' ? 'Bank Transfer' : 'Stripe';
-    statusEl.textContent = `✅ Payout method set: ${methodLabel}. You can update it any time.`;
-    sucEl.textContent = '✅ Payout details saved successfully!';
+    statusEl.textContent = `✅ We'll pay you through Whop (${acct}). You can change this any time.`;
+    sucEl.textContent = '✅ Payout details saved.';
     sucEl.style.display = 'block';
     setTimeout(() => { sucEl.style.display = 'none'; }, 4000);
   } catch(err) {
@@ -2692,15 +2666,10 @@ window.savePayoutDetails = async function() {
   }
 };
 
-// Switch between PayPal / Bank / Stripe tabs
-window.switchPayoutMethod = function(method) {
-  document.getElementById('ptabPaypal').classList.toggle('active', method === 'paypal');
-  document.getElementById('ptabBank').classList.toggle('active',   method === 'bank');
-  document.getElementById('ptabStripe').classList.toggle('active', method === 'stripe');
-  document.getElementById('payoutPaypal').style.display = method === 'paypal' ? 'block' : 'none';
-  document.getElementById('payoutBank').style.display   = method === 'bank'   ? 'block' : 'none';
-  document.getElementById('payoutStripe').style.display = method === 'stripe' ? 'block' : 'none';
-};
+/* switchPayoutMethod removed 9 Aug 2026 — there is only one method now. Kept as
+   a harmless no-op because older cached copies of this page may still call it,
+   and a missing function would throw and stop the rest of the script. */
+window.switchPayoutMethod = function() {};
 
 // Toggle payout panel open/closed
 window.togglePayoutPanel = function() {
