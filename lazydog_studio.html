@@ -3367,7 +3367,7 @@ function ldsRenderCart(){
   foot.innerHTML=
     '<div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:0.9rem"><span>Total</span><strong>'+esc(ldsMoney(total))+'</strong></div>'+
     '<button id="ldsCartCheckout" style="width:100%;padding:13px;border:1px solid var(--ink);background:var(--ink);color:var(--bone);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer">Checkout</button>'+
-    '<p style="margin-top:10px;font-size:0.72rem;line-height:1.5;color:var(--whisper)">Buying a single item? Open it and use <strong>Buy</strong> — that pays instantly through Whop.</p>';
+    '<p style="margin-top:10px;font-size:0.72rem;line-height:1.5;color:var(--whisper)">One payment for the whole basket, through Whop. You will need to be signed in.</p>';
   body.querySelectorAll('[data-lds-cart-remove]').forEach(b=>{
     b.addEventListener('click',()=>{
       if(cart.removeItem) cart.removeItem(b.dataset.ldsCartRemove);
@@ -3377,17 +3377,81 @@ function ldsRenderCart(){
   const co=foot.querySelector('#ldsCartCheckout');
   if(co) co.addEventListener('click',ldsCartCheckout);
 }
-/* Matches nbCartCheckout() on the main site. A single Whop checkout covers ONE
-   plan, so a multi-item basket cannot be paid in one go yet. Rather than
-   pretend, say so — and point at the per-item Buy button, which does work. */
-function ldsCartCheckout(){
+/* REAL BASKET CHECKOUT (9 Aug 2026).
+   Was a "coming soon" alert. Now does exactly what nbCartCheckout() does on the
+   main site: sends only WHICH kits and WHICH licence to a Cloud Function, which
+   re-prices every line from the database and creates one Whop checkout for the
+   total. The browser never sends a price — a total computed in the page could
+   be edited by the buyer.
+
+   This page has no sign-in of its own, but Firebase auth is shared across the
+   whole domain, so someone signed in on the main site is signed in here too.
+   If they are not, we say so plainly rather than failing. */
+const LDS_CART_CHECKOUT_URL =
+  'https://us-central1-templatehub-16cd7.cloudfunctions.net/whop_cart_checkout_http';
+
+async function ldsGetToken(){
+  try{
+    const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
+    const { getAuth } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js");
+    const cfg = {
+      apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+      authDomain: "templatehub-16cd7.firebaseapp.com",
+      projectId: "templatehub-16cd7",
+      storageBucket: "templatehub-16cd7.firebasestorage.app",
+      messagingSenderId: "143000893683",
+      appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+    };
+    const app  = getApps().length ? getApps()[0] : initializeApp(cfg);
+    const auth = getAuth(app);
+    /* A page that has just loaded may not have restored the session yet, so
+       wait briefly for auth to settle rather than reporting "signed out" to
+       somebody who is in fact signed in. */
+    if(!auth.currentUser){
+      const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js");
+      await new Promise(res=>{
+        const t=setTimeout(res,4000);
+        const un=onAuthStateChanged(auth,()=>{ clearTimeout(t); un(); res(); });
+      });
+    }
+    return auth.currentUser ? await auth.currentUser.getIdToken() : null;
+  }catch(e){ console.error('[lds-checkout] auth', e); return null; }
+}
+
+async function ldsCartCheckout(){
   const items=(ldsCart()&&ldsCart().getItems)?(ldsCart().getItems()||[]):[];
-  if(items.length===1){
-    const only=items[0];
-    if(only.whopPlanId){ ldsOpenWhop(only.whopPlanId, only.title); return; }
+  if(!items.length){ alert('Your cart is empty.'); return; }
+
+  const btn=document.getElementById('ldsCartCheckout');
+  const token=await ldsGetToken();
+  if(!token){
+    alert('Please sign in first — your purchase is saved to your account.\n\n'+
+          'Sign in on the main site, then come back to this page.');
+    return;
   }
-  alert('Checkout for a whole basket is coming soon — we are still connecting it.\n\n'+
-        'Your cart is saved. To buy now, open any item and use its Buy button — that goes straight to Whop.');
+
+  if(btn){ btn.disabled=true; btn.textContent='Starting checkout…'; }
+  try{
+    const res=await fetch(LDS_CART_CHECKOUT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({ items: items.map(i=>({
+        kitId: i.productId,
+        licence: (i.licence==='commercial') ? 'commercial' : 'personal'
+      })) })
+    });
+    const out=await res.json().catch(()=>({}));
+    if(!res.ok || !out.url){
+      alert(out.error || 'Checkout could not be started. Please try again.');
+      return;
+    }
+    window.location.href=out.url;
+  }catch(e){
+    console.error('[lds-checkout]', e);
+    alert('Checkout could not be started.\n\nReason: '+((e&&e.message)||e));
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='Checkout'; }
+  }
 }
 function ldsOpenCart(){
   ldsBuildCartPanel();
