@@ -945,7 +945,11 @@ body::before{
 .footer__col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
 .footer__col li a{font-size:13px;color:var(--ink-2);transition:color .3s}
 .footer__col li a:hover{color:var(--oxblood)}
-.footer__bottom{padding-top:40px;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--whisper)}
+/* 9 Aug 2026 — the Privacy/Terms/Legal cluster moved into the Support column,
+   so this strip now holds the copyright alone. space-between with one child
+   would leave it hard against the left edge; flex-start keeps it deliberate,
+   and wrapping stops the line colliding with the page counter on phones. */
+.footer__bottom{padding-top:40px;display:flex;justify-content:flex-start;align-items:center;gap:18px;flex-wrap:wrap;font-family:var(--font-mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--whisper)}
 .footer__bottom a{color:var(--whisper);transition:color .3s}
 .footer__bottom a:hover{color:var(--oxblood)}
 .footer__giant{font-family:var(--font-display);font-size:clamp(32px,7vw,110px);font-weight:300;line-height:0.85;letter-spacing:-0.04em;margin-top:80px;padding:0 20px;text-align:center;color:var(--bone-3);user-select:none;white-space:nowrap;overflow:hidden}
@@ -2606,19 +2610,24 @@ animateRing();</pre>
       </div>
       <div class="footer__col">
         <div class="footer__col-title">Support</div>
+        <!-- 9 Aug 2026 — Privacy / Terms / Legal moved up here from the bottom
+             strip so every footer link sits in the same aligned column instead
+             of three of them floating on their own line. Same destinations. -->
         <ul>
           <li><a href="#" data-page="pricing">Licensing</a></li>
           <li><a href="#" data-page="faq">FAQ</a></li>
           <li><a href="#" data-page="contact">Contact</a></li>
           <li><a href="#" data-page="faq">Documentation</a></li>
           <li><a href="#" data-page="legal">License Agreement</a></li>
+          <li><a href="#" data-page="legal">Privacy</a></li>
+          <li><a href="#" data-page="legal">Terms</a></li>
+          <li><a href="#" data-page="legal">Legal</a></li>
         </ul>
       </div>
     </div>
     <div class="footer__giant" style="font-size:clamp(28px,5.5vw,84px);margin-top:40px;margin-bottom:0">LazyDog <em>Studios</em></div>
     <div class="footer__bottom">
       <div>© 2026 LazyDog Studios · Operated by LazyDogTemplates · All Rights Reserved</div>
-      <div><a href="#" data-page="legal">Privacy</a> · <a href="#" data-page="legal">Terms</a> · <a href="#" data-page="legal">Legal</a></div>
     </div>
   </div>
 </footer>
