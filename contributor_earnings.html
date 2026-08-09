@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>My Earnings — LazyDogTemplates</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#0a0e27;color:#e8ecf5;font-family:'Poppins',sans-serif;min-height:100vh;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 18px 80px;}
+  h1{font-size:26px;font-weight:800;margin-bottom:4px;}
+  .sub{color:#8899aa;font-size:13px;margin-bottom:22px;}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:10px;}
+  .card{background:#111737;border:1px solid #1e2a5a;border-radius:14px;padding:16px 18px;}
+  .card .lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8899aa;font-weight:700;}
+  .card .val{font-size:26px;font-weight:900;margin-top:6px;}
+  .card .hint{font-size:11px;color:#8899aa;margin-top:5px;line-height:1.45;}
+  .val.avail{background:linear-gradient(90deg,#64ffa0,#64c8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .val.held{color:#f0c26b;}
+  .val.paid{color:#9fb0c8;}
+
+  .note{background:#131a3d;border:1px solid #24306a;border-left:3px solid #64c8ff;border-radius:10px;
+        padding:14px 16px;font-size:12.5px;line-height:1.65;color:#c2ccdf;margin:18px 0 22px;}
+  .note b{color:#fff;}
+
+  table{width:100%;border-collapse:collapse;margin-top:6px;}
+  th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:#8899aa;text-align:left;
+     padding:10px 8px;border-bottom:1px solid #1e2a5a;font-weight:700;white-space:nowrap;}
+  td{padding:12px 8px;border-bottom:1px solid #161f45;font-size:13px;vertical-align:top;}
+  td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  th.num{text-align:right;}
+  .kit{font-weight:600;}
+  .lic{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:5px;font-size:9.5px;font-weight:800;letter-spacing:.03em;}
+  .lic.p{background:rgba(255,255,255,.09);color:#cfd8e8;}
+  .lic.c{background:rgba(100,200,255,.16);color:#7fd4ff;}
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap;}
+  .s-held{background:rgba(240,194,107,.14);color:#f0c26b;}
+  .s-available{background:rgba(100,255,160,.14);color:#64ffa0;}
+  .s-paid{background:rgba(159,176,200,.14);color:#9fb0c8;}
+  .s-reversed{background:rgba(229,83,60,.14);color:#ff8b76;}
+  .s-needs_review{background:rgba(180,100,255,.16);color:#c89bff;}
+  .s-paid_then_refunded{background:rgba(229,83,60,.2);color:#ff8b76;}
+  .fees{font-size:11px;color:#8899aa;}
+
+  .state{padding:50px 20px;text-align:center;color:#8899aa;font-size:14px;line-height:1.7;}
+  .state a{color:#64c8ff;}
+  .btn{display:inline-block;margin-top:14px;background:#64c8ff;color:#06122a;border:0;border-radius:10px;
+       padding:11px 22px;font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;cursor:pointer;text-decoration:none;}
+  .foot{margin-top:26px;font-size:11.5px;color:#6a7690;line-height:1.7;}
+  @media(max-width:720px){ .hide-sm{display:none;} h1{font-size:22px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>My Earnings</h1>
+  <div class="sub" id="who">Loading…</div>
+
+  <div id="content" style="display:none;">
+    <div class="cards">
+      <div class="card">
+        <div class="lbl">Available now</div>
+        <div class="val avail" id="tAvail">$0.00</div>
+        <div class="hint">Ready to be paid out. Minimum <b id="thr">$50</b> before we send it.</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Still on hold</div>
+        <div class="val held" id="tHeld">$0.00</div>
+        <div class="hint">Released <b id="holdDays">20</b> days after the buyer pays.</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Already paid to you</div>
+        <div class="val paid" id="tPaid">$0.00</div>
+        <div class="hint">Money we have already sent.</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Lifetime sales</div>
+        <div class="val" id="tCount">0</div>
+        <div class="hint">Times your templates were bought.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>How your share is worked out.</b> You receive <b>75% of the net</b> on every sale.
+      Net means what is left after the payment provider's fees and, if the buyer arrived through
+      an affiliate's link, that affiliate's commission. Those are real figures taken from the
+      payment itself — not estimates — and every line below shows you exactly what was deducted.
+      <br/><br/>
+      Because an affiliate commission is a real cost of that sale, the same template can earn you
+      a different amount depending on how the buyer found it. Both figures are shown so you can
+      always check the arithmetic.
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Template</th>
+            <th class="hide-sm">Date</th>
+            <th class="num">Sold for</th>
+            <th class="num hide-sm">Fees</th>
+            <th class="num hide-sm">Net</th>
+            <th class="num">Your 75%</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <div class="foot" id="foot"></div>
+  </div>
+
+  <div class="state" id="state">Checking your account…</div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs }
+  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
+const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+/* These two must match contributor_ledger.py. They are shown to the
+   contributor, so if the backend rule changes and this does not, the page
+   becomes a promise the system does not keep. */
+const HOLD_DAYS = 20;
+const THRESHOLD = 50;
+
+const $ = id => document.getElementById(id);
+const money = n => '$' + (Number(n) || 0).toFixed(2);
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const LABEL = {
+  held: 'On hold', available: 'Available', paid: 'Paid',
+  reversed: 'Refunded', needs_review: 'Being checked',
+  paid_then_refunded: 'Refunded after payout'
+};
+
+function when(ts){
+  try {
+    const d = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+    if (!d || isNaN(d)) return '—';
+    return d.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
+  } catch(e){ return '—'; }
+}
+
+function show(msg, withSignIn){
+  $('state').style.display = 'block';
+  $('content').style.display = 'none';
+  $('state').innerHTML = esc(msg) +
+    (withSignIn ? '<br/><a class="btn" href="main.html">Go to the site and sign in</a>' : '');
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { $('who').textContent = 'Not signed in';
+               show('Please sign in to see your earnings.', true); return; }
+
+  $('who').textContent = user.email || '';
+  $('holdDays').textContent = HOLD_DAYS;
+  $('thr').textContent = money(THRESHOLD);
+
+  let docs = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'earnings'),
+                                     where('contributorUid', '==', user.uid)));
+    snap.forEach(d => docs.push(d.data()));
+  } catch (e) {
+    console.error(e);
+    show('Could not load your earnings just now. Please try again shortly.');
+    return;
+  }
+
+  if (!docs.length) {
+    show('No sales yet.\n\nOnce one of your approved templates is bought, every sale will appear here with a full breakdown of how your share was worked out.');
+    return;
+  }
+
+  /* Newest first. Sorting here rather than in the query keeps this page working
+     without a composite Firestore index. */
+  docs.sort((a,b) => {
+    const ta = a.paidAt && a.paidAt.toDate ? a.paidAt.toDate().getTime() : 0;
+    const tb = b.paidAt && b.paidAt.toDate ? b.paidAt.toDate().getTime() : 0;
+    return tb - ta;
+  });
+
+  let avail = 0, held = 0, paid = 0, review = 0, sales = 0;
+  const rows = docs.map(d => {
+    const st  = String(d.status || 'held');
+    const amt = Number(d.earnedUsd) || 0;
+    if (st === 'available') avail += amt;
+    else if (st === 'held') held += amt;
+    else if (st === 'paid') paid += amt;
+    else if (st === 'needs_review') review += amt;
+    if (st !== 'reversed') sales++;
+
+    const lic = d.licence === 'commercial' ? 'c' : 'p';
+    return `<tr>
+      <td class="kit">${esc(d.kitTitle || d.kitId || 'Template')}<span class="lic ${lic}">${lic==='c'?'COMMERCIAL':'PERSONAL'}</span></td>
+      <td class="hide-sm">${when(d.paidAt)}</td>
+      <td class="num">${money(d.grossUsd)}</td>
+      <td class="num hide-sm fees">−${money(d.feesUsd)}</td>
+      <td class="num hide-sm">${money(d.netUsd)}</td>
+      <td class="num"><b>${money(d.earnedUsd)}</b></td>
+      <td><span class="pill s-${esc(st)}">${esc(LABEL[st] || st)}</span></td>
+    </tr>`;
+  }).join('');
+
+  $('rows').innerHTML = rows;
+  $('tAvail').textContent = money(avail);
+  $('tHeld').textContent  = money(held);
+  $('tPaid').textContent  = money(paid);
+  $('tCount').textContent = sales;
+
+  let foot = '';
+  if (avail > 0 && avail < THRESHOLD) {
+    foot = `You have ${money(avail)} available. Payouts are sent once the available balance
+            reaches ${money(THRESHOLD)} — ${money(THRESHOLD - avail)} to go.`;
+  } else if (avail >= THRESHOLD) {
+    foot = `You have ${money(avail)} available and are over the ${money(THRESHOLD)} minimum.
+            We will be in touch to arrange payment.`;
+  }
+  if (review > 0) {
+    foot += `<br/>${money(review)} is being checked. This happens when the exact fees on a
+             sale cannot be read automatically — we settle these by hand so your share is
+             never guessed at.`;
+  }
+  $('foot').innerHTML = foot;
+
+  $('state').style.display = 'none';
+  $('content').style.display = 'block';
+});
+</script>
+</body>
+</html>

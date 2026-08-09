@@ -129,10 +129,13 @@
        hiding a link stops nobody who knows the URL. Firestore is what refuses
        the write. */
     const ub = document.getElementById('nbUploadBtn');
+    const eb = document.getElementById('nbEarnBtn');   // My Earnings
     if (ub) ub.style.display = 'none';
+    if (eb) eb.style.display = 'none';
     if (user && ub) {
       if (window.ldIsAdmin()) {
         ub.style.display = 'inline-flex';
+        if (eb) eb.style.display = 'inline-flex';
       } else {
         // Firestore is not otherwise needed by the navbar, so it is imported
         // lazily — signed-out visitors never pay for this.
@@ -141,7 +144,10 @@
             const { getFirestore, doc, getDoc } =
               await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
             const snap = await getDoc(doc(getFirestore(app), 'contributor_applications', user.uid));
-            if (snap.exists() && snap.data().status === 'approved') ub.style.display = 'inline-flex';
+            if (snap.exists() && snap.data().status === 'approved') {
+              ub.style.display = 'inline-flex';
+              if (eb) eb.style.display = 'inline-flex';
+            }
           } catch (e) {
             /* Fail closed: any error leaves the button hidden. */
           }
@@ -286,6 +292,10 @@
     <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Generate Designs</a>
     <a href="editor.html" class="nb-wn-tab" title="LazyDog Designer" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:1.5px solid #7d6bf0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Editor</a>
     <a href="upload_form.html" id="nbUploadBtn" class="nb-wn-tab" title="Upload your designs" style="background:#fff;color:#2e9e6b;border:1.5px solid #4fbf8b;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Upload</a>
+    <!-- Same gate as Upload: admins and approved contributors only. Hidden by
+         default; the real protection is the earnings rule in firestore.rules,
+         which only ever returns a contributor their own rows. -->
+    <a href="contributor_earnings.html" id="nbEarnBtn" class="nb-wn-tab" title="Your sales and earnings" style="background:#fff;color:#2f6fd0;border:1.5px solid #7aa8f0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Earnings</a>
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
     <button class="nb-theme-nb" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode"><svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg></button>
