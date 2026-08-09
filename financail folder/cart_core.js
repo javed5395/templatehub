@@ -122,17 +122,29 @@
       itemPrice = isNaN(numPrice) ? 0 : numPrice;
     }
 
+    /* 9 Aug 2026 — the same kit at Personal and at Commercial are two DIFFERENT
+       things at two different prices. Matching on productId alone made the
+       cart keep whichever was added first and silently ignore the second, so a
+       buyer choosing Commercial could be charged the Personal price. The
+       identity of a basket line is productId + licence. */
+    const licence = (product.licence === 'commercial') ? 'commercial' : 'personal';
+
     const existingItem = cartState.items.find(function (item) {
-      return item.productId === productId;
+      return item.productId === productId
+          && ((item.licence === 'commercial') ? 'commercial' : 'personal') === licence;
     });
 
     if (existingItem) {
-      existingItem.quantity = (existingItem.quantity || 1) + 1;
+      /* A template is a file, not a crate of apples — owning it twice is the
+         same as owning it once. Refuse the duplicate instead of charging again. */
+      return false;
     } else {
       cartState.items.push({
         productId: productId,
         title: String(product.title).trim(),
         price: itemPrice,
+        licence: licence,
+        planId: String(product.planId || '').trim(),
         sellerId: String(product.sellerId).trim(),
         quantity: 1
       });
@@ -143,14 +155,21 @@
     return true;
   }
 
-  function removeItem(productId) {
+  /* removeItem(productId)            -> removes every licence of that kit
+     removeItem(productId, 'personal') -> removes only that licence
+     The one-argument form is kept because existing callers use it. */
+  function removeItem(productId, licence) {
     if (typeof productId !== "string") return false;
 
     const cleanId = productId.trim();
+    const wantLic = (licence === 'commercial' || licence === 'personal') ? licence : null;
     const initialLength = cartState.items.length;
 
     cartState.items = cartState.items.filter(function (item) {
-      return item.productId !== cleanId;
+      if (item.productId !== cleanId) return true;
+      if (!wantLic) return false;
+      const lic = (item.licence === 'commercial') ? 'commercial' : 'personal';
+      return lic !== wantLic;
     });
 
     if (cartState.items.length !== initialLength) {

@@ -399,10 +399,17 @@
       body.innerHTML = items.map(function(it){
         var price = (it.price === 'free' || it.price === 0 || it.price == null) ? 'Free' : ('USD ' + Number(it.price).toFixed(2));
         var q = (it.quantity > 1) ? (' &times;' + it.quantity) : '';
+        /* The licence must be visible in the basket. The same kit can appear
+           twice at two prices, and without a label the two lines look like a
+           duplicate the buyer would try to remove. */
+        var lic = (it.licence === 'commercial') ? 'commercial' : 'personal';
+        var licTag = '<span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.02em;'
+          + (lic === 'commercial' ? 'background:rgba(100,200,255,0.16);color:#7fd4ff;' : 'background:rgba(255,255,255,0.10);color:#cfc7b8;')
+          + '">' + (lic === 'commercial' ? 'COMMERCIAL' : 'PERSONAL') + '</span>';
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">'
           + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + nbEsc(it.title) + q + '</div>'
-          + '<div style="font-size:12px;color:#d4af37;">' + price + '</div></div>'
-          + '<button title="Remove" onclick="nbCartRemove(&quot;' + nbEsc(it.productId) + '&quot;)" style="background:none;border:1px solid rgba(229,83,60,0.5);color:#e5533c;font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;cursor:pointer;font-family:Poppins,sans-serif;">Remove</button>'
+          + '<div style="font-size:12px;color:#d4af37;">' + price + licTag + '</div></div>'
+          + '<button title="Remove" onclick="nbCartRemove(&quot;' + nbEsc(it.productId) + '&quot;,&quot;' + lic + '&quot;)" style="background:none;border:1px solid rgba(229,83,60,0.5);color:#e5533c;font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;cursor:pointer;font-family:Poppins,sans-serif;">Remove</button>'
           + '</div>';
       }).join('');
       var total = (cart && cart.getTotal) ? cart.getTotal() : 0;
@@ -423,17 +430,76 @@
       if (p) p.style.display = 'none';
       window._nbCartOpen = false;
     };
-    window.nbCartRemove = function(pid){
+    window.nbCartRemove = function(pid, licence){
       if (window.Commerce && window.Commerce.cart && window.Commerce.cart.removeItem) {
-        window.Commerce.cart.removeItem(pid);
+        // Pass the licence so removing the Personal line leaves a Commercial
+        // line of the same kit alone.
+        window.Commerce.cart.removeItem(pid, licence);
         nbRenderCart();
       }
     };
-    window.nbCartCheckout = function(){
-      // Real checkout (one combined payment) activates when the payment provider
-      // and full engine are wired onto the pages. Until then, keep it clearly
-      // "coming soon" — the basket is saved either way.
-      alert('\u{1F4B3} Checkout is coming soon — we are connecting the payment provider. Your cart is saved.');
+    /* ── REAL CART CHECKOUT (9 Aug 2026) ────────────────────────────────────
+       Whop charges one plan per payment, so a basket is sent to a Cloud
+       Function which re-prices every line from the database, stores the basket,
+       and creates a single Whop checkout for the total. The browser never sends
+       a price — only which kit and which licence. That is deliberate: a total
+       computed in the page could be edited by the buyer.
+
+       Sign-in is required because the payment is matched back to the account by
+       email. Paying while signed out would take money we could not deliver. */
+    /* Same address style as download_url_http / chat_http elsewhere on the
+       site: project + region + function name. Stable, unlike the hashed
+       *.run.app form which changes if the function is ever recreated. */
+    var NB_CART_CHECKOUT_URL =
+      'https://us-central1-templatehub-16cd7.cloudfunctions.net/whop_cart_checkout_http';
+
+    window.nbCartCheckout = async function(){
+      var btn = document.querySelector('#nbCartFoot button');
+      var cart = (window.Commerce && window.Commerce.cart) ? window.Commerce.cart : null;
+      var items = (cart && cart.getItems) ? cart.getItems() : [];
+      if (!items.length) { alert('Your cart is empty.'); return; }
+
+      var user = null;
+      try {
+        if (window.Commerce && window.Commerce.auth && window.Commerce.auth.getCurrentUser) {
+          user = window.Commerce.auth.getCurrentUser();
+        }
+      } catch(e){}
+      if (!user) { try { user = (window.firebase && firebase.auth) ? firebase.auth().currentUser : null; } catch(e){} }
+      if (!user) {
+        alert('Please sign in first — your purchase is saved to your account.');
+        if (window.openAuth) { try { openAuth('signin'); } catch(e){} }
+        return;
+      }
+
+      if (btn) { btn.disabled = true; btn.textContent = 'Starting checkout…'; }
+      try {
+        var token = await user.getIdToken();
+        var res = await fetch(NB_CART_CHECKOUT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json',
+                     'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({
+            items: items.map(function(i){
+              return { kitId: i.productId,
+                       licence: (i.licence === 'commercial') ? 'commercial' : 'personal' };
+            })
+          })
+        });
+        var out = await res.json().catch(function(){ return {}; });
+        if (!res.ok || !out.url) {
+          alert(out.error || 'Checkout could not be started. Please try again.');
+          return;
+        }
+        /* Send the buyer to Whop's hosted checkout. A redirect rather than an
+           embedded box: the basket total is a one-off plan, and the hosted page
+           is the flow Whop supports for it. */
+        window.location.href = out.url;
+      } catch (e) {
+        alert('Checkout could not be started. Please check your connection and try again.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Checkout'; }
+      }
     };
 
     // Close the panel when clicking outside it (but not on the cart button).
