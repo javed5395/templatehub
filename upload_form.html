@@ -638,9 +638,20 @@
               <input type="text" id="whopAccount" placeholder="Your Whop username or account email" autocomplete="off"/>
               <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
                 We pay through Whop — free, fast, and nothing lost to bank charges
-                or currency conversion. Free to open at
-                <a href="https://whop.com" target="_blank" rel="noopener" style="color:var(--accent)">whop.com</a>.
-                You can add this later.
+                or currency conversion. You can add this later.
+              </p>
+              <!-- Opens in a NEW TAB on purpose: this form holds unsaved work,
+                   and navigating away from it would lose an upload in progress. -->
+              <a href="https://whop.com/" target="_blank" rel="noopener noreferrer"
+                 style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;
+                        padding:10px 16px;border:1px solid var(--accent);border-radius:0;
+                        color:var(--accent);text-decoration:none;font-weight:700;
+                        font-size:12.5px;font-family:Poppins,sans-serif;">
+                Open a free Whop account ↗
+              </a>
+              <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">
+                Takes about two minutes — an email and a password. Whop only asks
+                for ID when you withdraw your money, not to receive it.
               </p>
             </div>
           </div>
