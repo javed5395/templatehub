@@ -459,14 +459,14 @@
       var items = (cart && cart.getItems) ? cart.getItems() : [];
       if (!items.length) { alert('Your cart is empty.'); return; }
 
-      var user = null;
-      try {
-        if (window.Commerce && window.Commerce.auth && window.Commerce.auth.getCurrentUser) {
-          user = window.Commerce.auth.getCurrentUser();
-        }
-      } catch(e){}
-      if (!user) { try { user = (window.firebase && firebase.auth) ? firebase.auth().currentUser : null; } catch(e){} }
-      if (!user) {
+      /* Use this file's own auth helpers. Commerce.auth.getCurrentUser() returns
+         a plain {email, uid} object with NO getIdToken method — calling it threw
+         and surfaced as "check your connection", which sent us hunting for a
+         network fault that did not exist (9 Aug 2026). ldGetToken talks to the
+         real Firebase auth instance created at the top of this file. */
+      var token = null;
+      try { token = (typeof window.ldGetToken === 'function') ? await window.ldGetToken() : null; } catch(e){ token = null; }
+      if (!token) {
         alert('Please sign in first — your purchase is saved to your account.');
         if (window.openAuth) { try { openAuth('signin'); } catch(e){} }
         return;
@@ -474,7 +474,6 @@
 
       if (btn) { btn.disabled = true; btn.textContent = 'Starting checkout…'; }
       try {
-        var token = await user.getIdToken();
         var res = await fetch(NB_CART_CHECKOUT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json',
@@ -496,7 +495,11 @@
            is the flow Whop supports for it. */
         window.location.href = out.url;
       } catch (e) {
-        alert('Checkout could not be started. Please check your connection and try again.');
+        /* Say WHAT failed. A generic "check your connection" cost us a whole
+           debugging round chasing a network problem that never existed. */
+        try { console.error('[cart-checkout]', e); } catch(_){}
+        alert('Checkout could not be started.\n\nReason: ' + ((e && e.message) || e)
+              + '\n\nPlease tell support if this keeps happening.');
       } finally {
         if (btn) { btn.disabled = false; btn.textContent = 'Checkout'; }
       }
