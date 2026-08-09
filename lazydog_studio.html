@@ -276,6 +276,20 @@ body::before{
 }
 .nav-link:hover{color:var(--oxblood);border-color:var(--oxblood)}
 .nav-link.is-active{color:var(--oxblood);border-color:var(--oxblood)}
+/* 9 Aug 2026 — .chrome is fixed and transparent and never gains a background on
+   scroll, so content ran underneath the brand, the nav pills and the cart. The
+   controls now carry their own frosted backing instead of the whole bar getting
+   an opaque strip, which would have killed the floating look. */
+.chrome__nav .nav-link,
+.chrome .brand,
+.chrome .cart-btn,
+.chrome .menu-btn{
+  background:rgba(242,238,229,0.82);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+}
+.chrome .brand{padding:6px 14px 6px 6px;border-radius:100px}
+.chrome .cart-btn,.chrome .menu-btn{padding:8px 16px;border-radius:100px}
 .chrome__actions{display:flex;align-items:center;gap:20px}
 .cart-btn{
   display:flex;
@@ -398,6 +412,10 @@ body::before{
   justify-content:space-between;
   align-items:flex-end;
   pointer-events:none;
+  /* Fades the page behind the counter so it stays readable over any section,
+     without introducing a visible bar. Was fully transparent — the counter
+     collided with whatever happened to be underneath it. */
+  background:linear-gradient(to top,var(--bone) 35%,rgba(242,238,229,0) 100%);
 }
 .bottom-bar > *{pointer-events:auto}
 .page-indicator{
@@ -935,7 +953,10 @@ body::before{
 /* toast removed */
 
 /* ============== FOOTER ============== */
-.footer{padding:120px 40px 40px;border-top:1px solid var(--hairline);background:var(--bone)}
+/* 9 Aug 2026 — the bottom bar is position:fixed with no background and nothing
+   reserved space for it, so the "15 / 15  LEGAL & POLICIES" counter sat directly
+   on top of the copyright line. Bottom padding now clears it. */
+.footer{padding:120px 40px 96px;border-top:1px solid var(--hairline);background:var(--bone)}
 .footer__inner{max-width:1440px;margin:0 auto}
 .footer__top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:60px;padding-bottom:80px;border-bottom:1px solid var(--hairline)}
 .footer__brand{font-family:var(--font-display);font-size:48px;font-weight:400;letter-spacing:-0.02em;line-height:1;margin-bottom:20px}
@@ -984,7 +1005,17 @@ body::before{
   .process-phase{grid-template-columns:1fr;gap:20px}
   .chrome__nav{display:none}
 }
+@media (max-width:1024px){
+  /* The header floats 52px down the page. Fine on a desktop, a waste of a
+     phone screen — pull it up and let the grid breathe two-up on tablets. */
+  .chrome{top:14px}
+  .footer{padding:80px 24px 88px}
+  .product-grid{grid-template-columns:repeat(6,1fr)}
+  .product-card--lg,.product-card--md,.product-card--sm,.product-card--wide{grid-column:span 3;aspect-ratio:3/4}
+}
 @media (max-width:640px){
+  /* one per row only once two really is too tight */
+  .product-card--lg,.product-card--md,.product-card--sm,.product-card--wide{grid-column:span 6;aspect-ratio:4/5}
   .hero__content{padding:0 24px 60px}
   .hero__meta{display:none}
   .stats-grid{grid-template-columns:1fr}
