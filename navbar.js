@@ -295,7 +295,7 @@
     <!-- Same gate as Upload: admins and approved contributors only. Hidden by
          default; the real protection is the earnings rule in firestore.rules,
          which only ever returns a contributor their own rows. -->
-    <a href="contributor_earnings.html" id="nbEarnBtn" class="nb-wn-tab" title="Your sales and earnings" style="background:#fff;color:#2f6fd0;border:1.5px solid #7aa8f0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Earnings</a>
+    <a href="contributor/earnings.html" id="nbEarnBtn" class="nb-wn-tab" title="Your sales and earnings" style="background:#fff;color:#2f6fd0;border:1.5px solid #7aa8f0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Earnings</a>
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
     <button class="nb-theme-nb" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode"><svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg></button>

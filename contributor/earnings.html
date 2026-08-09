@@ -156,7 +156,8 @@ function show(msg, withSignIn){
   $('state').style.display = 'block';
   $('content').style.display = 'none';
   $('state').innerHTML = esc(msg) +
-    (withSignIn ? '<br/><a class="btn" href="main.html">Go to the site and sign in</a>' : '');
+    /* ../ because this page now lives in /contributor/ (9 Aug 2026). */
+    (withSignIn ? '<br/><a class="btn" href="../main.html">Go to the site and sign in</a>' : '');
 }
 
 onAuthStateChanged(auth, async (user) => {

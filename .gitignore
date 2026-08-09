@@ -17,6 +17,11 @@ contributor_review.html
 # what other people are owed is theirs.
 contributor_payouts.html
 
+# BOTH of the above now live OUTSIDE this repository, in WebMarketplace/admin-local/
+# (moved 9 Aug 2026). These two rules are kept anyway: if either file is ever
+# copied back into the website folder by accident, git will still refuse to
+# publish it. A belt-and-braces rule costs nothing; a leaked payout list does.
+
 # Backend source (Google Apps Script). Lives in the Apps Script editor, not the site.
 *.gs
 
