@@ -725,11 +725,15 @@ function loadKeynote(k) {
             }
           },
           hasMerchantReturnPolicy: {
+            /* 8 Aug 2026 — real policy per Javed: refundable ONLY if the file
+               was never downloaded (e.g. a technical failure at checkout).
+               Once downloaded, the sale is final — no refund. That is not a
+               "return within N days" policy, so MerchantReturnFiniteReturnWindow
+               would misrepresent it; MerchantReturnNotPermitted is the accurate
+               category for "no returns on a delivered digital good." */
             '@type': 'MerchantReturnPolicy',
             applicableCountry: 'US',
-            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-            merchantReturnDays: 14,
-            returnFees: 'https://schema.org/FreeReturn'
+            returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted'
           }
         }
       };

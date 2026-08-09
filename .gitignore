@@ -5,6 +5,12 @@
 # and it stayed tracked for 330 commits. Any admin_panel* variant is now ignored.
 admin_panel*.html
 
+# Contributor review console (6 Aug 2026). Displays applicants' government ID
+# photos, phone numbers and email addresses. Admin-only, run locally — the
+# same reasoning as admin_panel*.html above, but the data is more sensitive:
+# a leaked admin page is our problem, a leaked ID is the applicant's problem.
+contributor_review.html
+
 # Backend source (Google Apps Script). Lives in the Apps Script editor, not the site.
 *.gs
 

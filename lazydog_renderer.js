@@ -3409,6 +3409,45 @@ function textIRFromFabric(o, S, orig) {
     fill: (orig && orig.fill) || null,
     bodyAnchor: (orig && orig.bodyAnchor) || 't', paragraphs: []
   };
+  /* ═══ HALF-HEADING FIX (7 Aug) ═══
+     1) BODY-FRAME PROPS: a source frame's insets/wrap/warp are NOT derivable
+        from the fabric object — dropping them re-added default padding
+        (91440/45720 EMU) to zero-inset boxes, so tall display fonts
+        (TAN Grandeur etc.) clipped at the frame edge on reimport. Carry them. */
+  if (orig) {
+    el.insL = orig.insL; el.insR = orig.insR; el.insT = orig.insT; el.insB = orig.insB;
+    el.wrapNone = orig.wrapNone; el.anchorCtr = orig.anchorCtr;
+    el.txWarp = orig.txWarp; el.txVert = orig.txVert;
+    el.numCol = orig.numCol; el.spcCol = orig.spcCol;
+    el.stroke = orig.stroke; el.shadow = orig.shadow;
+    el.glow = orig.glow; el.reflection = orig.reflection;
+  }
+  /* 2) ROUND-TRIP GEOMETRY GUARD — same rule shapes/images already follow in
+        slideIRFromCanvas, but text never got it: canvas-measured text bounds
+        sit LOWER and SHORTER than the true frame (fabric line-height ≠ file
+        line spacing), so an untouched 98pt-spaced heading exported into a
+        box ~70% of its real height, pushed ~24pt down — renderers that clip
+        to the frame (Canva import) sliced the letters in half.
+        Untouched box → original file geometry verbatim.
+        Moved/scaled  → only the user's delta applied to the original. */
+  if (orig && o.irC0 && orig.x != null && orig.w != null) {
+    var _c0 = o.irC0, _EPX = 0.75;
+    var _wPx = (o.width || 0) * (o.scaleX || 1), _hPx = (o.height || 0) * (o.scaleY || 1);
+    var _l = o.left || 0, _t = o.top || 0;
+    if (o.originX === 'center') _l -= _wPx / 2;
+    if (o.originY === 'center') _t -= _hPx / 2;
+    var _moved = Math.abs(_l - _c0.l) > _EPX || Math.abs(_t - _c0.t) > _EPX;
+    var _sized = Math.abs(_wPx - _c0.w) > _EPX || Math.abs(_hPx - _c0.h) > _EPX;
+    var _spun = Math.abs((o.angle || 0) - (_c0.a || 0)) > 0.05;
+    if (!_moved && !_sized && !_spun) {
+      el.x = orig.x; el.y = orig.y; el.w = orig.w; el.h = orig.h; el.rot = orig.rot || 0;
+    } else {
+      var _kx = _c0.w > 0.01 ? _wPx / _c0.w : 1, _ky = _c0.h > 0.01 ? _hPx / _c0.h : 1;
+      el.x = orig.x + (_l - _c0.l) * S; el.y = orig.y + (_t - _c0.t) * S;
+      el.w = orig.w * _kx; el.h = orig.h * _ky;
+      el.rot = (orig.rot || 0) + ((o.angle || 0) - (_c0.a || 0));
+    }
+  }
   var curText = o.text || '';
   var origText = (orig && orig.paragraphs) ? orig.paragraphs.map(function (p) { return p.runs.map(function (r) { return r.text; }).join(''); }).join('\n') : null;
   if (orig && origText === curText) { el.paragraphs = orig.paragraphs; return el; } /* moved/resized only: keep exact original runs */
