@@ -11,6 +11,12 @@ admin_panel*.html
 # a leaked admin page is our problem, a leaked ID is the applicant's problem.
 contributor_review.html
 
+# Contributor payout console (9 Aug 2026). Shows every contributor's name,
+# email and earnings, and records payouts. Same reasoning as above — admin
+# only, run locally. A leaked admin page is our problem; a leaked page listing
+# what other people are owed is theirs.
+contributor_payouts.html
+
 # Backend source (Google Apps Script). Lives in the Apps Script editor, not the site.
 *.gs
 
