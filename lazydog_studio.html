@@ -331,6 +331,30 @@ body::before{
 .menu-btn.is-open .menu-btn__lines::before{transform:translateY(4px) rotate(45deg)}
 .menu-btn.is-open .menu-btn__lines::after{transform:translateY(-4px) rotate(-45deg)}
 
+/* ============== FOOTER SOCIAL ICONS ============== */
+.footer__social{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.footer__social a{
+  width:40px;height:40px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--hairline);
+  border-radius:50%;
+  color:var(--whisper);
+  font-size:15px;
+  transition:color .35s var(--ease),border-color .35s var(--ease),
+             background .35s var(--ease),transform .35s var(--ease-out);
+}
+.footer__social a:hover{
+  color:var(--bone);
+  background:var(--oxblood);
+  border-color:var(--oxblood);
+  transform:translateY(-3px);
+}
+.footer__social a:focus-visible{outline:2px solid var(--oxblood);outline-offset:3px}
+@media (max-width:640px){
+  .footer__social{gap:10px}
+  .footer__social a{width:38px;height:38px;font-size:14px}
+}
+
 /* ============== SIDE INDEX ============== */
 .side-index{
   position:fixed;
@@ -2534,13 +2558,29 @@ animateRing();</pre>
       <div>
         <div class="footer__brand">LazyDog <em>Studios</em></div>
         <p class="footer__tagline">A curated atelier of digital design artifacts. WebKits, UI systems, presentation templates, and branding assets for studios who refuse the ordinary.</p>
-        <div style="display:flex;gap:20px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--whisper)">
-          <a href="https://x.com/lazydogtemplate" target="_blank" rel="noopener" data-cursor-label="Follow">X</a>
+        <!-- 9 Aug 2026 — these were plain uppercase words in a row. The main
+             site's footer shows proper icons (footerbar.js .footer-social), so
+             the studio now matches. Same four accounts, same order, unchanged
+             links. aria-label carries the name for screen readers since the
+             icon alone says nothing to them. -->
+        <div class="footer__social">
+          <a href="https://x.com/lazydogtemplate" target="_blank" rel="noopener"
+             data-cursor-label="Follow" aria-label="X (Twitter)" title="X (Twitter)">
+            <i class="fa-brands fa-x-twitter"></i></a>
           <!-- Facebook added 2 Aug 2026. The Page, not the personal profile.
                Numeric id until Facebook unlocks the username. -->
-          <a href="https://www.facebook.com/profile.php?id=61592577276958" target="_blank" rel="noopener" data-cursor-label="Follow">Facebook</a>
-          <a href="https://www.instagram.com/lazydogtemplates/" target="_blank" rel="noopener" data-cursor-label="Follow">Instagram</a>
-          <a href="https://www.linkedin.com/company/lazydogtemplates" target="_blank" rel="noopener" data-cursor-label="Follow">LinkedIn</a>
+          <a href="https://www.facebook.com/profile.php?id=61592577276958" target="_blank" rel="noopener"
+             data-cursor-label="Follow" aria-label="Facebook" title="Facebook">
+            <i class="fa-brands fa-facebook-f"></i></a>
+          <a href="https://www.instagram.com/lazydogtemplates/" target="_blank" rel="noopener"
+             data-cursor-label="Follow" aria-label="Instagram" title="Instagram">
+            <i class="fa-brands fa-instagram"></i></a>
+          <a href="https://www.linkedin.com/company/lazydogtemplates" target="_blank" rel="noopener"
+             data-cursor-label="Follow" aria-label="LinkedIn" title="LinkedIn">
+            <i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="mailto:support@lazydogtemplates.com"
+             data-cursor-label="Email" aria-label="Email us" title="support@lazydogtemplates.com">
+            <i class="fa-solid fa-envelope"></i></a>
           <!-- YouTube removed 29 Jul 2026: no channel exists yet. -->
         </div>
       </div>
