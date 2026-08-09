@@ -28,6 +28,28 @@
   css.rel = 'stylesheet'; css.href = 'shared-styles.css';
   document.head.insertBefore(css, document.head.firstChild);
 
+  /* ── INJECT FAVICON (10 Aug 2026) ─────────────────────────────────────────
+     navbar.js is on every page, so declaring the favicon here makes the round
+     logo the browser-tab AND Google search-result icon site-wide in one place —
+     the same way GA and the stylesheet above are handled. Pages had the logo as
+     an <img> in the nav bar, but no <link rel="icon">, so Google showed a blank
+     globe. Skips injection if a page already declares its own favicon (e.g. the
+     welcome/splash page, which has no navbar and sets it statically). */
+  (function () {
+    if (document.querySelector('link[rel~="icon"]')) return;
+    var ICON = 'images/site_logo_round.png';
+    [
+      { rel: 'icon', type: 'image/png', href: ICON },
+      { rel: 'shortcut icon', type: 'image/png', href: ICON },
+      { rel: 'apple-touch-icon', href: ICON }
+    ].forEach(function (spec) {
+      var l = document.createElement('link');
+      l.rel = spec.rel; l.href = spec.href;
+      if (spec.type) l.type = spec.type;
+      document.head.appendChild(l);
+    });
+  })();
+
   // ── LAZYDOG STUDIOS — hover lift + glow so users know it's clickable ──
   var studioStyle = document.createElement('style');
   studioStyle.textContent =
