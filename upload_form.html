@@ -398,6 +398,38 @@
           <p style="font-size:11px;color:var(--muted);margin-top:6px">Enter 0 for free, or a dollar amount (e.g. 15 = $15.00)</p>
         </div>
 
+        <!-- ── AFFILIATE COMMISSION (9 Aug 2026) ───────────────────────────
+             What a MARKETER earns for bringing a sale of this kit.
+             Whoever uploads chooses, because this comes out of the sale before
+             the 75/25 split — so it is mostly the uploader's own money buying
+             that promotion. Range 0-40; the server clamps it too, since a
+             number typed into a browser is a suggestion, not a fact.       -->
+        <div class="field" id="affField">
+          <label>Marketer commission</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="affiliateValue" value="40" min="0" step="1" style="flex:1"/>
+            <button type="button" id="affModePct" class="aff-mode is-on" data-mode="percent"
+                    style="padding:12px 16px;border:1px solid var(--border);border-radius:0;
+                           font-weight:800;font-size:14px;cursor:pointer;font-family:Poppins,sans-serif;">%</button>
+            <button type="button" id="affModeAmt" class="aff-mode" data-mode="amount"
+                    style="padding:12px 16px;border:1px solid var(--border);border-radius:0;
+                           font-weight:800;font-size:14px;cursor:pointer;font-family:Poppins,sans-serif;">$</button>
+          </div>
+          <style>
+            .aff-mode{background:transparent;color:var(--muted);}
+            .aff-mode.is-on{background:rgba(212,175,55,0.15);color:var(--accent);border-color:var(--accent)!important;}
+          </style>
+          <div id="affMath" style="font-size:12px;line-height:1.7;color:var(--muted);margin-top:8px;
+               padding:10px 12px;border:1px solid var(--border);border-radius:0;"></div>
+          <p style="font-size:11px;color:var(--muted);margin-top:6px">
+            Set a percentage of the sale, or a fixed dollar amount — whichever
+            you think in. Marketers on Whop choose what to promote based on what
+            it pays: a higher rate means more people push your kit but you keep
+            less per sale. Set 0 and nobody promotes it. Capped at 40% of the
+            price either way.
+          </p>
+        </div>
+
         <!-- ── LIST ON THE WHOP STORE ──────────────────────────────────────
              Ticked = the kit gets its own product page on the Whop store and
              is submitted to the Whop Discover marketplace.
@@ -809,6 +841,101 @@ let sellerProfile  = null;
 // real enforcement is mayUpload() in firestore.rules, which Firestore
 // evaluates server-side. Never rely on a hidden button: anyone can open the
 // console and call Firestore directly.
+/* ── MARKETER COMMISSION — LIVE ARITHMETIC (9 Aug 2026) ──────────────────────
+   Shows what the chosen rate actually costs, in money, while it is being
+   chosen. Without this people pick a number blind and feel misled when the
+   first payout arrives.
+
+   The Whop fee shown is the standard domestic-card rate (2.7% + $0.30). It is
+   labelled as approximate on purpose — an international card or a currency
+   conversion costs more, and the real figure is read from the payment itself
+   when earnings are calculated. Better to show a slightly optimistic estimate
+   and say so than to show nothing.                                          */
+window._ldtAffMode = 'percent';           // 'percent' | 'amount'
+
+/* Turns whatever was typed into the percentage Whop will actually store.
+   Used by BOTH the preview and the save, so the number shown is provably the
+   number written — they cannot drift apart. */
+function ldtAffResolve() {
+  var price = parseFloat((document.getElementById('price') || {}).value);
+  var val   = parseFloat((document.getElementById('affiliateValue') || {}).value);
+  if (!isFinite(val) || val < 0) val = 0;
+
+  var pct;
+  if (window._ldtAffMode === 'amount') {
+    // Whop has no flat-amount affiliate setting, so an amount becomes a
+    // percentage of THIS price. Recomputed on the server too, so changing the
+    // price later keeps the marketer on the amount that was promised.
+    pct = (isFinite(price) && price > 0) ? (val / price * 100) : 0;
+  } else {
+    pct = val;
+  }
+  var capped = Math.max(0, Math.min(40, pct));
+  return { price: price, typed: val, pct: pct, capped: capped,
+           wasCapped: pct > 40.0001 };
+}
+
+function ldtPaintAffiliate() {
+  var box = document.getElementById('affMath');
+  if (!box) return;
+  var r = ldtAffResolve();
+
+  if (!isFinite(r.price) || r.price <= 0) {
+    box.innerHTML = 'Enter a price above to see what this is worth.';
+    return;
+  }
+
+  var money = function (n) { return '$' + (Math.round(n * 100) / 100).toFixed(2); };
+  var marketer = r.price * (r.capped / 100);
+  var fee      = r.price * 0.027 + 0.30;       // approximate, domestic card
+  var net      = Math.max(r.price - marketer - fee, 0);
+  var isContributor = (window._ldtUploadRight === 'approved');
+  var yours    = isContributor ? net * 0.75 : net;
+
+  box.innerHTML =
+      'Sale <b>' + money(r.price) + '</b>'
+    + '<br/>Marketer takes ' + (r.capped ? '<b>' + money(marketer) + '</b> ('
+        + (Math.round(r.capped * 10) / 10) + '%)' : '<b>nothing</b>')
+    + '<br/>Whop fees about ' + money(fee)
+    + '<br/><b style="color:var(--accent)">You keep about ' + money(yours) + '</b>'
+    + (isContributor ? ' <span style="opacity:.75">(your 75% share)</span>' : '')
+    + (r.wasCapped
+        ? '<br/><span style="color:#e5a13c">That works out to '
+          + Math.round(r.pct) + '% — capped at 40%, so the marketer gets '
+          + money(marketer) + '.</span>'
+        : '')
+    + (r.capped === 0
+        ? '<br/><span style="opacity:.8">At zero, no marketer will promote this kit.</span>'
+        : '');
+}
+
+function ldtSetAffMode(mode) {
+  window._ldtAffMode = (mode === 'amount') ? 'amount' : 'percent';
+  var p = document.getElementById('affModePct'), a = document.getElementById('affModeAmt');
+  if (p) p.classList.toggle('is-on', window._ldtAffMode === 'percent');
+  if (a) a.classList.toggle('is-on', window._ldtAffMode === 'amount');
+  var inp = document.getElementById('affiliateValue');
+  if (inp) inp.setAttribute('max', window._ldtAffMode === 'percent' ? '40' : '100000');
+  ldtPaintAffiliate();
+}
+
+document.addEventListener('input', function (e) {
+  if (e.target && (e.target.id === 'price' || e.target.id === 'affiliateValue')) {
+    ldtPaintAffiliate();
+  }
+});
+document.addEventListener('click', function (e) {
+  var b = e.target && e.target.closest ? e.target.closest('.aff-mode') : null;
+  if (b) ldtSetAffMode(b.getAttribute('data-mode'));
+});
+/* Module scripts are deferred, so DOMContentLoaded has usually ALREADY fired by
+   the time this runs — listening for it alone would leave the box blank. */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', ldtPaintAffiliate);
+} else {
+  ldtPaintAffiliate();
+}
+
 async function getUploadRight(user) {
   if (!user) return 'none';
   if (META_ADMIN_EMAILS.indexOf(user.email) !== -1) return 'admin';
@@ -837,6 +964,10 @@ onAuthStateChanged(auth, async (user) => {
       showSection('gate');
       return;
     }
+    // Remembered so the marketer-commission maths can show a contributor their
+    // 75% share, and the owner the full remainder.
+    window._ldtUploadRight = right;
+    if (typeof ldtPaintAffiliate === 'function') ldtPaintAffiliate();
 
     const profile = await loadSellerProfile(user.uid);
     if (!profile) {
@@ -2058,7 +2189,22 @@ window.submitForm = async function() {
         // product + plan is still created either way, because this site's own
         // checkout needs that plan id — so unticking never makes a kit
         // unsellable here. Free kits never reach Whop at all (no price).
-        listOnWhop:  !!document.getElementById('listOnWhop')?.checked
+        listOnWhop:  !!document.getElementById('listOnWhop')?.checked,
+
+        // ── MARKETER COMMISSION ───────────────────────────────────────────
+        // Read by whop_store_sync._affiliate_percent_for. Clamped again on the
+        // server — this value arrives from a browser, so it is a request, not
+        // a fact. Missing/blank falls back to the account default, never to 0.
+        // What was MEANT (mode + the number typed) is stored alongside the
+        // resolved percentage, so a later price change can re-derive a fixed
+        // amount instead of silently re-pricing the marketer's cut.
+        affiliateMode:    window._ldtAffMode || 'percent',
+        affiliateValue:   (function(){
+          var v = parseFloat((document.getElementById('affiliateValue')||{}).value);
+          return isFinite(v) && v > 0 ? v : 0;
+        })(),
+        affiliatePercent: (typeof ldtAffResolve === 'function'
+                            ? ldtAffResolve().capped : 40)
       }
     });
 
