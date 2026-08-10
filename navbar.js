@@ -77,8 +77,8 @@
     <h2 id="authTitle">Welcome Back</h2>
     <p id="authSubtitle">Sign in to access your downloads</p>
     <div class="auth-tabs">
-      <button class="auth-tab active" id="tabSignin" onclick="switchTab('signin')">Sign In</button>
-      <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+      <button class="auth-tab active" id="tabSignin" onclick="nbSwitchAuthTab('signin')">Sign In</button>
+      <button class="auth-tab" id="tabSignup" onclick="nbSwitchAuthTab('signup')">Sign Up</button>
     </div>
     <div class="auth-name-field" id="nameField">
       <div class="auth-field"><label>Your Name</label><input type="text" id="authName" placeholder="e.g. John Smith"/></div>
@@ -212,6 +212,13 @@
     }
 
     if(user) {
+      /* Close the sign-in modal the moment auth actually succeeds, whichever
+         route got us here — email, Google popup, or a session restored in
+         another tab. Each handler already calls closeAuthModal(), but this is
+         the one place that is true by definition: if there is a user, the
+         sign-in box has no reason to still be on screen. Harmless when it is
+         already closed. */
+      try { closeAuthModal(); } catch(e){}
       if(si)si.style.display='none'; if(su)su.style.display='none'; if(um)um.style.display='flex';
       const name=user.displayName||user.email.split('@')[0];
       if(un)un.textContent=name;
@@ -274,14 +281,22 @@
   window.openAuth = function(mode) {
     window._authMode = mode||'signin';
     document.getElementById('authOverlay').classList.add('open');
-    switchTab(window._authMode);
+    nbSwitchAuthTab(window._authMode);
     document.getElementById('authError').textContent='';
     document.getElementById('authEmail').value='';
     document.getElementById('authPass').value='';
     document.getElementById('authName').value='';
   };
   window.closeAuthModal = function() { document.getElementById('authOverlay').classList.remove('open'); };
-  window.switchTab = function(mode) {
+  /* nbSwitchAuthTab, not switchTab (10 Aug 2026).
+     upload_form.html defines its OWN window.switchTab for its own sign-in
+     panel. That page loads navbar.js first and its module afterwards, so the
+     page's version replaced this one — clicking Sign In / Sign Up in the
+     navbar modal then set no mode at all, and submitAuth() fell through to
+     the sign-up path for someone trying to sign in. Two files sharing one
+     global name is the whole bug; the name is now namespaced like every other
+     navbar function. */
+  window.nbSwitchAuthTab = function(mode) {
     window._authMode = mode;
     document.getElementById('tabSignin').classList.toggle('active', mode==='signin');
     document.getElementById('tabSignup').classList.toggle('active', mode==='signup');
