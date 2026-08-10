@@ -84,6 +84,12 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   background: #fff;
 }
 
+/* view toggles (engine stage 1) */
+.canvas-area.show-grid .canvas-holder { background-image: linear-gradient(rgba(124,58,237,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.08) 1px, transparent 1px); background-size: 40px 40px; }
+.canvas-area.show-guides .canvas-holder { position: relative; }
+.canvas-area.show-guides .canvas-holder::after { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(220,38,38,0.35) 0, rgba(220,38,38,0.35) 100%), linear-gradient(90deg, rgba(37,99,235,0.35) 0, rgba(37,99,235,0.35) 100%); background-size: 100% 1px, 1px 100%; background-position: 0 50%, 50% 0; background-repeat: no-repeat; }
+.canvas-area.show-ruler { box-shadow: inset 26px 26px 0 -25px var(--line-2); }
+
 /* ── 4. Filmstrip ── */
 .filmstrip {
   flex: 0 0 var(--filmstrip-h);
