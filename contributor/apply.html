@@ -365,7 +365,17 @@ $('verifiedBtn').onclick = async () => {
   clearMsg();
   try {
     await reload(auth.currentUser);          // pull fresh emailVerified from Firebase
-    if (auth.currentUser.emailVerified) location.reload();
+    if (auth.currentUser.emailVerified) {
+      /* CRITICAL (10 Aug 2026). reload() refreshes the SDK's copy of the user,
+         but Firestore rules read email_verified from the ID TOKEN, which
+         Firebase caches for up to an hour. Without forcing a new token the
+         applicant sails through this gate, fills in the whole form, uploads
+         their ID — and the final write is refused as "insufficient
+         permissions", with nothing on screen explaining why.
+         getIdToken(true) mints a fresh token carrying email_verified: true. */
+      await auth.currentUser.getIdToken(true);
+      location.reload();
+    }
     else showErr('Not verified yet. Open the link in your email, then try again.');
   } catch(e){ showErr(e.message || 'Could not check.'); }
 };
@@ -517,6 +527,13 @@ applyForm.onsubmit = async (e) => {
   const btn = $('submitBtn');
   btn.disabled = true; btn.textContent = 'Submitting…';
   try {
+    /* Belt and braces on the token (10 Aug 2026). Someone who verified their
+       email in another tab, or who left this page open a long time, can still
+       be carrying a token that says email_verified: false. Refreshing here
+       costs one quick call and removes the only way this form can fail with an
+       error the applicant cannot act on. */
+    try { await user.getIdToken(true); } catch(_) {}
+
     // Images go to private Storage FIRST; only the path is written to
     // Firestore. No download URL is ever stored, so the reference is useless
     // to anyone who is not an admin.
