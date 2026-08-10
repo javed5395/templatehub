@@ -59,99 +59,66 @@
   .blog-grid-section { padding: 60px 40px 100px; max-width: 1180px; margin: 0 auto; }
   .blog-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
     gap: 32px;
-  }
-
-  .blog-card {
-    background: #fff;
-    border-radius: 0;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-    text-decoration: none;
-    display: block;
-    color: inherit;
-  }
-  .blog-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
-
-  .blog-card-thumb {
-    width: 100%; height: 190px;
-    background: linear-gradient(135deg, #0d1b4b 0%, #1a1a2e 55%, #3a2400 100%);
-    position: relative;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .blog-card-thumb-mark {
-    font-family: 'Poppins', sans-serif;
-    font-size: 15px; font-weight: 800;
-    color: rgba(255,255,255,0.85);
-    letter-spacing: 0.5px;
-  }
-  .blog-card-badge {
-    position: absolute; top: 14px; left: 14px;
-    background: #d4af37; color: #1a0a3a;
-    font-size: 9px; font-weight: 800;
-    letter-spacing: 0.8px; text-transform: uppercase;
-    padding: 4px 10px; border-radius: 0;
-  }
-
-  .blog-card-body { padding: 22px 22px 20px; }
-  .blog-card-cat {
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: #7c5cbf;
-    margin-bottom: 8px; font-family: 'Poppins', sans-serif;
-  }
-  .blog-card-title {
-    font-size: 18px; font-weight: 700;
-    color: #1a1a2e; line-height: 1.35;
-    margin-bottom: 10px; font-family: 'Poppins', sans-serif;
-  }
-  .blog-card-excerpt {
-    font-size: 13.5px; color: #666e7d; line-height: 1.6;
-    margin-bottom: 18px;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-  }
-  .blog-card-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-top: 14px; border-top: 1px solid #eef0f4;
-  }
-  .blog-card-author { display: flex; align-items: center; gap: 8px; }
-  .blog-card-avatar {
-    width: 26px; height: 26px; border-radius: 50%;
-    background: linear-gradient(135deg, #6b21c8, #9333ea);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 11px; font-weight: 800; font-family: 'Poppins', sans-serif;
-    flex-shrink: 0;
-  }
-  .blog-card-author-name { font-size: 12px; font-weight: 600; color: #1a1a2e; }
-  .blog-card-date { font-size: 11.5px; color: #98a0ae; }
-
-  .blog-grid-loading {
-    grid-column: 1 / -1; text-align: center; padding: 60px 20px;
-    color: #98a0ae; font-family: 'Poppins', sans-serif; font-size: 14px;
-  }
-
-  /* ══ COMING SOON PLACEHOLDER CARDS ══ */
-  .blog-card-empty {
-    border: 1.5px dashed #d8dce4;
-    border-radius: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 8px;
-    padding: 40px 20px;
-    min-height: 300px;
-    color: #b0b6c2;
-  }
-  .blog-card-empty-icon { font-size: 22px; color: #d4af37; }
-  .blog-card-empty p {
-    font-family: 'Poppins', sans-serif;
-    font-size: 13px; font-weight: 600;
-    color: #a3a9b8; margin: 0;
   }
 
   @media (max-width: 600px) {
     .blog-hero { padding: 60px 24px 50px; }
     .blog-grid-section { padding: 40px 20px 70px; }
+  }
+
+  /* ══ TEST CARD — ditto copy of the og-lazydog-studio.jpg card design ══ */
+  :root {
+    --bc-bone:#f2eee5; --bc-ink:#1a1a2e; --bc-navy:#07071a;
+    --bc-gold:#d4af37; --bc-oxblood:#b8442a; --bc-violet:#7c5cbf;
+    --bc-muted:#8a8496; --bc-line:#e2dccd; --bc-mono: 'Consolas', 'SFMono-Regular', Menlo, monospace;
+  }
+  .bcard2 {
+    position: relative;
+    background: var(--bc-bone);
+    border: 1px solid #d9d4c7;
+    aspect-ratio: 1200 / 630;
+    padding: 30px 34px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    text-decoration: none; color: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .bcard2::before {
+    content: ""; position: absolute; inset: 14px;
+    border: 1px solid rgba(0,0,0,0.09); pointer-events: none;
+  }
+  .bcard2:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
+
+  .bcard2-eyebrow {
+    font-family: var(--bc-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--bc-oxblood);
+    padding-bottom: 6px; border-bottom: 1.5px solid var(--bc-oxblood);
+    display: inline-block; width: max-content; margin-bottom: 16px;
+  }
+  .bcard2-title {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: clamp(18px, 2.4vw, 26px); line-height: 1.18;
+    color: var(--bc-ink); margin-bottom: 12px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .bcard2-title em { color: var(--bc-oxblood); font-style: italic; }
+  .bcard2-excerpt {
+    font-family: 'Inter', sans-serif; font-size: 13.5px; color: #46414d;
+    line-height: 1.5; margin-bottom: 5px;
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .bcard2-byline { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--bc-muted); }
+
+  .bcard2-divider { border-top: 1px solid var(--bc-line); margin: 14px 0 14px; }
+  .bcard2-footrow { display: flex; align-items: center; justify-content: space-between; }
+  .bcard2-url {
+    font-family: var(--bc-mono); font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.12em; color: var(--bc-ink); text-transform: uppercase;
+  }
+  .bcard2-logo {
+    width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
   }
 </style>
 </head>
@@ -171,130 +138,319 @@
 <section class="blog-grid-section">
   <div class="blog-grid" id="blogGrid">
 
-    <div id="blogGridDynamic"></div>
+    <!-- Cards are written here in ascending Volume order (1 → 19) so new posts can
+         just be appended at the end. The inline order:N (20 - volume) is what makes
+         the highest volume auto-appear first, top row — no manual reordering needed. -->
+
+    <a href="blogs/pitch-decks-our-first-launch.html" class="bcard2" style="order:19">
+      <div>
+        <span class="bcard2-eyebrow">Volume 1 · 25 Jun 2026</span>
+        <div class="bcard2-title">Pitch Decks: our first launch, and <em>why we're starting small</em>.</div>
+        <div class="bcard2-excerpt">Where LazyDogTemplates began — a small, curated set of quality decks.</div>
+        <div class="bcard2-byline">Not thousands of templates. A smarter search, done right from day one.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/media-kits-our-next-section.html" class="bcard2" style="order:18">
+      <div>
+        <span class="bcard2-eyebrow">Volume 2 · 26 Jun 2026</span>
+        <div class="bcard2-title">Media Kits: our next section, and <em>what makes a good one</em>.</div>
+        <div class="bcard2-excerpt">Media Kits: our newest section, and what makes one genuinely useful.</div>
+        <div class="bcard2-byline">Brand story, bios, logo lockups, fact sheets — press-ready, done small.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/websites-modern-layouts.html" class="bcard2" style="order:17">
+      <div>
+        <span class="bcard2-eyebrow">Volume 3 · 27 Jun 2026</span>
+        <div class="bcard2-title">Websites: a new section for <em>modern, ready-to-ship layouts</em>.</div>
+        <div class="bcard2-excerpt">Modern, responsive, component-based website kits you can launch this week.</div>
+        <div class="bcard2-byline">What actually makes a layout worth using.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/digital-keynotes-stage-ready.html" class="bcard2" style="order:16">
+      <div>
+        <span class="bcard2-eyebrow">Volume 4 · 30 Jun 2026</span>
+        <div class="bcard2-title">Digital Keynotes: stage-ready presentations, <em>opened small</em>.</div>
+        <div class="bcard2-excerpt">Stage-ready presentation templates with cinematic transitions and timed builds.</div>
+        <div class="bcard2-byline">Speaker notes included — what a good keynote actually needs.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/premium-resumes-built-to-get-you-hired.html" class="bcard2" style="order:15">
+      <div>
+        <span class="bcard2-eyebrow">Volume 5 · 05 Jun 2026</span>
+        <div class="bcard2-title">Premium Resumes: templates <em>built to get you hired</em>.</div>
+        <div class="bcard2-excerpt">ATS-ready resume templates, professionally structured for how hiring works.</div>
+        <div class="bcard2-byline">Modern, minimal, executive, student &amp; industry-specific families.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/free-invoices-create-and-download.html" class="bcard2" style="order:14">
+      <div>
+        <span class="bcard2-eyebrow">Volume 6 · 07 Jun 2026</span>
+        <div class="bcard2-title">Free Invoices: create and <em>download in minutes</em>.</div>
+        <div class="bcard2-excerpt">A completely free invoice generator — pick a type, fill in details, download.</div>
+        <div class="bcard2-byline">Clean, watermark-free, professional. No sign-up, no cost.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/instant-exact-match-how-search-works.html" class="bcard2" style="order:13">
+      <div>
+        <span class="bcard2-eyebrow">Volume 7 · 11 Jun 2026</span>
+        <div class="bcard2-title">Instant &amp; Exact Match: find the right kit <em>by describing it</em>.</div>
+        <div class="bcard2-excerpt">Find the right template by describing it in plain words, or using filters.</div>
+        <div class="bcard2-byline">Industry, style, audience, purpose — ranked results scored by fit.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/make-your-own-design.html" class="bcard2" style="order:12">
+      <div>
+        <span class="bcard2-eyebrow">Volume 8 · 13 Jun 2026</span>
+        <div class="bcard2-title">Make Your Own Design — <em>describe it, we build it</em>.</div>
+        <div class="bcard2-excerpt">Describe a brand-new design in plain words and it's built for you.</div>
+        <div class="bcard2-byline">A LazyDog beta — content type, slides, colour, industry, mock-ups.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/make-your-presentation-in-minutes.html" class="bcard2" style="order:11">
+      <div>
+        <span class="bcard2-eyebrow">Volume 9 · 15 Jun 2026</span>
+        <div class="bcard2-title">Make Your Own Presentation <em>in minutes</em>.</div>
+        <div class="bcard2-excerpt">Three routes to a finished deck — pre-made, generated, or your own content.</div>
+        <div class="bcard2-byline">A fit check adds slides only with your approval.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/site-update-make-it-yours.html" class="bcard2" style="order:10">
+      <div>
+        <span class="bcard2-eyebrow">Volume 10 · 17 Jun 2026</span>
+        <div class="bcard2-title">Site Update — <em>make the whole site yours</em>.</div>
+        <div class="bcard2-excerpt">An update that hands the whole site to you — fonts, colours, and more.</div>
+        <div class="bcard2-byline">Exact HEX/RGB recolouring, voice control, 25+ languages.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/lazydog-studios-the-atelier.html" class="bcard2" style="order:9">
+      <div>
+        <span class="bcard2-eyebrow">Volume 11 · 19 Jun 2026</span>
+        <div class="bcard2-title">LazyDog Studios — <em>the other face of the store</em>.</div>
+        <div class="bcard2-excerpt">A curated atelier and visual showroom — the other face of the store.</div>
+        <div class="bcard2-byline">A guided, sixteen-chapter walk through the collection.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/whats-new-every-launch.html" class="bcard2" style="order:8">
+      <div>
+        <span class="bcard2-eyebrow">Volume 12 · 20 Jun 2026</span>
+        <div class="bcard2-title">What's New — your window into <em>every launch</em>.</div>
+        <div class="bcard2-excerpt">The LazyDogTemplates launch reel — every new template and feature as it ships.</div>
+        <div class="bcard2-byline">The four pillars, and why to start here.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/the-next-chapter-coming-soon.html" class="bcard2" style="order:7">
+      <div>
+        <span class="bcard2-eyebrow">Volume 13 · 21 Jun 2026</span>
+        <div class="bcard2-title">The Next Chapter — <em>three new worlds coming to LazyDog</em>.</div>
+        <div class="bcard2-excerpt">A cinematic teaser for what's coming to LazyDog — three new worlds.</div>
+        <div class="bcard2-byline">Open Affiliate, the Contributor Program, and Edit Your Template.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/meet-hexa-ai-engine.html" class="bcard2" style="order:6">
+      <div>
+        <span class="bcard2-eyebrow">Volume 14 · 22 Jun 2026</span>
+        <div class="bcard2-title">Meet Hexa — <em>LazyDog's own AI engine</em>.</div>
+        <div class="bcard2-excerpt">LazyDog's own in-house AI engine — an action engine, not a chatbot.</div>
+        <div class="bcard2-byline">One prompt box, three modes: Chat, Create Design, Create Presentation.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/meet-the-editor.html" class="bcard2" style="order:5">
+      <div>
+        <span class="bcard2-eyebrow">Volume 15 · 23 Jun 2026</span>
+        <div class="bcard2-title">Meet the Editor — <em>design anything, right in the browser</em>.</div>
+        <div class="bcard2-excerpt">LazyDog's full design editor is now open, right in the browser.</div>
+        <div class="bcard2-byline">Export cleanly to Canva, Google Slides, PowerPoint or Keynote.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/jump-to-your-tools.html" class="bcard2" style="order:4">
+      <div>
+        <span class="bcard2-eyebrow">Volume 16 · 24 Jun 2026</span>
+        <div class="bcard2-title">Jump Straight to <em>Your Favourite Tools</em>.</div>
+        <div class="bcard2-excerpt">Five quick-launch cards — Figma, Canva, Slides, PowerPoint and Keynote.</div>
+        <div class="bcard2-byline">Open your favourite design app in one tap and build with a template.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/search-engine-updated.html" class="bcard2" style="order:3">
+      <div>
+        <span class="bcard2-eyebrow">Volume 17 · 28 Jul 2026</span>
+        <div class="bcard2-title">Search Engine Updated: <em>sixteen fields on one card</em>.</div>
+        <div class="bcard2-excerpt">The search card rebuilt into one column of sixteen fields.</div>
+        <div class="bcard2-byline">Every option wired to real results, ranked by fit.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/editor-updated-insert-tab-and-layouts.html" class="bcard2" style="order:2">
+      <div>
+        <span class="bcard2-eyebrow">Volume 18 · 30 Jul 2026</span>
+        <div class="bcard2-title">Editor Updated: an Insert tab, <em>nine layouts and nothing lost</em>.</div>
+        <div class="bcard2-excerpt">A new Insert tab, nine layouts, and autosave so nothing is lost.</div>
+        <div class="bcard2-byline">Readable coloured icons, PowerPoint naming, twenty dead buttons fixed.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
+    <a href="blogs/hexa-update-vol-19.html" class="bcard2" style="order:1">
+      <div>
+        <span class="bcard2-eyebrow">Volume 19 · 08 Aug 2026</span>
+        <div class="bcard2-title">Hexa Update: more accurate answers, <em>fewer dead ends</em>.</div>
+        <div class="bcard2-excerpt">A hands-on round of testing and fixes for Hexa, our AI assistant.</div>
+        <div class="bcard2-byline">Better pricing, routing &amp; page-aware answers — no more dead ends.</div>
+      </div>
+      <div>
+        <div class="bcard2-divider"></div>
+        <div class="bcard2-footrow">
+          <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+          <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
+        </div>
+      </div>
+    </a>
+
   </div>
 </section>
 
 <!-- FOOTER injected by footerbar.js -->
 <script src="footerbar.js"></script>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-    authDomain: "templatehub-16cd7.firebaseapp.com",
-    projectId: "templatehub-16cd7",
-    storageBucket: "templatehub-16cd7.firebasestorage.app",
-    messagingSenderId: "143000893683",
-    appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  function escapeHtml(str){
-    const d = document.createElement('div');
-    d.textContent = str || '';
-    return d.innerHTML;
-  }
-
-  function fmtDate(ts){
-    try { if (ts && ts.seconds) return new Date(ts.seconds*1000).toLocaleDateString('en-US',{month:'long', year:'numeric'}); } catch(e){}
-    return '';
-  }
-  // 3 Aug 2026 — every card used to show the same grey mark, because a blog is
-  // uploaded as a PDF and no cover image is ever made from it. Cloudinary can
-  // hand us page one as a picture, which is the post's own branded header — the
-  // same trick blog-view.html already uses to show the pages themselves.
-  // The gradient stays underneath as a second layer, so a card that cannot get
-  // its cover looks exactly as it did before rather than going blank.
-  function coverUrl(p){
-    var u = p.pdfUrl || p.designDocUrl || (p.template && p.template.pdfUrl) || '';
-    if (!u || u.indexOf('/image/upload/') === -1) return '';
-    return u.replace('/image/upload/', '/image/upload/f_jpg,pg_1,w_760,h_450,c_fill,g_north/');
-  }
-
-  function cardHTML(p){
-    // Blogs are uploaded as PDFs — the card opens a viewer page that shows the PDF.
-    var title = p.title || (p.template && p.template.name) || 'Untitled';
-    var href  = 'blog-view.html?id=' + encodeURIComponent(p._id || '');
-    var cover = coverUrl(p);
-    var thumbAttr = cover
-      ? ' style="background-image:url(&quot;' + escapeHtml(cover) + '&quot;),' +
-        'linear-gradient(135deg,#0d1b4b 0%,#1a1a2e 55%,#3a2400 100%);' +
-        'background-size:cover;background-position:top center;background-repeat:no-repeat"'
-      : '';
-    return '<a href="' + href + '" class="blog-card">' +
-      '<div class="blog-card-thumb"' + thumbAttr + '>' +
-        '<span class="blog-card-badge">' + escapeHtml(p.subCategory || 'Blog') + '</span>' +
-        (cover ? '' : '<span class="blog-card-thumb-mark">LazyDogTemplates</span>') +
-      '</div>' +
-      '<div class="blog-card-body">' +
-        '<div class="blog-card-cat">Behind the Build</div>' +
-        '<div class="blog-card-title">' + escapeHtml(title) + '</div>' +
-        '<div class="blog-card-excerpt">' + escapeHtml(p.description || '') + '</div>' +
-        '<div class="blog-card-footer">' +
-          '<div class="blog-card-author">' +
-            '<div class="blog-card-avatar">LD</div>' +
-            // Blog posts are branded as LazyDog Team, not the individual seller
-            // who happened to upload the PDF — always show the team name here.
-            '<div class="blog-card-author-name">LazyDog Team</div>' +
-          '</div>' +
-          '<div class="blog-card-date">' + escapeHtml(fmtDate(p.uploadedAt || p.createdAt)) + '</div>' +
-        '</div>' +
-      '</div>' +
-    '</a>';
-  }
-
-  function emptyCardHTML(){
-    return '<div class="blog-card-empty"><div class="blog-card-empty-icon">◆</div><p>More stories coming soon</p></div>';
-  }
-
-  (async function loadBlogGrid(){
-    const dynamicSlot = document.getElementById('blogGridDynamic');
-    try {
-      // Blogs are uploaded through the upload form as PDFs → they live in the
-      // 'templates' collection with category 'blog'. Only APPROVED ones show.
-      // (Single equality filter keeps it index-free; we sort/filter in JS.)
-      const q = query(collection(db, 'templates'), where('category', '==', 'blog'), limit(50));
-      const snap = await getDocs(q);
-
-      let items = [];
-      let fileless = 0;
-      snap.forEach(function(docSnap){
-        const x = docSnap.data();
-        if (!x || x.status !== 'approved') return;
-        // 30 Jul 2026 — a blog with no PDF is a dead card: it links to a viewer
-        // that can only say "no file attached yet". That happened live once,
-        // because a failed PDF upload used to be swallowed silently in
-        // upload_form.html. The upload form now refuses to publish a blog
-        // without its PDF, and this guard keeps any already-broken record from
-        // showing a door that leads nowhere.
-        const hasFile = !!(x.pdfUrl || x.designDocUrl || (x.template && x.template.pdfUrl));
-        if (!hasFile) { fileless++; return; }
-        x._id = docSnap.id; items.push(x);
-      });
-      if (fileless) {
-        console.warn('[blog] ' + fileless + ' approved blog record(s) hidden — no PDF attached. Re-upload them.');
-      }
-      items.sort(function(a, b){
-        const sa = (a.uploadedAt && a.uploadedAt.seconds) || 0;
-        const sb = (b.uploadedAt && b.uploadedAt.seconds) || 0;
-        return sb - sa;
-      });
-
-      let html = '';
-      items.forEach(function(x){ html += cardHTML(x); });
-      // Pad with placeholders so the grid never looks sparse.
-      html += emptyCardHTML() + emptyCardHTML();
-      dynamicSlot.outerHTML = html;
-    } catch (err) {
-      console.error('Failed to load blog posts:', err);
-      dynamicSlot.outerHTML = emptyCardHTML() + emptyCardHTML();
-    }
-  })();
-</script>
 
 </body>
 </html>

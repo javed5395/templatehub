@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hexa Update: More Accurate Answers, Fewer Dead Ends | LazyDogTemplates</title>
+<meta name="description" content="A hands-on round of testing and fixes for Hexa, the AI assistant in the LazyDogTemplates store — better request understanding, accurate pricing, proper routing of custom and contact requests, and page-aware answers." />
+<meta name="keywords" content="Hexa update, AI assistant, LazyDogTemplates support, accurate pricing, custom requests, Hexa" />
+<meta name="author" content="LazyDog Team" />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://www.lazydogtemplates.com/blogs/hexa-update-vol-19.html" />
+<link rel="icon" type="image/png" href="../images/site_logo_round.png" />
+<link rel="shortcut icon" type="image/png" href="../images/site_logo_round.png" />
+<link rel="apple-touch-icon" href="../images/site_logo_round.png" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="LazyDogTemplates" />
+<meta property="og:title" content="Hexa Update: More Accurate Answers, Fewer Dead Ends" />
+<meta property="og:description" content="A round of testing and fixes for Hexa — better understanding, accurate pricing, proper routing and page-aware answers." />
+<meta property="og:url" content="https://www.lazydogtemplates.com/blogs/hexa-update-vol-19.html" />
+<meta property="og:image" content="https://www.lazydogtemplates.com/images/site_logo_round.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Hexa Update: More Accurate Answers, Fewer Dead Ends" />
+<meta name="twitter:description" content="A round of testing and fixes for Hexa — LazyDogTemplates." />
+<meta name="twitter:image" content="https://www.lazydogtemplates.com/images/site_logo_round.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Hexa Update: More Accurate Answers, Fewer Dead Ends",
+  "description": "A hands-on round of testing and fixes for Hexa, the AI assistant in the LazyDogTemplates store.",
+  "image": "https://www.lazydogtemplates.com/images/site_logo_round.png",
+  "author": { "@type": "Organization", "name": "LazyDog Team" },
+  "publisher": { "@type": "Organization", "name": "LazyDogTemplates", "logo": { "@type": "ImageObject", "url": "https://www.lazydogtemplates.com/images/site_logo_round.png" } },
+  "datePublished": "2026-08-08",
+  "dateModified": "2026-08-08",
+  "articleSection": "Hexa Update",
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.lazydogtemplates.com/blogs/hexa-update-vol-19.html" }
+}
+</script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bone:#f2eee5;--ink:#1a1a2e;--navy:#07071a;--gold:#d4af37;--oxblood:#b8442a;--violet:#7c5cbf;--muted:#8a8496;--line:#e2dccd}
+  body{background:var(--bone);font-family:'Inter',sans-serif;color:var(--ink);line-height:1.75}
+  .bv-hero{background:var(--navy);color:#fff;padding:56px 24px 46px;text-align:center;position:relative;overflow:hidden}
+  .bv-hero::before{content:"";position:absolute;top:-120px;right:-80px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(212,175,55,0.16),transparent 70%)}
+  .bv-volume{position:absolute;top:24px;left:26px;font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(212,175,55,.55);border-radius:100px;padding:7px 15px}
+  .bv-logo{position:absolute;top:18px;right:22px;width:46px;height:46px;border-radius:50%;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,.35);border:1px solid rgba(212,175,55,.4)}
+  .bv-tag{position:relative;display:inline-block;font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--navy);background:var(--gold);padding:7px 15px;border-radius:5px;margin-bottom:20px}
+  .bv-title{position:relative;font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(30px,5.4vw,56px);line-height:1.08;margin:0 auto;max-width:820px}
+  .bv-byline{position:relative;display:flex;align-items:center;justify-content:center;gap:11px;margin-top:22px;font-size:14px;color:#c9cede}
+  .bv-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#8b6cd4,#6742b0);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:#fff}
+  .bv-crumb{position:relative;margin-top:16px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em}
+  .bv-crumb b{color:#fff}.bv-crumb span{color:#b8bfd0;font-weight:400}.bv-crumb i{color:var(--violet);font-style:normal}
+  .bv-bar{max-width:760px;margin:0 auto;padding:18px 24px 0}
+  .bv-back{display:inline-flex;align-items:center;gap:6px;color:var(--violet);text-decoration:none;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600}
+  .bv-back:hover{text-decoration:underline}
+  article{max-width:760px;margin:0 auto;padding:26px 24px 30px}
+  article p{font-size:17px;margin:0 0 22px;color:#33313f}
+  article p strong{color:var(--ink)}article p em{font-style:italic}
+  .lead{font-size:18.5px}
+  h2{font-family:'Poppins',sans-serif;font-weight:700;font-size:clamp(21px,3vw,27px);margin:40px 0 16px;display:flex;align-items:center;gap:12px;color:var(--ink)}
+  h2::before{content:"";width:5px;height:1.05em;background:var(--oxblood);border-radius:2px;flex:0 0 auto}
+  ul.blist{margin:0 0 22px;padding-left:20px}
+  ul.blist li{font-size:16px;color:#33313f;margin-bottom:12px}
+  ul.blist li strong{color:var(--ink)}
+  .banner{background:#12102a;border-radius:14px;padding:26px 24px;text-align:center;margin:12px 0 10px}
+  .banner__t{font-family:'Poppins',sans-serif;font-weight:700;color:#fff;font-size:17px;margin-bottom:8px}
+  .banner__d{font-size:14px;color:rgba(255,255,255,.6)}
+  .end{margin:44px 0 0;padding-top:26px;border-top:1px solid var(--line);text-align:center}
+  .end__sig{font-family:'Poppins',sans-serif;font-weight:700;color:var(--oxblood);font-size:15px}
+  .end__copy{margin-top:26px;font-size:12px;color:var(--muted);font-family:'Poppins',sans-serif}
+  @media(max-width:640px){.bv-volume{position:static;display:inline-block;margin-bottom:16px}}
+</style>
+</head>
+<body>
+
+<header class="bv-hero">
+  <span class="bv-volume">Volume 19</span>
+  <img class="bv-logo" src="../images/site_logo_round.png" alt="LazyDog Templates logo" />
+  <div><span class="bv-tag">Hexa Update</span></div>
+  <h1 class="bv-title">Hexa Update: More Accurate Answers, Fewer Dead Ends</h1>
+  <div class="bv-byline"><span class="bv-avatar">LD</span> LazyDog Team &nbsp;·&nbsp; 08 Aug 2026</div>
+  <div class="bv-crumb"><b>LazyDog</b><span>Templates</span> &nbsp;|&nbsp; <i>LazyDog Studios</i></div>
+</header>
+
+<div class="bv-bar"><a href="../blog.html" class="bv-back">← Back to Journal</a></div>
+
+<article>
+  <p class="lead">Hexa is the AI assistant built into the LazyDogTemplates store — she helps customers find the right template, get accurate pricing, request custom work, and get real support on orders. We put her through a full, hands-on round of testing and fixed what needed fixing. Here's the straightforward summary of what changed.</p>
+
+  <h2>Why we did this</h2>
+  <p>Hexa's job is to give customers accurate, useful answers about templates, pricing, custom projects, and orders — quickly and correctly, in plain language. Over time a few of her replies had drifted off track. So we tested her properly, page by page and request by request, and fixed what wasn't working.</p>
+
+  <h2>What's better now</h2>
+  <ul class="blist">
+    <li><strong>She understands full requests the first time.</strong> No more repeating yourself in short keywords — a normal, complete request like "recommend a pitch deck for a fintech startup" is understood immediately.</li>
+    <li><strong>Customer names are captured correctly.</strong> Hexa no longer mistakes random words in a sentence for a name, and once given a name, she remembers and uses it correctly going forward.</li>
+    <li><strong>Accurate answers about what we sell.</strong> Ask about something we don't offer, and instead of a vague "opening it now," she tells you clearly — and points you to what we do have.</li>
+    <li><strong>Custom project requests are routed properly.</strong> Ask about a bespoke or custom build, and she now directs you straight to LazyDog Studios with a clear path to a real quote.</li>
+    <li><strong>Contact requests reach a real person.</strong> A request like "please have someone contact me" used to be filed away as a newsletter signup. It's now logged as a genuine request for a team member to follow up.</li>
+    <li><strong>Order and payment issues are handled properly.</strong> If a customer says they paid but received nothing, Hexa no longer gives a generic "how to buy" explainer — she acknowledges the issue and gives real next steps to resolve it.</li>
+    <li><strong>Page-aware answers.</strong> Ask about adding a logo on the Invoice Generator page, and you get an invoice-specific answer — not leftover advice meant for a slide deck.</li>
+    <li><strong>The "fill my deck" tool gives clear feedback.</strong> If content is entered without a design file attached, it now tells you exactly what's missing, instead of doing nothing.</li>
+    <li><strong>Accurate, real-time pricing.</strong> Ask about one exact product by name and Hexa returns its real price — not a generic "check the page" answer.</li>
+    <li><strong>Consistent behaviour across the site.</strong> Hexa now responds the same reliable way whether she's on the homepage chat or the dedicated Hexa page, instead of behaving differently depending on where you ask.</li>
+  </ul>
+
+  <h2>See it for yourself</h2>
+  <p>Two real, live replies from Hexa on the site today — not mock-ups. On a store page, a "paid but got nothing" message now gets a real, reassuring answer with concrete next steps. And on the Welcome to Hexa page, a full request is understood on the first try, with no repeating in keywords.</p>
+
+  <h2>What we're still working on</h2>
+  <p>To keep this honest — Hexa runs on a focused, rules-based system, not a large general-purpose AI model, so improvements come in careful, tested batches rather than all at once. A couple of smaller items are still being worked on, and a few pieces of older wording are being reviewed. None of it affects Hexa's core usefulness today, and we'll keep posting updates as more gets done.</p>
+
+  <div class="banner">
+    <div class="banner__t">More updates on the way</div>
+    <div class="banner__d">This is one step in an ongoing round of testing and fixes. Keep an eye on the Journal for the next update.</div>
+  </div>
+
+  <div class="end">
+    <div class="end__sig">— LazyDog Team</div>
+    <div class="end__copy">© 2026 LazyDog Templates</div>
+  </div>
+</article>
+
+</body>
+</html>
