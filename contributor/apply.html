@@ -424,8 +424,8 @@ function renderStatus(d){
   applyForm.classList.add('hidden');
   const s = (d.status || 'pending');
   const map = {
-    pending:  ['⏳','Application received',
-               'We review every application by hand. You will hear from us by email. This usually takes a few days.'],
+    pending:  ['⏳','Already submitted — under review',
+               'Your application is with us and nothing more is needed from you. We read every one by hand and reply by email, usually within a few days. You can still edit it below while it is waiting.'],
     approved: ['✅','You are approved',
                'Welcome aboard. You can now submit templates for review.'],
     rejected: ['—','Not accepted this time',

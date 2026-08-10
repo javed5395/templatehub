@@ -154,9 +154,31 @@
     const eb = document.getElementById('nbEarnBtn');   // My Earnings
     if (ub) ub.style.display = 'none';
     if (eb) eb.style.display = 'none';
+    /* ── ONE BUTTON, FOUR STATES (10 Aug 2026, Javed's design) ────────────
+       Previously this button was simply absent until someone was approved,
+       so a designer who signed in saw nothing at all and had no idea the
+       programme existed. Now it changes with where they are:
+
+         never applied  ->  "Become a Contributor"    -> the application
+         applied        ->  "Application under review" -> their status
+         approved       ->  "Upload"                   -> the upload form
+         declined       ->  hidden
+
+       The middle state matters most. Without it, someone who has applied
+       still sees "Become a Contributor", clicks it, and reasonably concludes
+       their application was lost. */
+    function ldSetContribBtn(label, href, dim){
+      if (!ub) return;
+      ub.textContent = label;
+      ub.href = href;
+      ub.style.display = 'inline-flex';
+      ub.style.opacity = dim ? '0.72' : '';
+      ub.style.cursor  = dim ? 'default' : '';
+    }
+
     if (user && ub) {
       if (window.ldIsAdmin()) {
-        ub.style.display = 'inline-flex';
+        ldSetContribBtn('Upload', 'upload_form.html', false);
         if (eb) eb.style.display = 'inline-flex';
       } else {
         // Firestore is not otherwise needed by the navbar, so it is imported
@@ -166,12 +188,24 @@
             const { getFirestore, doc, getDoc } =
               await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
             const snap = await getDoc(doc(getFirestore(app), 'contributor_applications', user.uid));
-            if (snap.exists() && snap.data().status === 'approved') {
-              ub.style.display = 'inline-flex';
+            const status = snap.exists() ? (snap.data().status || '') : '';
+
+            if (status === 'approved') {
+              ldSetContribBtn('Upload', 'upload_form.html', false);
               if (eb) eb.style.display = 'inline-flex';
+            } else if (status === 'pending') {
+              ldSetContribBtn('Application under review', 'contributor/apply.html', true);
+            } else if (status === 'rejected') {
+              /* Say nothing. Repeating a refusal in the navigation on every
+                 page they visit would be unkind and serves no purpose. */
+              ub.style.display = 'none';
+            } else {
+              ldSetContribBtn('Become a Contributor', 'contributor/apply.html', false);
             }
           } catch (e) {
-            /* Fail closed: any error leaves the button hidden. */
+            /* Fail closed on UPLOAD, but still offer the way in: the worst a
+               stranger can do with the application form is apply. */
+            ldSetContribBtn('Become a Contributor', 'contributor/apply.html', false);
           }
         })();
       }
@@ -313,7 +347,11 @@
     <a href="coming_soon.html" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Coming Soon</a>
     <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Generate Designs</a>
     <a href="editor.html" class="nb-wn-tab" title="LazyDog Designer" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:1.5px solid #7d6bf0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Editor</a>
-    <a href="upload_form.html" id="nbUploadBtn" class="nb-wn-tab" title="Upload your designs" style="background:#fff;color:#2e9e6b;border:1.5px solid #4fbf8b;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Upload</a>
+    <!-- Label and destination are set at runtime by ldSetContribBtn() — it is
+         "Become a Contributor", "Application under review" or "Upload"
+         depending on where the signed-in user has got to. Ships hidden so
+         nothing flashes before we know which. -->
+    <a href="upload_form.html" id="nbUploadBtn" class="nb-wn-tab" title="Contributor programme" style="background:#fff;color:#2e9e6b;border:1.5px solid #4fbf8b;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Upload</a>
     <!-- Same gate as Upload: admins and approved contributors only. Hidden by
          default; the real protection is the earnings rule in firestore.rules,
          which only ever returns a contributor their own rows. -->
