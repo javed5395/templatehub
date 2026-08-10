@@ -87,6 +87,13 @@ Extended (engine wiring follows the UI)
 - `rehearse` · `presenterView` · `spellCheck` · `showComments` · `toggleNotes`
 - `viewNormal` · `viewSorter` · `openHelp` · `showShortcuts` · `sendFeedback`
 
+Sidebar
+- `effect` ({group, key, value}) · `brandApply`
+- `templateUse` (id) · `projectOpen` (id) · `componentInsert` (id)
+- `dataUpload` (dataURL) · `layerAction` ({action:'select'|'vis'|'lock'|'rename', id, name?})
+- `ai` ({kind: 'deck'|'slide'|'addSlides'|'mockups'|'rewrite'|'summarize'|'translate'|'removeBg'})
+- list queries: `layers` `pages` `photos` `projects` `templates` `components` (arrays; empty until wired)
+
 Colour picking: UI parts own their pickers visually, but call
 `Editor.run('textColour', hex)` etc. with the final value, and MAY call
 repeatedly for live preview — the engine debounces history entries

@@ -53,7 +53,9 @@
     'drawColour','drawSize','themeApply',
     'transitionDuration','transitionApplyAll',
     'rehearse','presenterView','spellCheck','showComments','toggleNotes',
-    'viewNormal','viewSorter','openHelp','showShortcuts','sendFeedback'
+    'viewNormal','viewSorter','openHelp','showShortcuts','sendFeedback',
+    'effect','brandApply','templateUse','projectOpen','componentInsert','dataUpload',
+    'layerAction','ai'
   ];
   var impl = {};   /* real implementations register here in the wiring step */
 
@@ -75,6 +77,12 @@
         case 'history':   return impl.__qHistory ? impl.__qHistory() : { canUndo: false, canRedo: false };
         case 'view':      return impl.__qView ? impl.__qView() : { ruler: false, grid: false, guides: false };
         case 'pageSize':  return impl.__qPageSize ? impl.__qPageSize() : { ratio: '16:9' };
+        case 'layers':     return impl.__qLayers ? impl.__qLayers() : [];
+        case 'pages':      return impl.__qPages ? impl.__qPages() : [];
+        case 'photos':     return impl.__qPhotos ? impl.__qPhotos() : [];
+        case 'projects':   return impl.__qProjects ? impl.__qProjects() : [];
+        case 'templates':  return impl.__qTemplates ? impl.__qTemplates() : [];
+        case 'components': return impl.__qComponents ? impl.__qComponents() : [];
         default: return null;
       }
     },
