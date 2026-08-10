@@ -345,6 +345,15 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .sb-card-art { display: block; line-height: 0; }
 .sb-card-art svg { display: block; margin: 0 auto; }
 
+/* icons + photos grids */
+.sb-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.sb-icon-cell { display: grid; place-items: center; height: 40px; border-radius: 8px; color: #444B57; transition: background 100ms ease, color 100ms ease; }
+.sb-icon-cell .material-icons-outlined { font-size: 22px; }
+.sb-icon-cell:hover { background: var(--accent-soft); color: var(--accent); }
+.sb-photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+.sb-photo { height: 84px; border-radius: 8px; border: 1px solid var(--line-1); background: center/cover no-repeat var(--bg-inset); transition: border-color 100ms ease; }
+.sb-photo:hover { border-color: var(--accent); }
+
 /* 7.6 empty states */
 .sb-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding: 34px 16px; color: var(--text-3); }
 .sb-empty-i { font-size: 34px; color: var(--line-2); }

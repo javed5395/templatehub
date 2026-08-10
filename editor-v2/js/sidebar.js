@@ -133,10 +133,29 @@
     ]));
     p.appendChild(subhead('More'));
     p.appendChild(grid([
-      { ic: 'icons-lib', label: 'Icons', cmd: 'insertIcon' },
       { ic: 'table', label: 'Table', cmd: 'insertTable' },
       { ic: 'wordart', label: 'WordArt', cmd: 'insertWordArt' }
-    ]));
+    ], 2));
+    p.appendChild(subhead('Icons'));
+    var iq = el('input'); iq.type = 'text'; iq.placeholder = 'Search icons…';
+    var iw = el('div', 'sb-search'); iw.appendChild(iq);
+    p.appendChild(iw);
+    var ig = el('div', 'sb-icons');
+    function paintIcons(f) {
+      ig.innerHTML = '';
+      (window.LD_ICON_GLYPHS || []).filter(function (n) { return !f || n.indexOf(f) > -1; })
+        .slice(0, 60).forEach(function (n) {
+          var b = el('button', 'sb-icon-cell');
+          b.type = 'button'; b.title = n.replace(/_/g, ' ');
+          var s = el('span', 'material-icons-outlined'); s.textContent = n;
+          b.appendChild(s);
+          b.addEventListener('click', function () { run('insertIcon', n); });
+          ig.appendChild(b);
+        });
+    }
+    iq.addEventListener('input', function () { paintIcons(iq.value.trim().toLowerCase()); });
+    paintIcons('');
+    p.appendChild(ig);
   }
   function panelText(p) {
     p.appendChild(head('Text'));
@@ -174,7 +193,17 @@
     if (!photos.length) {
       p.appendChild(emptyState('photo_library', 'No photos yet',
         'Images you upload stay here, ready to reuse.'));
+      return;
     }
+    var pg = el('div', 'sb-photo-grid');
+    photos.forEach(function (u) {
+      var b = el('button', 'sb-photo');
+      b.type = 'button'; b.title = 'Add to slide';
+      b.style.backgroundImage = 'url(' + u + ')';
+      b.addEventListener('click', function () { run('insertImage', u); });
+      pg.appendChild(b);
+    });
+    p.appendChild(pg);
   }
   function panelLayers(p) {
     p.appendChild(head('Layers'));
