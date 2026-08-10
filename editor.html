@@ -5497,33 +5497,61 @@ var LD_COLOUR_BASE = ['#000000','#FFFFFF','#1B1B1B','#64748B','#E2E8F0',
                       '#2563EB','#7C3AED','#DB2777','#F472B6','#FDE047'];
 
 function ldColour(opts, cb) {
+  /* Full picker (saturation/value field + hue + RGB + hex + swatches) with
+     LIVE PREVIEW: opts.preview(hex) is called on every change so the slide
+     shows the colour as you move; Cancel/Esc reverts to opts.original
+     (or the starting value). cb(hex) fires only on Apply / None. */
   opts = opts || {};
-  var start = /^#[0-9a-fA-F]{6}$/.test(opts.value || '') ? opts.value : '#7C3AED';
+  var start = /^#[0-9a-fA-F]{6}$/i.test(opts.value || '') ? opts.value.toUpperCase() : '#7C3AED';
+  var revertTo = (opts.original !== undefined) ? opts.original : start;
 
   var old = document.getElementById('ld-colour-pop');
   if (old) old.remove();
 
+  function hex2rgb(h) { return { r: parseInt(h.slice(1, 3), 16), g: parseInt(h.slice(3, 5), 16), b: parseInt(h.slice(5, 7), 16) }; }
+  function rgb2hex(r, g, b) {
+    return '#' + [r, g, b].map(function (v) { v = Math.max(0, Math.min(255, Math.round(v))); return ('0' + v.toString(16)).slice(-2); }).join('').toUpperCase();
+  }
+  function rgb2hsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, h = 0;
+    if (d) { if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
+    return { h: h, s: mx ? d / mx : 0, v: mx };
+  }
+  function hsv2rgb(h, s, v) {
+    var c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c, r = 0, g = 0, b = 0;
+    if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; } else if (h < 180) { g = c; b = x; }
+    else if (h < 240) { g = x; b = c; } else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+    return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
+  }
+
+  var c0 = hex2rgb(start), hsv = rgb2hsv(c0.r, c0.g, c0.b), cur = start;
+
   var sw = function (c) {
-    return '<button class="ld-c-sw" data-ldc="' + c + '" title="' + c + '" '
-      + 'style="background:' + c + '"></button>';
+    return '<button class="ld-c-sw" data-ldc="' + c + '" title="' + c + '" style="background:' + c + '"></button>';
   };
   var theme = ldColourTheme();
 
   var pop = document.createElement('div');
   pop.id = 'ld-colour-pop';
   pop.className = 'ld-modal';
-  pop.innerHTML = '<div class="ld-modal-box" style="width:min(340px,92vw)">'
+  pop.innerHTML = '<div class="ld-modal-box ldcp-dark" style="width:min(322px,92vw)">'
     + '<div class="ld-modal-head"><b>' + (opts.title || 'Choose a colour') + '</b>'
       + '<span class="sub"></span><button data-ldcx aria-label="Close">&times;</button></div>'
     + '<div class="ld-modal-body">'
-      + '<div class="ld-c-row"><input type="color" id="ld-c-wheel" value="' + start + '">'
-        + '<input type="text" id="ld-c-hex" value="' + start + '" maxlength="7" spellcheck="false"></div>'
-      + (theme.length ? '<div class="ld-sec">This deck</div><div class="ld-c-grid">'
-          + theme.map(sw).join('') + '</div>' : '')
-      + (_ldRecentColours.length ? '<div class="ld-sec">Recently used</div><div class="ld-c-grid">'
-          + _ldRecentColours.map(sw).join('') + '</div>' : '')
-      + '<div class="ld-sec">Standard</div><div class="ld-c-grid">'
-        + LD_COLOUR_BASE.map(sw).join('') + '</div>'
+      + '<div class="ldcp-sv" id="ldcp-sv"><div class="ldcp-sv-white"></div><div class="ldcp-sv-black"></div>'
+        + '<div class="ldcp-dot" id="ldcp-dot"></div></div>'
+      + '<input type="range" id="ldcp-hue" min="0" max="360" step="1" value="' + Math.round(hsv.h) + '" aria-label="Hue">'
+      + '<div class="ldcp-row">'
+        + '<span class="ldcp-prev" id="ldcp-prev" style="background:' + start + '"></span>'
+        + '<input type="text" id="ld-c-hex" value="' + start + '" maxlength="7" spellcheck="false" aria-label="Hex">'
+        + '<input type="number" id="ldcp-r" min="0" max="255" aria-label="Red">'
+        + '<input type="number" id="ldcp-g" min="0" max="255" aria-label="Green">'
+        + '<input type="number" id="ldcp-b" min="0" max="255" aria-label="Blue">'
+      + '</div>'
+      + (theme.length ? '<div class="ld-sec">This deck</div><div class="ld-c-grid">' + theme.map(sw).join('') + '</div>' : '')
+      + (_ldRecentColours.length ? '<div class="ld-sec">Recently used</div><div class="ld-c-grid">' + _ldRecentColours.map(sw).join('') + '</div>' : '')
+      + '<div class="ld-sec">Standard</div><div class="ld-c-grid">' + LD_COLOUR_BASE.map(sw).join('') + '</div>'
     + '</div>'
     + '<div class="ld-modal-foot">'
       + (opts.allowNone ? '<button data-ldcnone>None</button>' : '')
@@ -5531,32 +5559,74 @@ function ldColour(opts, cb) {
       + '<button data-ldcok class="primary">Apply</button></div></div>';
   document.body.appendChild(pop);
 
-  var wheel = pop.querySelector('#ld-c-wheel');
-  var hexIn = pop.querySelector('#ld-c-hex');
-  var done = function (v) { pop.remove(); if (v) ldColourRemember(v); cb(v); };
+  var sv = pop.querySelector('#ldcp-sv'), dot = pop.querySelector('#ldcp-dot'),
+      hue = pop.querySelector('#ldcp-hue'), hexIn = pop.querySelector('#ld-c-hex'),
+      prev = pop.querySelector('#ldcp-prev'),
+      rIn = pop.querySelector('#ldcp-r'), gIn = pop.querySelector('#ldcp-g'), bIn = pop.querySelector('#ldcp-b');
 
-  wheel.addEventListener('input', function () { hexIn.value = wheel.value.toUpperCase(); });
+  function livePreview(c) { if (typeof opts.preview === 'function') { try { opts.preview(c); } catch (e) {} } }
+  function paintUI(keepHex) {
+    var rgb = hsv2rgb(hsv.h, hsv.s, hsv.v);
+    cur = rgb2hex(rgb.r, rgb.g, rgb.b);
+    sv.style.background = 'hsl(' + Math.round(hsv.h) + ',100%,50%)';
+    dot.style.left = (hsv.s * 100) + '%';
+    dot.style.top = ((1 - hsv.v) * 100) + '%';
+    prev.style.background = cur;
+    if (!keepHex) hexIn.value = cur;
+    rIn.value = Math.round(rgb.r); gIn.value = Math.round(rgb.g); bIn.value = Math.round(rgb.b);
+    livePreview(cur);
+  }
+  function setFromHex(h, keepHex) { var c = hex2rgb(h); hsv = rgb2hsv(c.r, c.g, c.b); hue.value = Math.round(hsv.h); paintUI(keepHex); }
+
+  function svPick(ev) {
+    var r = sv.getBoundingClientRect();
+    var cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    var cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    hsv.s = Math.max(0, Math.min(1, (cx - r.left) / r.width));
+    hsv.v = 1 - Math.max(0, Math.min(1, (cy - r.top) / r.height));
+    paintUI();
+  }
+  sv.addEventListener('mousedown', function (e) {
+    svPick(e);
+    function mv(ev) { svPick(ev); }
+    function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
+    document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+    e.preventDefault();
+  });
+  hue.addEventListener('input', function () { hsv.h = +hue.value; paintUI(); });
   hexIn.addEventListener('input', function () {
     var v = hexIn.value.trim();
-    if (/^#[0-9a-fA-F]{6}$/.test(v)) wheel.value = v;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) setFromHex(v.toUpperCase(), true);
   });
+  [rIn, gIn, bIn].forEach(function (inp) {
+    inp.addEventListener('input', function () { setFromHex(rgb2hex(+rIn.value || 0, +gIn.value || 0, +bIn.value || 0)); });
+  });
+
+  var done = function (v) { pop.remove(); if (v) ldColourRemember(v); cb(v); };
+  var cancel = function () { livePreview(revertTo); pop.remove(); };
+
+  /* hovering a swatch previews it on the slide; leaving reverts to the
+     current selection — clicking makes it the current selection */
+  pop.addEventListener('mouseover', function (e) { var s = e.target.closest('[data-ldc]'); if (s) livePreview(s.dataset.ldc); });
+  pop.addEventListener('mouseout', function (e) { var s = e.target.closest('[data-ldc]'); if (s) livePreview(cur); });
 
   pop.addEventListener('click', function (e) {
     var s = e.target.closest('[data-ldc]');
-    if (s) { wheel.value = s.dataset.ldc; hexIn.value = s.dataset.ldc; return; }
+    if (s) { setFromHex(s.dataset.ldc); return; }
     if (e.target.closest('[data-ldcnone]')) { done(''); return; }
     if (e.target.closest('[data-ldcok]')) {
       var v = hexIn.value.trim();
-      done(/^#[0-9a-fA-F]{6}$/.test(v) ? v.toUpperCase() : wheel.value.toUpperCase());
+      done(/^#[0-9a-fA-F]{6}$/.test(v) ? v.toUpperCase() : cur);
       return;
     }
-    if (e.target === pop || e.target.closest('[data-ldcx]')) { pop.remove(); return; }
+    if (e.target === pop || e.target.closest('[data-ldcx]')) { cancel(); return; }
   });
 
   pop.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); pop.querySelector('[data-ldcok]').click(); }
-    if (e.key === 'Escape') { e.preventDefault(); pop.remove(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancel(); }
   });
+  paintUI();
   setTimeout(function () { hexIn.focus(); hexIn.select(); }, 30);
 }
 
@@ -5845,8 +5915,28 @@ function ribbonRun(key) {
     }
     case 'text-colour': {
       if (!o || !/text/.test(o.type)) { showToast('Select a text box first'); break; }
-      ldColour({ value: o.fill || '#000000', title: 'Font colour' }, function (tc) {
-        if (tc) { o.set('fill', tc); fc.renderAll(); saveState(); }
+      /* effective colour: per-character styles override the object fill on
+         imported text — read AND write through them, or the picker looks dead */
+      var tcOrig = (function () {
+        var f = o.fill;
+        if (o.styles) {
+          var ls = Object.keys(o.styles);
+          if (ls.length) { var cs = Object.keys(o.styles[ls[0]]); if (cs.length && o.styles[ls[0]][cs[0]].fill) f = o.styles[ls[0]][cs[0]].fill; }
+        }
+        return (typeof f === 'string' && /^#/.test(f)) ? f : '#000000';
+      })();
+      var tcPaint = function (c) {
+        if (!c) return;
+        o.set('fill', c);
+        if (o.styles) {
+          Object.keys(o.styles).forEach(function (li) {
+            Object.keys(o.styles[li]).forEach(function (ci) { o.styles[li][ci].fill = c; });
+          });
+        }
+        o.dirty = true; fc.renderAll();
+      };
+      ldColour({ value: tcOrig, original: tcOrig, title: 'Font colour', preview: tcPaint }, function (tc) {
+        if (tc) { tcPaint(tc); saveState(); }
       });
       break;
     }
@@ -6784,10 +6874,15 @@ function openFontPopover() {
     }
     return String(f).split(',')[0].replace(/"/g, '').trim();
   }
-  function apply(name) {
+  /* live hover preview: snapshot on open, paint on hover, restore on leave,
+     commit (and re-snapshot) on click */
+  function snapFont() {
+    var t = rbText();
+    return t ? { fam: t.fontFamily, styles: t.styles ? JSON.parse(JSON.stringify(t.styles)) : null } : null;
+  }
+  var snap = snapFont();
+  function paint(name) {
     var t = rbText(); if (!t) return;
-    /* apply immediately (shows in a fallback face), then re-render once the
-       real webfont finishes downloading — robust even if the font is slow. */
     t.set('fontFamily', name);
     /* write through per-character styles too, or imported text silently
        ignores the change (audit 31) */
@@ -6797,8 +6892,18 @@ function openFontPopover() {
       });
       if (typeof t.initDimensions === 'function') t.initDimensions();
     }
-    t.dirty = true; fc.renderAll(); saveState();
+    t.dirty = true; fc.renderAll();
     if (window.loadDeckFonts) window.loadDeckFonts([name], function () { fc.renderAll(); });
+  }
+  function restoreFont() {
+    var t = rbText(); if (!t || !snap) return;
+    t.set('fontFamily', snap.fam);
+    if (snap.styles) t.styles = JSON.parse(JSON.stringify(snap.styles));
+    if (typeof t.initDimensions === 'function') t.initDimensions();
+    t.dirty = true; fc.renderAll();
+  }
+  function apply(name) {
+    paint(name); saveState(); snap = snapFont();
   }
   function list(q) {
     q = (q || '').trim().toLowerCase();
@@ -6824,11 +6929,17 @@ function openFontPopover() {
   positionPop(pop, anchor);
   var q = pop.querySelector('#ld-font-q'), listEl = pop.querySelector('#ld-font-list');
   q.addEventListener('input', function () { listEl.innerHTML = list(q.value); });
+  /* hovering a font shows it on the selected text instantly */
+  listEl.addEventListener('mouseover', function (e) {
+    var it = e.target.closest('[data-font]');
+    if (it) paint(it.dataset.font);
+  });
+  listEl.addEventListener('mouseleave', function () { restoreFont(); });
   pop.addEventListener('click', function (e) {
     var it = e.target.closest('[data-font]');
     if (it) { apply(it.getAttribute('data-font')); listEl.innerHTML = list(q.value); }
   });
-  attachPopDismiss(pop, anchor);
+  attachPopDismiss(pop, anchor, restoreFont); /* leaving without a click keeps the original font */
   setTimeout(function () { try { q.focus(); } catch (e) {} }, 30);
 }
 
@@ -6849,7 +6960,7 @@ function rbCurPt(o) {
   }
   return Math.round(px / rbPxPerPt() * 10) / 10;
 }
-function rbSetFontSize(pt) {
+function rbSetFontSize(pt, preview) {
   var o = rbText(); if (!o) return;
   pt = Math.max(1, Math.min(999, Math.round(pt)));
   var px = pt * rbPxPerPt();
@@ -6860,7 +6971,8 @@ function rbSetFontSize(pt) {
     });
     if (typeof o.initDimensions === 'function') o.initDimensions();
   }
-  o.dirty = true; fc.renderAll(); saveState();
+  o.dirty = true; fc.renderAll();
+  if (!preview) saveState(); /* hover previews must not spam the undo history */
 }
 function _sizeStep(cur, dir) {
   var i, next = null;
@@ -6909,13 +7021,21 @@ function openSizePopover() {
   build();
   document.body.appendChild(pop);
   positionPop(pop, anchor);
+  /* hover previews the size on the slide; the committed value is what the
+     text goes back to when the pointer leaves without clicking */
+  var committedPt = cur();
+  pop.addEventListener('mouseover', function (e) {
+    var it = e.target.closest('[data-sz]');
+    if (it) rbSetFontSize(parseInt(it.dataset.sz, 10), true);
+  });
+  pop.addEventListener('mouseleave', function () { rbSetFontSize(committedPt, true); });
   pop.addEventListener('click', function (e) {
     var it = e.target.closest('[data-sz]');
-    if (it) { apply(parseInt(it.dataset.sz, 10)); return; }
-    if (e.target.closest('[data-sz-dec]')) { apply(_sizeStep(cur(), -1)); return; }
-    if (e.target.closest('[data-sz-inc]')) { apply(_sizeStep(cur(), 1)); return; }
+    if (it) { apply(parseInt(it.dataset.sz, 10)); committedPt = cur(); return; }
+    if (e.target.closest('[data-sz-dec]')) { apply(_sizeStep(cur(), -1)); committedPt = cur(); return; }
+    if (e.target.closest('[data-sz-inc]')) { apply(_sizeStep(cur(), 1)); committedPt = cur(); return; }
   });
-  attachPopDismiss(pop, anchor);
+  attachPopDismiss(pop, anchor, function () { rbSetFontSize(committedPt, true); });
 }
 
 /* Shared popover placement + dismiss helpers (used by font/size/spacing). */
@@ -6927,9 +7047,9 @@ function positionPop(pop, anchor) {
   if (pr.right > window.innerWidth - 8) pop.style.left = Math.round(window.innerWidth - pr.width - 8) + 'px';
   if (pr.bottom > window.innerHeight - 8) pop.style.top = Math.max(8, Math.round(window.innerHeight - pr.height - 8)) + 'px';
 }
-function attachPopDismiss(pop, anchor) {
+function attachPopDismiss(pop, anchor, onClose) {
   setTimeout(function () {
-    function done() { if (pop.parentNode) pop.remove(); document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); }
+    function done() { if (onClose) { try { onClose(); } catch (e) {} } if (pop.parentNode) pop.remove(); document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); }
     /* A mousedown on the popover's OWN ribbon button is left alone: removing
        the popover here made the button's click handler find nothing and
        rebuild it, so a second click could never close it (audit 75). The
@@ -7039,10 +7159,30 @@ function rbClearFormatting() {
 function rbHighlight() {
   var o = rbText();
   if (!rbNeed(o, 'Select a text box first')) return;
+  /* a real highlighter: if characters are selected while editing, highlight
+     ONLY those characters; otherwise the whole text. Lives behind the text,
+     never the box. Live preview while picking; Cancel restores exactly. */
+  var selOnly = !!(o.isEditing && o.selectionStart != null && o.selectionEnd != null
+                   && o.selectionEnd > o.selectionStart);
+  var s0 = o.selectionStart, s1 = o.selectionEnd;
+  var origWhole = o.textBackgroundColor || '';
+  var origStyles = o.styles ? JSON.parse(JSON.stringify(o.styles)) : null;
+  var paint = function (c) {
+    if (selOnly && o.setSelectionStyles) o.setSelectionStyles({ textBackgroundColor: c || '' }, s0, s1);
+    else o.set('textBackgroundColor', c || '');
+    o.dirty = true; fc.renderAll();
+  };
+  var restore = function () {
+    if (selOnly && origStyles) { o.styles = JSON.parse(JSON.stringify(origStyles)); }
+    else o.set('textBackgroundColor', origWhole);
+    o.dirty = true; fc.renderAll();
+  };
   ldColour({ value: o.textBackgroundColor || '#FDE047', allowNone: true,
-             title: 'Text highlight' }, function (c) {
-    o.set('textBackgroundColor', c || '');
-    fc.renderAll(); saveState();
+             title: 'Text highlight',
+             preview: function (c) { if (c === origWhole) restore(); else paint(c); },
+             original: origWhole }, function (c) {
+    paint(c || '');
+    saveState();
   });
 }
 
@@ -12439,6 +12579,61 @@ function dropImageIntoFrame(imgObj, grp) {
   }, 300);
 })();
 
+/* ── Outline-only resize (requested mod 5) ──────────────────────────────
+   While a resize handle is being dragged, the object itself stays exactly
+   as it is; a dashed outline tracks the intended new size, and the object
+   snaps to it on release. One history entry, no mid-drag repaints. */
+(function () {
+  var wait = setInterval(function () {
+    if (typeof fc === 'undefined' || !fc || !fc.on) return;
+    clearInterval(wait);
+    var pend = null;
+
+    function grab(e, extraProps) {
+      var o = e.target, tr = e.transform;
+      if (!o || !tr || !tr.original) return; /* old fabric: fall back to live scaling */
+      var intended = { scaleX: o.scaleX, scaleY: o.scaleY, left: o.left, top: o.top };
+      var orig = { scaleX: tr.original.scaleX, scaleY: tr.original.scaleY,
+                   left: tr.original.left, top: tr.original.top };
+      (extraProps || []).forEach(function (k) {
+        intended[k] = o[k];
+        if (tr.original[k] != null) orig[k] = tr.original[k];
+      });
+      pend = { o: o, intended: intended, orig: orig };
+      o.set(orig); o.setCoords();
+    }
+    fc.on('object:scaling',  function (e) { grab(e); });
+    fc.on('object:resizing', function (e) { grab(e, ['width']); }); /* textbox side handles */
+
+    fc.on('after:render', function () {
+      if (!pend) return;
+      var o = pend.o, ctx = fc.contextTop;
+      if (!ctx) return;
+      /* measure the intended bounds without showing them */
+      o.set(pend.intended); o.setCoords();
+      var b = o.getBoundingRect();
+      o.set(pend.orig); o.setCoords();
+      ctx.save();
+      ctx.strokeStyle = 'rgba(124,58,237,0.95)';
+      ctx.setLineDash([5, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(b.left, b.top, b.width, b.height);
+      ctx.restore();
+    });
+
+    /* capture phase: runs BEFORE fabric's own mouseup, so the renderer's
+       object:modified -> saveState snapshots the FINAL size, not the old one */
+    document.addEventListener('mouseup', function () {
+      if (!pend) return;
+      var o = pend.o;
+      o.set(pend.intended); o.setCoords();
+      pend = null;
+      try { fc.clearContext(fc.contextTop); } catch (e) {}
+      fc.requestRenderAll();
+    }, true);
+  }, 300);
+})();
+
 /* Frames restored from JSON (page switch / undo) need their photo re-attached. */
 function rehydrateFrames() {
   if (!fc) return;
@@ -15773,6 +15968,23 @@ window.LD_loadEditorTemplates = async function () {
   letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-primary); outline: none; }
 .ld-c-row input[type="text"]:focus { border-color: var(--accent); }
+/* ── dark full picker (matches the main-site widget look) ── */
+.ldcp-dark { background: #23262E; color: #E5E7EB; }
+.ldcp-dark .ld-modal-head b { color: #F3F4F6; }
+.ldcp-dark .ld-modal-head button { color: #9CA3AF; }
+.ldcp-dark .ld-sec { color: #9CA3AF; }
+.ldcp-sv { position: relative; width: 100%; height: 150px; border-radius: 8px; cursor: crosshair; }
+.ldcp-sv-white { position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(90deg, #fff, rgba(255,255,255,0)); }
+.ldcp-sv-black { position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(0deg, #000, rgba(0,0,0,0)); }
+.ldcp-dot { position: absolute; width: 14px; height: 14px; border: 2px solid #fff; border-radius: 50%; transform: translate(-7px,-7px); box-shadow: 0 0 4px rgba(0,0,0,0.5); pointer-events: none; }
+#ldcp-hue { width: 100%; margin: 10px 0 8px; -webkit-appearance: none; appearance: none; height: 10px; border-radius: 5px; background: linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00); }
+#ldcp-hue::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 2px solid #888; cursor: pointer; }
+.ldcp-row { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+.ldcp-prev { width: 30px; height: 30px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.25); flex: 0 0 auto; }
+.ldcp-dark #ld-c-hex { flex: 1; min-width: 68px; background: #161920; color: #E5E7EB; border: 1px solid #3A3F4B; border-radius: 6px; padding: 7px 8px; font-family: monospace; font-size: 13px; }
+.ldcp-row input[type="number"] { width: 46px; background: #161920; color: #E5E7EB; border: 1px solid #3A3F4B; border-radius: 6px; padding: 7px 4px; font-size: 12px; }
+.ldcp-dark .ld-modal-foot button { background: #31353F; color: #E5E7EB; border: none; }
+.ldcp-dark .ld-modal-foot button.primary { background: var(--accent); color: #fff; }
 .ld-c-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(30px, 1fr)); gap: 6px; }
 .ld-c-sw { width: 100%; aspect-ratio: 1; border-radius: var(--radius-sm);
   border: 1px solid rgba(0,0,0,.14); }
