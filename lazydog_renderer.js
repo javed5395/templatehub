@@ -404,7 +404,7 @@ function ctxPaste()     { _clip && _clip.clone(function(c){ c.set({left:c.left+2
 
 function ctxAlign()     { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} o.set({left:(fc.getWidth()/fc.getZoom()-o.getScaledWidth())/2, top:(fc.getHeight()/fc.getZoom()-o.getScaledHeight())/2}); fc.renderAll(); saveState(); showToast('Aligned to center'); }
 
-function ctxLock()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var lock=!o.lockMovementX; o.set({lockMovementX:lock,lockMovementY:lock,hasControls:!lock,selectable:!lock}); fc.renderAll(); showToast(lock?'Element locked':'Element unlocked'); }
+function ctxLock()      { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} var lock=!o.lockMovementX; /* locked elements stay SELECTABLE so they can be right-clicked and unlocked again (audit 44) */ o.set({lockMovementX:lock,lockMovementY:lock,lockScalingX:lock,lockScalingY:lock,lockRotation:lock,hasControls:!lock,selectable:true,evented:true}); fc.renderAll(); showToast(lock?'Element locked — right-click it again to unlock':'Element unlocked'); }
 
 function ldScopeChooser(title, cb) {
   var old = document.getElementById('ld-scope-pop'); if (old) old.remove();
@@ -521,7 +521,10 @@ function ctxMasterAdd() {
 
 function ctxMasterRemove() {
   var o = fc && fc.getActiveObject();
-  if (!o || !o.ldMasterId) { showToast('Select an "all slides" element first'); return; }
+  /* master copies are unselectable, so fall back to the element that was
+     under the pointer when the menu opened (audit 46) */
+  if ((!o || !o.ldMasterId) && window._ctxMaster && window._ctxMaster.ldMasterId) o = window._ctxMaster;
+  if (!o || !o.ldMasterId) { showToast('Right-click directly on an "all slides" element to remove it'); return; }
   var id = o.ldMasterId;
   window._ldMasters = window._ldMasters.filter(function (m) { return m.ldMasterId !== id; });
   state.pages.forEach(function (page, i) {
@@ -881,7 +884,8 @@ async function switchPage(index) {
 }
 
 function addPage() {
-  if (state.pages.length >= 40) { showToast('Maximum 40 slides allowed'); return; }
+  var _maxSlides = (typeof window !== 'undefined' && window.LD_MAX_SLIDES) || 500;
+  if (state.pages.length >= _maxSlides) { showToast('Maximum ' + _maxSlides + ' slides allowed'); return; }
   captureCurrentPage();
   var page = makeBlankPage(Date.now());
   state.pages.push(page);

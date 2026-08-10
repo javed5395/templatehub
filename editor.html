@@ -979,6 +979,10 @@ body.ld-resizing .side-panel { transition: none; }
   text-align: center; letter-spacing: -0.01em; color: inherit;
 }
 .rb-btn.wide { min-width: 66px; }
+/* pressed look for the toggle commands (Ruler, Gridlines, Guides, panes,
+   Lock) so an "on" button no longer looks identical to an "off" one */
+.rb-btn.on { background: var(--accent-subtle); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-light); }
+.rb-btn.on:hover { background: var(--accent-subtle); }
 .rb-btn.disabled { opacity: .35; pointer-events: none; }
 .rb-btn.danger:hover { background: #FEF2F2; color: #DC2626; }
 /* compact variant for dense groups (small icon, label beside) */
@@ -1342,10 +1346,13 @@ body.show-ruler .canvas-area::after {
 }
 .cmp-card:hover .cmp-foot span { color: var(--accent); }
 .cmp-reset {
-  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 600; letter-spacing: .01em;
   color: var(--upgrade); background: #FFF7ED;
-  border-radius: 3px; padding: 2px 6px;
+  border: 1px solid var(--upgrade); border-radius: 4px; padding: 2px 6px;
+  cursor: pointer;
 }
+.cmp-reset .material-icons-outlined { font-size: 12px; }
 .cmp-reset:hover { background: var(--upgrade); color: #fff; }
 .brand-btn.off { opacity: .45; pointer-events: none; }
 
@@ -1479,6 +1486,10 @@ body.show-ruler .canvas-area::after {
 }
 .ds-btn.ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-subtle); }
 .ds-btn .material-icons-outlined { font-size: 14px; }
+.ds-btn:disabled, .ds-btn:disabled:hover {
+  opacity: .45; cursor: default;
+  border-color: var(--border); color: var(--text-muted); background: transparent;
+}
 
 /* --- Animations panel --- */
 .anim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 4px; }
@@ -2215,7 +2226,6 @@ body.show-ruler .canvas-area::after {
   <div class="ctx-divider"></div>
   <button class="ctx-item" data-ctx="align"><span class="ctx-item-left"><span class="material-icons-outlined">format_align_center</span>Align to page</span></button>
   <button class="ctx-item" data-ctx="lock"><span class="ctx-item-left"><span class="material-icons-outlined">lock</span>Lock</span></button>
-  <button class="ctx-item" data-ctx="link"><span class="ctx-item-left"><span class="material-icons-outlined">link</span>Link</span><span class="ctx-shortcut">Ctrl+K</span></button>
   <div class="ctx-divider"></div>
   <button class="ctx-item" data-ctx="alttext"><span class="ctx-item-left"><span class="material-icons-outlined">accessible</span>Alternative text</span></button>
   <button class="ctx-item" data-ctx="setbg"><span class="ctx-item-left"><span class="material-icons-outlined">image</span>Set image as background</span></button>
@@ -2453,6 +2463,15 @@ const state = {
 /* Panels that exist in panelData but have no button on the left rail —
    they are opened only from the ribbon. openPanel() needs a label for the
    panel heading, so it reads it from here. */
+/* One slide ceiling for the whole editor. A later patch sets
+   window.LD_MAX_SLIDES to 500 for the AI "add slides" buttons; every other
+   path reads the same number here, so nothing is capped lower. */
+function ldMaxSlides() { return window.LD_MAX_SLIDES || 500; }
+
+/* Panels with no working search — the box is hidden for these. */
+const NO_SEARCH_PANELS = ['illustrations', 'charts', 'backgrounds',
+                          'photos', 'videos', 'audio', 'draw'];
+
 const PANEL_FALLBACK_LABEL = {
   presenter: 'Presenter',
   a11y: 'Accessibility',
@@ -2485,18 +2504,10 @@ const designTools = [
   { id: 'assets',     icon: 'inventory_2',     label: 'Assets' },
   { id: 'components', icon: 'widgets',         label: 'Compon.' },
   { id: 'projects',   icon: 'folder',          label: 'Projects' },
-  { id: 'apps',       icon: 'apps',            label: 'Apps' },
-  { id: 'extras',     icon: 'more_horiz',      label: 'Extras' },
 ];
 
 const editingTools = [
-  { id: 'crop',       icon: 'crop',            label: 'Crop' },
   { id: 'scissor',    icon: 'content_cut',     label: 'Scissor' },
-  { id: 'flip',       icon: 'flip',            label: 'Flip' },
-  { id: 'magic',      icon: 'auto_fix_high',   label: 'Magic' },
-  { id: 'filters',    icon: 'filter',          label: 'Filters' },
-  { id: 'adjust',     icon: 'tune',            label: 'Adjust' },
-  { id: 'effects',    icon: 'blur_on',         label: 'Effects' },
 ];
 
 /* ============================================
@@ -2534,51 +2545,10 @@ const panelData = {
     }
   },
   elements: {
-    tabs: ['All', 'Frames', 'Lines', 'Shapes', 'Graphics', 'Stickers', 'Illustrations'],
+    tabs: ['All', 'Lines', 'Shapes', 'Graphics', 'Stickers', 'Illustrations'],
     activeTab: 'All',
     generate() {
       return renderElementCatalog(this.activeTab);
-    }
-  },
-  _elementsOld: {
-    tabs: null,
-    activeTab: 'All',
-    generate() {
-      const shapes = [
-        { type: 'rect',         svg: '<rect x="10" y="10" width="30" height="30" rx="2" fill="none" stroke="#64748B" stroke-width="2"/>' },
-        { type: 'circle',       svg: '<circle cx="25" cy="25" r="16" fill="none" stroke="#7C3AED" stroke-width="2"/>' },
-        { type: 'triangle',     svg: '<polygon points="25,5 45,40 5,40" fill="none" stroke="#E8590C" stroke-width="2"/>' },
-        { type: 'line',         svg: '<line x1="5" y1="25" x2="45" y2="25" stroke="#64748B" stroke-width="2.5" stroke-linecap="round"/>' },
-        { type: 'star',         svg: '<polygon points="25,2 31,18 49,18 35,28 40,46 25,35 10,46 15,28 1,18 19,18" fill="none" stroke="#EAB308" stroke-width="1.5"/>' },
-        { type: 'rounded-rect', svg: '<rect x="8" y="8" width="34" height="34" rx="17" fill="none" stroke="#059669" stroke-width="2"/>' },
-        { type: 'triangle',     svg: '<path d="M5 40 L25 5 L45 40 Z" fill="#EDE9FE" stroke="#7C3AED" stroke-width="1.5"/>' },
-        { type: 'circle',       svg: '<path d="M25 5 Q45 25 25 45 Q5 25 25 5Z" fill="none" stroke="#E8590C" stroke-width="2"/>' },
-        { type: 'line',         svg: '<path d="M10 40 Q25 5 40 40" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linecap="round"/>' },
-      ];
-      /* Live frames — drop a photo on one and it cover-fits inside the mask. */
-      const frames = [
-        { kind:'square',    svg:'<rect x="8" y="8" width="34" height="34"/>' },
-        { kind:'landscape', svg:'<rect x="5" y="14" width="40" height="22"/>' },
-        { kind:'portrait',  svg:'<rect x="14" y="5" width="22" height="40"/>' },
-        { kind:'rounded',   svg:'<rect x="8" y="8" width="34" height="34" rx="9"/>' },
-        { kind:'circle',    svg:'<circle cx="25" cy="25" r="18"/>' },
-        { kind:'diamond',   svg:'<polygon points="25,5 45,25 25,45 5,25"/>' },
-        { kind:'triangle',  svg:'<polygon points="25,6 45,44 5,44"/>' },
-        { kind:'hexagon',   svg:'<polygon points="25,5 42,15 42,35 25,45 8,35 8,15"/>' },
-        { kind:'arch',      svg:'<path d="M7 25a18 18 0 0 1 36 0v20H7Z"/>' },
-        { kind:'heart',     svg:'<path d="M25 44C13 34 5 27 5 18a10 10 0 0 1 20-4 10 10 0 0 1 20 4c0 9-8 16-20 26Z"/>' },
-      ];
-      const frameHtml = `<div class="panel-subhead">Frames <span>drop a photo in</span></div>
-        <div class="element-grid">${frames.map((f, i) =>
-          `<div class="element-card frame-card" style="animation-delay:${i*0.03}s" data-action="add-frame" data-frame="${f.kind}" title="${f.kind} frame">
-             <svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">${f.svg}</svg>
-           </div>`
-        ).join('')}</div>
-        <div class="panel-subhead">Shapes</div>`;
-
-      return frameHtml + `<div class="element-grid">${shapes.map((s, i) =>
-        `<div class="element-card" style="animation-delay:${i*0.03}s" data-action="add-element" data-shape="${s.type}"><svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">${s.svg}</svg></div>`
-      ).join('')}</div>`;
     }
   },
   text: {
@@ -2830,7 +2800,9 @@ function openPanel(toolId) {
 
   // Show/hide search and tabs based on tool
   const data = panelData[toolId];
-  const hasSearch = !!data;
+  /* Panels whose content the search box cannot filter — showing it there
+     promised a search that never worked. Icons keeps its real search. */
+  const hasSearch = !!data && NO_SEARCH_PANELS.indexOf(toolId) === -1;
   const hasTabs = data && data.tabs;
   dom.panelSearchWrap.style.display = hasSearch ? '' : 'none';
   dom.panelTabs.style.display = hasTabs ? '' : 'none';
@@ -3024,7 +2996,31 @@ document.addEventListener('paste', function(e) {
    ============================================ */
 dom.canvasArea.addEventListener('contextmenu', function(e) {
   e.preventDefault();
+  /* master ("all slides") copies are unselectable, so remember which one (if
+     any) sits under the pointer — "Remove from all slides" uses this, since
+     it can never come in via the active object (audit 46) */
+  window._ctxMaster = null;
+  try {
+    if (window.fc) {
+      var _pt = fc.getPointer(e);
+      var _fpt = new fabric.Point(_pt.x, _pt.y);
+      (fc.getObjects() || []).forEach(function (o) {
+        if (o.ldMasterId && o.containsPoint && o.containsPoint(_fpt)) window._ctxMaster = o;
+      });
+    }
+  } catch (err) {}
   var m = dom.ctxMenu;
+  /* the Lock row is a toggle — read the target's real state so it says
+     Unlock (open padlock) when the element is already locked (audit 44) */
+  try {
+    var _lockBtn = m.querySelector('[data-ctx="lock"] .ctx-item-left');
+    if (_lockBtn) {
+      var _ao = window.fc && fc.getActiveObject();
+      var _lk = !!(_ao && _ao.lockMovementX);
+      _lockBtn.innerHTML = '<span class="material-icons-outlined">' + (_lk ? 'lock_open' : 'lock')
+        + '</span>' + (_lk ? 'Unlock' : 'Lock');
+    }
+  } catch (err2) {}
   m.style.left = e.clientX + 'px';
   m.style.top = e.clientY + 'px';
   m.classList.add('open');
@@ -3042,7 +3038,6 @@ dom.ctxMenu.addEventListener('click', function(e) {
     case 'delete': ctxDelete(); break;
     case 'align': ctxAlign(); break;
     case 'lock': ctxLock(); break;
-    case 'link': ctxLink(); break;
     case 'alttext': ctxAltText(); break;
     case 'setbg': ctxSetBg(); break;
     case 'applycolor': ctxApplyColor(); break;
@@ -4457,6 +4452,10 @@ function drawSetTool(t) {
   renderPanelContent('draw');
 }
 function drawSetColour(c) {
+  /* A swatch can be the first thing clicked — it switches to the pen below,
+     so it needs the same path:created / eraser hooks a tool click installs,
+     otherwise those strokes are never tagged _isDrawn. */
+  drawEnsureHooks();
   _draw.color = c;
   if (_draw.tool === 'select' || _draw.tool === 'eraser') _draw.tool = 'pen';
   drawApplyBrush();
@@ -4936,7 +4935,6 @@ var RIBBON = [
     { name:'Font', items:[
       ['text_fields','Font','font-family','sw'],
       ['format_size','Font size','font-size','sw'],
-      ['auto_awesome','WordArt','wordart','sw'],
       ['text_increase','','font-up','sm','Increase font size'],
       ['text_decrease','','font-down','sm','Decrease font size'],
       ['format_bold','','bold','sm','Bold'],
@@ -4957,13 +4955,6 @@ var RIBBON = [
       ['format_list_bulleted','Bullets','bullets','sm'],
       ['format_list_numbered','Numbering','numbering','sm'],
       ['format_line_spacing','Line spacing','line-spacing','sm'],
-    ]},
-    /* Added 30 Jul 2026: the Shapes gallery (openShapesGallery) was fully
-       built and its click handler was waiting for data-rb="shapes", but no
-       button anywhere carried that key — so the whole gallery was
-       unreachable. PowerPoint keeps Shapes in a Drawing group on Home. */
-    { name:'Drawing', items:[
-      ['category','Shapes','shapes','w'],
     ]},
     { name:'Editing', items:[
       ['select_all','Select all','select-all','m'],
@@ -4996,9 +4987,6 @@ var RIBBON = [
       ['grid_view','Grids','panel:grids','w'],
       ['bar_chart','Chart','panel:charts','w'],
       ['widgets','Elements','panel:elements','w'],
-    ]},
-    { name:'Links', items:[
-      ['link','Link','link','sw'],
     ]},
     { name:'Comments', items:[
       ['add_comment','Comment','comment-add','w'],
@@ -5099,7 +5087,6 @@ var RIBBON = [
       ['rule','Grammar','proof-grammar','w'],
     ]},
     { name:'Comments', items:[
-      ['add_comment','New comment','comment-add','w'],
       ['check_circle','Resolve','comment-resolve','w'],
     ]},
   ]},
@@ -5153,7 +5140,6 @@ var RIBBON = [
   { id:'shape', name:'Shape format', ctx:true, groups:[
     { name:'Picture', items:[
       ['add_photo_alternate','Insert picture','frame-fill','s'],
-      ['find_replace','Change picture','frame-fill','s'],
       ['hide_image','Remove picture','frame-clear','s'],
     ]},
     { name:'Size', items:[
@@ -5169,7 +5155,6 @@ var RIBBON = [
     ]},
     { name:'Arrange', items:[
       ['library_add','Duplicate','duplicate','sm'],
-      ['link','Link','link','sm'],
       ['accessible','Alt text','alttext','sm'],
       ['delete','Delete','delete','sd'],
     ]},
@@ -5203,7 +5188,7 @@ var RB_FAMILY = {
   view:  ['zoom-in','zoom-out','zoom-fit','fit-width','v-ruler','v-grid','v-guides',
           'toggle-sidebar','panel-layers','panel-props'],
   order: ['front','back','forward','backward','middle','rot-left','rot-right','flip-h','flip-v',
-          'group','ungroup','lock-on','unlock-all','duplicate','link','add-page','del-page','dup-page'],
+          'group','ungroup','lock-on','unlock-all','duplicate','add-page','del-page','dup-page'],
   danger:['delete']
 };
 var RB_TINT = (function () {
@@ -5304,7 +5289,10 @@ function layoutBuild(id) {
       /* reuse the editor's own frame object so Insert picture, Crop and
          export all behave exactly as they do for any other frame */
       if (typeof addFrame !== 'function') return;
-      addFrame('rect');
+      /* 'rect' is not a FRAME_DEFS kind — addFrame silently fell back to
+         'square' (and toasted "Square frame added") before stretching it.
+         These placeholders are wide, so ask for the real rectangular kind. */
+      addFrame(p.fk || 'landscape');
       var o = fc.getActiveObject();
       if (o) {
         o.set({ left: p.x * W, top: p.y * H });
@@ -5335,7 +5323,7 @@ function layoutBuild(id) {
 /* New slide, then the chosen layout on top of it. */
 function slideNewWithLayout(id) {
   if (typeof addPage !== 'function') { showToast('Editor still loading'); return; }
-  if (state.pages.length >= 40) { showToast('Maximum 40 slides allowed'); return; }
+  if (state.pages.length >= ldMaxSlides()) { showToast('Maximum ' + ldMaxSlides() + ' slides allowed'); return; }
   addPage();
   setTimeout(function () {
     var n = layoutBuild(id);
@@ -5359,7 +5347,7 @@ function slidesFromOutline() {
     else { cur = { title: line.trim(), body: [] }; groups.push(cur); }
   });
   if (!groups.length) { showToast('Nothing usable in that outline'); return; }
-  if (groups.length + state.pages.length > 40) { showToast('That would go over the 40-slide limit'); return; }
+  if (groups.length + state.pages.length > ldMaxSlides()) { showToast('That would go over the ' + ldMaxSlides() + '-slide limit'); return; }
 
   var i = 0;
   (function next() {
@@ -5406,7 +5394,6 @@ function slideLayoutGallery() {
     + '<div class="ld-layout-acts">'
       + '<button data-slideact="dup" type="button"><span class="material-icons-outlined">content_copy</span>Duplicate selected slide</button>'
       + '<button data-slideact="outline" type="button"><span class="material-icons-outlined">format_list_bulleted</span>Slides from outline…</button>'
-      + '<button data-slideact="reuse" type="button"><span class="material-icons-outlined">folder_open</span>Reuse slides…</button>'
     + '</div>';
   document.body.appendChild(pop);
   if (typeof positionPop === 'function') positionPop(pop, anchor);
@@ -5420,9 +5407,8 @@ function slideLayoutGallery() {
     pop.remove();
     if (a === 'dup')     { if (typeof pageDuplicateAt === 'function') pageDuplicateAt(state.currentPage); }
     if (a === 'outline') slidesFromOutline();
-    if (a === 'reuse')   { openPanel('projects'); showToast('Open a saved design to reuse its slides'); }
   });
-  if (typeof attachPopDismiss === 'function') attachPopDismiss(pop);
+  if (typeof attachPopDismiss === 'function') attachPopDismiss(pop, anchor);
 }
 
 /* ── Hand-drawn multi-colour icons (30 Jul 2026) ───────────────────────
@@ -5585,6 +5571,32 @@ function presTab(name) {
   } catch (e) {}
 }
 
+/* Which ribbon commands are toggles, and whether each is currently ON.
+   Returns null for anything that is not a toggle, so the renderer only
+   marks the buttons that actually have an on/off state (audit 74). */
+function rbToggleOn(key) {
+  try {
+    switch (key) {
+      case 'v-ruler':  return typeof _viewRuler  !== 'undefined' && !!_viewRuler;
+      case 'v-grid':   return typeof _viewGrid   !== 'undefined' && !!_viewGrid;
+      case 'v-guides': return typeof _viewGuides !== 'undefined' && !!_viewGuides;
+      case 'toggle-sidebar':
+        return typeof state !== 'undefined' && state.sidebarVisible !== false;
+      case 'panel-layers':
+      case 'panel-props': {
+        var want = key === 'panel-layers' ? 'layers' : 'effects2';
+        return typeof state !== 'undefined' && state.activeTool === want
+          && !!(dom && dom.sidePanel && dom.sidePanel.classList.contains('open'));
+      }
+      case 'lock-on': {
+        var o = ribbonSelection();
+        return !!(o && o.lockMovementX);
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
 function renderRibbon() {
   var tabsEl = document.getElementById('ribbon-tabs');
   var bodyEl = document.getElementById('ribbon-body');
@@ -5595,7 +5607,11 @@ function renderRibbon() {
      matching WHAT is selected appears — an icon gets Icon format, anything
      else gets Shape format. Never both. */
   var sel = ribbonSelection();
-  var ctxId = !hasSel ? null : sel.isIcon ? 'icon' : sel.isIllo ? 'illo' : 'shape';
+  /* plain text keeps the normal tabs — Shape format's Picture/Size buttons
+     only ever work on frames, and stealing the Home tab loses Bold/Italic/
+     Font right when the user selects text (audit 55) */
+  var ctxId = !hasSel ? null : sel.isIcon ? 'icon' : sel.isIllo ? 'illo'
+    : /text/.test(sel.type || '') ? null : 'shape';
   var visible = RIBBON.filter(function (t) {
     if (!t.ctx) return true;
     return t.id === ctxId;
@@ -5616,6 +5632,7 @@ function renderRibbon() {
       var f = it[3] || '';
       var off = f.indexOf('s') > -1 && !hasSel;
       var cls = 'rb-btn'
+        + (rbToggleOn(it[2]) === true ? ' on' : '')
         + (f.indexOf('w') > -1 ? ' wide' : '')
         + (f.indexOf('m') > -1 ? ' mini' : '')
         + (f.indexOf('d') > -1 ? ' danger' : '')
@@ -5679,7 +5696,7 @@ function ribbonRun(key) {
     case 'flip-v':        rbFlip('v'); return;
     case 'group':         layerGroup(); return;
     case 'ungroup':       layerUngroup(); return;
-    case 'lock-on':       rbLock(true); return;
+    case 'lock-on':       rbLock(true); renderRibbon(); return;
     case 'unlock-all':    rbUnlockAll(); return;
 
     /* ── Design ── */
@@ -5696,11 +5713,11 @@ function ribbonRun(key) {
 
     /* ── View ── */
     case 'fit-width':     rbFitWidth(); return;
-    case 'v-ruler':       rbToggleView('ruler'); return;
-    case 'v-grid':        rbToggleView('grid'); return;
-    case 'v-guides':      rbToggleView('guides'); return;
-    case 'panel-layers':  rbTogglePanel('layers'); return;
-    case 'panel-props':   rbTogglePanel('effects2'); return;
+    case 'v-ruler':       rbToggleView('ruler'); renderRibbon(); return;
+    case 'v-grid':        rbToggleView('grid'); renderRibbon(); return;
+    case 'v-guides':      rbToggleView('guides'); renderRibbon(); return;
+    case 'panel-layers':  rbTogglePanel('layers'); renderRibbon(); return;
+    case 'panel-props':   rbTogglePanel('effects2'); renderRibbon(); return;
 
     /* ── Review ── */
     case 'proof-spell':     rbProof('spell'); return;
@@ -5739,7 +5756,6 @@ function ribbonRun(key) {
     case 'duplicate':   ctxDuplicate(); break;
     case 'delete':      ctxDelete(); break;
     case 'lock':        ctxLock(); break;
-    case 'link':        ctxLink(); break;
     case 'alttext':     ctxAltText(); break;
     case 'info':        ctxInfo(); break;
     case 'centre':      ctxAlign(); break;
@@ -5775,11 +5791,6 @@ function ribbonRun(key) {
     case 'toggle-sidebar': {
       var sb = document.querySelector('[data-action="toggle-sidebar"]');
       if (sb) sb.click();
-      break;
-    }
-    case 'present': {
-      var pb = document.querySelector('[data-action="present"]');
-      if (pb) pb.click();
       break;
     }
     case 'upload-image': dom.uploadImgInput.click(); break;
@@ -5856,9 +5867,11 @@ function ribbonRun(key) {
     /* slide setup */
     case 'size-169': case 'size-43': {
       var r = key === 'size-169' ? [12192000, 6858000] : [9144000, 6858000];
-      if (typeof setSlideAspect === 'function') {
-        setSlideAspect(r[0], r[1]);
-        showToast(key === 'size-169' ? 'Slide set to 16:9' : 'Slide set to 4:3');
+      /* applyAspect (not raw setSlideAspect) so the deck's stored size is
+         updated too — otherwise the change silently reverts on the next
+         slide switch and thumbnails keep the old shape (audit 42) */
+      if (typeof applyAspect === 'function') {
+        applyAspect(r[0], r[1], key === 'size-169' ? 'Slide set to 16:9' : 'Slide set to 4:3');
       }
       break;
     }
@@ -5909,6 +5922,23 @@ function ribbonRun(key) {
 /* When "Drop photo" is used, the next upload goes straight into that frame. */
 var _frameFillTarget = null;
 
+/* Single owner of the ribbon's collapsed state. Every path that changes it
+   (double-click, the Settings switch, a single click that expands it) goes
+   through here, so localStorage never disagrees with what is on screen
+   (audit 76). */
+function ribbonSetCollapsed(on) {
+  var rib = document.getElementById('ribbon');
+  if (!rib) return;
+  on = !!on;
+  rib.classList.toggle('collapsed', on);
+  try { localStorage.setItem('ld_ribbon_collapsed', on ? '1' : '0'); } catch (e) {}
+  window.dispatchEvent(new Event('resize'));
+}
+/* the collapsed state as it was BEFORE the first click of a double-click —
+   the click handler expands the ribbon, so dblclick has to toggle against
+   the pre-click state or it can only ever collapse */
+var _rbPreDblCollapsed = false;
+
 function initRibbon() {
   var ribbon = document.getElementById('ribbon');
   var tabsEl = document.getElementById('ribbon-tabs');
@@ -5917,20 +5947,23 @@ function initRibbon() {
 
   renderRibbon();
 
+  tabsEl.addEventListener('mousedown', function (e) {
+    if (!e.detail || e.detail <= 1) _rbPreDblCollapsed = ribbon.classList.contains('collapsed');
+  });
+
   tabsEl.addEventListener('click', function (e) {
     var t = e.target.closest('[data-rbtab]');
     if (!t) return;
-    if (ribbon.classList.contains('collapsed')) ribbon.classList.remove('collapsed');
+    if (ribbon.classList.contains('collapsed')) ribbonSetCollapsed(false);
     _ribbonTab = t.dataset.rbtab;
     renderRibbon();
   });
 
-  /* PowerPoint behaviour: double-click the strip to collapse to tabs only */
+  /* PowerPoint behaviour: double-click the strip to collapse or expand.
+     The first click of the pair already expanded a collapsed ribbon, so the
+     toggle is taken against the state before that click (audit 76). */
   tabsEl.addEventListener('dblclick', function () {
-    ribbon.classList.toggle('collapsed');
-    try { localStorage.setItem('ld_ribbon_collapsed',
-      ribbon.classList.contains('collapsed') ? '1' : '0'); } catch (e) {}
-    window.dispatchEvent(new Event('resize'));
+    ribbonSetCollapsed(!_rbPreDblCollapsed);
   });
   try {
     if (localStorage.getItem('ld_ribbon_collapsed') === '1') ribbon.classList.add('collapsed');
@@ -5957,9 +5990,18 @@ function initRibbon() {
         /* jump to the matching format tab the moment something is selected */
         if (ev !== 'selection:cleared' && _ribbonTab === 'home') {
           var s = ribbonSelection();
-          _ribbonTab = !s ? 'home' : s.isIcon ? 'icon' : s.isIllo ? 'illo' : 'shape';
+          if (!(s && /text/.test(s.type || ''))) /* text stays on Home (audit 55) */
+            _ribbonTab = !s ? 'home' : s.isIcon ? 'icon' : s.isIllo ? 'illo' : 'shape';
         }
         renderRibbon();
+        /* selection-aware panels re-render so their buttons wake up/sleep
+           with the current selection (audit items 13 & 14) */
+        if (typeof state !== 'undefined' &&
+            (state.activeTool === 'components' || state.activeTool === 'effects2' ||
+             state.activeTool === 'ai') && /* AI text buttons un-grey on select (audit 79) */
+            typeof renderPanelContent === 'function') {
+          renderPanelContent(state.activeTool);
+        }
       });
     });
     renderRibbon();
@@ -5975,19 +6017,6 @@ function initRibbon() {
      w = stroke width · dash = dash pattern · frame = live frame kind
    ════════════════════════════════════════════════════════════ */
 var ELEMENT_CATALOG = [
-  { tab: 'Frames', name: 'Frames', note: 'drop a photo in', items: [
-    { n:'Square',    frame:'square',    d:'M8 8 H42 V42 H8 Z' },
-    { n:'Wide',      frame:'landscape', d:'M5 14 H45 V36 H5 Z' },
-    { n:'Tall',      frame:'portrait',  d:'M14 5 H36 V45 H14 Z' },
-    { n:'Rounded',   frame:'rounded',   d:'M17 8 H33 A9 9 0 0 1 42 17 V33 A9 9 0 0 1 33 42 H17 A9 9 0 0 1 8 33 V17 A9 9 0 0 1 17 8 Z' },
-    { n:'Circle',    frame:'circle',    d:'M25 7 A18 18 0 1 1 24.9 7 Z' },
-    { n:'Diamond',   frame:'diamond',   d:'M25 5 L45 25 L25 45 L5 25 Z' },
-    { n:'Triangle',  frame:'triangle',  d:'M25 6 L45 44 L5 44 Z' },
-    { n:'Hexagon',   frame:'hexagon',   d:'M25 5 L42 15 L42 35 L25 45 L8 35 L8 15 Z' },
-    { n:'Arch',      frame:'arch',      d:'M7 25 A18 18 0 0 1 43 25 V45 H7 Z' },
-    { n:'Heart',     frame:'heart',     d:'M25 44 C13 34 5 27 5 18 A10 10 0 0 1 25 14 A10 10 0 0 1 45 18 C45 27 37 34 25 44 Z' },
-  ]},
-
   { tab: 'Lines', name: 'Lines & rules', items: [
     { n:'Thin',      d:'M5 25 H45', s:1, w:2 },
     { n:'Thick',     d:'M5 25 H45', s:1, w:5 },
@@ -6743,12 +6772,32 @@ function openFontPopover() {
   var CAP = 160;
   var pop = document.createElement('div');
   pop.id = 'ld-font-pop'; pop.className = 'ld-pop ld-pop-scroll';
-  function curFont() { var t = rbText(); return t ? (t.fontFamily || '') : ''; }
+  function curFont() {
+    var t = rbText(); if (!t) return '';
+    var f = t.fontFamily || '';
+    if (t.styles) { /* imported text: per-char styles hold the real face */
+      var ls = Object.keys(t.styles);
+      if (ls.length) {
+        var cs = Object.keys(t.styles[ls[0]]);
+        if (cs.length && t.styles[ls[0]][cs[0]].fontFamily) f = t.styles[ls[0]][cs[0]].fontFamily;
+      }
+    }
+    return String(f).split(',')[0].replace(/"/g, '').trim();
+  }
   function apply(name) {
     var t = rbText(); if (!t) return;
     /* apply immediately (shows in a fallback face), then re-render once the
        real webfont finishes downloading — robust even if the font is slow. */
-    t.set('fontFamily', name); t.dirty = true; fc.renderAll(); saveState();
+    t.set('fontFamily', name);
+    /* write through per-character styles too, or imported text silently
+       ignores the change (audit 31) */
+    if (t.styles) {
+      Object.keys(t.styles).forEach(function (li) {
+        Object.keys(t.styles[li]).forEach(function (ci) { t.styles[li][ci].fontFamily = name; });
+      });
+      if (typeof t.initDimensions === 'function') t.initDimensions();
+    }
+    t.dirty = true; fc.renderAll(); saveState();
     if (window.loadDeckFonts) window.loadDeckFonts([name], function () { fc.renderAll(); });
   }
   function list(q) {
@@ -6779,15 +6828,38 @@ function openFontPopover() {
     var it = e.target.closest('[data-font]');
     if (it) { apply(it.getAttribute('data-font')); listEl.innerHTML = list(q.value); }
   });
-  attachPopDismiss(pop);
+  attachPopDismiss(pop, anchor);
   setTimeout(function () { try { q.focus(); } catch (e) {} }, 30);
 }
 
 /* ── Font size: PowerPoint-style picker + Bigger/Smaller ladder ── */
 var FONT_SIZE_LADDER = [8,9,10,11,12,14,16,18,20,24,28,32,36,40,44,54,60,66,72,80,96,120,144,180,240,300,360];
-function rbSetFontSize(px) {
+/* One size system only (audit 32): the ribbon now works in PowerPoint POINTS,
+   exactly like the Font panel — px = pt × fc._pxPerPt. It also writes through
+   per-character styles so imported text responds (audit 31/32). */
+function rbPxPerPt() { return (window.fc && window.fc._pxPerPt) || 2; }
+function rbCurPt(o) {
+  var px = o.fontSize || 24;
+  if (o.styles) { /* per-char styles override the object value on imported text */
+    var ls = Object.keys(o.styles);
+    if (ls.length) {
+      var cs = Object.keys(o.styles[ls[0]]);
+      if (cs.length && o.styles[ls[0]][cs[0]].fontSize) px = o.styles[ls[0]][cs[0]].fontSize;
+    }
+  }
+  return Math.round(px / rbPxPerPt() * 10) / 10;
+}
+function rbSetFontSize(pt) {
   var o = rbText(); if (!o) return;
-  o.set('fontSize', Math.max(4, Math.min(400, Math.round(px))));
+  pt = Math.max(1, Math.min(999, Math.round(pt)));
+  var px = pt * rbPxPerPt();
+  o.set('fontSize', px);
+  if (o.styles) {
+    Object.keys(o.styles).forEach(function (li) {
+      Object.keys(o.styles[li]).forEach(function (ci) { o.styles[li][ci].fontSize = px; });
+    });
+    if (typeof o.initDimensions === 'function') o.initDimensions();
+  }
   o.dirty = true; fc.renderAll(); saveState();
 }
 function _sizeStep(cur, dir) {
@@ -6804,7 +6876,7 @@ function _sizeStep(cur, dir) {
 function rbFontStep(dir) {
   var o = rbText();
   if (!rbNeed(o, 'Select a text box first')) return;
-  rbSetFontSize(_sizeStep(o.fontSize || 24, dir));
+  rbSetFontSize(_sizeStep(rbCurPt(o), dir));
 }
 function rbFontSizePicker() {
   var o = rbText();
@@ -6816,7 +6888,7 @@ function openSizePopover() {
   var anchor = document.querySelector('[data-rb="font-size"]');
   var pop = document.createElement('div');
   pop.id = 'ld-size-pop'; pop.className = 'ld-pop ld-pop-scroll';
-  function cur() { var t = rbText(); return t ? Math.round(t.fontSize || 24) : 24; }
+  function cur() { var t = rbText(); return t ? Math.round(rbCurPt(t)) : 24; }
   function apply(v) { rbSetFontSize(v); build(); }
   function build() {
     var c = cur();
@@ -6843,7 +6915,7 @@ function openSizePopover() {
     if (e.target.closest('[data-sz-dec]')) { apply(_sizeStep(cur(), -1)); return; }
     if (e.target.closest('[data-sz-inc]')) { apply(_sizeStep(cur(), 1)); return; }
   });
-  attachPopDismiss(pop);
+  attachPopDismiss(pop, anchor);
 }
 
 /* Shared popover placement + dismiss helpers (used by font/size/spacing). */
@@ -6855,10 +6927,22 @@ function positionPop(pop, anchor) {
   if (pr.right > window.innerWidth - 8) pop.style.left = Math.round(window.innerWidth - pr.width - 8) + 'px';
   if (pr.bottom > window.innerHeight - 8) pop.style.top = Math.max(8, Math.round(window.innerHeight - pr.height - 8)) + 'px';
 }
-function attachPopDismiss(pop) {
+function attachPopDismiss(pop, anchor) {
   setTimeout(function () {
     function done() { if (pop.parentNode) pop.remove(); document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); }
-    function onDown(ev) { if (!pop.contains(ev.target)) done(); }
+    /* A mousedown on the popover's OWN ribbon button is left alone: removing
+       the popover here made the button's click handler find nothing and
+       rebuild it, so a second click could never close it (audit 75). The
+       builder's own `if (ex) { ex.remove(); return; }` does the closing. */
+    function onDown(ev) {
+      if (pop.contains(ev.target)) return;
+      var rb = (ev.target && ev.target.closest) ? ev.target.closest('[data-rb]') : null;
+      /* match on data-rb, not node identity — renderRibbon() may have
+         replaced the button element since the popover was opened */
+      if (rb && (!anchor || rb === anchor
+          || rb.getAttribute('data-rb') === anchor.getAttribute('data-rb'))) return;
+      done();
+    }
     function onKey(ev) { if (ev.key === 'Escape') done(); }
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
@@ -6929,7 +7013,7 @@ function rbWordArt() {
     var it = e.target.closest('[data-wa]');
     if (it) { applyWordArt(rbText(), WORDART_PRESETS[parseInt(it.dataset.wa, 10)]); showToast('WordArt applied'); }
   });
-  attachPopDismiss(pop);
+  attachPopDismiss(pop, anchor);
 }
 function rbTextStyle(prop) {
   var o = rbText();
@@ -6973,11 +7057,17 @@ function rbList(kind) {
   var o = rbText();
   if (!rbNeed(o, 'Select a text box first')) return;
   var lines = String(o.text || '').split('\n');
-  var bulleted = lines.every(function (l) { return !l.trim() || /^\s*([•]|\d+\.)\s/.test(l); });
+  var filled = lines.filter(function (l) { return l.trim(); });
+  /* Which list type is the text ALREADY in? Only toggle off when it matches the
+     button pressed — otherwise convert straight to the requested type. */
+  var isBullet = filled.length > 0 && filled.every(function (l) { return /^\s*•\s/.test(l); });
+  var isNumber = filled.length > 0 && filled.every(function (l) { return /^\s*\d+\.\s/.test(l); });
+  var current = isBullet ? 'bullet' : isNumber ? 'number' : null;
   var out;
-  if (bulleted) {
+  if (current === kind || filled.length === 0) {
     out = lines.map(function (l) { return l.replace(/^\s*([•]|\d+\.)\s+/, ''); });
   } else {
+    lines = lines.map(function (l) { return l.replace(/^\s*([•]|\d+\.)\s+/, ''); });
     var n = 0;
     out = lines.map(function (l) {
       if (!l.trim()) return l;
@@ -7151,6 +7241,10 @@ function rbLock(on) {
 }
 function rbUnlockAll() {
   (fc.getObjects() || []).forEach(function (o) {
+    /* master ("show on all slides") copies are deliberately locked outside
+       Master view — unlocking them here made them editable on ordinary
+       slides until reload (audit 37) */
+    if (o.ldMasterId && !window._masterMode) return;
     o.set({ lockMovementX:false, lockMovementY:false, lockScalingX:false, lockScalingY:false,
             lockRotation:false, hasControls:true, selectable:true, evented:true });
   });
@@ -7187,7 +7281,7 @@ function rbSaveTheme() {
   }
   pop.querySelector('.ld-pop-save').addEventListener('click', save);
   input.addEventListener('keydown', function (e) { if (e.key === 'Enter') save(); });
-  attachPopDismiss(pop);
+  attachPopDismiss(pop, anchor);
   setTimeout(function () { try { input.focus(); input.select(); } catch (e) {} }, 30);
 }
 /* Theme colours → dropdown of preset palettes (Clean, Midnight, …). */
@@ -7209,7 +7303,7 @@ function rbThemeAccent() {
     var it = e.target.closest('[data-theme]');
     if (it) { themeApply(it.getAttribute('data-theme')); if (pop.parentNode) pop.remove(); }
   });
-  attachPopDismiss(pop);
+  attachPopDismiss(pop, anchor);
 }
 /* Theme fonts → pick heading & body font from the full searchable font list. */
 function rbThemeFont() {
@@ -7263,7 +7357,7 @@ function rbThemeFont() {
     var it = e.target.closest('[data-tfont]');
     if (it) { apply(it.getAttribute('data-tfont')); }
   });
-  attachPopDismiss(pop);
+  attachPopDismiss(pop, anchor);
 }
 /* Shared: change page size / orientation, then REDRAW the slide so it never
    blanks. Import does setSlideAspect + loadPageIntoCanvas; these used to call
@@ -7284,9 +7378,13 @@ function applyAspect(w, h, label) {
 function _curSizeEMU() {
   var d = window._deckIR && window._deckIR.size;
   if (d && d.w && d.h) return { w: d.w, h: d.h };
-  var bw = fc && fc._baseWidth ? fc._baseWidth : 960;
-  var bh = fc && fc._baseHeight ? fc._baseHeight : 540;
-  return { w: Math.round(bw * 12700), h: Math.round(bh * 12700) };
+  /* _baseWidth is canvas PX, not pt — divide by the deck's px-per-pt first.
+     Feeding px straight into EMU rescaled _pxPerPt from 2 to 1 on a blank
+     deck, doubling every point value after one orientation click (audit 41) */
+  var ppt = (fc && fc._pxPerPt) || 2;
+  var bw = fc && fc._baseWidth ? fc._baseWidth : 1920;
+  var bh = fc && fc._baseHeight ? fc._baseHeight : 1080;
+  return { w: Math.round(bw / ppt * 12700), h: Math.round(bh / ppt * 12700) };
 }
 /* Page size → dropdown of standard sizes. */
 function rbPageSize() {
@@ -7312,7 +7410,7 @@ function rbPageSize() {
     var it = e.target.closest('[data-w]');
     if (it) { applyAspect(parseInt(it.dataset.w, 10), parseInt(it.dataset.h, 10), 'Page size changed'); if (pop.parentNode) pop.remove(); }
   });
-  attachPopDismiss(pop);
+  attachPopDismiss(pop, anchor);
 }
 /* Orientation → dropdown (Landscape / Portrait). Uses applyAspect so the
    slide stays on the canvas instead of disappearing. */
@@ -7338,22 +7436,30 @@ function rbOrientation() {
     else applyAspect(big, small, 'Landscape');
     if (pop.parentNode) pop.remove();
   });
-  attachPopDismiss(pop);
+  attachPopDismiss(pop, anchor);
 }
 function rbBgToAll() {
   if (!fc) return;
   var bg = fc.backgroundColor;
   if (!bg) { showToast('This slide has no background colour set'); return; }
   captureCurrentPage();
+  /* gradients and patterns are fabric objects — serialize them so they can be
+     written into other slides' JSON (audit 35: plain strings only used to copy) */
+  var bgSer;
+  try { bgSer = (bg && typeof bg === 'object' && bg.toObject) ? bg.toObject() : bg; }
+  catch (e) { bgSer = (typeof bg === 'string') ? bg : null; }
+  if (bgSer == null) { showToast('This background type cannot be copied'); return; }
   var n = 0;
   (state.pages || []).forEach(function (p, i) {
     if (i === state.currentPage) return;
     if (!p.canvasJSON) return;
     var json = typeof p.canvasJSON === 'string' ? JSON.parse(p.canvasJSON) : p.canvasJSON;
-    json.background = typeof bg === 'string' ? bg : json.background;
+    json.background = (typeof bgSer === 'object') ? JSON.parse(JSON.stringify(bgSer)) : bgSer;
     p.canvasJSON = json;
+    p.thumb = null; /* stale thumbnail — regenerates on next visit (audit 35) */
     n++;
   });
+  renderPageThumbs();
   showToast('Background applied to ' + n + ' other slide' + (n === 1 ? '' : 's'));
 }
 
@@ -7386,7 +7492,9 @@ function rbFitWidth() {
   var area = dom.canvasArea ? dom.canvasArea.clientWidth : 0;
   if (!area) { if (typeof calculateFitZoom === 'function') setZoom(calculateFitZoom()); return; }
   var slideW = fc.getWidth() / fc.getZoom();
-  setZoom(Math.max(0.1, Math.min(3, (area - 80) / slideW)));
+  if (!slideW) { if (typeof calculateFitZoom === 'function') setZoom(calculateFitZoom()); return; }
+  /* setZoom() takes a PERCENTAGE (it clamps to 25–200), so scale the ratio by 100 */
+  setZoom(Math.max(10, Math.min(300, (area - 80) / slideW * 100)));
 }
 function rbToggleView(kind) {
   var frame = document.getElementById('slide-frame');
@@ -7709,9 +7817,12 @@ function a11yRatio(fg, bg) {
 }
 
 /* WCAG: 18pt+, or 14pt+ bold, counts as large text (3:1 instead of 4.5:1) */
+/* canvas px → PowerPoint pt. The deck's own scale is fc._pxPerPt (2 on a
+   blank deck) — the old CSS factor 0.75 reported every size ~2.7× too big
+   and handed real 12pt text the lenient large-text rule (audit 40). */
+function a11yPxToPt(px) { return (px || 0) / ((window.fc && window.fc._pxPerPt) || 2); }
 function a11yIsLarge(o) {
-  var px = o.fontSize || 0;
-  var pt = px * 0.75;
+  var pt = a11yPxToPt(o.fontSize);
   var bold = String(o.fontWeight || '') === 'bold' || +o.fontWeight >= 600;
   return pt >= 18 || (bold && pt >= 14);
 }
@@ -7762,7 +7873,7 @@ function a11yScanSlide(json, pageIndex) {
             + (large ? ' (large text)' : ''),
           ratio: ratio, need: need });
       }
-      var pt = (o.fontSize || 0) * 0.75;
+      var pt = a11yPxToPt(o.fontSize);
       if (pt && pt < 12) {
         out.push({ page: pageIndex, i: i, kind: 'size', sev: 'med',
           label: (o.text || 'Text').slice(0, 30),
@@ -7855,7 +7966,25 @@ function a11yClearOrder() {
 }
 
 function a11yGoto(page, idx) {
-  var after = function () { a11yRefresh(); };
+  /* select + flash the offending object so the user doesn't have to hunt
+     for it (audit 39) — idx is the object's index in the slide's JSON,
+     which matches canvas order once the page is loaded */
+  var after = function () {
+    a11yRefresh();
+    try {
+      var objs = fc.getObjects() || [];
+      var o = objs[idx];
+      if (o && o.selectable !== false) {
+        fc.setActiveObject(o);
+        fc.renderAll();
+      } else if (o) {
+        /* unselectable (e.g. locked/master): flash it instead */
+        var origOp = o.opacity;
+        o.set('opacity', 0.25); fc.renderAll();
+        setTimeout(function () { o.set('opacity', origOp); fc.renderAll(); }, 450);
+      }
+    } catch (e) {}
+  };
   if (page !== state.currentPage) switchPage(page).then(after); else after();
 }
 
@@ -8028,7 +8157,10 @@ function presTimerText() {
    Watches which slide is showing and records how long each one was up.
    Polling rather than patching switchPage, so nothing existing changes. */
 function rehearseStart() {
-  if (_rehearsal) return;
+  /* A finished rehearsal (stopped, report kept) used to block Start silently
+     until Reset was pressed. Starting again now clears it first. */
+  if (_rehearsal && _rehearsal.timer) return;
+  if (_rehearsal) _rehearsal = null;
   _rehearsal = { start: Date.now(), marks: [{ page: state.currentPage, t: Date.now() }], timer: null };
   _rehearsal.timer = setInterval(function () {
     var last = _rehearsal.marks[_rehearsal.marks.length - 1];
@@ -8052,7 +8184,13 @@ function rehearseStop() {
   presRefresh();
 }
 
-function rehearseClear() { _rehearsal = null; presRefresh(); }
+function rehearseClear() {
+  /* Reset is offered while a run is in progress. Stop the polling timer first —
+     clearing the record out from under it threw on every tick. */
+  if (_rehearsal && _rehearsal.timer) { clearInterval(_rehearsal.timer); _rehearsal.timer = null; }
+  _rehearsal = null;
+  presRefresh();
+}
 
 /* Sum the time each slide was on screen, in slide order. */
 function rehearseReport() {
@@ -8348,6 +8486,7 @@ function snapRestore(id) {
   loadPageIntoCanvas(0).then(function () {
     ensurePageHistory(0);
     renderPageThumbs();
+    if (typeof ldSyncNotesBox === 'function') ldSyncNotesBox(); /* audit 66 */
     snapRefresh();
     showToast('Restored “' + s.name + '”');
   });
@@ -8513,6 +8652,22 @@ var THEME_PRESETS = [
     surface:'#FFFFFF', accent:'#EA580C', heading:'#4A1B0C', body:'#7A3E24',
     hFont:'Fraunces', bFont:'Nunito Sans' },
 ];
+
+/* Load user-saved themes (rbSaveTheme writes them to ld_saved_themes) so they
+   survive a page refresh and show up under Themes again. */
+(function () {
+  try {
+    var saved = iconStore('ld_saved_themes', []);
+    if (Array.isArray(saved)) {
+      for (var i = saved.length - 1; i >= 0; i--) {
+        var t = saved[i];
+        if (t && t.id && !THEME_PRESETS.some(function (p) { return p.id === t.id; })) {
+          THEME_PRESETS.unshift(t);
+        }
+      }
+    }
+  } catch (e) {}
+})();
 
 var THEME_SPACING = {
   compact: { name:'Compact', line: 1.08, scale: 0.94 },
@@ -8708,7 +8863,7 @@ function renderThemePanel(tab) {
   var th = themeCurrent();
 
   if (tab === 'Colours') {
-    var rows = [['bg','Background'],['surface','Surface'],['accent','Accent'],
+    var rows = [['bg','Background'],['accent','Accent'],
                 ['heading','Heading text'],['body','Body text']];
     return '<div class="panel-subhead">Theme colours <span>' + commentEsc(th.name || '') + '</span></div>'
       + rows.map(function (r) {
@@ -9038,6 +9193,10 @@ function cmpUpdate() {
 }
 
 function cmpReset(id) {
+  /* This throws away the user's customised version, so ask first. */
+  var def = COMPONENT_LIB.filter(function (c) { return c.id === id; })[0];
+  var nm = (def && def.name) || 'this component';
+  if (!confirm('Discard your edited version of “' + nm + '” and go back to the built-in one?')) return;
   cmpClearOverride(id);
   cmpRefresh();
   showToast('Reset to the built-in version');
@@ -9108,7 +9267,8 @@ function renderComponentPanel(tab) {
               + '<div class="cmp-foot"><span>' + c.name + '</span>'
               + (over[c.id]
                 ? '<button class="cmp-reset" data-action="cmp-reset" data-id="' + c.id
-                  + '" title="Reset to built-in">edited</button>' : '')
+                  + '" title="Discard your edits and go back to the built-in version">'
+                  + '<span class="material-icons-outlined">restart_alt</span>Reset</button>' : '')
               + '</div></div>';
           }).join('') + '</div>';
     }).join('');
@@ -9315,11 +9475,16 @@ window.LD_CHAT_URL = window.LD_CHAT_URL
   || 'https://us-central1-templatehub-16cd7.cloudfunctions.net/chat_http';
 
 var _aiBusy = false;
+var _aiBusyMsg = '';
 
 function aiSetBusy(on, msg) {
   _aiBusy = on;
+  /* remember the message — aiRefresh() re-renders the panel, and the status
+     div it rebuilds must show the SPECIFIC text ("Adding 5 slides…"), not
+     wipe it back to the generic "Working…" (audit 52) */
+  _aiBusyMsg = on ? (msg || 'Working…') : '';
   var el = document.getElementById('ai-status');
-  if (el) el.textContent = on ? (msg || 'Working…') : '';
+  if (el) el.textContent = _aiBusyMsg;
   aiRefresh();
 }
 
@@ -9551,7 +9716,7 @@ function renderAIPanel() {
       + '</button>';
   };
 
-  return '<div id="ai-status" class="ai-status">' + (_aiBusy ? 'Working…' : '') + '</div>'
+  return '<div id="ai-status" class="ai-status">' + (_aiBusy ? (_aiBusyMsg || 'Working…') : '') + '</div>'
     + '<div class="panel-subhead">Create</div><div class="ai-grid">'
     + card('ai-deck', 'auto_awesome_motion', 'Presentation', 'Describe a deck, get slides', true)
     + card('ai-slide', 'note_add', 'Slide', 'One slide from a sentence', true)
@@ -9876,6 +10041,9 @@ function renderDataPanel(tab) {
   }
 
   return head + '<div class="ds-list">' + list.map(function (ds) {
+    /* Only a linked sheet has a live URL to re-fetch — everything else is a
+       one-off upload, so Refresh is shown disabled rather than refusing. */
+    var canRefresh = ds.source === 'sheet' && !!ds.url;
     return '<div class="ds-card">'
       + '<div class="ds-top"><b>' + commentEsc(ds.name) + '</b>'
         + '<span class="ds-tag">' + ds.source + '</span>'
@@ -9885,7 +10053,9 @@ function renderDataPanel(tab) {
       + '<div class="ds-btns">'
         + '<button class="ds-btn" data-action="data-connect" data-id="' + ds.id + '">'
           + '<span class="material-icons-outlined">link</span>Connect to chart</button>'
-        + '<button class="ds-btn ghost" data-action="data-refresh" data-id="' + ds.id + '">'
+        + '<button class="ds-btn ghost" data-action="data-refresh" data-id="' + ds.id + '"'
+          + (canRefresh ? '' : ' disabled aria-disabled="true"'
+              + ' title="Only linked Google Sheets can refresh — re-upload the file to update it"') + '>'
           + '<span class="material-icons-outlined">refresh</span>Refresh</button>'
       + '</div></div>';
   }).join('') + '</div>';
@@ -9952,7 +10122,15 @@ function fxApplyCommon(o) {
       o.set('shadow', new fabric.Shadow({ color: 'rgba(0,0,0,0.22)', blur: 22, offsetX: 0, offsetY: 10 }));
     }
   } else if (f.glass) {
+    /* glass OFF: restore opacity AND remove the white rim it painted —
+       leaving the rim behind forever was audit item 77 */
     o.set({ opacity: 1 });
+    if (o.isFrame) {
+      var apOff = frameAperture(o);
+      if (apOff) apOff.set({ stroke: null, strokeWidth: 0 });
+    } else if (!(f.outline && f.outline.on)) {
+      o.set({ stroke: null, strokeWidth: 0 });
+    }
   }
 
   o.dirty = true;
@@ -10030,33 +10208,56 @@ function fxToggle(name) {
   fxApply(o); saveState(); fxRefresh();
 }
 
-function fxParam(name, key, val) {
+function fxParam(name, key, val, quiet) {
   var o = fxSelected();
   if (!o) return;
   var f = fxOf(o);
   if (name === null) { f[key] = val; }
   else { f[name] = f[name] || {}; f[name][key] = val; }
-  fxApply(o); fxRefresh();
+  /* quiet = mid-drag: rebuilding the panel here destroyed the very slider
+     being dragged (audit 61) — the 'change' event refreshes once at the end */
+  fxApply(o); if (!quiet) fxRefresh();
 }
 
 function fxColour(name) {
   var o = fxSelected();
   if (!o) { showToast('Select something first'); return; }
   var f = fxOf(o);
+  /* Duotone's card sits beside Blur / Vintage / Brightness and highlights
+     like them, so a second click has to switch it OFF, not ask again
+     (audit 78). Only the first turn-on asks for a colour. */
+  if (name === 'duotone' && f.duotone) {
+    f.duotone = null; fxApply(o); saveState(); fxRefresh(); return;
+  }
   var cur = name === 'duotone' ? (f.duotone || '#7C3AED')
           : ((f[name] && f[name].color) || (name === 'glow' ? '#7C3AED' : '#1B1B1B'));
-  var c = prompt(name + ' colour (hex):', cur);
-  if (!c) return;
-  if (name === 'duotone') f.duotone = c;
-  else { f[name] = f[name] || { on: true }; f[name].color = c; f[name].on = true; }
-  fxApply(o); saveState(); fxRefresh();
+  /* the app's own picker, not prompt() — nobody should have to type a hex */
+  ldColour({ value: cur, title: name.charAt(0).toUpperCase() + name.slice(1) + ' colour' },
+    function (c) {
+      if (!c) return;
+      if (name === 'duotone') f.duotone = c;
+      else { f[name] = f[name] || { on: true }; f[name].color = c; f[name].on = true; }
+      fxApply(o); saveState(); fxRefresh();
+    });
 }
 
 function fxClear() {
   var o = fxSelected();
   if (!o) { showToast('Select something first'); return; }
+  /* only undo what the effects system itself set (audit 36): a Line's stroke
+     or an imported shape's border was never an effect, nor was opacity unless
+     Glass set it — so leave those alone unless the matching effect was on */
+  var f = o.fx || {};
+  o.set('shadow', null);
+  if (f.outline || f.glass) o.set({ strokeWidth: 0, stroke: (f.glass && !f.outline) ? null : o.stroke });
+  if (f.glass) {
+    o.set({ opacity: 1 });
+    if (o.isFrame && typeof frameAperture === 'function') {
+      var _ap = frameAperture(o);
+      if (_ap) _ap.set({ stroke: null, strokeWidth: 0 });
+    }
+  }
   o.fx = {};
-  o.set({ shadow: null, strokeWidth: 0, opacity: 1 });
   if (/text/.test(o.type || '')) o.set('path', null);
   if (o.type === 'image') { o.filters = []; try { o.applyFilters(); } catch (e) {} }
   o.dirty = true;
@@ -10136,8 +10337,7 @@ function renderEffectsPanel(tab) {
       + fxRow('Contrast', (f.contrast || 0))
       + '<input type="range" class="anim-range" min="-0.5" max="0.5" step="0.02" value="' + (f.contrast || 0) + '" data-fx="~contrast">';
     if (f.duotone) {
-      h += '<button class="cm-mini" data-action="fx-colour" data-t="duotone"><span class="material-icons-outlined">palette</span>Duotone colour</button>'
-        + '<button class="cm-mini" data-action="fx-unduo"><span class="material-icons-outlined">close</span>Remove duotone</button>';
+      h += '<button class="cm-mini" data-action="fx-unduo"><span class="material-icons-outlined">close</span>Remove duotone</button>';
     }
   } else {
     h += card('fx-toggle','shadow','filter_drama','Shadow', !!on('shadow'))
@@ -10157,9 +10357,13 @@ function renderEffectsPanel(tab) {
         + '<button class="cm-mini" data-action="fx-colour" data-t="glow"><span class="material-icons-outlined">palette</span>Glow colour</button>';
     }
     if (f.glass && f.glass.on) {
+      /* The slider carries TRANSPARENCY as a percentage (right = more
+         transparent); the handler converts it back to the stored opacity,
+         which is what the glass render code reads. */
       h += fxRow('Transparency', Math.round((1 - (f.glass.opacity == null ? 0.45 : f.glass.opacity)) * 100) + '%')
-        + '<input type="range" class="anim-range" min="0.1" max="0.9" step="0.05" value="'
-        + (f.glass.opacity == null ? 0.45 : f.glass.opacity) + '" data-fx="glass.opacity">'
+        + '<input type="range" class="anim-range" min="10" max="90" step="5" value="'
+        + Math.round((1 - (f.glass.opacity == null ? 0.45 : f.glass.opacity)) * 100)
+        + '" data-fx="glass.opacity" data-fx-unit="pct-inv">'
         + '<div class="panel-hint">Canvas cannot blur what is behind an object, so Glass is '
         + 'transparency plus a light rim and soft shadow — the look, not a true backdrop blur.</div>';
     }
@@ -10266,11 +10470,11 @@ function animSetDir(dir) {
   o.animDir = dir; saveState(); animRefresh();
 }
 
-function animSetTiming(field, val) {
+function animSetTiming(field, val, quiet) {
   var o = fc && fc.getActiveObject();
   if (!o || !o.animType) return;
   o[field] = Math.max(0, Math.min(5000, parseInt(val, 10) || 0));
-  saveState(); animRefresh();
+  if (!quiet) { saveState(); animRefresh(); } /* mid-drag: defer to 'change' (audit 61) */
 }
 
 function animReorder(dir) {
@@ -10440,12 +10644,12 @@ function transSet(type) {
   if (type !== 'none') transPlay();
 }
 
-function transSetMs(v) {
+function transSetMs(v, quiet) {
   var p = state.pages[state.currentPage];
   if (!p) return;
   p.transition = p.transition || { type: 'fade', ms: 500 };
   p.transition.ms = Math.max(100, Math.min(3000, parseInt(v, 10) || 500));
-  animRefresh();
+  if (!quiet) animRefresh(); /* mid-drag: defer to 'change' (audit 61) */
 }
 
 /* The transition is a CSS animation on the slide frame — the canvas
@@ -10844,7 +11048,7 @@ function pageRenameAt(i) {
 }
 
 function pageDuplicateAt(i) {
-  if (state.pages.length >= 40) { showToast('Maximum 40 slides'); return; }
+  if (state.pages.length >= ldMaxSlides()) { showToast('Maximum ' + ldMaxSlides() + ' slides'); return; }
   var run = function () {
     captureCurrentPage();
     var src = state.pages[state.currentPage];
@@ -10875,7 +11079,7 @@ function pageDeleteAt(i) {
     if (p && p.sectionStart && state.pages[state.currentPage + 1]) {
       state.pages[state.currentPage + 1].sectionStart = p.sectionStart;
     }
-    deletePage().then ? deletePage().then(pageRefresh) : (deletePage(), pageRefresh());
+    Promise.resolve(deletePage()).then(pageRefresh);
   };
   if (i !== state.currentPage) switchPage(i).then(run); else run();
 }
@@ -11732,12 +11936,24 @@ function brandApplyToSlide() {
     var DEFAULT = '#7C3AED';
     objs.forEach(function (o) {
       if (o.isFrame && !o.frameSrc && (o.frameFill || '').toUpperCase() === DEFAULT) {
-        o.frameFill = primary; refreshFrame(o); changed++;
+        o.frameFill = primary;
+        /* a placeholder-look frame ignores frameFill on canvas and exports as
+           hard-coded grey — promote it to a plain coloured shape so the brand
+           colour actually shows up everywhere (audit 65) */
+        if (o.frameLook === 'placeholder') o.frameLook = null;
+        refreshFrame(o); changed++;
       } else if (typeof o.fill === 'string' && o.fill.toUpperCase() === DEFAULT) {
         o.set('fill', primary); changed++;
       }
     });
     fc.renderAll();
+    /* A colours-only kit never reached the fonts branch, so the repaint was
+       left out of history (next undo skipped past it) and gave no feedback. */
+    if (!k.fonts.heading && !k.fonts.body) {
+      histLabel('Applied branding');
+      saveState();
+      showToast('Branding applied to ' + changed + ' object' + (changed === 1 ? '' : 's'));
+    }
   }
 
   if (!k.fonts.heading && !k.fonts.body && !k.colors.length) {
@@ -11887,12 +12103,12 @@ function renderBrandPanel(tab) {
    layouts resolution-independent.
    ════════════════════════════════════════════════════════════ */
 var GRID_LAYOUTS = [
-  /* ── Columns ── */
-  { n:'2 column', c:'Columns', cells:[[0,0,.5,1],[.5,0,.5,1]] },
-  { n:'3 column', c:'Columns', cells:[[0,0,1/3,1],[1/3,0,1/3,1],[2/3,0,1/3,1]] },
-  { n:'4 column', c:'Columns', cells:[[0,0,.25,1],[.25,0,.25,1],[.5,0,.25,1],[.75,0,.25,1]] },
-  { n:'2 row',    c:'Columns', cells:[[0,0,1,.5],[0,.5,1,.5]] },
-  { n:'3 row',    c:'Columns', cells:[[0,0,1,1/3],[0,1/3,1,1/3],[0,2/3,1,1/3]] },
+  /* ── Rows & columns ── */
+  { n:'2 column', c:'Rows & columns', cells:[[0,0,.5,1],[.5,0,.5,1]] },
+  { n:'3 column', c:'Rows & columns', cells:[[0,0,1/3,1],[1/3,0,1/3,1],[2/3,0,1/3,1]] },
+  { n:'4 column', c:'Rows & columns', cells:[[0,0,.25,1],[.25,0,.25,1],[.5,0,.25,1],[.75,0,.25,1]] },
+  { n:'2 row',    c:'Rows & columns', cells:[[0,0,1,.5],[0,.5,1,.5]] },
+  { n:'3 row',    c:'Rows & columns', cells:[[0,0,1,1/3],[0,1/3,1,1/3],[0,2/3,1,1/3]] },
 
   /* ── Grid ── */
   { n:'2 × 2', c:'Grid', cells:[[0,0,.5,.5],[.5,0,.5,.5],[0,.5,.5,.5],[.5,.5,.5,.5]] },
@@ -11927,7 +12143,7 @@ var GRID_LAYOUTS = [
                                          [0,.62,1/3,.38],[1/3,.62,1/3,.38],[2/3,.62,1/3,.38]] },
 ];
 
-var GRID_CATS = ['Columns', 'Grid', 'Masonry', 'Gallery'];
+var GRID_CATS = ['Rows & columns', 'Grid', 'Masonry', 'Gallery'];
 var GRID_GAP = 8;      /* px between cells */
 
 function gridPreviewSvg(g, w, h) {
@@ -12077,7 +12293,7 @@ function frameCropStart() {
 }
 
 function frameCropEnd() {
-  if (!_cropFrame) return;
+  if (!_cropFrame) { showToast('Nothing to finish — start a crop first'); return; }
   _cropFrame = null;
   if (fc) fc.defaultCursor = 'default';
   saveState();
@@ -12201,12 +12417,20 @@ function dropImageIntoFrame(imgObj, grp) {
     fc.on('object:modified', function (ev) {
       var o = ev.target;
       if (!o || o.isFrame || o.type !== 'image') return;
-      var c = o.getCenterPoint();
+      /* only a real DRAG counts — merely scaling/rotating a photo that sits
+         over a frame must not swallow it (audit 63) */
+      var act = (ev.transform && ev.transform.action) || ev.action;
+      if (act && act !== 'drag') return;
+      /* target the frame under the CURSOR, not the photo's centre, and search
+         topmost-first — a grid cell over a full-bleed frame wins (audit 63) */
+      var pt = null;
+      try { if (ev.e) pt = fc.getPointer(ev.e); } catch (err) {}
+      if (!pt) pt = o.getCenterPoint();
       var frames = fc.getObjects().filter(function (g) { return g.isFrame; });
-      for (var i = 0; i < frames.length; i++) {
+      for (var i = frames.length - 1; i >= 0; i--) {
         var b = frames[i].getBoundingRect(true, true);
-        if (c.x >= b.left && c.x <= b.left + b.width &&
-            c.y >= b.top && c.y <= b.top + b.height) {
+        if (pt.x >= b.left && pt.x <= b.left + b.width &&
+            pt.y >= b.top && pt.y <= b.top + b.height) {
           dropImageIntoFrame(o, frames[i]);
           return;
         }
@@ -12310,8 +12534,16 @@ var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBod
   'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   /* stickers keep their motion type (_animBase is runtime-only, never saved) */
   'isSticker', 'stickerName', 'stickerAnim',
-  /* layers: custom name, plus visible/lock so hide and lock survive a reload */
+  /* layers: custom name, plus visible/lock so hide and lock survive a reload.
+     The lock flags were missing from this list, so every padlock popped back
+     open after a slide switch or undo (audit 67). */
   'layerName', 'visible', 'isBrandLogo',
+  'lockMovementX', 'lockMovementY', 'lockScalingX', 'lockScalingY', 'lockRotation',
+  'hasControls', 'selectable', 'evented',
+  /* the layer id anchors comments to objects — without saving it, every slide
+     switch regenerated ids and all object comments read "deleted object"
+     (audit 68) */
+  '_lid',
   /* animations are stored as intent, never baked into geometry */
   'animType', 'animMs', 'animDelay', 'animDir', 'animOrder',
   /* effects are parameters, so they can be rebuilt exactly on reload */
@@ -12392,6 +12624,16 @@ function renderPageThumbs() {
   /* the "1 of N" counter was removed from the bottom bar — guard rather than
      assume it exists, or every thumbnail render throws */
   if (dom.pageInfo) dom.pageInfo.textContent = `${state.currentPage + 1} of ${state.pages.length}`;
+}
+
+/* Keep the speaker-notes box in step with the current slide. Five flows used
+   to skip this (template insert, PPTX import, restore point, dock switch,
+   new design) — the stale text then overwrote the new slide's notes on the
+   first keystroke (audit 66). */
+function ldSyncNotesBox() {
+  try {
+    if (dom && dom.notesTextarea) dom.notesTextarea.value = (state.notes && state.notes[state.currentPage]) || '';
+  } catch (e) {}
 }
 
 /* Capture the page we're LEAVING: serialize its fabric state + a small thumb,
@@ -13331,7 +13573,7 @@ async function handlePPTXUpload(input) {
     try { state.pages[0].thumb = fc.toDataURL({ format: 'png', multiplier: 0.08 }); } catch (e) { /* ignore */ }
 
     renderPageThumbs();
-    showToast('Loaded ' + state.pages.length + ' slide(s) ✓');
+    if (typeof ldSyncNotesBox === 'function') ldSyncNotesBox(); /* audit 66 */
     try { if (window.ldAutoCrackCharts) window.ldAutoCrackCharts(); } catch (e) {}
   } catch (e) {
     console.error('PPTX import failed:', e);
@@ -13376,19 +13618,17 @@ function initEvents() {
     if (!action) return;
     const act = action.dataset.action;
 
+    /* Upload menu items are plain data-action buttons, so nothing closed the
+       menu behind the file dialog — the Download menu's own handler calls
+       closeDropdowns(). Do the same for anything picked in the Upload menu. */
+    if (action.closest('#upload-dropdown')) closeDropdowns();
+
     switch (act) {
       case 'toggle-sidebar':
         state.sidebarVisible = !state.sidebarVisible;
         dom.sidebar.classList.toggle('collapsed', !state.sidebarVisible);
         // Adjust notes panel position
         dom.notesPanel.style.left = state.sidebarVisible ? 'var(--sidebar-w)' : '0';
-        break;
-      case 'upgrade':
-        showToast('Upgrade options would open here');
-        break;
-      case 'present':
-        if (dom.canvasArea.requestFullscreen) { dom.canvasArea.requestFullscreen().catch(()=>{}); }
-        showToast('Presentation mode starting...');
         break;
       case 'share':
         if (state.openDropdown === 'share') closeDropdowns();
@@ -13414,15 +13654,13 @@ function initEvents() {
         break;
       case 'add-page':
         addPage();
+        /* addPage() (renderer) redraws the filmstrip but knows nothing about
+           the Pages panel, which kept showing the old list/count/highlight. */
+        if (typeof renderPageThumbs === 'function') renderPageThumbs();
+        if (typeof pageRefresh === 'function') pageRefresh();
         break;
       case 'use-template':
         applyEditorTemplate(action.dataset);
-        break;
-      case 'add-element':
-        addShape(action.dataset.shape);
-        break;
-      case 'add-frame':
-        addFrame(action.dataset.frame);
         break;
       case 'add-catalog':
         addCatalogItem(+action.dataset.g, +action.dataset.i);
@@ -13434,7 +13672,12 @@ function initEvents() {
         break;
       case 'fav-icon': {
         iconToggleFav(action.dataset.icon);
-        renderPanelContent('icons');
+        /* starring mid-search used to re-render the whole panel, throwing the
+           user back to the category grid — re-run the same query (audit 80) */
+        var _iq = (dom.panelSearch && dom.panelSearch.value)
+          ? dom.panelSearch.value.toLowerCase().trim() : '';
+        if (_iq && dom.panelContent) dom.panelContent.innerHTML = renderIconSearch(_iq);
+        else renderPanelContent('icons');
         break;
       }
       case 'add-frame-card':
@@ -13575,11 +13818,6 @@ function initEvents() {
       case 'grid-autofill':
         dom.autofillInput && dom.autofillInput.click();
         break;
-      case 'frame-crop':       frameCropStart(); break;
-      case 'frame-crop-in':    frameCropZoom(1); break;
-      case 'frame-crop-out':   frameCropZoom(-1); break;
-      case 'frame-crop-reset': frameCropReset(); break;
-      case 'frame-crop-done':  frameCropEnd(); break;
       case 'add-sticker':
         addSticker(+action.dataset.sticker);
         break;
@@ -13598,12 +13836,6 @@ function initEvents() {
         _illoPalette = +action.dataset.i;
         renderPanelContent('illustrations');
         break;
-      case 'illo-next':  cycleIllustrationColour(1); break;
-      case 'illo-prev':  cycleIllustrationColour(-1); break;
-      case 'icon-replace':  startIconReplace(); break;
-      case 'icon-colour':   setIconColour(); break;
-      case 'icon-thinner':  setIconWeight(-1); break;
-      case 'icon-thicker':  setIconWeight(1); break;
       case 'add-chart':
         addChart(action.dataset.chart);
         break;
@@ -13680,22 +13912,44 @@ function initEvents() {
     const r = e.target.closest('[data-animrange]');
     if (r) {
       const kind = r.dataset.animrange;
-      if (kind === 'trans') transSetMs(r.value);
-      else animSetTiming(kind === 'ms' ? 'animMs' : 'animDelay', r.value);
+      if (kind === 'trans') transSetMs(r.value, true);
+      else animSetTiming(kind === 'ms' ? 'animMs' : 'animDelay', r.value, true);
+      const rlbl = r.previousElementSibling;
+      if (rlbl && rlbl.classList.contains('brand-lbl')) {
+        rlbl.textContent = rlbl.textContent.replace(/ — .*$/, '') + ' — ' + r.value + 'ms';
+      }
       return;
     }
     const fx = e.target.closest('[data-fx]');
     if (fx) {
       const key = fx.dataset.fx;
-      const v = parseFloat(fx.value);
+      const raw = parseFloat(fx.value);
+      /* "pct-inv": slider shows a percentage that runs OPPOSITE to the stored
+         value (Transparency 90% = opacity 0.1). Store the value the render
+         code expects, print the percentage the label promises. */
+      const inv = fx.dataset.fxUnit === 'pct-inv';
+      const v = inv ? Math.round((100 - raw)) / 100 : raw;
+      const shown = inv ? raw + '%' : v;
       /* "~name" = top-level fx key, "group.key" = nested */
-      if (key.charAt(0) === '~') fxParam(null, key.slice(1), v);
-      else { const p = key.split('.'); fxParam(p[0], p[1], v); }
+      if (key.charAt(0) === '~') fxParam(null, key.slice(1), v, true);
+      else { const p = key.split('.'); fxParam(p[0], p[1], v, true); }
       /* update the printed value without rebuilding mid-drag */
       const lbl = fx.previousElementSibling;
       if (lbl && lbl.classList.contains('brand-lbl')) {
-        lbl.textContent = lbl.textContent.replace(/ — .*$/, '') + ' — ' + v;
+        lbl.textContent = lbl.textContent.replace(/ — .*$/, '') + ' — ' + shown;
       }
+    }
+  });
+  /* drag finished ('change' fires once on release): now save one undo entry
+     and rebuild the panel so numbers/toggles settle (audit 61) */
+  dom.panelContent.addEventListener('change', (e) => {
+    if (e.target.closest('[data-fx]')) {
+      if (typeof saveState === 'function') saveState();
+      fxRefresh(); return;
+    }
+    if (e.target.closest('[data-animrange]')) {
+      if (typeof saveState === 'function') saveState();
+      animRefresh(); return;
     }
   });
 
@@ -13703,11 +13957,6 @@ function initEvents() {
   document.addEventListener('click', e => {
     const item = e.target.closest('[data-share]');
     if (item) {
-      if (item.dataset.share === 'download') {
-        exportCanvasPNG();
-        closeDropdowns();
-        return;
-      }
       if (item.dataset.share === 'pptx') {
         exportPptxFile();
         closeDropdowns();
@@ -13732,7 +13981,6 @@ function initEvents() {
         closeDropdowns();
         return;
       }
-      showToast('Action triggered');
       closeDropdowns();
       return;
     }
@@ -13825,8 +14073,17 @@ function initEvents() {
   dom.zoomSlider.addEventListener('input', () => setZoom(parseInt(dom.zoomSlider.value)));
 
   // --- Timer ---
-  dom.timerToggle.addEventListener('click', toggleTimer);
-  dom.timerReset.addEventListener('click', resetTimer);
+  /* Both pause controls read state.timerRunning, but the presenter panel only
+     redraws while the clock ticks — so a pause from the bottom bar left it
+     frozen on "Pause". Refresh the panel after every bottom-bar timer action. */
+  dom.timerToggle.addEventListener('click', () => {
+    toggleTimer();
+    if (typeof presRefresh === 'function') presRefresh();
+  });
+  dom.timerReset.addEventListener('click', () => {
+    resetTimer();
+    if (typeof presRefresh === 'function') presRefresh();
+  });
 
   // --- Notes auto-save ---
   dom.notesTextarea.addEventListener('input', () => {
@@ -13855,6 +14112,9 @@ function initEvents() {
 
     switch (e.key) {
       case 'Escape':
+        /* a crop in progress owns Escape — the crop handler ends it; running
+           the normal Escape too would also close panels/notes (audit 30) */
+        if (typeof _cropFrame !== 'undefined' && _cropFrame) break;
         if (state.openDropdown) closeDropdowns();
         else if (_sciss) stopScissorMode(false);
         else if (dom.ctxMenu.classList.contains('open')) dom.ctxMenu.classList.remove('open');
@@ -14673,13 +14933,17 @@ init();
   function applyStyleToggle(kind){
     var obj = currentTextObject();
     if (!isTextObject(obj)) { if (typeof showToast === 'function') showToast('Select a text box first'); return; }
+    /* decide from effectiveTextProp — the same source the lit state uses.
+       Reading obj.* directly ignored per-character styles, so imported text
+       needed two clicks (audit 54) */
     if (kind === 'bold') {
-      var isBold = (obj.fontWeight === 'bold' || obj.fontWeight === 700 || obj.fontWeight === '700');
+      var fw = effectiveTextProp(obj, 'fontWeight', 'normal');
+      var isBold = (fw === 'bold' || fw === 700 || fw === '700' || +fw >= 600);
       applyTextProps(obj, { fontWeight: isBold ? 'normal' : 'bold' });
     } else if (kind === 'italic') {
-      applyTextProps(obj, { fontStyle: obj.fontStyle === 'italic' ? 'normal' : 'italic' });
+      applyTextProps(obj, { fontStyle: effectiveTextProp(obj, 'fontStyle', 'normal') === 'italic' ? 'normal' : 'italic' });
     } else if (kind === 'underline') {
-      applyTextProps(obj, { underline: !obj.underline });
+      applyTextProps(obj, { underline: !effectiveTextProp(obj, 'underline', false) });
     }
     window.fc.requestRenderAll();
     if (typeof saveState === 'function') saveState();
@@ -14930,23 +15194,9 @@ init();
       }
 
       if (act.dataset.pt === 'dup') {
-        if (state.pages.length >= 40) { showToast('Maximum 40 slides allowed'); return; }
-        (async function () {
-          if (i !== state.currentPage) await switchPage(i);
-          captureCurrentPage();
-          var src  = state.pages[state.currentPage];
-          var copy = makeBlankPage(Date.now());
-          // deep-copy the serialized canvas so the two slides stay independent
-          copy.canvasJSON = src.canvasJSON ? JSON.parse(JSON.stringify(src.canvasJSON)) : null;
-          copy.ir         = src.ir ? JSON.parse(JSON.stringify(src.ir)) : null;
-          copy.thumb      = src.thumb;
-          state.pages.splice(state.currentPage + 1, 0, copy);
-          state.notes.splice(state.currentPage + 1, 0, state.notes[state.currentPage] || '');
-          state.currentPage = state.currentPage + 1;
-          await loadPageIntoCanvas(state.currentPage);
-          renderPageThumbs();
-          showToast('Slide duplicated');
-        })();
+        /* one implementation only — the Pages panel's, so the filmstrip
+           clears the section marker and refreshes the Pages panel too */
+        pageDuplicateAt(i);
       }
     }, true);
 
@@ -15169,6 +15419,7 @@ window.loadDeckIRIntoEditor = async function (deckIR) {
   await loadPageIntoCanvas(0);
   _m('slide 1 painted (' + state.pages.length + ' slides total)');
   renderPageThumbs && renderPageThumbs();
+  if (typeof ldSyncNotesBox === 'function') ldSyncNotesBox(); /* audit 66 */
   showToast('Design loaded ✓');
   /* slide 1 is up — stream the rest of the slides into the filmstrip */
   if (typeof ldStreamThumbs === 'function') ldStreamThumbs();
@@ -15578,6 +15829,12 @@ window.LD_loadEditorTemplates = async function () {
     state.slideSelected = false;
     window._ldMasters = [];
     window._deckIR = null;
+    /* the old deck's name and notes used to survive: the tab kept showing it,
+       and the notes box kept the old text, which the first keystroke then
+       wrote into the new deck's slide 0 */
+    window._ldDeckName = null;
+    if (typeof dom !== 'undefined' && dom.notesTextarea) dom.notesTextarea.value = '';
+    state.notes[0] = '';
     if (typeof _currentProjectId !== 'undefined') window._currentProjectId = null;
     try { _currentProjectId = null; } catch (e) {}
     /* deliberately starting fresh — drop the recovery slot so a refresh
@@ -15590,6 +15847,7 @@ window.LD_loadEditorTemplates = async function () {
       if (typeof pageRefresh === 'function') pageRefresh();
       if (typeof layerRefresh === 'function') layerRefresh();
       if (typeof commentRefresh === 'function') commentRefresh();
+      if (typeof window.ldDockResetActiveName === 'function') window.ldDockResetActiveName();
       toast('New design started');
     });
   }
@@ -15601,6 +15859,14 @@ window.LD_loadEditorTemplates = async function () {
      built, because a second one would be a worse copy of that panel.     */
   function ldOpenDesign() {
     if (typeof openPanel !== 'function') { toast('Editor still loading'); return; }
+    /* the Projects panel lives inside the sidebar — with the sidebar hidden it
+       opened invisibly and nothing appeared to happen. Un-hide it first. */
+    try {
+      if (typeof state !== 'undefined' && state && state.sidebarVisible === false) {
+        var sb = document.querySelector('[data-action="toggle-sidebar"]');
+        if (sb) sb.click();
+      }
+    } catch (e) {}
     openPanel('projects');
     toast('Pick a design to open');
   }
@@ -15610,6 +15876,18 @@ window.LD_loadEditorTemplates = async function () {
      Now: a real panel. Every control drives an existing function — no
      new preference system, so nothing here can drift out of sync with
      the ribbon's own View and Design tabs.                              */
+  /* Which slide shape is live, so the 16:9 / 4:3 buttons can say so — the
+     styling for .ld-mini.on already existed, nothing ever set it (audit 81) */
+  function _ldAspectOn(want) {
+    var w = 0, h = 0;
+    try {
+      if (typeof _curSizeEMU === 'function') { var s = _curSizeEMU(); w = s.w; h = s.h; }
+      else if (window._deckIR && window._deckIR.size) { w = window._deckIR.size.w; h = window._deckIR.size.h; }
+    } catch (e) {}
+    if (!w || !h) return '';
+    return Math.abs((w / h) - want) < 0.06 ? ' on' : '';
+  }
+
   function ldSettingsBody() {
     var g = (typeof _viewGrid   !== 'undefined' && _viewGrid)   ? ' on' : '';
     var r = (typeof _viewRuler  !== 'undefined' && _viewRuler)  ? ' on' : '';
@@ -15632,8 +15910,8 @@ window.LD_loadEditorTemplates = async function () {
 
       + '<div class="ld-sec">Slide size</div>'
       + '<div class="ld-row"><span class="lbl">Shape of every slide<i>Changing this re-lays out the whole deck</i></span>'
-        + '<button class="ld-mini" data-ldset="size-169">16:9</button>'
-        + '<button class="ld-mini" data-ldset="size-43">4:3</button></div>'
+        + '<button class="ld-mini' + _ldAspectOn(1.78) + '" data-ldset="size-169">16:9</button>'
+        + '<button class="ld-mini' + _ldAspectOn(1.33) + '" data-ldset="size-43">4:3</button></div>'
 
       + '<div class="ld-sec">You</div>'
       + '<div class="ld-row"><span class="lbl">Name on your comments<i>Currently: ' + esc(who) + '</i></span>'
@@ -15652,16 +15930,23 @@ window.LD_loadEditorTemplates = async function () {
       } else if (k === 'ribbon') {
         var rib = document.getElementById('ribbon');
         if (rib) {
-          rib.classList.toggle('collapsed');
-          try { localStorage.setItem('ld_ribbon_collapsed',
-            rib.classList.contains('collapsed') ? '1' : '0'); } catch (err) {}
-          window.dispatchEvent(new Event('resize'));
+          /* one owner for the collapsed state, so the stored value and the
+             screen can never disagree (audit 76) */
+          if (typeof ribbonSetCollapsed === 'function') {
+            ribbonSetCollapsed(!rib.classList.contains('collapsed'));
+          } else {
+            rib.classList.toggle('collapsed');
+            try { localStorage.setItem('ld_ribbon_collapsed',
+              rib.classList.contains('collapsed') ? '1' : '0'); } catch (err) {}
+            window.dispatchEvent(new Event('resize'));
+          }
         }
       } else if (k === 'size-169' || k === 'size-43') {
-        if (typeof setSlideAspect === 'function') {
+        /* applyAspect keeps the deck's stored size in sync — raw
+           setSlideAspect reverted on the next slide switch (audit 42) */
+        if (typeof applyAspect === 'function') {
           var m = k === 'size-169' ? [12192000, 6858000] : [9144000, 6858000];
-          setSlideAspect(m[0], m[1]);
-          toast(k === 'size-169' ? 'Slide set to 16:9' : 'Slide set to 4:3');
+          applyAspect(m[0], m[1], k === 'size-169' ? 'Slide set to 16:9' : 'Slide set to 4:3');
         }
       } else if (k === 'author') {
         if (typeof commentSetAuthor === 'function') commentSetAuthor();
@@ -15669,6 +15954,20 @@ window.LD_loadEditorTemplates = async function () {
 
       var body = d.querySelector('.ld-modal-body');
       if (body) body.innerHTML = ldSettingsBody();
+    });
+
+    /* The switches are spans, so Enter/Space do not click them for free.
+       Buttons in this panel already work, so only .ld-sw is handled here.
+       The body is re-rendered on toggle, so focus is put back afterwards. */
+    d.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      var t = e.target && e.target.closest ? e.target.closest('.ld-sw[data-ldset]') : null;
+      if (!t) return;
+      e.preventDefault();
+      var k = t.dataset.ldset;
+      t.click();
+      var again = d.querySelector('.ld-sw[data-ldset="' + k + '"]');
+      if (again) again.focus();
     });
   }
 
@@ -15732,12 +16031,16 @@ window.LD_loadEditorTemplates = async function () {
   var LD_HELP = [
     ['Getting started', [
       ['Around the screen',
-       'The <b>left rail</b> holds every tool — hover any button for its name. Clicking one slides open a panel next to it. '
-       + 'The <b>top toolbar</b> holds commands for whatever you have selected. The <b>filmstrip</b> along the bottom is your slides. '
+       'The <b>ribbon</b> across the top is the command surface — <b>Home</b>, <b>Insert</b>, <b>Arrange</b>, <b>Design</b>, '
+       + '<b>View</b>, <b>Review</b> and <b>Present</b>, plus extra tabs that appear for whatever you have selected. '
+       + 'Anything that puts something on a slide lives in the <b>Insert</b> tab. '
+       + 'The <b>left rail</b> holds the panels you keep coming back to while editing — Templates, Pages, Layers, Themes, '
+       + 'Brand, Animate, Effects, Draw, Comments, AI, Assets, Components and Projects; clicking one slides open a panel next '
+       + 'to it. The <b>filmstrip</b> along the bottom is your slides. '
        + 'The big area in the middle is the slide you are working on.'],
       ['Making your first slide',
-       'Open <b>Templates</b> on the left rail and click one to start from a finished design, or open <b>Text</b> and '
-       + '<b>Elements</b> to build from nothing. Everything you place can be dragged, resized and rotated.'],
+       'Open <b>Templates</b> on the left rail and click one to start from a finished design, or use the <b>Insert</b> tab — '
+       + '<b>Text box</b> and <b>Elements</b> — to build from nothing. Everything you place can be dragged, resized and rotated.'],
       ['Why is the toolbar half empty?',
        'Most commands need something selected first. Click an object on the slide and the toolbar fills in — including '
        + 'extra tabs like <b>Shape format</b> or <b>Icon format</b> that only appear for that kind of object.'],
@@ -15764,7 +16067,7 @@ window.LD_loadEditorTemplates = async function () {
     ]],
     ['Text', [
       ['Adding text',
-       'Open <b>Text</b> on the left rail and pick heading, subheading, body or caption. Double-click any text box on the '
+       'Insert tab, Text group: <b>Text box</b> opens the Text panel where you pick heading, subheading, body or caption. Double-click any text box on the '
        + 'slide to start typing in it.'],
       ['Font and size',
        'Select the text box, then use <b>Font</b> and <b>Size</b> in the Home tab. The <b>+</b> and <b>&minus;</b> buttons '
@@ -15780,11 +16083,11 @@ window.LD_loadEditorTemplates = async function () {
     ]],
     ['Pictures and frames', [
       ['Adding a picture',
-       '<b>Upload</b> in the top right, then <b>Image</b>. Pictures you have already uploaded stay in the <b>Photos</b> '
-       + 'panel on the left rail, ready to reuse without uploading again.'],
+       '<b>Upload</b> in the top right, then <b>Image</b> — or Insert tab, <b>Pictures</b>. Pictures you have already uploaded stay in the '
+       + '<b>Photo library</b> panel (Insert tab, Images group), ready to reuse without uploading again.'],
       ['Frames',
-       'A frame is a shaped hole a picture sits inside — a circle, an arch, a phone outline. Open <b>Frames</b> on the left '
-       + 'rail, place one, then use <b>Insert</b> in the Shape format tab to drop a photo into it.'],
+       'A frame is a shaped hole a picture sits inside — a circle, an arch, a phone outline. Insert tab, Illustrations group: '
+       + 'open <b>Frames</b>, place one, then use <b>Insert</b> in the Shape format tab to drop a photo into it.'],
       ['Crop',
        'With a framed photo selected, press <b>Crop</b> in the Shape format tab. Drag the photo to reposition it inside the '
        + 'frame, use <b>Zoom in</b> and <b>Zoom out</b> to change how much shows, <b>Reset</b> to start over, and '
@@ -15797,14 +16100,14 @@ window.LD_loadEditorTemplates = async function () {
     ]],
     ['Shapes, icons and graphics', [
       ['Shapes',
-       'Open <b>Elements</b> on the left rail, or use the <b>Shapes</b> gallery in the Home tab. With a shape selected, '
+       'Insert tab, Illustrations group: <b>Shapes</b> for the shape gallery, or <b>Elements</b> for the full panel. With a shape selected, '
        + '<b>Fill</b> and <b>Outline</b> in the Shape format tab set its colours.'],
       ['Icons',
-       'Open <b>Icons</b> and click one to place it; the star on each icon saves it to favourites. Once placed, the Icon '
+       'Insert tab, <b>Icons</b> — click one to place it; the star on each icon saves it to favourites. Once placed, the Icon '
        + 'format tab gives you <b>Replace</b> to swap the symbol keeping its size and colour, <b>Colour</b>, and '
        + '<b>Thinner</b> / <b>Thicker</b> to change how heavy the lines are.'],
       ['Illustrations',
-       'Open <b>Illustrations</b> for full-colour artwork. With one selected, <b>Previous</b> and <b>Next scheme</b> in the '
+       'Insert tab, <b>Illustrations</b> for full-colour artwork. With one selected, <b>Previous</b> and <b>Next scheme</b> in the '
        + 'Graphic format tab cycle it through colour schemes so it matches your deck.'],
       ['Cutting a piece out of something',
        'Open <b>Scissor</b> from the Editing rail. Place any shape over the part you want gone and press the cut button — '
@@ -15815,7 +16118,7 @@ window.LD_loadEditorTemplates = async function () {
        'Open <b>Themes</b> on the left rail to pick a look, or build your own colours, fonts and spacing. <b>Apply</b> in '
        + 'the Design tab pushes the current theme onto every slide at once.'],
       ['Backgrounds',
-       'Open <b>Backgrounds</b> for solid colours, gradients and patterns. <b>Apply to all</b> in the Design tab puts the '
+       'Design tab, Variants group: <b>Background</b> for solid colours, gradients and patterns. <b>Apply to all</b> in the Design tab puts the '
        + 'current slide background on the whole deck.'],
       ['Brand kit',
        'Open <b>Brand</b> to store your logo, colours and fonts once. <b>Apply branding</b> then restyles a slide to match, '
@@ -15849,10 +16152,10 @@ window.LD_loadEditorTemplates = async function () {
     ]],
     ['Charts and data', [
       ['Adding a chart',
-       'Open <b>Charts</b> on the left rail and pick a type. It arrives with sample figures so you can see the shape before '
+       'Insert tab, Illustrations group: <b>Chart</b> — pick a type. It arrives with sample figures so you can see the shape before '
        + 'you supply real numbers.'],
       ['Using your own numbers',
-       'Open <b>Data</b> and bring in a CSV or Excel file, or start from a sample set. Then press <b>Connect to chart</b> '
+       'Insert tab, <b>Data</b> — bring in a CSV or Excel file, or start from a sample set. Then press <b>Connect to chart</b> '
        + 'with the chart selected. <b>Refresh</b> re-reads the source.']
     ]],
     ['Checking and reviewing', [
@@ -15867,7 +16170,7 @@ window.LD_loadEditorTemplates = async function () {
     ]],
     ['Presenting', [
       ['Running the show',
-       'Present tab: <b>From start</b> begins at slide one, <b>From current</b> begins where you are. Arrow keys move '
+       'Present tab: <b>From beginning</b> begins at slide one, <b>From current slide</b> begins where you are. Arrow keys move '
        + 'through the slides.'],
       ['Presenter view',
        '<b>Presenter view</b> opens a panel with your notes, a clock and your slide list side by side.'],
@@ -15929,12 +16232,15 @@ window.LD_loadEditorTemplates = async function () {
     var d = ldModal('Help', 'Editor topics', ldHelpBody(''), '<button data-ldmail>Email support</button>');
     d.querySelector('.ld-modal-box').classList.add('ld-help-box');
 
-    var redraw = function (q) {
+    var redraw = function (q, keepFocus) {
       var body = d.querySelector('.ld-modal-body');
       if (!body) return;
+      q = q || '';
       body.innerHTML = ldHelpBody(q);
       var box = body.querySelector('#ld-help-q');
-      if (box && q) { box.focus(); box.setSelectionRange(q.length, q.length); }
+      /* deleting the LAST character rebuilds the body too, so focus has to be
+         restored even when the query is now empty (audit 83) */
+      if (box && (keepFocus || q)) { box.focus(); box.setSelectionRange(q.length, q.length); }
     };
 
     d.addEventListener('click', function (e) {
@@ -15953,7 +16259,7 @@ window.LD_loadEditorTemplates = async function () {
     });
 
     d.addEventListener('input', function (e) {
-      if (e.target && e.target.id === 'ld-help-q') redraw(e.target.value);
+      if (e.target && e.target.id === 'ld-help-q') redraw(e.target.value, true);
     });
   }
 
@@ -16249,11 +16555,14 @@ window.LD_loadEditorTemplates = async function () {
 .doc-sub { font-size: 10px; line-height: 1.3; color: var(--text-muted); white-space: nowrap; }
 .doc-close {
   width: 18px; height: 18px; flex-shrink: 0;
-  display: none; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   border-radius: var(--radius-sm); color: var(--text-muted);
+  opacity: .4; transition: opacity var(--fast);
 }
 .doc-close .material-icons-outlined { font-size: 14px; }
-.doc-tab:hover .doc-close { display: flex; }
+.doc-tab:hover .doc-close,
+.doc-tab:focus-within .doc-close,
+.doc-close:focus { opacity: 1; }
 .doc-close:hover { background: var(--bg-active); color: var(--text-primary); }
 
 .doc-add {
@@ -16359,6 +16668,9 @@ window.LD_loadEditorTemplates = async function () {
     state.comments = d.comments || [];
     state.currentPage = Math.max(0, Math.min(d.currentPage || 0, state.pages.length - 1));
     window._deckIR = d.deckIR || null;
+    /* the design number rides on the deck IR — restore it on a dock switch so
+       "in this style" keeps working on reopened designs (audit 51) */
+    window.LD_DESIGN_NO = (d.deckIR && d.deckIR._designNo != null) ? d.deckIR._designNo : null;
     window._ldMasters = d.masters || [];
     window._ldDeckName = d.deckName || null;
     try { _currentProjectId = d.projId || null; } catch (e) {}
@@ -16368,6 +16680,7 @@ window.LD_loadEditorTemplates = async function () {
       if (typeof ensurePageHistory === 'function') ensurePageHistory(state.currentPage);
       if (d.zoom && typeof setZoom === 'function') setZoom(d.zoom);
       renderPageThumbs();
+      if (typeof ldSyncNotesBox === 'function') ldSyncNotesBox(); /* audit 66 */
       if (typeof pageRefresh === 'function') pageRefresh();
       if (typeof layerRefresh === 'function') layerRefresh();
       if (typeof commentRefresh === 'function') commentRefresh();
@@ -16383,14 +16696,16 @@ window.LD_loadEditorTemplates = async function () {
     docs.forEach(function (d, i) {
       var n = d.pages ? d.pages.length : (i === active ? state.pages.length : 1);
       html += '<div class="doc-tab' + (i === active ? ' active' : '') + '"'
-        + ' data-doc="' + i + '" title="' + esc(d.name) + ' — double-click to rename">'
+        + ' data-doc="' + i + '" role="button" tabindex="0"'
+        + ' title="' + esc(d.name) + ' — double-click to rename">'
         + '<span class="doc-dot" style="background:' + d.colour + '"></span>'
         + '<span class="doc-meta">'
         + '<span class="doc-name">' + esc(d.name) + '</span>'
         + '<span class="doc-sub">' + n + (n === 1 ? ' slide' : ' slides') + '</span>'
         + '</span>'
         + (docs.length > 1
-            ? '<span class="doc-close" data-close="' + i + '" title="Close">'
+            ? '<span class="doc-close" data-close="' + i + '" role="button" tabindex="0"'
+              + ' aria-label="Close ' + esc(d.name) + '" title="Close">'
               + '<span class="material-icons-outlined">close</span></span>'
             : '')
         + '</div>';
@@ -16411,6 +16726,16 @@ window.LD_loadEditorTemplates = async function () {
     render();
   }
   window.ldDockRefresh = refresh;
+
+  /* "Create new design" replaces the deck in place, so the active tab has to
+     drop any name it inherited (imported file name, or a manual rename). */
+  window.ldDockResetActiveName = function () {
+    var d = docs[active];
+    if (!d) return;
+    d.renamed = false;
+    d.name = liveName();
+    render();
+  };
 
   /* ── Actions ────────────────────────────────────────────────────── */
   function go(i) {
@@ -16483,6 +16808,12 @@ window.LD_loadEditorTemplates = async function () {
     if (lsGet(LS_COLLAPSED) === '1') dock.classList.add('collapsed');
 
     var tgl = el('doc-dock-toggle');
+    /* the restored state has to reach the label too, or a dock that came back
+       collapsed still offers to "Collapse" it (audit 82) */
+    if (tgl && dock.classList.contains('collapsed')) {
+      tgl.title = 'Expand';
+      tgl.setAttribute('aria-label', 'Expand open designs');
+    }
     if (tgl) tgl.addEventListener('click', function () {
       var c = dock.classList.toggle('collapsed');
       lsSet(LS_COLLAPSED, c ? '1' : '0');
@@ -16505,6 +16836,15 @@ window.LD_loadEditorTemplates = async function () {
     list.addEventListener('dblclick', function (e) {
       var t = e.target.closest('[data-doc]');
       if (t) rename(+t.dataset.doc);
+    });
+    /* Tabs and their close X are divs/spans, so Enter and Space have to be
+       wired by hand. Same routes as the click handler above. */
+    list.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      var x = e.target.closest('[data-close]');
+      if (x) { e.preventDefault(); e.stopPropagation(); close(+x.dataset.close); return; }
+      var t = e.target.closest('[data-doc]');
+      if (t) { e.preventDefault(); go(+t.dataset.doc); }
     });
 
     /* The first tab is whatever the editor already has open. */
@@ -16849,12 +17189,25 @@ window.LD_loadEditorTemplates = async function () {
     var orig = window.loadDeckIRIntoEditor;
     var wrapped = async function (deckIR) {
       try {
-        var n = deckIR && deckIR._designNo;
-        if (n == null && deckIR && deckIR.deck) {
-          var m = String(deckIR.deck).match(/design\s*(\d{1,6})/i);
-          if (m) n = +m[1];
+        /* look everywhere the number can realistically live — the old check
+           only read _designNo/deck, which the IR rarely carried, so the
+           "in this style" buttons always fell back (audit 51) */
+        var n = null;
+        if (deckIR) {
+          if (deckIR._designNo != null) n = deckIR._designNo;
+          else if (deckIR.designNo != null) n = deckIR.designNo;
+          else if (deckIR.design_no != null) n = deckIR.design_no;
+          else if (deckIR.meta && deckIR.meta.designNo != null) n = deckIR.meta.designNo;
+          if (n == null) {
+            var src = String(deckIR.deck || deckIR.name || deckIR.title || '');
+            var m = src.match(/design\s*#?\s*(\d{1,6})/i);
+            if (m) n = +m[1];
+          }
         }
-        if (n != null) window.LD_DESIGN_NO = n;
+        if (n != null) {
+          window.LD_DESIGN_NO = n;
+          try { deckIR._designNo = n; } catch (e0) {} /* travels with saved projects */
+        }
       } catch (e) {}
       return orig.apply(this, arguments);
     };
@@ -16918,10 +17271,11 @@ window.LD_loadEditorTemplates = async function () {
     if (opts.keep) picked = picked.slice(0, opts.keep);
     if (!picked.length) { say('Nothing matched — nothing was changed'); return 0; }
 
-    /* the same 40-slide ceiling the rest of the editor keeps */
-    var room = 40 - state.pages.length;
-    if (room <= 0) { say('Maximum 40 slides — remove one first'); return 0; }
-    if (picked.length > room) { picked = picked.slice(0, room); say('Only ' + room + ' more slides fit (40 max)'); }
+    /* the same slide ceiling the rest of the editor keeps */
+    var _max = (typeof ldMaxSlides === 'function') ? ldMaxSlides() : 500;
+    var room = _max - state.pages.length;
+    if (room <= 0) { say('Maximum ' + _max + ' slides — remove one first'); return 0; }
+    if (picked.length > room) { picked = picked.slice(0, room); say('Only ' + room + ' more slides fit (' + _max + ' max)'); }
 
     /* fonts first, exactly as loadDeckIRIntoEditor does, or the new slides
        paint in a fallback face for a second and reflow */
@@ -16955,7 +17309,11 @@ window.LD_loadEditorTemplates = async function () {
     } catch (e) {}
 
     state.currentPage = at;
-    await loadPageIntoCanvas(state.currentPage);
+    /* the slides are ALREADY spliced into the deck — a hiccup while drawing
+       the first one must not bubble up as "Could not add the slides" when
+       they were in fact added (audit 53) */
+    try { await loadPageIntoCanvas(state.currentPage); }
+    catch (e) { try { console.warn('[ai] drew with a minor issue after insert', e); } catch (e2) {} }
     try { renderPageThumbs && renderPageThumbs(); } catch (e) {}
     try { pageRefresh && pageRefresh(); } catch (e) {}
     try { saveState && saveState(); } catch (e) {}
@@ -16979,6 +17337,7 @@ window.LD_loadEditorTemplates = async function () {
 
   window.aiGenerateDeck = function (oneSlide) {
     if (window.LD_IS_ADMIN === false) { say('Only the admin can generate decks'); return; }
+    if (window._aiBusy) { say('Still working on the previous run — one at a time'); return; }
 
     if (!oneSlide) {
       /* AI ▸ Presentation still builds a whole new deck — that is its job —
@@ -17011,6 +17370,7 @@ window.LD_loadEditorTemplates = async function () {
      palette, the same fonts and the same donor kits. */
   window.aiAddSlides = function () {
     if (window.LD_IS_ADMIN === false) { say('Only the admin can generate slides'); return; }
+    if (window._aiBusy) { say('Still working on the previous run — one at a time'); return; }
     var howMany = prompt('How many more slides in this style?', '5');
     if (!howMany) return;
     var n = Math.max(1, Math.min(20, parseInt(String(howMany).replace(/[^0-9]/g, ''), 10) || 0));
@@ -17037,6 +17397,7 @@ window.LD_loadEditorTemplates = async function () {
      needs no change to the composer at all: the plan marks them ":mockup". */
   window.aiAddMockups = function () {
     if (window.LD_IS_ADMIN === false) { say('Only the admin can generate slides'); return; }
+    if (window._aiBusy) { say('Still working on the previous run — one at a time'); return; }
     var howMany = prompt('How many mock-up slides?\n(ready-to-fill slides in this design’s style)', '3');
     if (!howMany) return;
     var n = Math.max(1, Math.min(20, parseInt(String(howMany).replace(/[^0-9]/g, ''), 10) || 0));
@@ -17044,8 +17405,9 @@ window.LD_loadEditorTemplates = async function () {
     var style = window.LD_DESIGN_NO != null ? ('use design ' + window.LD_DESIGN_NO + ' style, ') : '';
     if (!style && !confirm('This deck has no design number on it, so the mock-ups will be built in a fresh look rather than matching it.\n\nCarry on?')) return;
     busy(true, 'Adding ' + n + ' mock-up slides…');
-    window.ldComposeAppend(style + '4 slides, ' + n + ' mockup slides', { onlyMockups: true, keep: n })
-      .then(function (added) { busy(false); if (added) say(added + ' mock-up ' + (added === 1 ? 'slide' : 'slides') + ' added ✓'); })
+    /* deck size must scale with n; "4 slides" capped every request at 4 */
+    window.ldComposeAppend(style + (n + 2) + ' slides, ' + n + ' mockup slides', { onlyMockups: true, keep: n })
+      .then(function (added) { busy(false); if (added) say(added + ' mock-up ' + (added === 1 ? 'slide' : 'slides') + ' added' + (added < n ? ' — the design service sent back ' + added + ' of the ' + n + ' asked for' : ' ✓')); })
       .catch(function () { busy(false); say('Could not add the mock-ups'); });
   };
 
@@ -17067,7 +17429,17 @@ window.LD_loadEditorTemplates = async function () {
     grid.appendChild(mk('ai-more-slides', 'library_add', 'Add slides', 'More, in this style'));
     grid.appendChild(mk('ai-mockups', 'dashboard_customize', 'Add mock-ups', 'Ready-to-fill slides'));
   }
-  setInterval(injectCards, 700);
+  /* Inject synchronously whenever the panel re-renders. The old 700ms poll
+     ran for the life of the tab (audit 72) and left a card-less gap after
+     every render during which a second click could start a second run
+     (audit 71). A MutationObserver fires the instant the panel rebuilds. */
+  injectCards();
+  var _pcEl = document.getElementById('panel-content');
+  if (_pcEl && typeof MutationObserver === 'function') {
+    new MutationObserver(function () { injectCards(); }).observe(_pcEl, { childList: true });
+  } else {
+    setInterval(injectCards, 700); /* fallback only — element missing */
+  }
 
   /* our own listener, in the capture phase, so the switch above never sees an
      action it has no case for */
@@ -17077,6 +17449,12 @@ window.LD_loadEditorTemplates = async function () {
     var a = b.dataset.action;
     if (a !== 'ai-more-slides' && a !== 'ai-mockups') return;
     ev.preventDefault(); ev.stopPropagation();
+    /* stopPropagation also silences the document-level "click anywhere to
+       close" handlers — so close those surfaces ourselves (audit 73) */
+    try { if (typeof closeDropdowns === 'function') closeDropdowns(); } catch (e) {}
+    try { var _cm = document.getElementById('ctx-menu'); if (_cm) _cm.classList.remove('open'); } catch (e) {}
+    try { if (typeof closeShapesGallery === 'function') closeShapesGallery(); } catch (e) {}
+    if (window._aiBusy) return; /* one run at a time (audit 71) */
     if (a === 'ai-more-slides') window.aiAddSlides(); else window.aiAddMockups();
   }, true);
 
@@ -17155,10 +17533,18 @@ window.LD_loadEditorTemplates = async function () {
     if (fn.__ldForgets) return;
     var wrapped = function (deckIR) {
       try {
-        var n = deckIR && deckIR._designNo;
-        if (n == null && deckIR && deckIR.deck) {
-          var m = String(deckIR.deck).match(/design\s*(\d{1,6})/i);
-          if (m) n = +m[1];
+        /* same broadened detection as the remember-wrap, so forgetting and
+           remembering can never disagree about the same deck (audit 51) */
+        var n = null;
+        if (deckIR) {
+          if (deckIR._designNo != null) n = deckIR._designNo;
+          else if (deckIR.designNo != null) n = deckIR.designNo;
+          else if (deckIR.design_no != null) n = deckIR.design_no;
+          else if (deckIR.meta && deckIR.meta.designNo != null) n = deckIR.meta.designNo;
+          if (n == null) {
+            var m = String(deckIR.deck || deckIR.name || deckIR.title || '').match(/design\s*#?\s*(\d{1,6})/i);
+            if (m) n = +m[1];
+          }
         }
         if (n == null) window.LD_DESIGN_NO = null;   /* no number → stay blank */
       } catch (e) {}
@@ -17392,8 +17778,10 @@ window.LD_loadEditorTemplates = async function () {
       var style = window.LD_DESIGN_NO != null ? ('use design ' + window.LD_DESIGN_NO + ' style, ') : '';
       if (!style && !confirm('This deck has no design number on it, so the mock-ups will be built in a fresh look rather than matching it.\n\nCarry on?')) return;
       try { aiSetBusy(true, 'Adding ' + n + ' mock-up slides…'); } catch (e) {}
-      window.ldComposeAppend(style + '4 slides, ' + n + ' mockup slides', { onlyMockups: true, keep: n })
-        .then(function (added) { try { aiSetBusy(false); } catch (e) {} if (added) say(added + ' mock-up ' + (added === 1 ? 'slide' : 'slides') + ' added ✓'); })
+      /* the deck ordered has to be big enough to hold n mock-ups — it used to
+         be hard-coded to "4 slides", so any request above 4 quietly shrank */
+      window.ldComposeAppend(style + (n + 2) + ' slides, ' + n + ' mockup slides', { onlyMockups: true, keep: n })
+        .then(function (added) { try { aiSetBusy(false); } catch (e) {} if (added) say(added + ' mock-up ' + (added === 1 ? 'slide' : 'slides') + ' added' + (added < n ? ' — the design service sent back ' + added + ' of the ' + n + ' asked for' : ' ✓')); })
         .catch(function () { try { aiSetBusy(false); } catch (e) {} say('Could not add the mock-ups'); });
     };
 
