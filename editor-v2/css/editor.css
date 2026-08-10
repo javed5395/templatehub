@@ -1,0 +1,536 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   LAZYDOG EDITOR v2 — STYLES
+   ═══════════════════════════════════════════════════════════════════════
+   Sections:
+     1. Design tokens        (one place for every colour/size)
+     2. Base + layout        (shell grid: ribbon / workspace / filmstrip)
+     3. Canvas area
+     4. Filmstrip
+     5. Toasts
+     6. Ribbon styles        → appended by ribbon work (keep in this file,
+     7. Sidebar styles         under these headings, so styling stays here)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Design tokens ── */
+:root {
+  --font-ui: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
+
+  /* surfaces */
+  --bg-app: #F1F3F7;          /* behind the canvas */
+  --bg-chrome: #FFFFFF;       /* ribbon + sidebar + filmstrip */
+  --bg-inset: #F8F9FB;
+
+  /* text */
+  --text-1: #1F2430;
+  --text-2: #5B6472;
+  --text-3: #9AA3B2;
+
+  /* lines */
+  --line-1: #E4E7EE;
+  --line-2: #CBD2DE;
+
+  /* brand */
+  --accent: #7C3AED;
+  --accent-soft: #F1EAFE;
+  --accent-line: #D9C9F9;
+
+  /* feedback */
+  --danger: #DC2626;
+  --ok: #16A34A;
+
+  /* metrics */
+  --ribbon-h: 118px;          /* PowerPoint-style two-row ribbon */
+  --filmstrip-h: 92px;
+  --sidebar-rail-w: 72px;     /* Canva-style icon rail */
+  --sidebar-panel-w: 312px;   /* Canva-style open drawer */
+  --radius: 8px;
+  --shadow-pop: 0 12px 40px rgba(15, 23, 42, 0.16);
+}
+
+/* ── 2. Base + layout ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-app);
+  color: var(--text-1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; }
+
+#ribbon-slot { flex: 0 0 auto; background: var(--bg-chrome); border-bottom: 1px solid var(--line-1); }
+#ribbon-slot:empty { display: none; }
+
+.workspace { flex: 1 1 auto; display: flex; min-height: 0; }
+
+#sidebar-slot { flex: 0 0 auto; display: flex; background: var(--bg-chrome); border-right: 1px solid var(--line-1); }
+#sidebar-slot:empty { display: none; }
+
+/* ── 3. Canvas area ── */
+.canvas-area {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+.canvas-holder {
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.14);
+  border-radius: 2px;
+  line-height: 0;
+  background: #fff;
+}
+
+/* ── 4. Filmstrip ── */
+.filmstrip {
+  flex: 0 0 var(--filmstrip-h);
+  background: var(--bg-chrome);
+  border-top: 1px solid var(--line-1);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+}
+.film-thumbs {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 2px;
+}
+.film-thumb {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 58px;
+  border: 2px solid var(--line-2);
+  border-radius: 6px;
+  background: #fff center/cover no-repeat;
+  position: relative;
+  cursor: pointer;
+}
+.film-thumb.active { border-color: var(--accent); }
+.film-thumb .n {
+  position: absolute; left: 4px; bottom: 2px;
+  font-size: 10px; font-weight: 600; color: var(--text-2);
+  background: rgba(255,255,255,0.85); border-radius: 4px; padding: 0 4px;
+}
+.film-add {
+  flex: 0 0 auto;
+  width: 34px; height: 58px;
+  border: 1.5px dashed var(--line-2);
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: var(--text-2);
+}
+.film-add:hover { border-color: var(--accent); color: var(--accent); }
+.film-meta { flex: 0 0 auto; display: flex; align-items: center; gap: 14px; color: var(--text-2); font-size: 12px; }
+.film-zoom { display: flex; align-items: center; gap: 6px; }
+.film-zoom button { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; }
+.film-zoom button:hover { background: var(--bg-inset); }
+#zoom-slider { width: 110px; accent-color: var(--accent); }
+#zoom-label { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ── 5. Toasts ── */
+#toast-host {
+  position: fixed; left: 50%; bottom: calc(var(--filmstrip-h) + 18px);
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 8px; align-items: center;
+  z-index: 9000; pointer-events: none;
+}
+.toast {
+  background: #23262E; color: #F3F4F6;
+  font-size: 13px; padding: 9px 16px; border-radius: 8px;
+  box-shadow: var(--shadow-pop);
+  animation: toast-in 0.18s ease-out;
+}
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── 6. Ribbon styles (PowerPoint-style) — added with ribbon.js ── */
+
+/* 6.1 shell ------------------------------------------------------------ */
+.rb {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.rb .rb-i {
+  font-family: 'Material Icons Outlined';
+  font-size: 20px;
+  line-height: 1;
+  display: block;
+}
+.rb button { font-family: var(--font-ui); }
+.rb button:focus { outline: none; }
+.rb button:focus-visible,
+.rb input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 7px;
+}
+.rb .rb-file { display: none; }
+
+/* 6.2 top row: quick access · tabs · actions --------------------------- */
+.rb-top {
+  flex: 0 0 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line-1);
+  background: var(--bg-chrome);
+}
+.rb-qat { display: flex; align-items: center; gap: 2px; }
+.rb-qbtn {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: 7px;
+  color: var(--text-2);
+  transition: background 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+.rb-qbtn:hover { background: var(--bg-inset); color: var(--text-1); }
+.rb-qbtn:active { background: var(--line-1); }
+.rb-qbtn.is-dim { opacity: 0.38; }
+
+.rb-top-sep { width: 1px; height: 22px; background: var(--line-1); }
+
+.rb-tabs { display: flex; align-items: stretch; align-self: stretch; gap: 2px; }
+.rb-tab {
+  position: relative;
+  padding: 0 15px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-2);
+  border-radius: 7px 7px 0 0;
+  transition: color 120ms ease, background 120ms ease;
+}
+.rb-tab:hover { color: var(--text-1); background: var(--bg-inset); }
+.rb-tab.is-active { color: var(--accent); }
+.rb-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 10px; right: 10px; bottom: -1px;
+  height: 2.5px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+}
+
+.rb-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.rb-action {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-chrome);
+  color: var(--text-1);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.rb-action .rb-i { font-size: 19px; }
+.rb-action:hover { background: var(--bg-inset); border-color: var(--line-1); }
+.rb-action.is-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(124, 58, 237, 0.30), 0 6px 16px rgba(124, 58, 237, 0.22);
+}
+.rb-action.is-primary:hover { background: #6D28D9; border-color: #6D28D9; }
+.rb-action.is-primary:active { background: #5B21B6; }
+
+/* 6.3 ribbon body: fixed height so tab switching never shifts layout --- */
+.rb-body {
+  flex: 0 0 90px;
+  height: 90px;
+  padding: 2px 12px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--bg-chrome);
+  scrollbar-width: thin;
+}
+.rb-body::-webkit-scrollbar { height: 6px; }
+.rb-body::-webkit-scrollbar-thumb { background: var(--line-1); border-radius: 3px; }
+.rb-panel { display: flex; align-items: stretch; height: 88px; }
+
+.rb-group {
+  display: flex;
+  flex-direction: column;
+  padding: 0 12px;
+  border-right: 1px solid var(--line-1);
+}
+.rb-group:last-child { border-right: none; }
+.rb-g-body {
+  flex: 0 0 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rb-g-label {
+  flex: 0 0 auto;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.rb-rows { display: flex; flex-direction: column; gap: 4px; }
+.rb-row { display: flex; align-items: center; gap: 4px; }
+.rb-mini-sep { width: 1px; height: 22px; margin: 0 4px; background: var(--line-1); }
+
+/* 6.4 buttons ---------------------------------------------------------- */
+.rb-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  color: var(--text-1);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+.rb-btn:hover { background: var(--bg-inset); }
+.rb-btn:active { background: var(--line-1); }
+.rb-btn.is-on { background: var(--accent-soft); color: var(--accent); }
+.rb-btn.is-on:hover { background: #E9DFFD; }
+.rb-btn.is-open { background: var(--accent-soft); color: var(--accent); }
+.rb-btn.is-dim { opacity: 0.38; }
+.rb-btn .rb-caret { font-size: 18px; margin-left: -2px; color: var(--text-3); }
+.rb-btn.is-on .rb-caret, .rb-btn.is-open .rb-caret { color: var(--accent); }
+
+.rb-big {
+  flex-direction: column;
+  gap: 5px;
+  width: 76px;
+  height: 72px;
+  padding: 8px 4px 6px;
+}
+.rb-big .rb-i { font-size: 24px; }
+.rb-big .rb-caret { position: absolute; bottom: 2px; right: 6px; font-size: 16px; margin: 0; }
+.rb-big-label { font-size: 12.5px; font-weight: 500; line-height: 1.15; text-align: center; }
+.rb-big.is-primary { color: var(--accent); background: var(--accent-soft); }
+.rb-big.is-primary:hover { background: #E9DFFD; }
+.rb-big.is-primary:active { background: #E0D2FB; }
+
+.rb-ico { width: 34px; height: 34px; padding: 0; }
+.rb-ico:has(.rb-caret) { width: 46px; }
+
+.rb-row-btn { height: 34px; padding: 0 10px; gap: 8px; justify-content: flex-start; }
+.rb-row-btn.is-wide { min-width: 138px; }
+.rb-row-label { font-size: 13px; font-weight: 500; }
+
+.rb-readout {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border-radius: 7px;
+  background: var(--bg-inset);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.rb-readout .rb-i { font-size: 18px; color: var(--text-3); }
+
+.rb-combo {
+  height: 34px;
+  gap: 4px;
+  padding: 0 4px 0 11px;
+  justify-content: space-between;
+  border: 1px solid var(--line-2);
+  background: var(--bg-chrome);
+}
+.rb-combo:hover { background: var(--bg-inset); border-color: var(--line-2); }
+.rb-combo.is-open { border-color: var(--accent-line); }
+.rb-combo-val {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 6.5 popovers --------------------------------------------------------- */
+.rb-pop-layer { position: absolute; inset: 0 0 auto 0; height: 0; z-index: 600; }
+.rb-pop {
+  position: absolute;
+  min-width: 190px;
+  padding: 8px;
+  background: #FFFFFF;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  font-size: 13px;
+  color: var(--text-1);
+  animation: rb-pop-in 120ms ease-out;
+}
+@keyframes rb-pop-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.rb-pop-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 2px 6px 8px;
+}
+.rb-pop-search {
+  width: 100%;
+  height: 34px;
+  margin-bottom: 6px;
+  padding: 0 11px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-1);
+  background: var(--bg-inset);
+  border: 1px solid var(--line-1);
+  border-radius: 7px;
+  outline: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.rb-pop-search::placeholder { color: var(--text-3); }
+.rb-pop-search:focus { border-color: var(--accent-line); background: #FFFFFF; }
+
+.rb-pop-list { max-height: 296px; overflow-y: auto; scrollbar-width: thin; }
+.rb-pop-list::-webkit-scrollbar { width: 8px; }
+.rb-pop-list::-webkit-scrollbar-thumb { background: var(--line-1); border-radius: 4px; }
+
+.rb-pop-row {
+  width: 100%;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-1);
+  text-align: left;
+  transition: background 120ms ease;
+}
+.rb-pop-row:hover { background: var(--bg-inset); }
+.rb-pop-row .rb-i { font-size: 19px; color: var(--text-2); }
+.rb-pop-row .rb-tick { font-size: 18px; color: var(--accent); }
+.rb-pop-row .rb-tick.is-hidden { visibility: hidden; }
+.rb-font-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rb-pop-empty { padding: 12px 8px; font-size: 13px; color: var(--text-3); }
+.rb-pop-none { margin-top: 4px; border-top: 1px solid var(--line-1); padding-top: 0; height: 36px; }
+
+.rb-pop-font { width: 270px; }
+
+.rb-pop-size { width: 258px; }
+.rb-size-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.rb-size-cell {
+  height: 32px;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+  transition: background 120ms ease, color 120ms ease;
+}
+.rb-size-cell:hover { background: var(--bg-inset); }
+.rb-size-cell.is-active { background: var(--accent-soft); color: var(--accent); }
+
+.rb-pop-custom {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-1);
+}
+.rb-pop-custom-label { font-size: 13px; color: var(--text-2); }
+.rb-num {
+  width: 74px;
+  height: 32px;
+  padding: 0 9px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-1);
+  background: var(--bg-inset);
+  border: 1px solid var(--line-1);
+  border-radius: 6px;
+  outline: none;
+}
+.rb-num:focus { border-color: var(--accent-line); background: #FFFFFF; }
+.rb-pop-apply {
+  margin-left: auto;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 120ms ease;
+}
+.rb-pop-apply:hover { background: #6D28D9; }
+
+.rb-pop-colour { width: 238px; }
+.rb-swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 0 2px; }
+.rb-swatch {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.rb-swatch:hover { transform: scale(1.09); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.20); }
+.rb-colour-input {
+  width: 34px;
+  height: 32px;
+  padding: 2px;
+  background: var(--bg-chrome);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.rb-colour-input::-webkit-color-swatch-wrapper { padding: 0; }
+.rb-colour-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+
+.rb-pop-row-tall { height: 46px; }
+.rb-tk { display: flex; flex-direction: column; justify-content: center; gap: 1px; }
+.rb-tk-name { color: var(--text-1); }
+.rb-tk-h { font-size: 17px; font-weight: 700; }
+.rb-tk-s { font-size: 14.5px; font-weight: 600; }
+.rb-tk-b { font-size: 13px; font-weight: 400; }
+.rb-tk-hint { font-size: 11.5px; color: var(--text-3); }
+
+.rb-pop-tiles { width: 252px; }
+.rb-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.rb-tile {
+  height: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 7px;
+  color: var(--text-1);
+  transition: background 120ms ease, color 120ms ease;
+}
+.rb-tile .rb-i { font-size: 22px; color: var(--text-2); }
+.rb-tile:hover { background: var(--accent-soft); color: var(--accent); }
+.rb-tile:hover .rb-i { color: var(--accent); }
+.rb-tile-label { font-size: 12px; font-weight: 500; }
+
+/* ── 7. Sidebar styles (Canva-style) — added with sidebar.js ── */

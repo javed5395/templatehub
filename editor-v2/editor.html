@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>LazyDog Studio — Editor v2</title>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     LAZYDOG EDITOR v2 — THIN SHELL
+     ══════════════════════════════════════════════════════════════════════
+     This file is LAYOUT ONLY. It never contains logic or styling.
+
+       css/editor.css   all styling (design tokens + layout + parts)
+       js/core.js       engine: fabric + lazydog_renderer bridge, pages,
+                        state, autosave, ?compose= import, shortcuts,
+                        and the Editor command API  (owner: Fable)
+       js/ribbon.js     PowerPoint-style top ribbon — PURE UI, talks to
+                        the engine ONLY via Editor.run()/Editor.query()
+       js/sidebar.js    Canva-style left rail + panels — same rule
+
+     THE WALL: ribbon.js and sidebar.js must never reference fc, state,
+     fabric or any renderer function directly. Editor.* is the only door.
+     ══════════════════════════════════════════════════════════════════════ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=block" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/utif/3.1.0/UTIF.min.js"></script>
+<script src="../lazydog_renderer.js"></script>
+
+<link rel="stylesheet" href="css/editor.css">
+</head>
+<body>
+
+<!-- ── slot: top ribbon (filled by js/ribbon.js) ── -->
+<header id="ribbon-slot" aria-label="Ribbon"></header>
+
+<div class="workspace">
+  <!-- ── slot: left sidebar (filled by js/sidebar.js) ── -->
+  <aside id="sidebar-slot" aria-label="Sidebar"></aside>
+
+  <!-- ── canvas ── -->
+  <div class="canvas-area" id="canvas-area">
+    <div class="canvas-holder" id="canvas-holder">
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── filmstrip (owned by core.js — it is part of the engine) ── -->
+<footer class="filmstrip" id="filmstrip">
+  <div class="film-thumbs" id="film-thumbs"></div>
+  <div class="film-meta">
+    <span id="film-counter">1 of 1</span>
+    <div class="film-zoom">
+      <button id="zoom-out-btn" aria-label="Zoom out"><span class="material-icons-outlined">remove</span></button>
+      <input type="range" id="zoom-slider" min="10" max="300" value="62" aria-label="Zoom">
+      <button id="zoom-in-btn" aria-label="Zoom in"><span class="material-icons-outlined">add</span></button>
+      <span id="zoom-label">62%</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ── toasts ── -->
+<div id="toast-host" aria-live="polite"></div>
+
+<script src="js/core.js"></script>
+<script src="js/ribbon.js"></script>
+<script src="js/sidebar.js"></script>
+</body>
+</html>
