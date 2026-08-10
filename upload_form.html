@@ -1028,9 +1028,12 @@ onAuthStateChanged(auth, async (user) => {
     window._ldtUploadRight = right;
     if (typeof ldtPaintAffiliate === 'function') ldtPaintAffiliate();
 
-    const profile = await loadSellerProfile(user.uid);
+    let profile = await loadSellerProfile(user.uid);
+    // No profile yet? An approved contributor already told us all of this on
+    // their application, so build it from there instead of asking twice.
+    if (!profile) profile = await profileFromApplication(user);
     if (!profile) {
-      showSection('profileSetup');
+      showSection('profileSetup');            // admins, or an incomplete record
     } else {
       sellerProfile = profile;
       populateSellerBar();
@@ -1078,6 +1081,43 @@ function showSection(name) {
 async function loadSellerProfile(uid) {
   const snap = await getDoc(doc(db, 'sellers', uid));
   return snap.exists() ? snap.data() : null;
+}
+
+/* Build the seller profile from the contributor's own application (10 Aug 2026).
+ *
+ * An approved contributor has ALREADY given us their full name, phone number
+ * and brand — on the application form, along with their ID. Asking for the
+ * same three things again the first time they open the upload page is pure
+ * friction, and it lands at the worst possible moment: the first time they try
+ * to actually do the thing they were approved for.
+ *
+ * Returns the saved profile, or null if there is nothing to build from (an
+ * admin, for instance, has no application) — in which case the caller falls
+ * back to showing the setup form as before. */
+async function profileFromApplication(user) {
+  try {
+    const snap = await getDoc(doc(db, 'contributor_applications', user.uid));
+    if (!snap.exists()) return null;
+    const a = snap.data() || {};
+    const name  = (a.name || '').trim();
+    const phone = (a.phoneFull || a.phone || '').trim();
+    if (!name || !phone) return null;        // incomplete — ask properly
+
+    const profile = {
+      uid:       user.uid,
+      email:     user.email,
+      name,
+      phone,
+      shopName:  (a.brand || '').trim() || name,
+      createdAt: serverTimestamp(),
+      source:    'contributor_application'   // so it is obvious where this came from
+    };
+    await setDoc(doc(db, 'sellers', user.uid), profile);
+    return profile;
+  } catch (e) {
+    console.warn('[profile] could not build from application:', e);
+    return null;                              // fall back to the manual form
+  }
 }
 
 window.saveProfile = async function() {
