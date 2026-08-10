@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LazyDog Studios — A Curated Atelier of Digital Design Artifacts</title>
+<!-- FAVICON (10 Aug 2026). This page has its own header and does not load
+     navbar.js, so the site-wide favicon injection never reached it. -->
+<link rel="icon" type="image/png" href="images/site_logo_round.png" />
+<link rel="shortcut icon" type="image/png" href="images/site_logo_round.png" />
+<link rel="apple-touch-icon" href="images/site_logo_round.png" />
 <meta name="description" content="LazyDog Studios is a premium digital store for exceptional WebKits, UI systems, presentation templates, and branding assets.">
 <meta name="keywords" content="digital design templates, WebKit templates, UI systems, presentation templates, branding assets, digital store, LazyDogTemplates, LazyDog Studios" />
 <meta name="author" content="LazyDogTemplates" />
@@ -3023,11 +3028,22 @@ document.querySelectorAll('.service').forEach(card=>{
 });
 
 /* ============== LOADER ============== */
-window.addEventListener('load',()=>{
-  setTimeout(()=>{
-    document.getElementById('loader').classList.add('is-done');
-  },1800);
-});
+/* 10 Aug 2026 — was tied to window.load, which waits for the whole deferred
+   commerce script chain + every image. That held the splash screen for ~30s
+   even though the DOM was ready at ~3s. Now: hide on DOM ready, with a hard
+   3s cap so a slow asset can never trap the visitor again. */
+(function(){
+  var el=document.getElementById('loader');
+  if(!el) return;
+  var done=false;
+  function hide(){ if(done) return; done=true; el.classList.add('is-done'); }
+  if(document.readyState==='complete'||document.readyState==='interactive'){
+    setTimeout(hide,600);
+  }else{
+    document.addEventListener('DOMContentLoaded',function(){ setTimeout(hide,600); });
+  }
+  setTimeout(hide,3000); // safety net
+})();
 
 /* ============== CURSOR ============== */
 const dot=document.querySelector('.cursor-dot');

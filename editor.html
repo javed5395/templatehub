@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Untitled design - Presentation</title>
+<!-- FAVICON (10 Aug 2026) — the editor does not load navbar.js, so the tab
+     showed a blank icon while someone was working in it. -->
+<link rel="icon" type="image/png" href="images/site_logo_round.png" />
+<link rel="shortcut icon" type="image/png" href="images/site_logo_round.png" />
+<link rel="apple-touch-icon" href="images/site_logo_round.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
@@ -17076,6 +17081,332 @@ window.LD_loadEditorTemplates = async function () {
   }, true);
 
   try { console.log('[editor patch] ' + PATCH + ' installed'); } catch (e) {}
+})();
+</script>
+
+
+<!-- ──────────────────────────────────────────────────────────────────────────
+     PATCH 2026-08-09 · Opus · A NEW DESIGN FORGETS THE OLD ONE COMPLETELY
+     ==========================================================================
+     NOTHING ABOVE THIS LINE IS TOUCHED. This is a whole new section, added at
+     the very end of the file on purpose: it only ever ADDS behaviour, and it
+     only runs when the page was opened with ?compose= — an ordinary editing
+     session never enters a single line of it. Written this way deliberately
+     because this file is live work for Fable; nothing here edits, re-runs or
+     depends on the internals of any earlier block.
+
+     REPORTED (Javed): "when the editor makes a new design it should entirely
+     forget the previous one."
+
+     The 08-08 06:10 patch above already solved the loudest half of this — the
+     old autosaved session no longer paints itself over a fresh design. Two
+     things still survived a new build, and both are handled here.
+
+     ── 1. THE OLD DESIGN'S NUMBER OUTLIVED THE OLD DESIGN ────────────────────
+     window.LD_DESIGN_NO is set whenever a deck loads and is NEVER cleared.
+     "AI ▸ Add slides", "AI ▸ Add mock-ups" and "AI ▸ Slide" all build their
+     request as
+         'use design ' + window.LD_DESIGN_NO + ' style, ' + …
+     So on a page that had already shown design 71, a brand-new unnumbered
+     design would quietly take slides in design 71's style — the previous
+     design reaching into the new one, which is precisely what should not
+     happen. It is cleared the moment a fresh build is requested, and cleared
+     again if the deck that arrives carries no number of its own.
+
+     ── 2. THE RECOVERY SLOT ONLY STAYED CLEAR FOR SIX SECONDS ────────────────
+     The 08-08 sweep runs for ~6s (24 ticks × 250ms). A compose takes about
+     50s, and the editor keeps autosaving throughout, so the slot can be
+     written again long before the new deck lands. Reload during that window —
+     or simply take too long — and the old session is back. The sweep is kept
+     running here until the new deck actually arrives, or for two minutes,
+     whichever comes first. Nothing is deleted: the earlier patch has already
+     preserved the previous session as a named "Recovered session" project, and
+     this only keeps the automatic slot from re-filling mid-build.
+
+     If ?compose= is absent, this block returns immediately and does nothing.
+     ────────────────────────────────────────────────────────────────────────── -->
+<script>
+(function () {
+  var PATCH = '2026-08-09 · new design forgets the old one';
+
+  var q = null;
+  try { q = new URLSearchParams(location.search).get('compose'); } catch (e) {}
+  if (!q) return;                       /* ordinary editing session — do nothing */
+
+  /* ── 1. FORGET THE PREVIOUS DESIGN'S IDENTITY, NOW ───────────────────────
+     Done before anything can read it, so the "in this style" buttons cannot
+     borrow the last deck's number while the new one is still being built. */
+  var forgotten = window.LD_DESIGN_NO;
+  try { window.LD_DESIGN_NO = null; } catch (e) {}
+  try { window._deckIR = null; } catch (e) {}
+  if (forgotten != null) {
+    try { console.log('[' + PATCH + '] forgot previous design no. ' + forgotten); } catch (e) {}
+  }
+
+  /* Keep forgetting: if the deck that arrives has no design number of its own,
+     LD_DESIGN_NO must stay empty rather than inherit the old one. An earlier
+     block already wraps loadDeckIRIntoEditor to REMEMBER a number; this wraps
+     the outside of whatever is there at the time and only ever clears first,
+     so the two cannot fight — remember still wins whenever there is something
+     to remember. */
+  (function wrapForget() {
+    var fn = window.loadDeckIRIntoEditor;
+    if (typeof fn !== 'function') { setTimeout(wrapForget, 300); return; }
+    if (fn.__ldForgets) return;
+    var wrapped = function (deckIR) {
+      try {
+        var n = deckIR && deckIR._designNo;
+        if (n == null && deckIR && deckIR.deck) {
+          var m = String(deckIR.deck).match(/design\s*(\d{1,6})/i);
+          if (m) n = +m[1];
+        }
+        if (n == null) window.LD_DESIGN_NO = null;   /* no number → stay blank */
+      } catch (e) {}
+      _deckArrived = true;                            /* stop the sweep below */
+      return fn.apply(this, arguments);
+    };
+    wrapped.__ldForgets = true;
+    window.loadDeckIRIntoEditor = wrapped;
+  })();
+
+  /* ── 2. HOLD THE RECOVERY SLOT CLEAR FOR THE WHOLE BUILD ─────────────────
+     Same slot and the same safe method as the 08-08 patch: the previous
+     session has already been copied to a named project by then, so removing
+     the automatic entry loses nothing. This simply keeps it from coming back
+     while a design is still on its way. */
+  var _deckArrived = false;
+  var AUTO_ID = '__autosave__';
+  var started = null;
+
+  function holdClear() {
+    if (typeof projAll !== 'function' || typeof projDelete !== 'function') return;
+    projAll().then(function (list) {
+      var rec = (list || []).filter(function (p) { return p && p.id === AUTO_ID; })[0];
+      if (rec) { try { projDelete(AUTO_ID); } catch (e) {} }
+    }).catch(function () {});
+  }
+
+  var tick = setInterval(function () {
+    if (started === null) started = 0;
+    started += 1;
+    if (_deckArrived || window._deckIR) { clearInterval(tick);
+      try { console.log('[' + PATCH + '] new deck is in — recovery slot released'); } catch (e) {}
+      return; }
+    if (started > 240) { clearInterval(tick);        /* 120s ceiling, then stop */
+      try { console.log('[' + PATCH + '] gave up holding after 120s'); } catch (e) {}
+      return; }
+    holdClear();
+  }, 500);
+
+  try { console.log('[editor patch] ' + PATCH + ' armed'); } catch (e) {}
+})();
+</script>
+
+
+<!-- ──────────────────────────────────────────────────────────────────────────
+     PATCH 2026-08-09 · Opus · THE EDITOR BUILDS WHAT IT IS TOLD, NOT 20 OR 40
+     ==========================================================================
+     NOTHING ABOVE THIS LINE IS TOUCHED. This is a second complete new section,
+     appended at the end for the same reason as the one above: this file is live
+     work for Fable, so nothing here edits, re-runs or reaches inside any earlier
+     block. It REPLACES three window functions after they have been defined —
+     that is the whole mechanism. The originals are kept in hand and are used as
+     a fallback if anything unexpected happens before a single slide is moved.
+
+     REPORTED (Javed): "the editor should not be capped to twenty or forty, it
+     should make exactly as it is told by Hexa."
+
+     WHERE THE CAPS WERE
+       · ldComposeAppend  — "var room = 40 - state.pages.length" and then
+                            "Maximum 40 slides — remove one first". A deck that
+                            already held 40 slides could not take one more, and
+                            an order for 30 into a 20-slide deck silently became
+                            20 with "Only 20 more slides fit".
+       · aiAddSlides      — the prompt clamped to Math.min(20, …)
+       · aiAddMockups     — the same 20
+     None of these were product rules; the composer will build 100 and the deck
+     loader has never had a limit at all. A design arriving fresh from Hexa was
+     therefore always complete — it is only the editor's own "add more" buttons
+     that were short-changing you.
+
+     WHAT IS DIFFERENT NOW
+     The ceiling is window.LD_MAX_SLIDES, which starts at 500 — high enough to
+     be no ceiling in practice, and still a number rather than nothing at all, so
+     a runaway request cannot try to paint infinite canvases. Everything else in
+     the copied logic is the original, line for line: the same splice-never-
+     assign behaviour, the same font pre-load, the same "nothing was changed" on
+     every failure path.
+     ────────────────────────────────────────────────────────────────────────── -->
+<script>
+(function () {
+  var PATCH = '2026-08-09 · editor builds exactly what it is told';
+
+  /* the only ceiling left. Raise or lower it from the console at will. */
+  if (window.LD_MAX_SLIDES == null) window.LD_MAX_SLIDES = 500;
+
+  function install() {
+    if (typeof window.ldComposeAppend !== 'function') return false;
+    if (window.ldComposeAppend.__ldUncapped) return true;
+
+    var ORIGINAL = window.ldComposeAppend;
+
+    function say(m) { try { showToast(m); } catch (e) { try { console.log(m); } catch (e2) {} } }
+
+    var uncapped = async function (sentence, opts) {
+      opts = opts || {};
+      /* if any editor internal this needs is missing, hand straight back to the
+         original rather than risk half-doing the job */
+      if (typeof state === 'undefined' || !state || !state.pages ||
+          typeof makeBlankPage !== 'function' || typeof loadPageIntoCanvas !== 'function') {
+        return ORIGINAL.apply(this, arguments);
+      }
+      if (!window.LD_BACKEND) { say('Designer backend not reachable from here'); return 0; }
+      for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
+
+      var r;
+      try {
+        r = await fetch(window.LD_BACKEND + '/compose_ir', {
+          method: 'POST',
+          headers: window.ldHeaders ? window.ldHeaders('application/json') : { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sentence: sentence })
+        });
+      } catch (e) { say('Could not reach the design service — nothing was changed'); return 0; }
+
+      if (r.status === 401 || r.status === 403) { say('Please sign in on the main site first 🔐'); return 0; }
+      if (!r.ok) { say('The design service returned an error (' + r.status + ') — nothing was changed'); return 0; }
+
+      var d; try { d = await r.json(); } catch (e) { say('The reply could not be read — nothing was changed'); return 0; }
+      var deck = (d && d.deck) ? d.deck : null;
+      var slides = (deck && deck.slides) || [];
+      var plan = (d && d.plan) || (deck && deck._plan) || [];
+      if (!slides.length) { say('The design service sent no slides back — nothing was changed'); return 0; }
+      if (d && d.designNo != null) window.LD_DESIGN_NO = d.designNo;
+
+      function kindAt(i) {
+        var p = String(plan[i] || '');
+        var c = p.lastIndexOf(':');
+        return c > -1 ? p.slice(c + 1) : '';
+      }
+
+      var picked = [];
+      if (opts.onlyMockups) {
+        slides.forEach(function (s, i) { if (kindAt(i) === 'mockup') picked.push(s); });
+        if (!picked.length) { say('No mock-up slides came back — nothing was changed'); return 0; }
+      } else if (opts.prefer) {
+        var exact = [], rest = [];
+        slides.forEach(function (s, i) {
+          var k = kindAt(i);
+          if (k === 'mockup') return;
+          (k === opts.prefer ? exact : rest).push(s);
+        });
+        picked = exact.concat(rest);
+      } else {
+        slides.forEach(function (s, i) { if (kindAt(i) !== 'mockup') picked.push(s); });
+      }
+      if (opts.keep) picked = picked.slice(0, opts.keep);
+      if (!picked.length) { say('Nothing matched — nothing was changed'); return 0; }
+
+      /* ── THE CHANGE. Was: room = 40 - state.pages.length ─────────────────
+         A safety ceiling only, not a product rule. It is never reached in
+         normal use, and when it is, it says the real number rather than 40. */
+      var room = window.LD_MAX_SLIDES - state.pages.length;
+      if (room <= 0) {
+        say('This deck is at ' + state.pages.length + ' slides, the working maximum — remove one first');
+        return 0;
+      }
+      if (picked.length > room) {
+        picked = picked.slice(0, room);
+        say('Added ' + room + ' — that is the working maximum of ' + window.LD_MAX_SLIDES);
+      }
+
+      try {
+        var fs = {};
+        picked.forEach(function (s) {
+          (s.elements || []).forEach(function (e) {
+            if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(function (p) {
+              (p.runs || []).forEach(function (rn) { if (rn.font) fs[rn.font] = 1; });
+            });
+          });
+        });
+        var names = Object.keys(fs);
+        if (window.loadDeckFonts && names.length) await new Promise(function (res) { window.loadDeckFonts(names, res); });
+      } catch (e) {}
+
+      /* SPLICE, never assign — the deck that is open is untouched */
+      try { captureCurrentPage(); } catch (e) {}
+      var at = (state.currentPage == null ? state.pages.length - 1 : state.currentPage) + 1;
+      picked.forEach(function (slideIR, i) {
+        var page = makeBlankPage(Date.now() + i);
+        page.ir = slideIR;
+        state.pages.splice(at + i, 0, page);
+        state.notes.splice(at + i, 0, '');
+      });
+      try {
+        if (window._deckIR && window._deckIR.slides) {
+          Array.prototype.splice.apply(window._deckIR.slides, [at, 0].concat(picked));
+        }
+      } catch (e) {}
+
+      state.currentPage = at;
+      await loadPageIntoCanvas(state.currentPage);
+      try { renderPageThumbs && renderPageThumbs(); } catch (e) {}
+      try { pageRefresh && pageRefresh(); } catch (e) {}
+      try { saveState && saveState(); } catch (e) {}
+      return picked.length;
+    };
+
+    uncapped.__ldUncapped = true;
+    window.ldComposeAppend = uncapped;
+
+    /* ── the two prompts that clamped to 20 ───────────────────────────────
+       Rewritten rather than wrapped, because the clamp sits in the middle of
+       each one. The wording, the questions and the order of them are the
+       originals; only the number has moved. */
+    var CAP = 100;                       /* what the composer itself will build */
+
+    window.aiAddSlides = function () {
+      if (window.LD_IS_ADMIN === false) { say('Only the admin can generate slides'); return; }
+      var howMany = prompt('How many more slides in this style?', '5');
+      if (!howMany) return;
+      var n = Math.max(1, Math.min(CAP, parseInt(String(howMany).replace(/[^0-9]/g, ''), 10) || 0));
+      if (!n) { say('Give a number between 1 and ' + CAP); return; }
+
+      var about = prompt('Anything in particular?\n(optional — e.g. "more charts", "photo slides", or leave blank)', '') || '';
+      if (window.LD_DESIGN_NO == null && !about.trim()) {
+        about = prompt('This deck has no design number on it, so describe the look:\n(e.g. "dark navy corporate pitch deck")', '') || '';
+        if (!about.trim()) { say('Nothing to go on — cancelled'); return; }
+      }
+      var style = window.LD_DESIGN_NO != null ? ('use design ' + window.LD_DESIGN_NO + ' style, ') : '';
+      try { aiSetBusy(true, 'Adding ' + n + ' slides…'); } catch (e) {}
+      window.ldComposeAppend(style + about.trim() + (about.trim() ? ', ' : '') + (n + 2) + ' slides', { keep: n })
+        .then(function (added) { try { aiSetBusy(false); } catch (e) {} if (added) say(added + (added === 1 ? ' slide' : ' slides') + ' added ✓'); })
+        .catch(function () { try { aiSetBusy(false); } catch (e) {} say('Could not add the slides'); });
+    };
+
+    window.aiAddMockups = function () {
+      if (window.LD_IS_ADMIN === false) { say('Only the admin can generate slides'); return; }
+      var howMany = prompt('How many mock-up slides?\n(ready-to-fill slides in this design’s style)', '3');
+      if (!howMany) return;
+      var n = Math.max(1, Math.min(CAP, parseInt(String(howMany).replace(/[^0-9]/g, ''), 10) || 0));
+      if (!n) { say('Give a number between 1 and ' + CAP); return; }
+      var style = window.LD_DESIGN_NO != null ? ('use design ' + window.LD_DESIGN_NO + ' style, ') : '';
+      if (!style && !confirm('This deck has no design number on it, so the mock-ups will be built in a fresh look rather than matching it.\n\nCarry on?')) return;
+      try { aiSetBusy(true, 'Adding ' + n + ' mock-up slides…'); } catch (e) {}
+      window.ldComposeAppend(style + '4 slides, ' + n + ' mockup slides', { onlyMockups: true, keep: n })
+        .then(function (added) { try { aiSetBusy(false); } catch (e) {} if (added) say(added + ' mock-up ' + (added === 1 ? 'slide' : 'slides') + ' added ✓'); })
+        .catch(function () { try { aiSetBusy(false); } catch (e) {} say('Could not add the mock-ups'); });
+    };
+
+    try { console.log('[editor patch] ' + PATCH + ' installed — ceiling is now ' + window.LD_MAX_SLIDES); } catch (e) {}
+    return true;
+  }
+
+  /* the block that defines these runs earlier in the file, but only once the
+     page is parsed — so wait for it rather than assuming */
+  if (!install()) {
+    var tries = 0;
+    var t = setInterval(function () { tries++; if (install() || tries > 200) clearInterval(t); }, 250);
+  }
 })();
 </script>
 
