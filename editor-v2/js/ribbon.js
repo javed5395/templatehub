@@ -438,47 +438,43 @@
     return body;
   }
 
-  var THEME_CARDS = [
-    { id: 'clean',    bg: '#FFFFFF', ink: '#1F2430', dots: ['#7C3AED', '#2563EB', '#16A34A', '#F59E0B'] },
-    { id: 'midnight', bg: '#0F172A', ink: '#F8FAFC', dots: ['#818CF8', '#38BDF8', '#34D399', '#FBBF24'] },
-    { id: 'ocean',    bg: '#EFF6FF', ink: '#1E3A8A', dots: ['#2563EB', '#0EA5E9', '#14B8A6', '#F97316'] },
-    { id: 'forest',   bg: '#F0FDF4', ink: '#14532D', dots: ['#16A34A', '#65A30D', '#0D9488', '#CA8A04'] },
-    { id: 'blush',    bg: '#FDF2F8', ink: '#831843', dots: ['#DB2777', '#E11D48', '#A855F7', '#F59E0B'] },
-    { id: 'slate',    bg: '#F8FAFC', ink: '#0F172A', dots: ['#475569', '#64748B', '#0EA5E9', '#F43F5E'] },
-    { id: 'sunset',   bg: '#FFF7ED', ink: '#7C2D12', dots: ['#EA580C', '#DC2626', '#D97706', '#DB2777'] },
-    { id: 'mono',     bg: '#FFFFFF', ink: '#111827', dots: ['#111827', '#4B5563', '#9CA3AF', '#D1D5DB'] }
-  ];
   function themeCard(t) {
     var b = el('button', 'rb-theme');
-    b.type = 'button'; b.title = t.id.charAt(0).toUpperCase() + t.id.slice(1) + ' theme';
-    b.style.background = t.bg;
+    b.type = 'button'; b.title = t.name + ' theme';
+    b.style.background = t.bg || '#fff';
     var aa = el('span', 'rb-theme-aa', 'Aa');
-    aa.style.color = t.ink;
+    aa.style.color = t.heading || '#1F2430';
     b.appendChild(aa);
     var strip = el('span', 'rb-theme-strip');
-    t.dots.forEach(function (c) { var d = el('span'); d.style.background = c; strip.appendChild(d); });
+    [t.accent, t.heading, t.body, t.surface].forEach(function (c) {
+      if (!c) return;
+      var d = el('span'); d.style.background = c; strip.appendChild(d);
+    });
     b.appendChild(strip);
+    var nm = el('span', 'rb-theme-name', t.name);
+    nm.style.color = t.heading || '#1F2430';
+    b.appendChild(nm);
     b.addEventListener('click', function () { run('themeApply', t.id); });
     return b;
   }
   function tabDesign() {
     var body = el('div', 'rb-body-inner');
+    var themes = (window.RBAssets && window.RBAssets.THEME_PRESETS) || [];
     var gal = el('div', 'rb-theme-gallery');
-    THEME_CARDS.forEach(function (t) { gal.appendChild(themeCard(t)); });
-    var g = group('Themes'); g.firstChild.appendChild(gal);
+    themes.forEach(function (t) { gal.appendChild(themeCard(t)); });
+    var g = group('Themes — applies to every slide'); g.firstChild.appendChild(gal);
     body.appendChild(g);
-    body.appendChild(sepd());
-    body.appendChild(group('Variants',
-      big({ ic: 'theme-accent', label: 'Theme\nColours', cmd: 'themeColours' }),
-      big({ ic: 'theme-fonts', label: 'Theme\nFonts', cmd: 'themeFonts' })
-    ));
     body.appendChild(sepd());
     body.appendChild(group('Customise',
       big({ ic: 'bg-to-all', label: 'Background', pop: swatchPopover('background', BACKGROUNDS) }),
-      col(
-        small({ matIcon: 'crop_16_9', label: 'Widescreen 16:9', cmd: 'pageSize', arg: '16:9', press: 'size-169' }),
-        small({ matIcon: 'crop_5_4', label: 'Standard 4:3', cmd: 'pageSize', arg: '4:3', press: 'size-43' })
-      )
+      big({ ic: 'page-size', label: 'Slide\nSize', pop: function (pop) {
+        pop.appendChild(popRow({ matIcon: 'crop_16_9', label: '16:9 Widescreen', cmd: 'pageSize', arg: '16:9' }));
+        pop.appendChild(popRow({ matIcon: 'crop_5_4', label: '4:3 Standard', cmd: 'pageSize', arg: '4:3' }));
+        pop.appendChild(popRow({ matIcon: 'description', label: 'A4 Landscape', cmd: 'pageSize', arg: 'a4' }));
+        pop.appendChild(popRow({ matIcon: 'crop_square', label: 'Square 1:1', cmd: 'pageSize', arg: '1:1' }));
+        pop.appendChild(popRow({ matIcon: 'crop_16_9', label: '16:10', cmd: 'pageSize', arg: '16:10' }));
+      } }),
+      big({ ic: 'theme-fonts', label: 'Theme\nFonts', cmd: 'themeFonts' })
     ));
     return body;
   }
@@ -506,31 +502,48 @@
     return body;
   }
 
+  function animChip(colour) {
+    var c = el('span', 'rb-anim-chip');
+    c.style.background = colour;
+    return c;
+  }
+  function animCard(label, colour, kind) {
+    var b = el('button', 'rb-big');
+    b.type = 'button'; b.title = label;
+    b.appendChild(animChip(colour));
+    var lab = el('span', 'rb-big-lab', label);
+    b.appendChild(lab);
+    press('anim-' + kind, b);
+    b.addEventListener('click', function () { run('setAnimation', kind); setTimeout(sync, 0); });
+    return b;
+  }
   function tabAnimations() {
     var body = el('div', 'rb-body-inner');
     var gNone = group('None');
-    gNone.firstChild.appendChild(big({ ic: 'animation', label: 'None', cmd: 'setAnimation', arg: 'none' }));
+    gNone.firstChild.appendChild(animCard('None', '#E2E8F0', 'none'));
     body.appendChild(gNone);
     body.appendChild(sepd());
     var gIn = group('Entrance');
-    [{ k: 'appear', label: 'Appear' }, { k: 'fade-in', label: 'Fade' }, { k: 'fly-in', label: 'Fly In' },
-     { k: 'float-in', label: 'Float In' }, { k: 'wipe-in', label: 'Wipe' }, { k: 'zoom-in', label: 'Zoom' },
-     { k: 'bounce', label: 'Bounce' }].forEach(function (a) {
-      gIn.firstChild.appendChild(big({ ic: 'anim-ent', label: a.label, cmd: 'setAnimation', arg: a.k, press: 'anim-' + a.k }));
+    [['Appear', '#8B5CF6', 'appear'], ['Fade', '#F1734F', 'fade-in'], ['Fly in', '#14B8A6', 'fly-in'],
+     ['Float in', '#2563EB', 'float-in'], ['Split', '#EAB308', 'split-in'], ['Wipe', '#DB2777', 'wipe-in'],
+     ['Shape', '#16A34A', 'shape-in'], ['Wheel', '#EA580C', 'wheel'], ['Random bars', '#A78BFA', 'bars'],
+     ['Grow & turn', '#0EA5E9', 'grow-turn'], ['Zoom', '#DC2626', 'zoom-in'], ['Swivel', '#0F766E', 'swivel'],
+     ['Bounce', '#65A30D', 'bounce']].forEach(function (a) {
+      gIn.firstChild.appendChild(animCard(a[0], a[1], a[2]));
     });
     body.appendChild(gIn);
     body.appendChild(sepd());
     var gEm = group('Emphasis');
-    [{ k: 'pulse', label: 'Pulse' }, { k: 'teeter', label: 'Teeter' }, { k: 'spin', label: 'Spin' },
-     { k: 'grow', label: 'Grow' }].forEach(function (a) {
-      gEm.firstChild.appendChild(big({ ic: 'anim-emp', label: a.label, cmd: 'setAnimation', arg: a.k, press: 'anim-' + a.k }));
+    [['Pulse', '#F59E0B', 'pulse'], ['Teeter', '#FBBF24', 'teeter'], ['Spin', '#D97706', 'spin'],
+     ['Grow', '#CA8A04', 'grow']].forEach(function (a) {
+      gEm.firstChild.appendChild(animCard(a[0], a[1], a[2]));
     });
     body.appendChild(gEm);
     body.appendChild(sepd());
     var gOut = group('Exit');
-    [{ k: 'disappear', label: 'Disappear' }, { k: 'fade-out', label: 'Fade' }, { k: 'fly-out', label: 'Fly Out' },
-     { k: 'zoom-out', label: 'Zoom' }].forEach(function (a) {
-      gOut.firstChild.appendChild(big({ ic: 'anim-exit', label: a.label, cmd: 'setAnimation', arg: a.k, press: 'anim-' + a.k }));
+    [['Disappear', '#F87171', 'disappear'], ['Fade', '#EF4444', 'fade-out'], ['Fly out', '#DC2626', 'fly-out'],
+     ['Zoom', '#B91C1C', 'zoom-out']].forEach(function (a) {
+      gOut.firstChild.appendChild(animCard(a[0], a[1], a[2]));
     });
     body.appendChild(gOut);
     return body;

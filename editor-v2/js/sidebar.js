@@ -84,30 +84,46 @@
       return;
     }
   }
+  function svgCard(html, label, cmd, arg) {
+    var b = el('button', 'sb-card sb-card-svg');
+    b.type = 'button'; b.title = label;
+    var w = el('span', 'sb-card-art'); w.innerHTML = html;
+    b.appendChild(w);
+    b.appendChild(el('span', 'sb-card-lab', label));
+    b.addEventListener('click', function () { run(cmd, arg); });
+    return b;
+  }
   function panelElements(p) {
     p.appendChild(head('Elements'));
     p.appendChild(search('Search elements…'));
+    var A = window.RBAssets || {};
     p.appendChild(subhead('Shapes'));
-    p.appendChild(grid([
-      { matIcon: 'crop_square', label: 'Rectangle', cmd: 'insertShape', arg: 'rect' },
-      { matIcon: 'rounded_corner', label: 'Rounded', cmd: 'insertShape', arg: 'rounded' },
-      { matIcon: 'circle', label: 'Ellipse', cmd: 'insertShape', arg: 'circle' },
-      { matIcon: 'change_history', label: 'Triangle', cmd: 'insertShape', arg: 'triangle' },
-      { matIcon: 'hexagon', label: 'Hexagon', cmd: 'insertShape', arg: 'hexagon' },
-      { matIcon: 'star_outline', label: 'Star', cmd: 'insertShape', arg: 'star' },
-      { matIcon: 'east', label: 'Arrow', cmd: 'insertShape', arg: 'arrow' },
-      { matIcon: 'horizontal_rule', label: 'Line', cmd: 'insertLine' },
-      { matIcon: 'square', label: 'Diamond', cmd: 'insertShape', arg: 'diamond' }
-    ]));
-    p.appendChild(subhead('Frames'));
-    p.appendChild(grid([
-      { matIcon: 'crop_square', label: 'Square', cmd: 'insertFrame', arg: 'square' },
-      { matIcon: 'circle', label: 'Circle', cmd: 'insertFrame', arg: 'circle' },
-      { matIcon: 'rounded_corner', label: 'Rounded', cmd: 'insertFrame', arg: 'rounded' },
-      { matIcon: 'door_front', label: 'Arch', cmd: 'insertFrame', arg: 'arch' },
-      { matIcon: 'favorite_border', label: 'Heart', cmd: 'insertFrame', arg: 'heart' },
-      { matIcon: 'smartphone', label: 'Phone', cmd: 'insertFrame', arg: 'phone' }
-    ]));
+    var sg = el('div', 'sb-grid'); sg.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    [['rect', 'Rectangle'], ['rounded', 'Rounded'], ['circle', 'Ellipse'],
+     ['triangle', 'Triangle'], ['diamond', 'Diamond'], ['hexagon', 'Hexagon'],
+     ['star', 'Star'], ['arrow', 'Arrow'], ['line', 'Line']].forEach(function (s) {
+      var art = A.shapePreviewSvg ? A.shapePreviewSvg(s[0], 34) : '';
+      sg.appendChild(svgCard(art, s[1], s[0] === 'line' ? 'insertLine' : 'insertShape', s[0]));
+    });
+    p.appendChild(sg);
+    p.appendChild(subhead('Frames — drop a photo in'));
+    var fg = el('div', 'sb-grid'); fg.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    var fi = 0;
+    ['square', 'landscape', 'portrait', 'rounded', 'circle', 'diamond', 'triangle', 'hexagon', 'arch', 'heart']
+      .forEach(function (k) {
+        var art = A.framePreviewSvg ? A.framePreviewSvg(k, 92, fi++) : '';
+        var label = (A.FRAME_DEFS && A.FRAME_DEFS[k] && A.FRAME_DEFS[k].label) || k;
+        fg.appendChild(svgCard(art, label, 'insertFrame', k));
+      });
+    p.appendChild(fg);
+    p.appendChild(subhead('Device mockups'));
+    var dg = el('div', 'sb-grid'); dg.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    ['phone', 'tablet', 'laptop', 'browser', 'polaroid'].forEach(function (k) {
+      var art = A.framePreviewSvg ? A.framePreviewSvg(k, 92, fi++) : '';
+      var label = (A.FRAME_DEFS && A.FRAME_DEFS[k] && A.FRAME_DEFS[k].label) || k;
+      dg.appendChild(svgCard(art, label, 'insertFrame', k));
+    });
+    p.appendChild(dg);
     p.appendChild(subhead('Charts'));
     p.appendChild(grid([
       { matIcon: 'bar_chart', label: 'Bar', cmd: 'insertChart', arg: 'bar' },
