@@ -45,7 +45,15 @@
     'background','pageSize','zoom','zoomFit','fitWidth',
     'toggleRuler','toggleGrid','toggleGuides',
     'presentFromStart','presentFromCurrent',
-    'exportPptx','saveProject','newDesign'
+    'exportPptx','saveProject','newDesign',
+    'insertTable','insertIcon','insertWordArt','insertVideo','insertAudio','addComment',
+    'drawPen','drawHighlighter','drawEraser','drawClear',
+    'setTransition','setAnimation','accessibilityCheck',
+    'formatPainter','find','selectAll','deselect',
+    'drawColour','drawSize','themeApply',
+    'transitionDuration','transitionApplyAll',
+    'rehearse','presenterView','spellCheck','showComments','toggleNotes',
+    'viewNormal','viewSorter','openHelp','showShortcuts','sendFeedback'
   ];
   var impl = {};   /* real implementations register here in the wiring step */
 

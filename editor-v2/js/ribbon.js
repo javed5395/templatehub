@@ -1,891 +1,711 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   LAZYDOG EDITOR v2 — RIBBON (PowerPoint-style)             owner: Opus
+   LAZYDOG EDITOR v2 — RIBBON (PowerPoint-class)              owner: Fable
    ═══════════════════════════════════════════════════════════════════════
-   RULES (non-negotiable):
-   1. This file renders into #ribbon-slot and NOWHERE else.
-   2. It talks to the engine ONLY via:
-        Editor.run(cmd, arg)   Editor.query(key)   Editor.on(event, fn)
-      The full contract is in API.md. If something you need is missing
-      from API.md, STOP and report — do not reach around the wall.
-   3. FORBIDDEN here: fc, fabric, state, window._ld*, lazydog_renderer
-      functions, direct #canvas access. Any such reference = rejected.
-   4. Styling goes in css/editor.css under the "6. Ribbon styles" heading.
+   THE WALL: this file talks to the engine ONLY through
+   Editor.run / Editor.query / Editor.on  (contract: API.md).
+   Forbidden: engine internals, renderer functions, #canvas.
+   Icons: window.RBIcons (js/icons.js) — hand-drawn Office-coloured SVGs.
+   Styling: css/editor.css section 6.
    ═══════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
 
-  /* ─────────────────────────────────────────────────────────────────────
-     0. Tiny DOM helpers
-     ───────────────────────────────────────────────────────────────────── */
+  /* ── helpers ─────────────────────────────────────────────────────── */
   function el(tag, cls, txt) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
     if (txt != null) n.textContent = txt;
     return n;
   }
-  function icon(name) {
-    var i = el('span', 'material-icons-outlined rb-i');
-    i.textContent = name;
-    return i;
+  function svg(name, cls) {
+    var s = el('span', cls || 'rb-svg');
+    var art = (window.RBIcons && window.RBIcons[name]) || null;
+    if (art) s.innerHTML = art;
+    else { s.className = (cls || 'rb-svg') + ' rb-svg-mat material-icons-outlined'; s.textContent = name; }
+    return s;
   }
-  function run(cmd, arg) {
-    if (!window.Editor || typeof window.Editor.run !== 'function') return false;
-    return window.Editor.run(cmd, arg);
+  function mat(name, cls) {
+    var s = el('span', (cls || '') + ' material-icons-outlined');
+    s.textContent = name;
+    return s;
   }
-  function ask(key) {
-    if (!window.Editor || typeof window.Editor.query !== 'function') return null;
-    try { return window.Editor.query(key); } catch (e) { return null; }
-  }
-  function listen(ev, fn) {
-    if (window.Editor && typeof window.Editor.on === 'function') window.Editor.on(ev, fn);
-  }
+  function run(cmd, arg) { return window.Editor ? window.Editor.run(cmd, arg) : false; }
+  function ask(key) { try { return window.Editor ? window.Editor.query(key) : null; } catch (e) { return null; } }
+  function listen(ev, fn) { if (window.Editor) window.Editor.on(ev, fn); }
 
-  /* ─────────────────────────────────────────────────────────────────────
-     1. Palettes / presets (pure UI data)
-     ───────────────────────────────────────────────────────────────────── */
-  var TEXT_SWATCHES = [
-    '#1F2430', '#3B4252', '#5B6472', '#9AA3B2', '#CBD2DE', '#FFFFFF',
-    '#7C3AED', '#4F46E5', '#2563EB', '#0EA5E9', '#0D9488', '#16A34A',
-    '#CA8A04', '#EA580C', '#DC2626', '#DB2777', '#9333EA', '#78350F'
-  ];
-  var HIGHLIGHT_SWATCHES = [
-    '#FEF08A', '#FDE68A', '#FBCFE8', '#DDD6FE', '#BFDBFE', '#BBF7D0',
-    '#A7F3D0', '#FECACA', '#FED7AA', '#E9D5FF', '#E2E8F0', '#D9F99D'
-  ];
-  var BG_SWATCHES = [
-    '#FFFFFF', '#F8F9FB', '#F1F3F7', '#E8ECF4', '#1F2430', '#0F172A',
-    '#FDF6EC', '#FBEFEF', '#EEF6F1', '#EDF2FD', '#F3EEFC', '#FAF5E9'
-  ];
-  var SIZE_LADDER = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 54, 66, 80, 96];
-  var LINE_SPACING = [1.0, 1.15, 1.5, 2.0];
+  var slot = document.getElementById('ribbon-slot');
+  if (!slot) return;
 
-  var SHAPE_KINDS = [
-    { k: 'rect', label: 'Rectangle', ic: 'crop_square' },
-    { k: 'rounded', label: 'Rounded', ic: 'rounded_corner' },
-    { k: 'circle', label: 'Ellipse', ic: 'circle' },
-    { k: 'triangle', label: 'Triangle', ic: 'change_history' },
-    { k: 'diamond', label: 'Diamond', ic: 'diamond' },
-    { k: 'hexagon', label: 'Hexagon', ic: 'hexagon' },
-    { k: 'arrow', label: 'Arrow', ic: 'arrow_right_alt' },
-    { k: 'star', label: 'Star', ic: 'star_outline' },
-    { k: 'line', label: 'Line', ic: 'horizontal_rule' }
-  ];
-  var FRAME_KINDS = [
-    { k: 'square', label: 'Square', ic: 'crop_square' },
-    { k: 'circle', label: 'Circle', ic: 'circle' },
-    { k: 'rounded', label: 'Rounded', ic: 'rounded_corner' },
-    { k: 'arch', label: 'Arch', ic: 'door_front' },
-    { k: 'heart', label: 'Heart', ic: 'favorite_border' }
-  ];
-  var CHART_KINDS = [
-    { k: 'bar', label: 'Bar chart', ic: 'bar_chart' },
-    { k: 'line', label: 'Line chart', ic: 'show_chart' },
-    { k: 'pie', label: 'Pie chart', ic: 'pie_chart_outline' },
-    { k: 'donut', label: 'Donut chart', ic: 'donut_large' }
-  ];
-  var TEXT_KINDS = [
-    { k: 'heading', label: 'Heading', hint: 'Big title text', cls: 'rb-tk-h' },
-    { k: 'subheading', label: 'Subheading', hint: 'Section label', cls: 'rb-tk-s' },
-    { k: 'body', label: 'Body text', hint: 'Paragraph copy', cls: 'rb-tk-b' }
-  ];
-
-  /* ─────────────────────────────────────────────────────────────────────
-     2. Popover engine (one open at a time, outside-click + Esc close)
-     ───────────────────────────────────────────────────────────────────── */
-  var layer = null;      /* the popover layer inside #ribbon-slot */
-  var openPop = null;    /* { node, anchor } */
-
+  /* ── popover engine — anchored AT the button, 4px below it ───────── */
+  var openPop = null;
   function closePop() {
     if (!openPop) return;
-    if (openPop.anchor) openPop.anchor.classList.remove('is-open');
+    openPop.anchor.classList.remove('is-open');
     openPop.node.remove();
     openPop = null;
   }
-
   function showPop(anchor, builder) {
-    var wasSame = openPop && openPop.anchor === anchor;
+    var same = openPop && openPop.anchor === anchor;
     closePop();
-    if (wasSame) return;
-
+    if (same) return;
     var pop = el('div', 'rb-pop');
-    pop.setAttribute('role', 'dialog');
-    builder(pop, function () { closePop(); });
-    layer.appendChild(pop);
-
+    pop.setAttribute('role', 'menu');
+    builder(pop, closePop);
+    slot.appendChild(pop);
     var ar = anchor.getBoundingClientRect();
-    var lr = layer.getBoundingClientRect();
     var sr = slot.getBoundingClientRect();
-    var left = ar.left - lr.left;
-    var maxLeft = layer.clientWidth - pop.offsetWidth - 10;
-    if (left > maxLeft) left = maxLeft;
-    if (left < 10) left = 10;
-    /* drop below the whole ribbon so a popover never covers the ribbon */
-    var top = Math.max(ar.bottom, sr.bottom) - lr.top + 6;
+    var left = ar.left - sr.left;
+    if (left + pop.offsetWidth > sr.width - 8) left = sr.width - pop.offsetWidth - 8;
+    if (left < 8) left = 8;
     pop.style.left = Math.round(left) + 'px';
-    pop.style.top = Math.round(top) + 'px';
-
+    pop.style.top = Math.round(ar.bottom - sr.top + 4) + 'px';
     anchor.classList.add('is-open');
     openPop = { node: pop, anchor: anchor };
-
-    var focusable = pop.querySelector('input[type="text"], input[type="number"]');
-    if (focusable) setTimeout(function () { focusable.focus(); }, 0);
+    var f = pop.querySelector('input[type="text"], input[type="number"]');
+    if (f) setTimeout(function () { f.focus(); }, 0);
   }
-
   document.addEventListener('mousedown', function (e) {
-    if (!openPop) return;
-    if (openPop.node.contains(e.target) || openPop.anchor.contains(e.target)) return;
-    closePop();
+    if (openPop && !openPop.node.contains(e.target) && !openPop.anchor.contains(e.target)) closePop();
   });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && openPop) { closePop(); }
-  });
-  window.addEventListener('resize', closePop);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePop(); });
 
-  /* ─────────────────────────────────────────────────────────────────────
-     3. Button factories
-     ───────────────────────────────────────────────────────────────────── */
-  var registry = {
-    textOnly: [],   /* dimmed when the selection is not text */
-    press: {},      /* key → [nodes] for pressed-state sync    */
-    named: {}       /* id  → node                              */
-  };
+  /* ── live-state registry ─────────────────────────────────────────── */
+  var reg = { textOnly: [], press: {}, named: {} };
+  function press(key, node) { (reg.press[key] = reg.press[key] || []).push(node); }
 
-  function markTextOnly(btn) { registry.textOnly.push(btn); }
-  function markPress(key, btn) { (registry.press[key] = registry.press[key] || []).push(btn); }
-
-  function baseButton(spec, cls) {
-    var b = el('button', cls);
+  function wire(b, spec) {
+    if (spec.textOnly) reg.textOnly.push(b);
+    if (spec.press) press(spec.press, b);
+    if (spec.id) reg.named[spec.id] = b;
     b.type = 'button';
-    if (spec.title || spec.label) b.title = spec.title || spec.label;
-    if (spec.todo) b.setAttribute('data-todo', spec.todo);
-    if (spec.textOnly) markTextOnly(b);
-    if (spec.press) markPress(spec.press, b);
-    if (spec.id) registry.named[spec.id] = b;
-
+    b.title = spec.tip || spec.label || '';
     b.addEventListener('click', function () {
       if (spec.pop) { showPop(b, spec.pop); return; }
       closePop();
-      if (spec.onClick) { spec.onClick(b); return; }
-      if (spec.cmd) run(spec.cmd, spec.arg);
-      setTimeout(syncAll, 0);   /* re-read engine truth after every command */
+      if (spec.onClick) { spec.onClick(b); }
+      else if (spec.cmd) { run(spec.cmd, spec.arg); }
+      setTimeout(sync, 0);
     });
     return b;
   }
 
-  /* stacked large button — PowerPoint "Paste" style */
-  function bigButton(spec) {
-    var b = baseButton(spec, 'rb-btn rb-big' + (spec.primary ? ' is-primary' : ''));
-    b.appendChild(icon(spec.ic));
-    var l = el('span', 'rb-big-label');
-    l.textContent = spec.label;
-    b.appendChild(l);
-    if (spec.pop) b.appendChild(icon('arrow_drop_down')).classList.add('rb-caret');
+  /* ── control factories (Office look) ─────────────────────────────── */
+  function big(spec) {
+    var b = wire(el('button', 'rb-big'), spec);
+    b.appendChild(svg(spec.ic, 'rb-svg rb-svg-big'));
+    var lab = el('span', 'rb-big-lab');
+    String(spec.label).split('\n').forEach(function (line, i) {
+      if (i) lab.appendChild(el('br'));
+      lab.appendChild(document.createTextNode(line));
+    });
+    b.appendChild(lab);
+    if (spec.pop) lab.appendChild(mat('arrow_drop_down', 'rb-caret-b'));
     return b;
   }
-
-  /* icon-only compact button */
-  function iconButton(spec) {
-    var b = baseButton(spec, 'rb-btn rb-ico');
-    b.appendChild(icon(spec.ic));
-    b.setAttribute('aria-label', spec.title || spec.label || spec.cmd || '');
-    if (spec.pop) b.appendChild(icon('arrow_drop_down')).classList.add('rb-caret');
+  function small(spec) {
+    var b = wire(el('button', 'rb-sm' + (spec.label ? '' : ' rb-sm-ico')), spec);
+    b.appendChild(spec.matIcon ? mat(spec.matIcon, 'rb-svg-sm-mat') : svg(spec.ic, 'rb-svg rb-svg-sm'));
+    if (spec.label) b.appendChild(el('span', 'rb-sm-lab', spec.label));
+    if (spec.pop) b.appendChild(mat('arrow_drop_down', 'rb-caret-s'));
     return b;
   }
-
-  /* icon + text row button */
-  function rowButton(spec) {
-    var b = baseButton(spec, 'rb-btn rb-row-btn' + (spec.wide ? ' is-wide' : ''));
-    if (spec.ic) b.appendChild(icon(spec.ic));
-    b.appendChild(el('span', 'rb-row-label', spec.label));
-    if (spec.pop) b.appendChild(icon('arrow_drop_down')).classList.add('rb-caret');
-    return b;
-  }
-
-  /* combo control: value text + caret (font family / size) */
-  function comboButton(spec) {
-    var b = baseButton(spec, 'rb-btn rb-combo');
-    var v = el('span', 'rb-combo-val', spec.value || '');
-    if (spec.valueId) registry.named[spec.valueId] = v;
-    b.appendChild(v);
-    b.appendChild(icon('arrow_drop_down')).classList.add('rb-caret');
-    b.style.width = (spec.width || 132) + 'px';
-    return b;
-  }
-
-  function sep() { return el('div', 'rb-mini-sep'); }
-
-  /* static read-only chip (zoom percentage) */
-  function readout(spec) {
-    var n = el('div', 'rb-readout');
-    if (spec.ic) n.appendChild(icon(spec.ic));
-    var v = el('span', 'rb-row-label', spec.label || '');
-    n.appendChild(v);
-    if (spec.id) registry.named[spec.id] = n;
-    return n;
-  }
-
-  function build(item) {
-    switch (item.k) {
-      case 'big': return bigButton(item);
-      case 'ico': return iconButton(item);
-      case 'row': return rowButton(item);
-      case 'combo': return comboButton(item);
-      case 'readout': return readout(item);
-      case 'sep': return sep();
-      default: return el('div');
-    }
-  }
-
-  /* group = optional lead (big buttons) + up to two rows + thin label */
-  function group(label, def) {
-    var g = el('section', 'rb-group');
-    var body = el('div', 'rb-g-body');
-    (def.lead || []).forEach(function (it) { body.appendChild(build(it)); });
-    if (def.rows && def.rows.length) {
-      var stack = el('div', 'rb-rows');
-      def.rows.forEach(function (row) {
-        var r = el('div', 'rb-row');
-        row.forEach(function (it) { r.appendChild(build(it)); });
-        stack.appendChild(r);
-      });
-      body.appendChild(stack);
-    }
+  function group(label) {
+    var g = el('div', 'rb-group');
+    var body = el('div', 'rb-group-body');
     g.appendChild(body);
-    g.appendChild(el('div', 'rb-g-label', label));
+    g.appendChild(el('div', 'rb-group-lab', label));
+    for (var i = 1; i < arguments.length; i++) body.appendChild(arguments[i]);
+    return g;
+  }
+  function col() { var c = el('div', 'rb-col'); for (var i = 0; i < arguments.length; i++) c.appendChild(arguments[i]); return c; }
+  function row() { var r = el('div', 'rb-row'); for (var i = 0; i < arguments.length; i++) r.appendChild(arguments[i]); return r; }
+
+  function popRow(spec) {
+    var b = el('button', 'rb-pop-row');
+    b.type = 'button';
+    if (spec.ic) b.appendChild(svg(spec.ic, 'rb-svg rb-svg-sm'));
+    else if (spec.matIcon) b.appendChild(mat(spec.matIcon, 'rb-svg-sm-mat'));
+    var w = el('span', 'rb-pop-lab');
+    w.textContent = spec.label;
+    if (spec.hint) w.appendChild(el('span', 'rb-pop-hint', spec.hint));
+    b.appendChild(w);
+    b.addEventListener('click', function () { closePop(); if (spec.onClick) spec.onClick(); else run(spec.cmd, spec.arg); setTimeout(sync, 0); });
+    return b;
+  }
+  function popGrid(items, cols) {
+    var g = el('div', 'rb-pop-grid');
+    g.style.gridTemplateColumns = 'repeat(' + (cols || 4) + ', 1fr)';
+    items.forEach(function (it) {
+      var b = el('button', 'rb-pop-cell');
+      b.type = 'button'; b.title = it.label;
+      b.appendChild(it.matIcon ? mat(it.matIcon, 'rb-svg-sm-mat') : svg(it.ic, 'rb-svg rb-svg-sm'));
+      b.appendChild(el('span', 'rb-pop-cell-lab', it.label));
+      b.addEventListener('click', function () { closePop(); run(it.cmd, it.arg); setTimeout(sync, 0); });
+      g.appendChild(b);
+    });
     return g;
   }
 
-  /* ─────────────────────────────────────────────────────────────────────
-     4. Popover builders
-     ───────────────────────────────────────────────────────────────────── */
-  function popHeader(pop, text) { pop.appendChild(el('div', 'rb-pop-title', text)); }
-
-  function fontPopover(pop, done) {
+  /* ── shared popovers ─────────────────────────────────────────────── */
+  function fontPopover(pop, close) {
     pop.classList.add('rb-pop-font');
-    popHeader(pop, 'Font');
-    var search = el('input', 'rb-pop-search');
-    search.type = 'text';
-    search.placeholder = 'Search fonts';
-    search.setAttribute('aria-label', 'Search fonts');
-    pop.appendChild(search);
-
-    var list = el('div', 'rb-pop-list');
-    pop.appendChild(list);
-
+    var q = el('input'); q.type = 'text'; q.placeholder = 'Search fonts…';
+    var listBox = el('div', 'rb-pop-list');
     var fonts = ask('fonts') || [];
-    var ts = ask('textState');
-    var current = ts && ts.fontFamily ? ts.fontFamily : '';
-
-    function paint(filter) {
-      list.textContent = '';
-      var q = (filter || '').toLowerCase();
-      var shown = 0;
-      fonts.forEach(function (name) {
-        if (q && name.toLowerCase().indexOf(q) === -1) return;
-        shown++;
-        var row = el('button', 'rb-pop-row');
-        row.type = 'button';
-        var tick = icon('check');
-        tick.classList.add('rb-tick');
-        if (name !== current) tick.classList.add('is-hidden');
-        row.appendChild(tick);
-        var nm = el('span', 'rb-font-name', name);
-        nm.style.fontFamily = '"' + name + '", var(--font-ui)';
-        row.appendChild(nm);
-        row.addEventListener('click', function () {
-          run('fontFamily', name);
-          var slot = registry.named.fontValue;
-          if (slot) slot.textContent = name;
-          done();
-        });
-        list.appendChild(row);
+    var cur = (ask('textState') || {}).fontFamily || '';
+    function paint(f) {
+      listBox.innerHTML = '';
+      var m = fonts.filter(function (n) { return n.toLowerCase().indexOf(f) > -1; }).slice(0, 120);
+      m.forEach(function (n) {
+        var b = el('button', 'rb-pop-row' + (n === cur ? ' is-on' : ''));
+        b.type = 'button';
+        b.appendChild(mat(n === cur ? 'check' : '', 'rb-check'));
+        var s = el('span', 'rb-pop-lab', n);
+        s.style.fontFamily = "'" + n + "', sans-serif";
+        b.appendChild(s);
+        b.addEventListener('click', function () { close(); run('fontFamily', n); setTimeout(sync, 0); });
+        listBox.appendChild(b);
       });
-      if (!shown) list.appendChild(el('div', 'rb-pop-empty', 'No matching fonts'));
+      if (!m.length) listBox.appendChild(el('div', 'rb-pop-none', 'No matches'));
     }
+    q.addEventListener('input', function () { paint(q.value.trim().toLowerCase()); });
     paint('');
-    search.addEventListener('input', function () { paint(search.value); });
+    var qw = el('div', 'rb-pop-search'); qw.appendChild(q);
+    pop.appendChild(qw); pop.appendChild(listBox);
   }
-
-  function sizePopover(pop, done) {
+  function sizePopover(pop, close) {
     pop.classList.add('rb-pop-size');
-    popHeader(pop, 'Font size');
-    var ts = ask('textState');
-    var current = ts && ts.sizePt ? Number(ts.sizePt) : null;
-
-    var grid = el('div', 'rb-size-grid');
-    SIZE_LADDER.forEach(function (n) {
-      var b = el('button', 'rb-size-cell' + (current === n ? ' is-active' : ''), String(n));
+    var ladder = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 44, 54, 66, 80, 96];
+    var cur = Math.round((ask('textState') || {}).sizePt || 18);
+    var inp = el('input'); inp.type = 'number'; inp.min = 1; inp.max = 999; inp.value = cur;
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { close(); run('fontSize', parseFloat(inp.value) || cur); setTimeout(sync, 0); }
+    });
+    var iw = el('div', 'rb-pop-search'); iw.appendChild(inp);
+    pop.appendChild(iw);
+    var listBox = el('div', 'rb-pop-list');
+    ladder.forEach(function (s) {
+      var b = el('button', 'rb-pop-row' + (s === cur ? ' is-on' : ''));
       b.type = 'button';
-      b.addEventListener('click', function () {
-        run('fontSize', n);
-        var slot = registry.named.sizeValue;
-        if (slot) slot.textContent = String(n);
-        done();
+      b.appendChild(mat(s === cur ? 'check' : '', 'rb-check'));
+      b.appendChild(el('span', 'rb-pop-lab', String(s)));
+      b.addEventListener('click', function () { close(); run('fontSize', s); setTimeout(sync, 0); });
+      listBox.appendChild(b);
+    });
+    pop.appendChild(listBox);
+  }
+  function swatchPopover(cmd, swatches, extra) {
+    return function (pop, close) {
+      pop.classList.add('rb-pop-colours');
+      var g = el('div', 'rb-swatches');
+      swatches.forEach(function (c) {
+        var b = el('button', 'rb-sw');
+        b.type = 'button'; b.title = c; b.style.background = c;
+        b.addEventListener('click', function () { close(); run(cmd, c); setTimeout(sync, 0); });
+        g.appendChild(b);
       });
-      grid.appendChild(b);
-    });
-    pop.appendChild(grid);
-
-    var custom = el('div', 'rb-pop-custom');
-    custom.appendChild(el('span', 'rb-pop-custom-label', 'Custom'));
-    var num = el('input', 'rb-num');
-    num.type = 'number';
-    num.min = '4';
-    num.max = '400';
-    num.step = '1';
-    num.value = current ? String(current) : '';
-    num.setAttribute('aria-label', 'Custom font size');
-    custom.appendChild(num);
-    var apply = el('button', 'rb-pop-apply', 'Apply');
-    apply.type = 'button';
-    apply.addEventListener('click', function () {
-      var v = parseFloat(num.value);
-      if (!isNaN(v) && v > 0) {
-        run('fontSize', v);
-        var slot = registry.named.sizeValue;
-        if (slot) slot.textContent = String(v);
-      }
-      done();
-    });
-    num.addEventListener('keydown', function (e) { if (e.key === 'Enter') apply.click(); });
-    custom.appendChild(apply);
-    pop.appendChild(custom);
-  }
-
-  function swatchGrid(colours, onPick) {
-    var grid = el('div', 'rb-swatches');
-    colours.forEach(function (hex) {
-      var s = el('button', 'rb-swatch');
-      s.type = 'button';
-      s.title = hex.toUpperCase();
-      s.style.background = hex;
-      s.addEventListener('click', function () { onPick(hex); });
-      grid.appendChild(s);
-    });
-    return grid;
-  }
-
-  function customRow(labelText, initial, onPick) {
-    var wrap = el('div', 'rb-pop-custom');
-    var inp = el('input', 'rb-colour-input');
-    inp.type = 'color';
-    inp.value = initial || '#7C3AED';
-    inp.setAttribute('aria-label', labelText);
-    wrap.appendChild(inp);
-    wrap.appendChild(el('span', 'rb-pop-custom-label', labelText));
-    inp.addEventListener('input', function () { onPick(inp.value, true); });
-    inp.addEventListener('change', function () { onPick(inp.value, false); });
-    return wrap;
-  }
-
-  function colourPopover(title, colours, cmd) {
-    return function (pop, done) {
-      pop.classList.add('rb-pop-colour');
-      popHeader(pop, title);
-      pop.appendChild(swatchGrid(colours, function (hex) { run(cmd, hex); done(); }));
-      pop.appendChild(customRow('Custom colour', '#7C3AED', function (hex, live) {
-        run(cmd, hex);
-        if (!live) done();
-      }));
+      var wrap = el('label', 'rb-sw rb-sw-custom'); wrap.title = 'Custom colour';
+      wrap.appendChild(mat('colorize', 'rb-sw-ico'));
+      var inp = el('input'); inp.type = 'color';
+      inp.addEventListener('change', function () { close(); run(cmd, inp.value.toUpperCase()); setTimeout(sync, 0); });
+      wrap.appendChild(inp);
+      g.appendChild(wrap);
+      pop.appendChild(g);
+      if (extra) pop.appendChild(extra(close));
     };
   }
+  var TEXT_COLOURS = ['#1F2430', '#3B4252', '#5B6472', '#9AA3B2', '#FFFFFF', '#2B579A', '#5B9BD5', '#217346', '#70AD47', '#BF9000', '#FFC000', '#ED7D31', '#C43E1C', '#E81123', '#7719AA', '#B47EDE', '#D24726', '#0D9488'];
+  var HIGHLIGHTS = ['#FDE047', '#FEF08A', '#BBF7D0', '#BFDBFE', '#DDD6FE', '#FBCFE8', '#FED7AA', '#E2E8F0'];
+  var BACKGROUNDS = ['#FFFFFF', '#F8F9FB', '#EEF2F8', '#0F172A', '#1F2430', '#2B579A', '#FDF6EC', '#EAF3DE', '#F5EEFA', '#FDECEA', '#DEECF9', '#FFF8E5'];
 
-  function highlightPopover(pop, done) {
-    pop.classList.add('rb-pop-colour');
-    popHeader(pop, 'Highlight');
-    pop.appendChild(swatchGrid(HIGHLIGHT_SWATCHES, function (hex) { run('highlight', hex); done(); }));
-    var none = el('button', 'rb-pop-row rb-pop-none');
-    none.type = 'button';
-    none.appendChild(icon('format_color_reset'));
-    none.appendChild(el('span', 'rb-row-label', 'No highlight'));
-    none.addEventListener('click', function () { run('highlight', null); done(); });
-    pop.appendChild(none);
-    pop.appendChild(customRow('Custom colour', '#FEF08A', function (hex, live) {
-      run('highlight', hex);
-      if (!live) done();
-    }));
+  /* ── tab bodies ──────────────────────────────────────────────────── */
+  function sepd() { return el('div', 'rb-sep'); }
+
+  function tabHome() {
+    var fontCombo = wire(el('button', 'rb-combo rb-combo-font'), { id: 'fontCombo', tip: 'Font', textOnly: true, pop: fontPopover });
+    fontCombo.appendChild(el('span', 'rb-combo-val', 'DM Sans'));
+    fontCombo.appendChild(mat('arrow_drop_down', 'rb-caret-s'));
+    var sizeCombo = wire(el('button', 'rb-combo rb-combo-size'), { id: 'sizeCombo', tip: 'Font size', textOnly: true, pop: sizePopover });
+    sizeCombo.appendChild(el('span', 'rb-combo-val', '18'));
+    sizeCombo.appendChild(mat('arrow_drop_down', 'rb-caret-s'));
+
+    var body = el('div', 'rb-body-inner');
+    body.appendChild(group('Clipboard',
+      big({ ic: 'paste', label: 'Paste', cmd: 'paste' }),
+      col(
+        small({ ic: 'cut', label: 'Cut', cmd: 'cut' }),
+        small({ ic: 'copy', label: 'Copy', cmd: 'copy' }),
+        small({ ic: 'painter', label: 'Format painter', cmd: 'formatPainter' })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Slides',
+      big({ ic: 'new-slide', label: 'New\nSlide', cmd: 'addSlide' }),
+      col(
+        small({ ic: 'dup-slide', label: 'Duplicate slide', cmd: 'duplicateSlide' }),
+        small({ ic: 'delete', label: 'Delete slide', cmd: 'deleteSlide' })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Font',
+      col(
+        row(fontCombo, sizeCombo,
+          small({ matIcon: 'text_increase', tip: 'Grow font', cmd: 'fontStep', arg: 1, textOnly: true }),
+          small({ matIcon: 'text_decrease', tip: 'Shrink font', cmd: 'fontStep', arg: -1, textOnly: true }),
+          small({ matIcon: 'format_clear', tip: 'Clear formatting', cmd: 'clearFormat', textOnly: true })
+        ),
+        row(
+          small({ matIcon: 'format_bold', tip: 'Bold', cmd: 'bold', press: 'bold', textOnly: true }),
+          small({ matIcon: 'format_italic', tip: 'Italic', cmd: 'italic', press: 'italic', textOnly: true }),
+          small({ matIcon: 'format_underlined', tip: 'Underline', cmd: 'underline', press: 'underline', textOnly: true }),
+          small({ matIcon: 'strikethrough_s', tip: 'Strikethrough', cmd: 'strike', press: 'strike', textOnly: true }),
+          small({ ic: 'text-colour', tip: 'Font colour', textOnly: true, pop: swatchPopover('textColour', TEXT_COLOURS) }),
+          small({ ic: 'highlight', tip: 'Text highlight', textOnly: true, pop: swatchPopover('highlight', HIGHLIGHTS, function () {
+            return popRow({ matIcon: 'format_color_reset', label: 'No highlight', onClick: function () { run('highlight', null); } });
+          }) })
+        )
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Paragraph',
+      col(
+        row(
+          small({ ic: 'bullets', tip: 'Bullets', cmd: 'bullets', press: 'bullets', textOnly: true }),
+          small({ ic: 'numbering', tip: 'Numbering', cmd: 'numbering', press: 'numbering', textOnly: true }),
+          small({ matIcon: 'format_line_spacing', tip: 'Line spacing', textOnly: true, pop: function (pop) {
+            [1.0, 1.15, 1.5, 2.0].forEach(function (v) {
+              pop.appendChild(popRow({ matIcon: 'format_line_spacing', label: v.toFixed(2), cmd: 'lineSpacing', arg: v }));
+            });
+          } })
+        ),
+        row(
+          small({ matIcon: 'format_align_left', tip: 'Align left', cmd: 'align', arg: 'left', press: 'align-left', textOnly: true }),
+          small({ matIcon: 'format_align_center', tip: 'Centre', cmd: 'align', arg: 'center', press: 'align-center', textOnly: true }),
+          small({ matIcon: 'format_align_right', tip: 'Align right', cmd: 'align', arg: 'right', press: 'align-right', textOnly: true }),
+          small({ matIcon: 'format_align_justify', tip: 'Justify', cmd: 'align', arg: 'justify', press: 'align-justify', textOnly: true })
+        )
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Drawing',
+      big({ ic: 'shapes', label: 'Shapes', pop: function (pop) {
+        pop.appendChild(popGrid([
+          { matIcon: 'crop_square', label: 'Rectangle', cmd: 'insertShape', arg: 'rect' },
+          { matIcon: 'rounded_corner', label: 'Rounded', cmd: 'insertShape', arg: 'rounded' },
+          { matIcon: 'circle', label: 'Ellipse', cmd: 'insertShape', arg: 'circle' },
+          { matIcon: 'change_history', label: 'Triangle', cmd: 'insertShape', arg: 'triangle' },
+          { matIcon: 'square', label: 'Diamond', cmd: 'insertShape', arg: 'diamond' },
+          { matIcon: 'hexagon', label: 'Hexagon', cmd: 'insertShape', arg: 'hexagon' },
+          { matIcon: 'east', label: 'Arrow', cmd: 'insertShape', arg: 'arrow' },
+          { matIcon: 'star_outline', label: 'Star', cmd: 'insertShape', arg: 'star' },
+          { matIcon: 'horizontal_rule', label: 'Line', cmd: 'insertLine' }
+        ], 3));
+      } }),
+      big({ ic: 'arrange', label: 'Arrange', pop: function (pop) {
+        pop.appendChild(popRow({ matIcon: 'flip_to_front', label: 'Bring to front', cmd: 'front' }));
+        pop.appendChild(popRow({ matIcon: 'flip_to_back', label: 'Send to back', cmd: 'back' }));
+        pop.appendChild(popRow({ matIcon: 'arrow_upward', label: 'Bring forward', cmd: 'forward' }));
+        pop.appendChild(popRow({ matIcon: 'arrow_downward', label: 'Send backward', cmd: 'backward' }));
+        pop.appendChild(el('div', 'rb-pop-div'));
+        pop.appendChild(popRow({ matIcon: 'join_full', label: 'Group', cmd: 'group' }));
+        pop.appendChild(popRow({ matIcon: 'join_inner', label: 'Ungroup', cmd: 'ungroup' }));
+        pop.appendChild(el('div', 'rb-pop-div'));
+        pop.appendChild(popRow({ matIcon: 'rotate_right', label: 'Rotate 90°', cmd: 'rotate', arg: 90 }));
+        pop.appendChild(popRow({ matIcon: 'flip', label: 'Flip horizontal', cmd: 'flipH' }));
+        pop.appendChild(popRow({ matIcon: 'flip', label: 'Flip vertical', cmd: 'flipV' }));
+      } })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Editing',
+      col(
+        small({ ic: 'find', label: 'Find', cmd: 'find' }),
+        small({ matIcon: 'select_all', label: 'Select all', cmd: 'selectAll' }),
+        small({ matIcon: 'lock_open', label: 'Unlock all', cmd: 'unlockAll' })
+      )
+    ));
+    return body;
   }
 
-  function backgroundPopover(pop, done) {
-    pop.classList.add('rb-pop-colour');
-    popHeader(pop, 'Slide background');
-    pop.appendChild(swatchGrid(BG_SWATCHES, function (hex) { run('background', hex); done(); }));
-    pop.appendChild(customRow('Custom colour', '#FFFFFF', function (hex, live) {
-      run('background', hex);
-      if (!live) done();
-    }));
-  }
-
-  function lineSpacingPopover(pop, done) {
-    popHeader(pop, 'Line spacing');
-    LINE_SPACING.forEach(function (n) {
-      var row = el('button', 'rb-pop-row');
-      row.type = 'button';
-      row.appendChild(icon('format_line_spacing'));
-      row.appendChild(el('span', 'rb-row-label', n.toFixed(2).replace(/0$/, '').replace(/\.$/, '.0')));
-      row.addEventListener('click', function () { run('lineSpacing', n); done(); });
-      pop.appendChild(row);
-    });
-  }
-
-  function textKindPopover(pop, done) {
-    popHeader(pop, 'Add text');
-    TEXT_KINDS.forEach(function (t) {
-      var row = el('button', 'rb-pop-row rb-pop-row-tall');
-      row.type = 'button';
-      var box = el('div', 'rb-tk');
-      box.appendChild(el('span', 'rb-tk-name ' + t.cls, t.label));
-      box.appendChild(el('span', 'rb-tk-hint', t.hint));
-      row.appendChild(box);
-      row.addEventListener('click', function () { run('insertText', t.k); done(); });
-      pop.appendChild(row);
-    });
-  }
-
-  function tilePopover(title, kinds, cmd, lineCmd) {
-    return function (pop, done) {
-      pop.classList.add('rb-pop-tiles');
-      popHeader(pop, title);
-      var grid = el('div', 'rb-tiles');
-      kinds.forEach(function (s) {
-        var t = el('button', 'rb-tile');
-        t.type = 'button';
-        t.title = s.label;
-        t.appendChild(icon(s.ic));
-        t.appendChild(el('span', 'rb-tile-label', s.label));
-        t.addEventListener('click', function () {
-          if (lineCmd && s.k === 'line') run('insertLine');
-          else run(cmd, s.k);
-          done();
-        });
-        grid.appendChild(t);
-      });
-      pop.appendChild(grid);
-    };
-  }
-
-  /* ─────────────────────────────────────────────────────────────────────
-     5. Image picker (hidden input, lives inside #ribbon-slot)
-     ───────────────────────────────────────────────────────────────────── */
-  var fileInput = null;
-  function pickImage() {
-    if (!fileInput) return;
-    fileInput.value = '';
-    fileInput.click();
-  }
-  function wireFileInput() {
-    fileInput.addEventListener('change', function () {
-      var f = fileInput.files && fileInput.files[0];
+  function tabInsert() {
+    var file = el('input'); file.type = 'file'; file.accept = 'image/*'; file.className = 'rb-file';
+    file.addEventListener('change', function () {
+      var f = file.files && file.files[0];
       if (!f) return;
-      var reader = new FileReader();
-      reader.onload = function () { run('insertImage', reader.result); };
-      reader.readAsDataURL(f);
+      var r = new FileReader();
+      r.onload = function () { run('insertImage', r.result); };
+      r.readAsDataURL(f);
+      file.value = '';
     });
+    var body = el('div', 'rb-body-inner');
+    body.appendChild(file);
+    body.appendChild(group('Slides',
+      big({ ic: 'new-slide', label: 'New\nSlide', cmd: 'addSlide' }),
+      big({ ic: 'dup-slide', label: 'Reuse\nSlide', cmd: 'duplicateSlide' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Tables',
+      big({ ic: 'table', label: 'Table', cmd: 'insertTable' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Images',
+      big({ ic: 'image', label: 'Pictures', onClick: function () { file.click(); } }),
+      big({ ic: 'frames-lib', label: 'Frames', pop: function (pop) {
+        pop.appendChild(popGrid([
+          { matIcon: 'crop_square', label: 'Square', cmd: 'insertFrame', arg: 'square' },
+          { matIcon: 'circle', label: 'Circle', cmd: 'insertFrame', arg: 'circle' },
+          { matIcon: 'rounded_corner', label: 'Rounded', cmd: 'insertFrame', arg: 'rounded' },
+          { matIcon: 'door_front', label: 'Arch', cmd: 'insertFrame', arg: 'arch' },
+          { matIcon: 'favorite_border', label: 'Heart', cmd: 'insertFrame', arg: 'heart' }
+        ], 3));
+      } })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Illustrations',
+      big({ ic: 'shapes', label: 'Shapes', pop: function (pop) {
+        pop.appendChild(popGrid([
+          { matIcon: 'crop_square', label: 'Rectangle', cmd: 'insertShape', arg: 'rect' },
+          { matIcon: 'circle', label: 'Ellipse', cmd: 'insertShape', arg: 'circle' },
+          { matIcon: 'change_history', label: 'Triangle', cmd: 'insertShape', arg: 'triangle' },
+          { matIcon: 'hexagon', label: 'Hexagon', cmd: 'insertShape', arg: 'hexagon' },
+          { matIcon: 'east', label: 'Arrow', cmd: 'insertShape', arg: 'arrow' },
+          { matIcon: 'star_outline', label: 'Star', cmd: 'insertShape', arg: 'star' }
+        ], 3));
+      } }),
+      big({ ic: 'icons-lib', label: 'Icons', cmd: 'insertIcon' }),
+      big({ ic: 'chart', label: 'Chart', pop: function (pop) {
+        pop.appendChild(popGrid([
+          { matIcon: 'bar_chart', label: 'Bar', cmd: 'insertChart', arg: 'bar' },
+          { matIcon: 'show_chart', label: 'Line', cmd: 'insertChart', arg: 'line' },
+          { matIcon: 'pie_chart_outline', label: 'Pie', cmd: 'insertChart', arg: 'pie' },
+          { matIcon: 'donut_large', label: 'Donut', cmd: 'insertChart', arg: 'donut' }
+        ], 2));
+      } })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Comments',
+      big({ ic: 'comment-add', label: 'Comment', cmd: 'addComment' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Text',
+      big({ ic: 'textbox', label: 'Text\nBox', pop: function (pop) {
+        pop.appendChild(popRow({ matIcon: 'title', label: 'Heading', hint: 'Big title text', cmd: 'insertText', arg: 'heading' }));
+        pop.appendChild(popRow({ matIcon: 'text_fields', label: 'Subheading', hint: 'Section label', cmd: 'insertText', arg: 'subheading' }));
+        pop.appendChild(popRow({ matIcon: 'notes', label: 'Body text', hint: 'Paragraph copy', cmd: 'insertText', arg: 'body' }));
+      } }),
+      big({ ic: 'wordart', label: 'WordArt', cmd: 'insertWordArt' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Media',
+      big({ ic: 'video', label: 'Video', cmd: 'insertVideo' }),
+      big({ ic: 'audio', label: 'Audio', cmd: 'insertAudio' })
+    ));
+    return body;
   }
 
-  /* ─────────────────────────────────────────────────────────────────────
-     6. Tab definitions
-     ───────────────────────────────────────────────────────────────────── */
-  var TABS = [
-    { id: 'home', label: 'Home' },
-    { id: 'insert', label: 'Insert' },
-    { id: 'design', label: 'Design' },
-    { id: 'arrange', label: 'Arrange' },
-    { id: 'view', label: 'View' },
-    { id: 'present', label: 'Present' }
+  function tabDraw() {
+    var body = el('div', 'rb-body-inner');
+    body.appendChild(group('Drawing tools',
+      big({ ic: 'draw-pen', label: 'Pen', cmd: 'drawPen', press: 'draw-pen' }),
+      big({ ic: 'draw-highlighter', label: 'Highlighter', cmd: 'drawHighlighter', press: 'draw-high' }),
+      big({ ic: 'eraser', label: 'Eraser', cmd: 'drawEraser', press: 'draw-erase' })
+    ));
+    body.appendChild(sepd());
+    var swRow = row();
+    ['#1F2430', '#E81123', '#2B579A', '#217346', '#FFC000', '#7719AA'].forEach(function (c) {
+      var b = el('button', 'rb-drawsw');
+      b.type = 'button'; b.title = c; b.style.background = c;
+      b.addEventListener('click', function () { run('drawColour', c); });
+      swRow.appendChild(b);
+    });
+    body.appendChild(group('Colour & size',
+      col(
+        swRow,
+        row(
+          small({ matIcon: 'line_weight', label: 'Thickness', pop: function (pop) {
+            [2, 4, 8, 12].forEach(function (s) {
+              pop.appendChild(popRow({ matIcon: 'horizontal_rule', label: s + ' px', cmd: 'drawSize', arg: s }));
+            });
+          } })
+        )
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Edit',
+      col(
+        small({ matIcon: 'layers_clear', label: 'Clear all drawings', cmd: 'drawClear' })
+      )
+    ));
+    return body;
+  }
+
+  var THEME_CARDS = [
+    { id: 'clean',    bg: '#FFFFFF', ink: '#1F2430', dots: ['#7C3AED', '#2563EB', '#16A34A', '#F59E0B'] },
+    { id: 'midnight', bg: '#0F172A', ink: '#F8FAFC', dots: ['#818CF8', '#38BDF8', '#34D399', '#FBBF24'] },
+    { id: 'ocean',    bg: '#EFF6FF', ink: '#1E3A8A', dots: ['#2563EB', '#0EA5E9', '#14B8A6', '#F97316'] },
+    { id: 'forest',   bg: '#F0FDF4', ink: '#14532D', dots: ['#16A34A', '#65A30D', '#0D9488', '#CA8A04'] },
+    { id: 'blush',    bg: '#FDF2F8', ink: '#831843', dots: ['#DB2777', '#E11D48', '#A855F7', '#F59E0B'] },
+    { id: 'slate',    bg: '#F8FAFC', ink: '#0F172A', dots: ['#475569', '#64748B', '#0EA5E9', '#F43F5E'] },
+    { id: 'sunset',   bg: '#FFF7ED', ink: '#7C2D12', dots: ['#EA580C', '#DC2626', '#D97706', '#DB2777'] },
+    { id: 'mono',     bg: '#FFFFFF', ink: '#111827', dots: ['#111827', '#4B5563', '#9CA3AF', '#D1D5DB'] }
   ];
-
-  function homeTab() {
-    var f = document.createDocumentFragment();
-
-    f.appendChild(group('Clipboard', {
-      lead: [{ k: 'big', ic: 'content_paste', label: 'Paste', cmd: 'paste', primary: true }],
-      rows: [
-        [{ k: 'row', ic: 'content_cut', label: 'Cut', cmd: 'cut' },
-         { k: 'row', ic: 'content_copy', label: 'Copy', cmd: 'copy' }],
-        [{ k: 'row', ic: 'copy_all', label: 'Duplicate', cmd: 'duplicate' },
-         { k: 'row', ic: 'delete_outline', label: 'Delete', cmd: 'delete' }]
-      ]
-    }));
-
-    f.appendChild(group('Font', {
-      rows: [
-        [{ k: 'combo', value: 'DM Sans', valueId: 'fontValue', width: 148, title: 'Font family',
-           textOnly: true, pop: fontPopover },
-         { k: 'combo', value: '18', valueId: 'sizeValue', width: 68, title: 'Font size',
-           textOnly: true, pop: sizePopover },
-         { k: 'ico', ic: 'text_increase', title: 'Grow font', cmd: 'fontStep', arg: 1, textOnly: true },
-         { k: 'ico', ic: 'text_decrease', title: 'Shrink font', cmd: 'fontStep', arg: -1, textOnly: true },
-         { k: 'ico', ic: 'format_clear', title: 'Clear formatting', cmd: 'clearFormat', textOnly: true }],
-        [{ k: 'ico', ic: 'format_bold', title: 'Bold', cmd: 'bold', press: 'bold', textOnly: true },
-         { k: 'ico', ic: 'format_italic', title: 'Italic', cmd: 'italic', press: 'italic', textOnly: true },
-         { k: 'ico', ic: 'format_underlined', title: 'Underline', cmd: 'underline', press: 'underline', textOnly: true },
-         { k: 'ico', ic: 'format_strikethrough', title: 'Strikethrough', cmd: 'strike', press: 'strike', textOnly: true },
-         { k: 'sep' },
-         { k: 'ico', ic: 'format_color_text', title: 'Text colour', textOnly: true,
-           pop: colourPopover('Text colour', TEXT_SWATCHES, 'textColour') },
-         { k: 'ico', ic: 'format_color_fill', title: 'Highlight', textOnly: true, pop: highlightPopover }]
-      ]
-    }));
-
-    f.appendChild(group('Paragraph', {
-      rows: [
-        [{ k: 'ico', ic: 'format_list_bulleted', title: 'Bullets', cmd: 'bullets', press: 'bullet', textOnly: true },
-         { k: 'ico', ic: 'format_list_numbered', title: 'Numbering', cmd: 'numbering', press: 'number', textOnly: true },
-         { k: 'sep' },
-         { k: 'ico', ic: 'format_line_spacing', title: 'Line spacing', textOnly: true, pop: lineSpacingPopover }],
-        [{ k: 'ico', ic: 'format_align_left', title: 'Align left', cmd: 'align', arg: 'left', press: 'align:left', textOnly: true },
-         { k: 'ico', ic: 'format_align_center', title: 'Align centre', cmd: 'align', arg: 'center', press: 'align:center', textOnly: true },
-         { k: 'ico', ic: 'format_align_right', title: 'Align right', cmd: 'align', arg: 'right', press: 'align:right', textOnly: true },
-         { k: 'ico', ic: 'format_align_justify', title: 'Justify', cmd: 'align', arg: 'justify', press: 'align:justify', textOnly: true }]
-      ]
-    }));
-
-    f.appendChild(group('Editing', {
-      lead: [{ k: 'big', ic: 'lock_open', label: 'Unlock all', cmd: 'unlockAll' }]
-    }));
-
-    return f;
+  function themeCard(t) {
+    var b = el('button', 'rb-theme');
+    b.type = 'button'; b.title = t.id.charAt(0).toUpperCase() + t.id.slice(1) + ' theme';
+    b.style.background = t.bg;
+    var aa = el('span', 'rb-theme-aa', 'Aa');
+    aa.style.color = t.ink;
+    b.appendChild(aa);
+    var strip = el('span', 'rb-theme-strip');
+    t.dots.forEach(function (c) { var d = el('span'); d.style.background = c; strip.appendChild(d); });
+    b.appendChild(strip);
+    b.addEventListener('click', function () { run('themeApply', t.id); });
+    return b;
+  }
+  function tabDesign() {
+    var body = el('div', 'rb-body-inner');
+    var gal = el('div', 'rb-theme-gallery');
+    THEME_CARDS.forEach(function (t) { gal.appendChild(themeCard(t)); });
+    var g = group('Themes'); g.firstChild.appendChild(gal);
+    body.appendChild(g);
+    body.appendChild(sepd());
+    body.appendChild(group('Variants',
+      big({ ic: 'theme-accent', label: 'Theme\nColours', cmd: 'themeColours' }),
+      big({ ic: 'theme-fonts', label: 'Theme\nFonts', cmd: 'themeFonts' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Customise',
+      big({ ic: 'bg-to-all', label: 'Background', pop: swatchPopover('background', BACKGROUNDS) }),
+      col(
+        small({ matIcon: 'crop_16_9', label: 'Widescreen 16:9', cmd: 'pageSize', arg: '16:9', press: 'size-169' }),
+        small({ matIcon: 'crop_5_4', label: 'Standard 4:3', cmd: 'pageSize', arg: '4:3', press: 'size-43' })
+      )
+    ));
+    return body;
   }
 
-  function insertTab() {
-    var f = document.createDocumentFragment();
-
-    f.appendChild(group('Slides', {
-      lead: [{ k: 'big', ic: 'add_box', label: 'New slide', cmd: 'addSlide', primary: true }],
-      rows: [
-        [{ k: 'row', ic: 'library_add', label: 'Duplicate slide', cmd: 'duplicateSlide', wide: true }]
-      ]
-    }));
-
-    f.appendChild(group('Text', {
-      lead: [{ k: 'big', ic: 'title', label: 'Text box', pop: textKindPopover }]
-    }));
-
-    f.appendChild(group('Illustrations', {
-      lead: [
-        { k: 'big', ic: 'category', label: 'Shapes', pop: tilePopover('Shapes', SHAPE_KINDS, 'insertShape', true) },
-        { k: 'big', ic: 'filter_frames', label: 'Frames', pop: tilePopover('Frames', FRAME_KINDS, 'insertFrame', false) },
-        { k: 'big', ic: 'insert_chart_outlined', label: 'Charts', pop: tilePopover('Charts', CHART_KINDS, 'insertChart', false) }
-      ]
-    }));
-
-    f.appendChild(group('Media', {
-      lead: [{ k: 'big', ic: 'image', label: 'Image', onClick: pickImage }]
-    }));
-
-    return f;
-  }
-
-  function designTab() {
-    var f = document.createDocumentFragment();
-
-    f.appendChild(group('Page setup', {
-      rows: [
-        [{ k: 'row', ic: 'crop_16_9', label: 'Widescreen 16:9', cmd: 'pageSize', arg: '16:9',
-           id: 'ratio16', wide: true }],
-        [{ k: 'row', ic: 'crop_5_4', label: 'Standard 4:3', cmd: 'pageSize', arg: '4:3',
-           id: 'ratio43', wide: true }]
-      ]
-    }));
-
-    f.appendChild(group('Background', {
-      lead: [{ k: 'big', ic: 'format_paint', label: 'Background', pop: backgroundPopover }]
-    }));
-
-    return f;
-  }
-
-  function arrangeTab() {
-    var f = document.createDocumentFragment();
-
-    f.appendChild(group('Order', {
-      rows: [
-        [{ k: 'row', ic: 'flip_to_front', label: 'Bring to front', cmd: 'front', wide: true },
-         { k: 'row', ic: 'arrow_upward', label: 'Forward', cmd: 'forward' }],
-        [{ k: 'row', ic: 'flip_to_back', label: 'Send to back', cmd: 'back', wide: true },
-         { k: 'row', ic: 'arrow_downward', label: 'Backward', cmd: 'backward' }]
-      ]
-    }));
-
-    f.appendChild(group('Group', {
-      rows: [
-        [{ k: 'row', ic: 'group_work', label: 'Group', cmd: 'group', wide: true }],
-        [{ k: 'row', ic: 'scatter_plot', label: 'Ungroup', cmd: 'ungroup', wide: true }]
-      ]
-    }));
-
-    f.appendChild(group('Align', {
-      rows: [
-        [{ k: 'ico', ic: 'align_horizontal_left', title: 'Align left', cmd: 'alignSlide', arg: 'left' },
-         { k: 'ico', ic: 'align_horizontal_center', title: 'Centre horizontally', cmd: 'alignSlide', arg: 'centerH' },
-         { k: 'ico', ic: 'align_horizontal_right', title: 'Align right', cmd: 'alignSlide', arg: 'right' }],
-        [{ k: 'ico', ic: 'align_vertical_top', title: 'Align top', cmd: 'alignSlide', arg: 'top' },
-         { k: 'ico', ic: 'align_vertical_center', title: 'Centre vertically', cmd: 'alignSlide', arg: 'centerV' },
-         { k: 'ico', ic: 'align_vertical_bottom', title: 'Align bottom', cmd: 'alignSlide', arg: 'bottom' }]
-      ]
-    }));
-
-    f.appendChild(group('Distribute', {
-      rows: [
-        [{ k: 'row', ic: 'horizontal_distribute', label: 'Horizontal', cmd: 'distribute', arg: 'h', wide: true }],
-        [{ k: 'row', ic: 'vertical_distribute', label: 'Vertical', cmd: 'distribute', arg: 'v', wide: true }]
-      ]
-    }));
-
-    f.appendChild(group('Rotate', {
-      rows: [
-        [{ k: 'row', ic: 'rotate_90_degrees_ccw', label: 'Rotate 90°', cmd: 'rotate', arg: 90, wide: true }],
-        [{ k: 'ico', ic: 'swap_horiz', title: 'Flip horizontal', cmd: 'flipH' },
-         { k: 'ico', ic: 'swap_vert', title: 'Flip vertical', cmd: 'flipV' }]
-      ]
-    }));
-
-    f.appendChild(group('Lock', {
-      rows: [
-        [{ k: 'row', ic: 'lock', label: 'Lock', cmd: 'lock', wide: true }],
-        [{ k: 'row', ic: 'lock_open', label: 'Unlock all', cmd: 'unlockAll', wide: true }]
-      ]
-    }));
-
-    return f;
-  }
-
-  function viewTab() {
-    var f = document.createDocumentFragment();
-
-    f.appendChild(group('Zoom', {
-      lead: [{ k: 'big', ic: 'zoom_in', label: 'Fit', cmd: 'zoomFit' }],
-      rows: [
-        [{ k: 'row', ic: 'zoom_out_map', label: '50%', cmd: 'zoom', arg: 50 },
-         { k: 'row', ic: 'crop_free', label: '100%', cmd: 'zoom', arg: 100 }],
-        [{ k: 'row', ic: 'aspect_ratio', label: 'Fit width', cmd: 'fitWidth' },
-         { k: 'readout', ic: 'percent', label: '100%', id: 'zoomReadout' }]
-      ]
-    }));
-
-    f.appendChild(group('Show', {
-      rows: [
-        [{ k: 'row', ic: 'straighten', label: 'Ruler', cmd: 'toggleRuler', press: 'view:ruler', wide: true }],
-        [{ k: 'row', ic: 'grid_on', label: 'Gridlines', cmd: 'toggleGrid', press: 'view:grid' },
-         { k: 'row', ic: 'border_inner', label: 'Guides', cmd: 'toggleGuides', press: 'view:guides' }]
-      ]
-    }));
-
-    return f;
-  }
-
-  function presentTab() {
-    var f = document.createDocumentFragment();
-
-    f.appendChild(group('Start', {
-      lead: [{ k: 'big', ic: 'slideshow', label: 'From start', cmd: 'presentFromStart', primary: true }],
-      rows: [
-        [{ k: 'row', ic: 'play_arrow', label: 'From current slide', cmd: 'presentFromCurrent', wide: true }]
-      ]
-    }));
-
-    f.appendChild(group('File', {
-      rows: [
-        [{ k: 'row', ic: 'download', label: 'Export .pptx', cmd: 'exportPptx', wide: true }],
-        [{ k: 'row', ic: 'save', label: 'Save project', cmd: 'saveProject' },
-         { k: 'row', ic: 'note_add', label: 'New design', cmd: 'newDesign' }]
-      ]
-    }));
-
-    return f;
-  }
-
-  var BUILDERS = {
-    home: homeTab, insert: insertTab, design: designTab,
-    arrange: arrangeTab, view: viewTab, present: presentTab
-  };
-
-  /* ─────────────────────────────────────────────────────────────────────
-     7. Shell assembly
-     ───────────────────────────────────────────────────────────────────── */
-  var slot, tabsBar, bodyEl, activeTab = 'home';
-  var tabButtons = {};
-
-  function selectTab(id) {
-    if (!BUILDERS[id]) return;
-    closePop();
-    activeTab = id;
-    Object.keys(tabButtons).forEach(function (k) {
-      tabButtons[k].classList.toggle('is-active', k === id);
-      tabButtons[k].setAttribute('aria-selected', k === id ? 'true' : 'false');
+  function tabTransitions() {
+    var body = el('div', 'rb-body-inner');
+    var g = group('Transition to this slide');
+    [{ k: 'none', label: 'None' }, { k: 'fade', label: 'Fade' }, { k: 'slide', label: 'Push' },
+     { k: 'wipe', label: 'Wipe' }, { k: 'split', label: 'Split' }, { k: 'reveal', label: 'Reveal' },
+     { k: 'zoom', label: 'Zoom' }].forEach(function (t) {
+      g.firstChild.appendChild(big({ ic: 'transition', label: t.label, cmd: 'setTransition', arg: t.k, press: 'trans-' + t.k }));
     });
-    /* rebuilding wipes registered nodes for the old tab */
-    registry.textOnly = [];
-    registry.press = {};
-    registry.named = {};
-    bodyEl.textContent = '';
-    var panel = el('div', 'rb-panel');
-    panel.appendChild(BUILDERS[id]());
-    bodyEl.appendChild(panel);
-    syncAll();
+    body.appendChild(g);
+    body.appendChild(sepd());
+    body.appendChild(group('Timing',
+      col(
+        small({ matIcon: 'timer', label: 'Duration', pop: function (pop) {
+          [300, 500, 800, 1200, 2000].forEach(function (ms) {
+            pop.appendChild(popRow({ matIcon: 'timer', label: (ms / 1000).toFixed(1) + ' s', cmd: 'transitionDuration', arg: ms }));
+          });
+        } }),
+        small({ matIcon: 'done_all', label: 'Apply to all slides', cmd: 'transitionApplyAll' })
+      )
+    ));
+    return body;
   }
 
-  function mount() {
-    slot = document.getElementById('ribbon-slot');
-    if (!slot) return;
-    slot.textContent = '';
-    slot.classList.add('rb');
-
-    /* ── top row ── */
-    var top = el('div', 'rb-top');
-
-    var qat = el('div', 'rb-qat');
-    var undoBtn = el('button', 'rb-qbtn');
-    undoBtn.type = 'button';
-    undoBtn.title = 'Undo';
-    undoBtn.setAttribute('aria-label', 'Undo');
-    undoBtn.appendChild(icon('undo'));
-    undoBtn.addEventListener('click', function () { closePop(); run('undo'); });
-    var redoBtn = el('button', 'rb-qbtn');
-    redoBtn.type = 'button';
-    redoBtn.title = 'Redo';
-    redoBtn.setAttribute('aria-label', 'Redo');
-    redoBtn.appendChild(icon('redo'));
-    redoBtn.addEventListener('click', function () { closePop(); run('redo'); });
-    qat.appendChild(undoBtn);
-    qat.appendChild(redoBtn);
-    top.appendChild(qat);
-    registry.qat = { undo: undoBtn, redo: redoBtn };
-
-    top.appendChild(el('div', 'rb-top-sep'));
-
-    tabsBar = el('nav', 'rb-tabs');
-    tabsBar.setAttribute('role', 'tablist');
-    TABS.forEach(function (t) {
-      var b = el('button', 'rb-tab', t.label);
-      b.type = 'button';
-      b.setAttribute('role', 'tab');
-      b.addEventListener('click', function () { selectTab(t.id); });
-      tabButtons[t.id] = b;
-      tabsBar.appendChild(b);
+  function tabAnimations() {
+    var body = el('div', 'rb-body-inner');
+    var gNone = group('None');
+    gNone.firstChild.appendChild(big({ ic: 'animation', label: 'None', cmd: 'setAnimation', arg: 'none' }));
+    body.appendChild(gNone);
+    body.appendChild(sepd());
+    var gIn = group('Entrance');
+    [{ k: 'appear', label: 'Appear' }, { k: 'fade-in', label: 'Fade' }, { k: 'fly-in', label: 'Fly In' },
+     { k: 'float-in', label: 'Float In' }, { k: 'wipe-in', label: 'Wipe' }, { k: 'zoom-in', label: 'Zoom' },
+     { k: 'bounce', label: 'Bounce' }].forEach(function (a) {
+      gIn.firstChild.appendChild(big({ ic: 'anim-ent', label: a.label, cmd: 'setAnimation', arg: a.k, press: 'anim-' + a.k }));
     });
-    top.appendChild(tabsBar);
-
-    var actions = el('div', 'rb-actions');
-    var presentBtn = el('button', 'rb-action');
-    presentBtn.type = 'button';
-    presentBtn.appendChild(icon('slideshow'));
-    presentBtn.appendChild(el('span', null, 'Present'));
-    presentBtn.addEventListener('click', function () { closePop(); run('presentFromStart'); });
-    actions.appendChild(presentBtn);
-
-    var dlBtn = el('button', 'rb-action is-primary');
-    dlBtn.type = 'button';
-    dlBtn.appendChild(icon('download'));
-    dlBtn.appendChild(el('span', null, 'Download'));
-    dlBtn.addEventListener('click', function () { closePop(); run('exportPptx'); });
-    actions.appendChild(dlBtn);
-    top.appendChild(actions);
-
-    slot.appendChild(top);
-
-    /* ── body ── */
-    bodyEl = el('div', 'rb-body');
-    slot.appendChild(bodyEl);
-
-    /* ── popover layer + hidden file input (both inside the slot) ── */
-    layer = el('div', 'rb-pop-layer');
-    slot.appendChild(layer);
-
-    fileInput = el('input', 'rb-file');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    wireFileInput();
-    slot.appendChild(fileInput);
-
-    selectTab('home');
-    wireEvents();
+    body.appendChild(gIn);
+    body.appendChild(sepd());
+    var gEm = group('Emphasis');
+    [{ k: 'pulse', label: 'Pulse' }, { k: 'teeter', label: 'Teeter' }, { k: 'spin', label: 'Spin' },
+     { k: 'grow', label: 'Grow' }].forEach(function (a) {
+      gEm.firstChild.appendChild(big({ ic: 'anim-emp', label: a.label, cmd: 'setAnimation', arg: a.k, press: 'anim-' + a.k }));
+    });
+    body.appendChild(gEm);
+    body.appendChild(sepd());
+    var gOut = group('Exit');
+    [{ k: 'disappear', label: 'Disappear' }, { k: 'fade-out', label: 'Fade' }, { k: 'fly-out', label: 'Fly Out' },
+     { k: 'zoom-out', label: 'Zoom' }].forEach(function (a) {
+      gOut.firstChild.appendChild(big({ ic: 'anim-exit', label: a.label, cmd: 'setAnimation', arg: a.k, press: 'anim-' + a.k }));
+    });
+    body.appendChild(gOut);
+    return body;
   }
 
-  /* ─────────────────────────────────────────────────────────────────────
-     8. Live state sync
-     ───────────────────────────────────────────────────────────────────── */
-  function setPressed(key, on) {
-    (registry.press[key] || []).forEach(function (n) { n.classList.toggle('is-on', !!on); });
+  function tabSlideShow() {
+    var body = el('div', 'rb-body-inner');
+    body.appendChild(group('Start slide show',
+      big({ ic: 'present-start', label: 'From\nBeginning', cmd: 'presentFromStart' }),
+      big({ ic: 'present-current', label: 'From Current\nSlide', cmd: 'presentFromCurrent' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Set up',
+      big({ ic: 'rehearse', label: 'Rehearse\nTimings', cmd: 'rehearse' }),
+      big({ ic: 'presenter-view', label: 'Presenter\nView', cmd: 'presenterView' })
+    ));
+    return body;
   }
-  function dim(node, on) { if (node) node.classList.toggle('is-dim', !!on); }
 
-  function syncText() {
+  function tabReview() {
+    var body = el('div', 'rb-body-inner');
+    body.appendChild(group('Proofing',
+      big({ ic: 'proof-spell', label: 'Spelling', cmd: 'spellCheck' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Comments',
+      big({ ic: 'comment-add', label: 'New\nComment', cmd: 'addComment' }),
+      col(
+        small({ matIcon: 'forum', label: 'Show comments', cmd: 'showComments' })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Accessibility',
+      big({ ic: 'a11y', label: 'Check\nAccessibility', cmd: 'accessibilityCheck' })
+    ));
+    return body;
+  }
+
+  function tabView() {
+    var body = el('div', 'rb-body-inner');
+    body.appendChild(group('Presentation views',
+      big({ ic: 'normal-view', label: 'Normal', cmd: 'viewNormal' }),
+      big({ ic: 'sorter', label: 'Slide\nSorter', cmd: 'viewSorter' }),
+      big({ ic: 'notes-view', label: 'Notes', cmd: 'toggleNotes', press: 'view-notes' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Zoom',
+      big({ ic: 'zoom', label: 'Zoom', pop: function (pop) {
+        [50, 75, 100, 150, 200].forEach(function (z) {
+          pop.appendChild(popRow({ matIcon: 'search', label: z + '%', cmd: 'zoom', arg: z }));
+        });
+      } }),
+      big({ ic: 'fit', label: 'Fit\nSlide', cmd: 'zoomFit' }),
+      col(
+        small({ matIcon: 'fit_screen', label: 'Fit width', cmd: 'fitWidth' })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Show',
+      col(
+        small({ ic: 'ruler', label: 'Ruler', cmd: 'toggleRuler', press: 'view-ruler' }),
+        small({ ic: 'grid', label: 'Gridlines', cmd: 'toggleGrid', press: 'view-grid' }),
+        small({ ic: 'guides', label: 'Guides', cmd: 'toggleGuides', press: 'view-guides' })
+      )
+    ));
+    return body;
+  }
+
+  function tabHelp() {
+    var body = el('div', 'rb-body-inner');
+    body.appendChild(group('Help',
+      big({ ic: 'help-q', label: 'Help', cmd: 'openHelp' }),
+      big({ ic: 'shortcuts', label: 'Keyboard\nShortcuts', cmd: 'showShortcuts' }),
+      big({ ic: 'feedback', label: 'Feedback', cmd: 'sendFeedback' })
+    ));
+    return body;
+  }
+
+  /* ── tab strip + shell ───────────────────────────────────────────── */
+  var TABS = [
+    { id: 'home', name: 'Home', build: tabHome },
+    { id: 'insert', name: 'Insert', build: tabInsert },
+    { id: 'draw', name: 'Draw', build: tabDraw },
+    { id: 'design', name: 'Design', build: tabDesign },
+    { id: 'transitions', name: 'Transitions', build: tabTransitions },
+    { id: 'animations', name: 'Animations', build: tabAnimations },
+    { id: 'slideshow', name: 'Slide Show', build: tabSlideShow },
+    { id: 'review', name: 'Review', build: tabReview },
+    { id: 'view', name: 'View', build: tabView },
+    { id: 'help', name: 'Help', build: tabHelp }
+  ];
+  var active = 'home';
+  var rb = el('div', 'rb');
+  var topRow = el('div', 'rb-top');
+  var bodyHost = el('div', 'rb-body');
+  rb.appendChild(topRow); rb.appendChild(bodyHost);
+
+  var tabBtns = {};
+  TABS.forEach(function (t) {
+    var b = el('button', 'rb-tab' + (t.id === active ? ' is-active' : ''), t.name);
+    b.type = 'button';
+    b.addEventListener('click', function () {
+      closePop();
+      active = t.id;
+      Object.keys(tabBtns).forEach(function (k) { tabBtns[k].classList.toggle('is-active', k === active); });
+      paintBody();
+    });
+    tabBtns[t.id] = b;
+    topRow.appendChild(b);
+  });
+
+  topRow.appendChild(el('div', 'rb-flex'));
+
+  var undoB = el('button', 'rb-q'); undoB.type = 'button'; undoB.title = 'Undo (Ctrl+Z)';
+  undoB.appendChild(svg('undo', 'rb-svg rb-svg-sm'));
+  undoB.addEventListener('click', function () { run('undo'); setTimeout(sync, 0); });
+  var redoB = el('button', 'rb-q'); redoB.type = 'button'; redoB.title = 'Redo (Ctrl+Y)';
+  redoB.appendChild(svg('redo', 'rb-svg rb-svg-sm'));
+  redoB.addEventListener('click', function () { run('redo'); setTimeout(sync, 0); });
+  topRow.appendChild(undoB); topRow.appendChild(redoB);
+
+  var newB = el('button', 'rb-q'); newB.type = 'button'; newB.title = 'New design';
+  newB.appendChild(svg('new-file', 'rb-svg rb-svg-sm'));
+  newB.addEventListener('click', function () { run('newDesign'); });
+  var saveB = el('button', 'rb-q'); saveB.type = 'button'; saveB.title = 'Save project';
+  saveB.appendChild(svg('save', 'rb-svg rb-svg-sm'));
+  saveB.addEventListener('click', function () { run('saveProject'); });
+  topRow.appendChild(newB); topRow.appendChild(saveB);
+
+  var presentB = el('button', 'rb-action'); presentB.type = 'button';
+  presentB.appendChild(mat('slideshow', 'rb-act-ico'));
+  presentB.appendChild(document.createTextNode('Present'));
+  presentB.addEventListener('click', function () { run('presentFromStart'); });
+  var dlB = el('button', 'rb-action is-primary'); dlB.type = 'button';
+  dlB.appendChild(mat('download', 'rb-act-ico'));
+  dlB.appendChild(document.createTextNode('Download'));
+  dlB.addEventListener('click', function () { run('exportPptx'); });
+  topRow.appendChild(presentB); topRow.appendChild(dlB);
+
+  function paintBody() {
+    reg.textOnly = []; reg.press = {}; reg.named = {};
+    bodyHost.innerHTML = '';
+    var t = TABS.filter(function (x) { return x.id === active; })[0];
+    bodyHost.appendChild(t.build());
+    sync();
+  }
+
+  /* ── live state ──────────────────────────────────────────────────── */
+  function setPress(key, on) {
+    (reg.press[key] || []).forEach(function (n) { n.classList.toggle('is-pressed', !!on); });
+  }
+  function sync() {
     var sel = ask('selection');
-    var ts = ask('textState');
-    var isText = !!(sel && sel.kind === 'text') || !!ts;
-
-    registry.textOnly.forEach(function (n) { dim(n, !isText); });
-
-    var fontSlot = registry.named.fontValue;
-    var sizeSlot = registry.named.sizeValue;
-    if (fontSlot) fontSlot.textContent = ts && ts.fontFamily ? ts.fontFamily : 'DM Sans';
-    if (sizeSlot) sizeSlot.textContent = ts && ts.sizePt ? String(ts.sizePt) : '18';
-
-    setPressed('bold', ts && ts.bold);
-    setPressed('italic', ts && ts.italic);
-    setPressed('underline', ts && ts.underline);
-    setPressed('strike', ts && ts.strike);
-    ['left', 'center', 'right', 'justify'].forEach(function (a) {
-      setPressed('align:' + a, ts && ts.align === a);
-    });
-    setPressed('bullet', ts && ts.list === 'bullet');
-    setPressed('number', ts && ts.list === 'number');
-  }
-
-  function syncView() {
+    var isText = !!(sel && sel.kind === 'text');
+    reg.textOnly.forEach(function (n) { n.classList.toggle('is-dim', !isText); });
+    var ts = isText ? (ask('textState') || {}) : {};
+    setPress('bold', ts.bold); setPress('italic', ts.italic);
+    setPress('underline', ts.underline); setPress('strike', ts.strike);
+    setPress('bullets', ts.list === 'bullet'); setPress('numbering', ts.list === 'number');
+    ['left', 'center', 'right', 'justify'].forEach(function (a) { setPress('align-' + a, ts.align === a); });
+    if (reg.named.fontCombo) reg.named.fontCombo.querySelector('.rb-combo-val').textContent = ts.fontFamily || 'DM Sans';
+    if (reg.named.sizeCombo) reg.named.sizeCombo.querySelector('.rb-combo-val').textContent = ts.sizePt ? Math.round(ts.sizePt) : '18';
+    var h = ask('history') || {};
+    undoB.classList.toggle('is-dim', !h.canUndo);
+    redoB.classList.toggle('is-dim', !h.canRedo);
     var v = ask('view') || {};
-    setPressed('view:ruler', v.ruler);
-    setPressed('view:grid', v.grid);
-    setPressed('view:guides', v.guides);
-  }
-
-  function syncPageSize() {
+    setPress('view-ruler', v.ruler); setPress('view-grid', v.grid); setPress('view-guides', v.guides);
     var ps = ask('pageSize') || {};
-    var a = registry.named.ratio16;
-    var b = registry.named.ratio43;
-    if (a) a.classList.toggle('is-on', ps.ratio === '16:9');
-    if (b) b.classList.toggle('is-on', ps.ratio === '4:3');
+    setPress('size-169', ps.ratio === '16:9'); setPress('size-43', ps.ratio === '4:3');
   }
+  listen('selection', sync);
+  listen('history', sync);
+  listen('ready', sync);
 
-  function syncHistory(h) {
-    var hist = h || ask('history') || {};
-    if (!registry.qat) return;
-    dim(registry.qat.undo, !hist.canUndo);
-    dim(registry.qat.redo, !hist.canRedo);
-  }
-
-  function syncZoom(z) {
-    var pct = z && typeof z.pct === 'number' ? z.pct : ask('zoom');
-    var node = registry.named.zoomReadout;
-    if (!node) return;
-    var lbl = node.querySelector('.rb-row-label');
-    if (lbl) lbl.textContent = (typeof pct === 'number' ? Math.round(pct) : 100) + '%';
-  }
-
-  function syncAll() {
-    syncText();
-    syncView();
-    syncPageSize();
-    syncHistory();
-    syncZoom();
-  }
-
-  function wireEvents() {
-    listen('ready', syncAll);
-    listen('selection', syncText);
-    listen('slides', function () { syncPageSize(); });
-    listen('history', syncHistory);
-    listen('zoom', syncZoom);
-  }
-
-  /* ─────────────────────────────────────────────────────────────────────
-     9. Boot
-     ───────────────────────────────────────────────────────────────────── */
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount);
-  } else {
-    mount();
-  }
+  /* ── mount ───────────────────────────────────────────────────────── */
+  slot.appendChild(rb);
+  paintBody();
 })();

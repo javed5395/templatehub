@@ -76,6 +76,17 @@ Present / file
 - `presentFromStart` · `presentFromCurrent`
 - `exportPptx` · `saveProject` · `newDesign`
 
+Extended (engine wiring follows the UI)
+- `insertTable` · `insertIcon` · `insertWordArt` · `insertVideo` · `insertAudio`
+- `addComment` · `accessibilityCheck`
+- `drawPen` · `drawHighlighter` · `drawEraser` · `drawClear`
+- `setTransition` (kind) · `setAnimation` (kind)
+- `formatPainter` · `find` · `selectAll` · `deselect`
+- `drawColour` (hex) · `drawSize` (px) · `themeApply` (id)
+- `transitionDuration` (ms) · `transitionApplyAll`
+- `rehearse` · `presenterView` · `spellCheck` · `showComments` · `toggleNotes`
+- `viewNormal` · `viewSorter` · `openHelp` · `showShortcuts` · `sendFeedback`
+
 Colour picking: UI parts own their pickers visually, but call
 `Editor.run('textColour', hex)` etc. with the final value, and MAY call
 repeatedly for live preview — the engine debounces history entries
