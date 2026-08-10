@@ -209,6 +209,7 @@ function rehydrateFrames() {}
     'rehearse','presenterView','spellCheck','showComments','toggleNotes',
     'viewNormal','viewSorter','openHelp','showShortcuts','sendFeedback',
     'effect','brandApply','templateUse','projectOpen','componentInsert','dataUpload',
+    'themeFonts','themeColours',
     'layerAction','ai'
   ];
   var impl = {};
