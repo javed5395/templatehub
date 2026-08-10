@@ -159,8 +159,14 @@
       </div>
       <div class="field">
         <label>Portfolio link <span class="required">*</span></label>
-        <input type="url" id="fPortfolio" placeholder="Behance, Dribbble, your site, Google Drive…"/>
-        <p class="hint">This is the main thing we review. Make sure it is public and shows finished work.</p>
+        <!-- type="text", not "url" (10 Aug 2026). People type "behance.net/me"
+             without the https://, and the browser then refuses the form with a
+             message that does not say what is wrong. We add the prefix
+             ourselves below instead of blocking them over punctuation. -->
+        <input type="text" id="fPortfolio" inputmode="url" autocapitalize="off" autocorrect="off"
+               placeholder="behance.net/yourname, your site, a public Drive folder…"/>
+        <p class="hint">This is the main thing we review. Make sure it is public and shows finished
+           work. No need to type https:// — we will add it.</p>
       </div>
       <div class="field">
         <label>Anything else we should know</label>
@@ -503,6 +509,14 @@ applyForm.onsubmit = async (e) => {
     submittedAt:  serverTimestamp()
   };
   data.phoneFull = (data.phoneCode + ' ' + data.phone).trim();
+
+  /* Accept a portfolio address typed the way people actually type it.
+     "behance.net/me" becomes "https://behance.net/me". Anything that already
+     carries a scheme is left exactly as given. */
+  if (data.portfolio && !/^https?:\/\//i.test(data.portfolio)) {
+    data.portfolio = 'https://' + data.portfolio.replace(/^\/+/, '');
+    $('fPortfolio').value = data.portfolio;   // show them what we stored
+  }
 
   if (!data.name)         return showErr('Please enter your full name.');
   if (!data.phoneCode || !data.phone)
