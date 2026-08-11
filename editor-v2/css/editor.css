@@ -285,9 +285,9 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .sb-rail-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 9px 2px 7px; border-radius: 9px; transition: background 100ms ease; }
 .sb-rail-btn:hover { background: var(--bg-inset); }
 .sb-rail-btn.is-active { background: var(--accent-soft); }
-.sb-rail-btn.is-active .sb-rail-lab { color: #0F172A; font-weight: 700; }
+.sb-rail-btn.is-active .sb-rail-lab { color: #0F172A; font-weight: 800; }
 .sb-rail-i, .sb-rail-i svg { width: 24px; height: 24px; }
-.sb-rail-lab { font-size: 10.5px; color: #1E293B; line-height: 1; }
+.sb-rail-lab { font-size: 12.5px; font-weight: 600; color: #0F172A; line-height: 1.1; }
 .sb-svg { display: block; line-height: 0; }
 .sb-svg svg { display: block; }
 
