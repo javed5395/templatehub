@@ -197,87 +197,173 @@
     b.addEventListener('click', function () { run(cmd, arg); });
     return b;
   }
+  var _elCat = null;   /* open Elements category, null = tiles home */
   function panelElements(p) {
+    var A = window.RBAssets || {};
+    if (_elCat) { buildElCategory(p, _elCat, A); return; }
     p.appendChild(head('Elements'));
     p.appendChild(search('Search elements…'));
-    var A = window.RBAssets || {};
-    p.appendChild(subhead('Frames — drop a photo in'));
-    var fg = el('div', 'sb-grid'); fg.style.gridTemplateColumns = 'repeat(2, 1fr)';
-    var fi = 0;
-    ['square', 'landscape', 'portrait', 'rounded', 'circle', 'diamond', 'triangle', 'hexagon', 'arch', 'heart']
-      .forEach(function (k) {
-        var art = A.framePreviewSvg ? A.framePreviewSvg(k, 92, fi++) : '';
-        var label = (A.FRAME_DEFS && A.FRAME_DEFS[k] && A.FRAME_DEFS[k].label) || k;
-        fg.appendChild(svgCard(art, label, 'insertFrame', k));
+    p.appendChild(subhead('Browse categories'));
+    var CATS = [
+      { id: 'shapes',  label: 'Shapes',   ic: 'interests',        grad: 'linear-gradient(135deg,#7C3AED,#DB2777)' },
+      { id: 'frames',  label: 'Frames',   ic: 'filter_frames',    grad: 'linear-gradient(135deg,#059669,#22D3EE)' },
+      { id: 'charts',  label: 'Charts',   ic: 'insert_chart',     grad: 'linear-gradient(135deg,#2563EB,#12A5A0)' },
+      { id: 'icons',   label: 'Icons',    ic: 'emoji_symbols',    grad: 'linear-gradient(135deg,#E8590C,#EAB308)' },
+      { id: 'photos',  label: 'Photos',   ic: 'photo_library',    grad: 'linear-gradient(135deg,#DB2777,#F97316)' },
+      { id: 'text',    label: 'Text',     ic: 'text_fields',      grad: 'linear-gradient(135deg,#0F172A,#475569)' },
+      { id: 'tables',  label: 'Tables',   ic: 'table_chart',      grad: 'linear-gradient(135deg,#EA580C,#FDE047)' },
+      { id: 'wordart', label: 'WordArt',  ic: 'format_color_text',grad: 'linear-gradient(135deg,#22D3EE,#7C3AED)' },
+      { id: 'mockups', label: 'Mockups',  ic: 'devices',          grad: 'linear-gradient(135deg,#12A5A0,#059669)' }
+    ];
+    var g = el('div', 'sb-cat-grid');
+    CATS.forEach(function (cat) {
+      var b = el('button', 'sb-cat-tile'); b.type = 'button'; b.title = cat.label;
+      var ic = el('span', 'sb-cat-ico'); ic.style.background = cat.grad;
+      ic.appendChild(mat(cat.ic, 'sb-cat-mi'));
+      b.appendChild(ic);
+      b.appendChild(el('span', 'sb-cat-lab', cat.label));
+      b.addEventListener('click', function () {
+        if (cat.id === 'photos') { openDrawer('photos'); return; }
+        _elCat = cat.id; paint();
       });
-    p.appendChild(fg);
-    p.appendChild(subhead('Device mockups'));
-    var dg = el('div', 'sb-grid'); dg.style.gridTemplateColumns = 'repeat(2, 1fr)';
-    ['phone', 'tablet', 'laptop', 'browser', 'polaroid'].forEach(function (k) {
-      var art = A.framePreviewSvg ? A.framePreviewSvg(k, 92, fi++) : '';
-      var label = (A.FRAME_DEFS && A.FRAME_DEFS[k] && A.FRAME_DEFS[k].label) || k;
-      dg.appendChild(svgCard(art, label, 'insertFrame', k));
+      g.appendChild(b);
     });
-    p.appendChild(dg);
-    p.appendChild(subhead('Icons'));
-    var iq = el('input'); iq.type = 'text'; iq.placeholder = 'Search icons…';
-    var iw = el('div', 'sb-search'); iw.appendChild(iq);
-    p.appendChild(iw);
-    var ig = el('div', 'sb-icons');
-    function paintIcons(f) {
-      ig.innerHTML = '';
-      (window.LD_ICON_GLYPHS || []).filter(function (n) { return !f || n.indexOf(f) > -1; })
-        .slice(0, 60).forEach(function (n) {
-          var b = el('button', 'sb-icon-cell');
-          b.type = 'button'; b.title = n.replace(/_/g, ' ');
-          var s = el('span', 'material-icons-outlined'); s.textContent = n;
-          b.appendChild(s);
-          b.addEventListener('click', function () { run('insertIcon', n); });
+    p.appendChild(g);
+  }
+  function elCatHead(p, title) {
+    var top = el('div', 'sb-tpl-dhead');
+    var back = el('button', 'sb-tpl-back'); back.type = 'button'; back.title = 'Back';
+    back.appendChild(mat('arrow_back', 'sb-btn-i'));
+    back.addEventListener('click', function () { _elCat = null; paint(); });
+    top.appendChild(back);
+    top.appendChild(el('b', 'sb-cat-title', title));
+    var x = el('button', 'sb-close'); x.type = 'button'; x.title = 'Close';
+    x.appendChild(mat('close', 'sb-close-i'));
+    x.addEventListener('click', function () { _elCat = null; closeDrawer(); });
+    top.appendChild(x);
+    p.appendChild(top);
+  }
+  function buildElCategory(p, cat, A) {
+    if (cat === 'shapes') {
+      elCatHead(p, 'Shapes');
+      (ask('shapeGroups') || []).forEach(function (grp) {
+        p.appendChild(subhead(grp.name));
+        var g = el('div', 'sb-grid');
+        g.style.gridTemplateColumns = 'repeat(' + (grp.name === 'Lines' ? 2 : 4) + ', 1fr)';
+        grp.items.forEach(function (it) {
+          var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = it.name;
+          var w = el('span', 'sb-shape-art'); w.innerHTML = it.svg;
+          b.appendChild(w);
+          b.addEventListener('click', function () { run(it.cmd, it.arg); });
+          g.appendChild(b);
+        });
+        p.appendChild(g);
+      });
+      return;
+    }
+    if (cat === 'frames') {
+      elCatHead(p, 'Frames — drop a photo in');
+      var fg = el('div', 'sb-grid'); fg.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      var fi = 0;
+      ['square', 'landscape', 'portrait', 'rounded', 'circle', 'diamond', 'triangle', 'hexagon', 'arch', 'heart']
+        .forEach(function (k) {
+          var art = A.framePreviewSvg ? A.framePreviewSvg(k, 92, fi++) : '';
+          var label = (A.FRAME_DEFS && A.FRAME_DEFS[k] && A.FRAME_DEFS[k].label) || k;
+          fg.appendChild(svgCard(art, label, 'insertFrame', k));
+        });
+      p.appendChild(fg);
+      return;
+    }
+    if (cat === 'mockups') {
+      elCatHead(p, 'Device mockups');
+      var mg = el('div', 'sb-grid'); mg.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      var mi = 10;
+      ['phone', 'tablet', 'laptop', 'monitor', 'watch'].forEach(function (k) {
+        if (!(A.FRAME_DEFS && A.FRAME_DEFS[k])) return;
+        var art = A.framePreviewSvg ? A.framePreviewSvg(k, 92, mi++) : '';
+        mg.appendChild(svgCard(art, A.FRAME_DEFS[k].label || k, 'insertFrame', k));
+      });
+      p.appendChild(mg);
+      return;
+    }
+    if (cat === 'charts') {
+      elCatHead(p, 'Charts — live, data-editable');
+      var groups = {};
+      (ask('chartTypes') || []).forEach(function (c) {
+        (groups[c.group] = groups[c.group] || []).push(c);
+      });
+      Object.keys(groups).forEach(function (gname) {
+        p.appendChild(el('div', 'sb-chart-gname', gname));
+        var cg = el('div', 'sb-grid'); cg.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        groups[gname].forEach(function (c) {
+          var b = el('button', 'sb-chart-card');
+          b.type = 'button'; b.title = c.name;
+          var pv = el('span', 'sb-chart-prev');
+          if (c.thumb) pv.style.backgroundImage = "url('" + c.thumb + "')";
+          b.appendChild(pv);
+          b.appendChild(el('span', 'sb-card-lab', c.name));
+          b.addEventListener('click', function () { run('insertChart', c.id); });
+          cg.appendChild(b);
+        });
+        p.appendChild(cg);
+      });
+      return;
+    }
+    if (cat === 'icons') {
+      elCatHead(p, 'Icons');
+      var iq = search('Search icons…');
+      p.appendChild(iq);
+      var ig = el('div', 'sb-icons-grid');
+      p.appendChild(ig);
+      function paintIcons(f) {
+        ig.innerHTML = '';
+        var lib = window.LD_ICON_GLYPHS || {};
+        Object.keys(lib).forEach(function (nm) {
+          if (f && nm.indexOf(f) === -1) return;
+          var b = el('button', 'sb-icon-cell'); b.type = 'button'; b.title = nm;
+          b.appendChild(mat(lib[nm] || nm, 'sb-icon-mi'));
+          b.addEventListener('click', function () { run('insertIcon', nm); });
           ig.appendChild(b);
         });
+      }
+      var inp2 = iq.querySelector('input');
+      if (inp2) inp2.addEventListener('input', function () { paintIcons(inp2.value.trim().toLowerCase()); });
+      paintIcons('');
+      return;
     }
-    iq.addEventListener('input', function () { paintIcons(iq.value.trim().toLowerCase()); });
-    paintIcons('');
-    p.appendChild(ig);
-  }
-  function panelText(p) {
-    p.appendChild(head('Text'));
-    var h = el('button', 'sb-text sb-text-h'); h.type = 'button'; h.textContent = 'Add a heading';
-    h.addEventListener('click', function () { run('insertText', 'heading'); });
-    var s = el('button', 'sb-text sb-text-s'); s.type = 'button'; s.textContent = 'Add a subheading';
-    s.addEventListener('click', function () { run('insertText', 'subheading'); });
-    var b = el('button', 'sb-text sb-text-b'); b.type = 'button'; b.textContent = 'Add body text';
-    b.addEventListener('click', function () { run('insertText', 'body'); });
-    p.appendChild(h); p.appendChild(s); p.appendChild(b);
-    p.appendChild(subhead('Charts — live, data-editable'));
-    var groups = {};
-    (ask('chartTypes') || []).forEach(function (c) {
-      (groups[c.group] = groups[c.group] || []).push(c);
-    });
-    Object.keys(groups).forEach(function (gname) {
-      p.appendChild(el('div', 'sb-chart-gname', gname));
-      var cg = el('div', 'sb-grid'); cg.style.gridTemplateColumns = 'repeat(2, 1fr)';
-      groups[gname].forEach(function (c) {
-        var b = el('button', 'sb-chart-card');
-        b.type = 'button'; b.title = c.name;
-        var pv = el('span', 'sb-chart-prev');
-        if (c.thumb) pv.style.backgroundImage = "url('" + c.thumb + "')";
-        b.appendChild(pv);
-        b.appendChild(el('span', 'sb-card-lab', c.name));
-        b.addEventListener('click', function () { run('insertChart', c.id); });
-        cg.appendChild(b);
+    if (cat === 'text') {
+      elCatHead(p, 'Text');
+      var h2 = el('button', 'sb-text sb-text-h'); h2.type = 'button'; h2.textContent = 'Add a heading';
+      h2.addEventListener('click', function () { run('insertText', 'heading'); });
+      var s2 = el('button', 'sb-text sb-text-s'); s2.type = 'button'; s2.textContent = 'Add a subheading';
+      s2.addEventListener('click', function () { run('insertText', 'subheading'); });
+      var b2 = el('button', 'sb-text sb-text-b'); b2.type = 'button'; b2.textContent = 'Add body text';
+      b2.addEventListener('click', function () { run('insertText', 'body'); });
+      p.appendChild(h2); p.appendChild(s2); p.appendChild(b2);
+      return;
+    }
+    if (cat === 'tables') {
+      elCatHead(p, 'Tables');
+      p.appendChild(grid([
+        { matIcon: 'table_chart', label: 'Table', cmd: 'insertTable' },
+        { ic: 'comment-add', label: 'Comment', cmd: 'addComment' }
+      ], 2));
+      return;
+    }
+    if (cat === 'wordart') {
+      elCatHead(p, 'WordArt styles');
+      var wg = el('div', 'sb-grid'); wg.style.gridTemplateColumns = 'repeat(4, 1fr)';
+      (ask('wordArtStyles') || []).forEach(function (st) {
+        var b = el('button', 'sb-wa-item'); b.type = 'button'; b.title = st.name;
+        var a = el('span', 'sb-wa-A', 'A'); a.style.cssText = st.css;
+        b.appendChild(a);
+        b.addEventListener('click', function () { run('insertWordArt', st.i); });
+        wg.appendChild(b);
       });
-      p.appendChild(cg);
-    });
-    p.appendChild(subhead('Table'));
-    p.appendChild(grid([
-      { matIcon: 'table_chart', label: 'Table', cmd: 'insertTable' }
-    ], 2));
-    p.appendChild(subhead('Special'));
-    p.appendChild(grid([
-      { ic: 'wordart', label: 'WordArt', cmd: 'insertWordArt' },
-      { ic: 'comment-add', label: 'Comment', cmd: 'addComment' }
-    ]));
+      p.appendChild(wg);
+      return;
+    }
+    _elCat = null; paint();
   }
   function panelPhotos(p) {
     p.appendChild(head('Photos'));

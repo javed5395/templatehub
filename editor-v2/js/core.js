@@ -243,6 +243,7 @@ function rehydrateFrames() {}
     'dataCsv','dataXlsx','dataSheet','dataSample','dataConnect','dataRefresh','dataRemove',
     'addSlideLayout','slidesOutline','outlineView','readingView','masterAdd','masterRemove','handoutMaster','notesMaster','colourMode','newWindow',
     'publishTemplate','deleteTemplate','templateThumbs','applyTemplateSlide',
+    'insertShapePreset','insertLineKind',
     'layerAction','ai'
   ];
   var impl = {};
@@ -274,6 +275,7 @@ function rehydrateFrames() {}
         case 'dataSamples': return impl.__qSamples ? impl.__qSamples() : [];
         case 'slideLayouts': return impl.__qSlideLayouts ? impl.__qSlideLayouts() : [];
         case 'wordArtStyles': return impl.__qWordArtStyles ? impl.__qWordArtStyles() : [];
+        case 'shapeGroups': return impl.__qShapeGroups ? impl.__qShapeGroups() : [];
         case 'components': return [];
         default: return null;
       }

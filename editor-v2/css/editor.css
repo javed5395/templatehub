@@ -470,3 +470,19 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .sb-tpl-sprev { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 5px; background: #F1F5F9 center / cover no-repeat; }
 .sb-tpl-sprev.is-loading { background: linear-gradient(100deg, #F1F5F9 40%, #E9EEF5 50%, #F1F5F9 60%); background-size: 200% 100%; animation: ldsheen 1.1s linear infinite; }
 @keyframes ldsheen { to { background-position: -200% 0; } }
+
+/* ── Elements: Canva-style category tiles ── */
+.sb-cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 8px; padding: 4px 2px 14px; }
+.sb-cat-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; border: 0; background: none; cursor: pointer; }
+.sb-cat-ico { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 16px; box-shadow: 0 5px 14px rgba(15,23,42,.16); transition: transform .13s; }
+.sb-cat-tile:hover .sb-cat-ico { transform: translateY(-2px) scale(1.05); }
+.sb-cat-mi { font-size: 27px !important; color: #fff; }
+.sb-cat-lab { font-size: 11.5px; font-weight: 700; color: #0F172A; }
+.sb-cat-title { font-size: 14px; color: #0F172A; flex: 1; margin-left: 8px; }
+.sb-shape-card { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #E2E8F0; border-radius: 9px; background: #fff; cursor: pointer; padding: 8px; }
+.sb-shape-card:hover { border-color: #8B3DFF; box-shadow: 0 3px 10px rgba(139,61,255,.16); }
+.sb-shape-art { display: block; width: 100%; }
+.sb-shape-art svg { display: block; width: 100%; height: auto; }
+.sb-wa-item { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #E2E8F0; border-radius: 9px; background: #fff; cursor: pointer; }
+.sb-wa-item:hover { border-color: #8B3DFF; }
+.sb-wa-A { font-family: "DM Sans", sans-serif; font-size: 26px; font-weight: 800; line-height: 1; }
