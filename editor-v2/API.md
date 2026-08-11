@@ -87,6 +87,9 @@ Extended (engine wiring follows the UI)
 - `rehearse` · `presenterView` · `spellCheck` · `showComments` · `toggleNotes`
 - `viewNormal` · `viewSorter` · `openHelp` · `showShortcuts` · `sendFeedback`
 
+Upload
+- `importPptx` · `fillFrames` (multi-image picker fills empty frames in order)
+
 Sidebar
 - `effect` ({group, key, value}) · `brandApply`
 - `templateUse` (id) · `projectOpen` (id) · `componentInsert` (id)

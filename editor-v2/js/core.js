@@ -209,7 +209,7 @@ function rehydrateFrames() {}
     'rehearse','presenterView','spellCheck','showComments','toggleNotes',
     'viewNormal','viewSorter','openHelp','showShortcuts','sendFeedback',
     'effect','brandApply','templateUse','projectOpen','componentInsert','dataUpload',
-    'themeFonts','themeColours',
+    'themeFonts','themeColours','importPptx','fillFrames',
     'layerAction','ai'
   ];
   var impl = {};
@@ -667,8 +667,19 @@ function rehydrateFrames() {}
         if (e.key === 'Escape') { Editor.run('deselect'); return; }
       });
 
+      /* selection look: violet border, white round handles (opus note #4) */
+      Object.assign(fabric.Object.prototype, {
+        borderColor: '#8B3DFF', borderScaleFactor: 1.5,
+        cornerColor: '#FFFFFF', cornerStrokeColor: '#8B3DFF',
+        cornerStyle: 'circle', cornerSize: 11, transparentCorners: false
+      });
+      fc.selectionColor = 'rgba(139,61,255,0.08)';
+      fc.selectionBorderColor = '#8B3DFF';
+      fc.selectionLineWidth = 1.5;
+
       loadPageIntoCanvas(0).then(function () {
-        fitWidthNow();
+        Editor.run ? null : null;
+        setZoom(60); state.zoom = 60; emit('zoom', { pct: 60 }); /* opus note #1 */
         renderPageThumbs();
         emit('ready');
         emit('history', Editor.query('history'));

@@ -685,9 +685,9 @@
   uploadB.addEventListener('click', function () {
     showPop(uploadB, function (pop) {
       pop.appendChild(popRow({ matIcon: 'image', label: 'Image', hint: 'Photo from your device', onClick: function () { upFile.click(); } }));
-      pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint (.pptx)', hint: 'Import a deck', onClick: function () { upNote('PowerPoint import — to be wired by Fable'); } }));
+      pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint (.pptx)', hint: 'Import a deck', onClick: function () { run('importPptx'); } }));
       pop.appendChild(el('div', 'rb-pop-div'));
-      pop.appendChild(popRow({ matIcon: 'burst_mode', label: 'Fill frames with images…', hint: 'Drop photos into frames', onClick: function () { upNote('Fill frames — to be wired by Fable'); } }));
+      pop.appendChild(popRow({ matIcon: 'burst_mode', label: 'Fill frames with images…', hint: 'Drop photos into frames', onClick: function () { run('fillFrames'); } }));
     });
   });
   var dlB = el('button', 'rb-action is-primary'); dlB.type = 'button';
