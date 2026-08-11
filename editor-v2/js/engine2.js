@@ -92,23 +92,37 @@ function frameFace(obj, wPx, hPx) {
 }
 
 function framePlaceholder(wPx, hPx) {
+  /* 11 Aug — Canva-style scenic placeholder: sky, cloud and green hills
+     instead of the grey box + tiny photo glyph (looked dead on canvas). */
   var cv = document.createElement('canvas');
   cv.width = Math.max(2, Math.round(wPx));
   cv.height = Math.max(2, Math.round(hPx));
-  var g = cv.getContext('2d');
-  g.fillStyle = '#E9EAEE'; g.fillRect(0, 0, cv.width, cv.height);
-  var s = Math.max(18, Math.min(cv.width, cv.height) * 0.22);
-  var cx = cv.width / 2, cy = cv.height / 2;
-  g.strokeStyle = '#9AA0AC'; g.lineWidth = Math.max(2, s * 0.07); g.lineJoin = 'round';
-  g.strokeRect(cx - s / 2, cy - s * 0.4, s, s * 0.8);
+  var g = cv.getContext('2d'), W = cv.width, H = cv.height;
+  var sky = g.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#BEE3F8');
+  sky.addColorStop(0.7, '#E7F4FD');
+  g.fillStyle = sky; g.fillRect(0, 0, W, H);
+  /* hills */
+  g.fillStyle = '#9BD483';
   g.beginPath();
-  g.moveTo(cx - s / 2, cy + s * 0.4);
-  g.lineTo(cx - s * 0.1, cy - s * 0.05);
-  g.lineTo(cx + s * 0.16, cy + s * 0.18);
-  g.lineTo(cx + s * 0.3, cy + s * 0.05);
-  g.lineTo(cx + s / 2, cy + s * 0.4);
-  g.stroke();
-  g.beginPath(); g.arc(cx + s * 0.22, cy - s * 0.18, s * 0.09, 0, Math.PI * 2); g.stroke();
+  g.moveTo(0, H * 0.78);
+  g.quadraticCurveTo(W * 0.3, H * 0.58, W * 0.55, H * 0.74);
+  g.quadraticCurveTo(W * 0.8, H * 0.9, W, H * 0.7);
+  g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.fill();
+  g.fillStyle = '#7BC663';
+  g.beginPath();
+  g.moveTo(0, H * 0.9);
+  g.quadraticCurveTo(W * 0.45, H * 0.72, W, H * 0.88);
+  g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.fill();
+  /* cloud */
+  var cx = W * 0.32, cy = H * 0.26, r = Math.min(W, H) * 0.11;
+  g.fillStyle = '#FFFFFF';
+  g.beginPath();
+  g.arc(cx, cy, r, 0, Math.PI * 2);
+  g.arc(cx + r * 1.1, cy + r * 0.15, r * 0.82, 0, Math.PI * 2);
+  g.arc(cx - r * 1.05, cy + r * 0.25, r * 0.7, 0, Math.PI * 2);
+  g.arc(cx + r * 0.2, cy + r * 0.45, r * 0.9, 0, Math.PI * 2);
+  g.fill();
   return cv;
 }
 
@@ -124,15 +138,19 @@ function refreshFrame(grp) {
   if (!path) return;
   /* the photo fills the APERTURE, which on a device frame is smaller than
      the group (the bezel takes the rest) */
-  var wPx = (path.width  || grp.width)  * (grp.scaleX || 1);
-  var hPx = (path.height || grp.height) * (grp.scaleY || 1);
+  /* PATTERN SPACE FIX (11 Aug): a fabric Pattern paints in the path's
+     LOCAL (unscaled) coordinate space. Sizing the canvas by the SCALED px
+     meant the artwork spilled outside the aperture — only its top-left
+     corner showed (the tiny chip bug). Paint at local size instead. */
+  var wPx = path.width  || grp.width;
+  var hPx = path.height || grp.height;
 
   if (grp._frameImg) {
     path.set({ fill: new fabric.Pattern({ source: frameFace(grp, wPx, hPx), repeat: 'no-repeat' }),
                stroke: '', strokeDashArray: null, strokeWidth: 0 });
   } else if (grp.frameLook === 'placeholder') {
     path.set({ fill: new fabric.Pattern({ source: framePlaceholder(wPx, hPx), repeat: 'no-repeat' }),
-               stroke: '#C3C7D1', strokeDashArray: [6, 5], strokeWidth: 1.5 });
+               stroke: '#9BB8D3', strokeDashArray: null, strokeWidth: 1.5 });
   } else {
     /* plain shape — still a frame, still accepts a photo */
     path.set({ fill: grp.frameFill || '#7C3AED',
@@ -730,11 +748,13 @@ Editor._register({
 /* ═════════ icons · table · wordart · charts ═════════ */
 Editor._register({
   insertIcon: function (name) {
+    var col = '#7C3AED';
+    if (name && typeof name === 'object') { col = name.color || col; name = name.name; }
     var glyph = (typeof name === 'string' && name) ? name : 'star';
     var t = new fabric.Text(glyph, {
       left: 200, top: 160,
       fontFamily: 'Material Symbols Outlined',
-      fontSize: 120, fill: '#7C3AED',
+      fontSize: 120, fill: col,
       isIcon: true, iconName: glyph
     });
     fc.add(t).setActiveObject(t);

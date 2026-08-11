@@ -210,7 +210,7 @@
       { id: 'charts',  label: 'Charts',   ic: 'insert_chart',     grad: 'linear-gradient(135deg,#2563EB,#12A5A0)' },
       { id: 'icons',   label: 'Icons',    ic: 'emoji_symbols',    grad: 'linear-gradient(135deg,#E8590C,#EAB308)' },
       { id: 'photos',  label: 'Photos',   ic: 'photo_library',    grad: 'linear-gradient(135deg,#DB2777,#F97316)' },
-      { id: 'text',    label: 'Text',     ic: 'text_fields',      grad: 'linear-gradient(135deg,#0F172A,#475569)' },
+      { id: 'grids',   label: 'Grids',    ic: 'grid_view',        grad: 'linear-gradient(135deg,#0F172A,#475569)' },
       { id: 'tables',  label: 'Tables',   ic: 'table_chart',      grad: 'linear-gradient(135deg,#EA580C,#FDE047)' },
       { id: 'wordart', label: 'WordArt',  ic: 'format_color_text',grad: 'linear-gradient(135deg,#22D3EE,#7C3AED)' },
       { id: 'mockups', label: 'Mockups',  ic: 'devices',          grad: 'linear-gradient(135deg,#12A5A0,#059669)' }
@@ -317,12 +317,13 @@
       p.appendChild(ig);
       function paintIcons(f) {
         ig.innerHTML = '';
-        var lib = window.LD_ICON_GLYPHS || {};
-        Object.keys(lib).forEach(function (nm) {
-          if (f && nm.indexOf(f) === -1) return;
-          var b = el('button', 'sb-icon-cell'); b.type = 'button'; b.title = nm;
-          b.appendChild(mat(lib[nm] || nm, 'sb-icon-mi'));
-          b.addEventListener('click', function () { run('insertIcon', nm); });
+        (ask('icons') || []).forEach(function (ic2) {
+          if (f && ic2.name.indexOf(f) === -1) return;
+          var b = el('button', 'sb-icon-cell'); b.type = 'button'; b.title = ic2.name.replace(/_/g, ' ');
+          var m2 = mat(ic2.name, 'sb-icon-mi');
+          m2.style.color = ic2.color;
+          b.appendChild(m2);
+          b.addEventListener('click', function () { run('insertIcon', { name: ic2.name, color: ic2.color }); });
           ig.appendChild(b);
         });
       }
@@ -331,15 +332,21 @@
       paintIcons('');
       return;
     }
-    if (cat === 'text') {
-      elCatHead(p, 'Text');
-      var h2 = el('button', 'sb-text sb-text-h'); h2.type = 'button'; h2.textContent = 'Add a heading';
-      h2.addEventListener('click', function () { run('insertText', 'heading'); });
-      var s2 = el('button', 'sb-text sb-text-s'); s2.type = 'button'; s2.textContent = 'Add a subheading';
-      s2.addEventListener('click', function () { run('insertText', 'subheading'); });
-      var b2 = el('button', 'sb-text sb-text-b'); b2.type = 'button'; b2.textContent = 'Add body text';
-      b2.addEventListener('click', function () { run('insertText', 'body'); });
-      p.appendChild(h2); p.appendChild(s2); p.appendChild(b2);
+    if (cat === 'grids') {
+      elCatHead(p, 'Grids — photo layouts');
+      (ask('gridLayouts') || []).forEach(function (grp) {
+        p.appendChild(subhead(grp.name));
+        var g = el('div', 'sb-grid'); g.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        grp.items.forEach(function (it) {
+          var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = it.name;
+          var w = el('span', 'sb-shape-art'); w.innerHTML = it.svg;
+          b.appendChild(w);
+          b.appendChild(el('span', 'sb-card-lab', it.name));
+          b.addEventListener('click', function () { run('insertGrid', it.name); });
+          g.appendChild(b);
+        });
+        p.appendChild(g);
+      });
       return;
     }
     if (cat === 'tables') {

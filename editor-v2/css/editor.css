@@ -486,3 +486,9 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .sb-wa-item { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #E2E8F0; border-radius: 9px; background: #fff; cursor: pointer; }
 .sb-wa-item:hover { border-color: #8B3DFF; }
 .sb-wa-A { font-family: "DM Sans", sans-serif; font-size: 26px; font-weight: 800; line-height: 1; }
+
+/* ── Icons category: real grid, colourful ── */
+.sb-icons-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 4px 0 14px; }
+.sb-icon-cell { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #EEF2F7; border-radius: 8px; background: #fff; cursor: pointer; }
+.sb-icon-cell:hover { border-color: #8B3DFF; background: #F7F3FF; }
+.sb-icon-mi { font-size: 24px !important; }

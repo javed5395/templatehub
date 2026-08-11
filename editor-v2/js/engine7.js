@@ -462,18 +462,22 @@ Editor._register({
   /* live table: every cell is its OWN editable text — dblclick any cell to
      type; select-drag across cells to move the table together */
   insertTable: function () {
-    var rows = 3, cols = 3, cw = 150, rh = 46, x0 = 160, y0 = 140;
+    var rows = 3, cols = 3, cw = 150, x0 = 160, y0 = 140;
     var tid = 'tbl' + Date.now();
     var made = [];
+    /* contiguous rows (11 Aug): a Textbox's background only covers its text
+       height, so a fixed 46px row pitch left white gaps between rows — the
+       "broken" table. Measure one cell's natural height and stack by that. */
+    var probe = new fabric.Textbox('Hg', { width: cw, fontSize: 17, fontFamily: 'DM Sans' });
+    var rh = Math.ceil(probe.height);
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
         var cell = new fabric.Textbox(r === 0 ? 'Header' : 'Cell', {
           left: x0 + c * cw, top: y0 + r * rh,
-          width: cw, height: rh,
+          width: cw,
           fontSize: 17, fontFamily: 'DM Sans',
           fill: r === 0 ? '#FFFFFF' : '#1F2430',
           backgroundColor: r === 0 ? '#7C3AED' : (r % 2 ? '#F4F1FB' : '#FFFFFF'),
-          padding: 6,
           tableId: tid
         });
         made.push(cell);

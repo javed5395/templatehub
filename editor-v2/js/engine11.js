@@ -118,3 +118,94 @@ Editor._register({
     });
   }
 });
+
+
+/* ════ GRIDS — photo-grid layouts (verbatim v1) ════ */
+var GRID_LAYOUTS = [
+  /* ── Rows & columns ── */
+  { n:'2 column', c:'Rows & columns', cells:[[0,0,.5,1],[.5,0,.5,1]] },
+  { n:'3 column', c:'Rows & columns', cells:[[0,0,1/3,1],[1/3,0,1/3,1],[2/3,0,1/3,1]] },
+  { n:'4 column', c:'Rows & columns', cells:[[0,0,.25,1],[.25,0,.25,1],[.5,0,.25,1],[.75,0,.25,1]] },
+  { n:'2 row',    c:'Rows & columns', cells:[[0,0,1,.5],[0,.5,1,.5]] },
+  { n:'3 row',    c:'Rows & columns', cells:[[0,0,1,1/3],[0,1/3,1,1/3],[0,2/3,1,1/3]] },
+
+  /* ── Grid ── */
+  { n:'2 × 2', c:'Grid', cells:[[0,0,.5,.5],[.5,0,.5,.5],[0,.5,.5,.5],[.5,.5,.5,.5]] },
+  { n:'3 × 2', c:'Grid', cells:[[0,0,1/3,.5],[1/3,0,1/3,.5],[2/3,0,1/3,.5],
+                                [0,.5,1/3,.5],[1/3,.5,1/3,.5],[2/3,.5,1/3,.5]] },
+  { n:'3 × 3', c:'Grid', cells:[[0,0,1/3,1/3],[1/3,0,1/3,1/3],[2/3,0,1/3,1/3],
+                                [0,1/3,1/3,1/3],[1/3,1/3,1/3,1/3],[2/3,1/3,1/3,1/3],
+                                [0,2/3,1/3,1/3],[1/3,2/3,1/3,1/3],[2/3,2/3,1/3,1/3]] },
+  { n:'4 × 2', c:'Grid', cells:[[0,0,.25,.5],[.25,0,.25,.5],[.5,0,.25,.5],[.75,0,.25,.5],
+                                [0,.5,.25,.5],[.25,.5,.25,.5],[.5,.5,.25,.5],[.75,.5,.25,.5]] },
+
+  /* ── Masonry ── */
+  { n:'Tall left',   c:'Masonry', cells:[[0,0,.5,1],[.5,0,.5,.5],[.5,.5,.5,.5]] },
+  { n:'Tall right',  c:'Masonry', cells:[[0,0,.5,.5],[0,.5,.5,.5],[.5,0,.5,1]] },
+  { n:'Staggered',   c:'Masonry', cells:[[0,0,1/3,.62],[0,.62,1/3,.38],
+                                         [1/3,0,1/3,.38],[1/3,.38,1/3,.62],
+                                         [2/3,0,1/3,.55],[2/3,.55,1/3,.45]] },
+  { n:'Mixed heights',c:'Masonry', cells:[[0,0,.34,.55],[0,.55,.34,.45],
+                                          [.34,0,.32,1],
+                                          [.66,0,.34,.42],[.66,.42,.34,.58]] },
+  { n:'Wide top',    c:'Masonry', cells:[[0,0,1,.55],[0,.55,1/3,.45],[1/3,.55,1/3,.45],[2/3,.55,1/3,.45]] },
+
+  /* ── Gallery ── */
+  { n:'Hero + 3',    c:'Gallery', cells:[[0,0,.62,1],[.62,0,.38,1/3],[.62,1/3,.38,1/3],[.62,2/3,.38,1/3]] },
+  { n:'Hero + strip',c:'Gallery', cells:[[0,0,1,.66],[0,.66,.25,.34],[.25,.66,.25,.34],
+                                         [.5,.66,.25,.34],[.75,.66,.25,.34]] },
+  { n:'Centre focus',c:'Gallery', cells:[[0,0,.25,.5],[0,.5,.25,.5],
+                                         [.25,0,.5,1],
+                                         [.75,0,.25,.5],[.75,.5,.25,.5]] },
+  { n:'Filmstrip',   c:'Gallery', cells:[[0,0,.2,1],[.2,0,.2,1],[.4,0,.2,1],[.6,0,.2,1],[.8,0,.2,1]] },
+  { n:'Showcase',    c:'Gallery', cells:[[0,0,.5,.62],[.5,0,.5,.62],
+                                         [0,.62,1/3,.38],[1/3,.62,1/3,.38],[2/3,.62,1/3,.38]] },
+];
+
+var ICON_PALETTE = ['#7C3AED', '#12A5A0', '#E8590C', '#EAB308', '#2563EB', '#DB2777', '#059669', '#DC2626'];
+
+function gridPreviewSvg(g) {
+  var s2 = '<svg viewBox="0 0 100 62">';
+  g.cells.forEach(function (c, i) {
+    s2 += '<rect x="' + (c[0] * 100 + 1.5) + '" y="' + (c[1] * 62 + 1.5) + '" width="' + (c[2] * 100 - 3)
+      + '" height="' + (c[3] * 62 - 3) + '" rx="2.5" fill="' + ICON_PALETTE[i % ICON_PALETTE.length] + '" opacity="0.85"/>';
+  });
+  return s2 + '</svg>';
+}
+
+Editor._register({
+  /* drop a whole photo grid: one landscape frame per cell, photo-ready */
+  insertGrid: function (name) {
+    var g = GRID_LAYOUTS.filter(function (x) { return x.n === name; })[0];
+    if (!g) { showToast('Unknown grid'); return; }
+    var W = fc.getWidth() / fc.getZoom(), H = fc.getHeight() / fc.getZoom();
+    var pad = Math.round(W * 0.04), gut = Math.round(W * 0.008);
+    var iw = W - pad * 2, ih = H - pad * 2;
+    g.cells.forEach(function (c) {
+      Editor.run('insertFrame', 'landscape');
+      var o = fc.getActiveObject();
+      if (!o) return;
+      var x = pad + c[0] * iw + gut, y = pad + c[1] * ih + gut;
+      var w = c[2] * iw - gut * 2, h = c[3] * ih - gut * 2;
+      o.set({ left: x, top: y });
+      if (o.width)  o.scaleX = w / o.width;
+      if (o.height) o.scaleY = h / o.height;
+      o.setCoords();
+    });
+    fc.discardActiveObject();
+    fc.renderAll(); saveState();
+    showToast('"' + g.n + '" grid added — drop photos into the frames');
+  },
+  __qGridLayouts: function () {
+    var groups = {};
+    GRID_LAYOUTS.forEach(function (g) {
+      (groups[g.c] = groups[g.c] || []).push({ name: g.n, svg: gridPreviewSvg(g) });
+    });
+    return Object.keys(groups).map(function (k) { return { name: k, items: groups[k] }; });
+  },
+  __qIcons: function () {
+    return (window.LD_ICON_GLYPHS || []).map(function (nm, i) {
+      return { name: nm, color: ICON_PALETTE[i % ICON_PALETTE.length] };
+    });
+  }
+});
