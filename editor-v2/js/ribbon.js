@@ -92,7 +92,7 @@
   /* ── control factories (Office look) ─────────────────────────────── */
   function big(spec) {
     var b = wire(el('button', 'rb-big'), spec);
-    b.appendChild(svg(spec.ic, 'rb-svg rb-svg-big'));
+    b.appendChild(spec.matIcon ? mat(spec.matIcon, 'rb-svg-big-mat') : svg(spec.ic, 'rb-svg rb-svg-big'));
     var lab = el('span', 'rb-big-lab');
     String(spec.label).split('\n').forEach(function (line, i) {
       if (i) lab.appendChild(el('br'));
@@ -240,7 +240,22 @@
     ));
     body.appendChild(sepd());
     body.appendChild(group('Slides',
-      big({ ic: 'new-slide', label: 'New\nSlide', cmd: 'addSlide' }),
+      big({ ic: 'new-slide', label: 'New\nSlide', pop: function (pop) {
+        pop.appendChild(el('div', 'rb-pop-head', 'Office theme'));
+        var g = el('div', 'rb-layout-grid');
+        (ask('slideLayouts') || []).forEach(function (L) {
+          var b = el('button', 'rb-layout-card'); b.type = 'button'; b.title = L.name;
+          var art = el('span', 'rb-layout-art'); art.innerHTML = L.svg;
+          b.appendChild(art);
+          b.appendChild(el('span', 'rb-layout-lab', L.name));
+          b.addEventListener('click', function () { run('addSlideLayout', L.id); });
+          g.appendChild(b);
+        });
+        pop.appendChild(g);
+        pop.appendChild(el('div', 'rb-pop-div'));
+        pop.appendChild(popRow({ matIcon: 'content_copy', label: 'Duplicate selected slide', cmd: 'duplicateSlide' }));
+        pop.appendChild(popRow({ matIcon: 'format_list_bulleted', label: 'Slides from outline…', cmd: 'slidesOutline' }));
+      } }),
       col(
         small({ ic: 'dup-slide', label: 'Duplicate slide', cmd: 'duplicateSlide' }),
         small({ ic: 'delete', label: 'Delete slide', cmd: 'deleteSlide' })
@@ -339,7 +354,22 @@
     var body = el('div', 'rb-body-inner');
     body.appendChild(file);
     body.appendChild(group('Slides',
-      big({ ic: 'new-slide', label: 'New\nSlide', cmd: 'addSlide' }),
+      big({ ic: 'new-slide', label: 'New\nSlide', pop: function (pop) {
+        pop.appendChild(el('div', 'rb-pop-head', 'Office theme'));
+        var g = el('div', 'rb-layout-grid');
+        (ask('slideLayouts') || []).forEach(function (L) {
+          var b = el('button', 'rb-layout-card'); b.type = 'button'; b.title = L.name;
+          var art = el('span', 'rb-layout-art'); art.innerHTML = L.svg;
+          b.appendChild(art);
+          b.appendChild(el('span', 'rb-layout-lab', L.name));
+          b.addEventListener('click', function () { run('addSlideLayout', L.id); });
+          g.appendChild(b);
+        });
+        pop.appendChild(g);
+        pop.appendChild(el('div', 'rb-pop-div'));
+        pop.appendChild(popRow({ matIcon: 'content_copy', label: 'Duplicate selected slide', cmd: 'duplicateSlide' }));
+        pop.appendChild(popRow({ matIcon: 'format_list_bulleted', label: 'Slides from outline…', cmd: 'slidesOutline' }));
+      } }),
       big({ ic: 'dup-slide', label: 'Reuse\nSlide', cmd: 'duplicateSlide' })
     ));
     body.appendChild(sepd());
@@ -584,8 +614,33 @@
     var body = el('div', 'rb-body-inner');
     body.appendChild(group('Presentation views',
       big({ ic: 'normal-view', label: 'Normal', cmd: 'viewNormal' }),
+      big({ matIcon: 'segment', label: 'Outline\nView', cmd: 'outlineView' }),
       big({ ic: 'sorter', label: 'Slide\nSorter', cmd: 'viewSorter' }),
-      big({ ic: 'notes-view', label: 'Notes', cmd: 'toggleNotes', press: 'view-notes' })
+      big({ ic: 'notes-view', label: 'Notes', cmd: 'toggleNotes', press: 'view-notes' }),
+      big({ matIcon: 'auto_stories', label: 'Reading\nView', cmd: 'readingView' })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Master views',
+      big({ matIcon: 'dashboard_customize', label: 'Slide\nMaster', pop: function (pop) {
+        pop.appendChild(popRow({ matIcon: 'push_pin', label: 'Show selected on ALL slides', hint: 'Select an element first, then click', cmd: 'masterAdd' }));
+        pop.appendChild(popRow({ matIcon: 'remove_circle_outline', label: 'Remove from all slides', hint: 'Keeps it on this slide only', cmd: 'masterRemove' }));
+      } }),
+      col(
+        small({ matIcon: 'print', label: 'Handout Master', cmd: 'handoutMaster' }),
+        small({ matIcon: 'sticky_note_2', label: 'Notes Master', cmd: 'notesMaster' })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Color/Grayscale',
+      col(
+        small({ matIcon: 'palette', label: 'Color', cmd: 'colourMode', arg: 'color' }),
+        small({ matIcon: 'gradient', label: 'Grayscale', cmd: 'colourMode', arg: 'gray' }),
+        small({ matIcon: 'contrast', label: 'Black and white', cmd: 'colourMode', arg: 'bw' })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Window',
+      big({ matIcon: 'open_in_new', label: 'New\nWindow', cmd: 'newWindow' })
     ));
     body.appendChild(sepd());
     body.appendChild(group('Zoom',

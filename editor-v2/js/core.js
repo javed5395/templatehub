@@ -229,6 +229,7 @@ function rehydrateFrames() {}
     'effect','brandApply','templateUse','projectOpen','componentInsert','dataUpload',
     'themeFonts','themeColours','importPptx','fillFrames','dissolve','applyTemplate',
     'dataCsv','dataXlsx','dataSheet','dataSample','dataConnect','dataRefresh','dataRemove',
+    'addSlideLayout','slidesOutline','outlineView','readingView','masterAdd','masterRemove','handoutMaster','notesMaster','colourMode','newWindow',
     'layerAction','ai'
   ];
   var impl = {};
@@ -258,6 +259,7 @@ function rehydrateFrames() {}
         case 'datasets':   return impl.__qDatasets ? impl.__qDatasets() : [];
         case 'chartTypes': return impl.__qChartTypes ? impl.__qChartTypes() : [];
         case 'dataSamples': return impl.__qSamples ? impl.__qSamples() : [];
+        case 'slideLayouts': return impl.__qSlideLayouts ? impl.__qSlideLayouts() : [];
         case 'components': return [];
         default: return null;
       }
