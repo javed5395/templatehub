@@ -209,7 +209,7 @@ function rehydrateFrames() {}
     'rehearse','presenterView','spellCheck','showComments','toggleNotes',
     'viewNormal','viewSorter','openHelp','showShortcuts','sendFeedback',
     'effect','brandApply','templateUse','projectOpen','componentInsert','dataUpload',
-    'themeFonts','themeColours','importPptx','fillFrames',
+    'themeFonts','themeColours','importPptx','fillFrames','dissolve','applyTemplate',
     'layerAction','ai'
   ];
   var impl = {};
@@ -235,7 +235,7 @@ function rehydrateFrames() {}
         case 'pages':     return impl.__qPages ? impl.__qPages() : [];
         case 'photos':    return impl.__qPhotos ? impl.__qPhotos() : [];
         case 'projects':  return [];
-        case 'templates': return [];
+        case 'templates': return window._editorTemplates || [];
         case 'components': return [];
         default: return null;
       }

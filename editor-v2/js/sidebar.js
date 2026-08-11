@@ -76,13 +76,40 @@
   /* ── panels ──────────────────────────────────────────────────────── */
   function panelTemplates(p) {
     p.appendChild(head('Templates'));
-    p.appendChild(search('Search templates…'));
+    var sw = search('Search templates…');
+    p.appendChild(sw);
     var list = ask('templates') || [];
-    if (!list.length) {
-      p.appendChild(emptyState('space_dashboard', 'Templates arrive with the engine',
-        'Finished designs will appear here to start from.'));
-      return;
+    var holder = el('div', 'sb-tpl-list');
+    p.appendChild(holder);
+    function draw(filter) {
+      holder.innerHTML = '';
+      var shown = list.filter(function (t) {
+        return !filter || String(t.name || '').toLowerCase().indexOf(filter) !== -1;
+      });
+      if (!shown.length) {
+        holder.appendChild(emptyState('space_dashboard',
+          list.length ? 'No match' : 'No templates yet',
+          list.length ? 'Try a different search.' : 'Free designs uploaded by LazyDog will appear here.'));
+        return;
+      }
+      shown.forEach(function (t) {
+        var b = el('button', 'sb-tpl-card');
+        b.type = 'button'; b.title = t.name || 'Template';
+        var pv = el('span', 'sb-tpl-prev');
+        if (t.thumb) { pv.style.backgroundImage = "url('" + t.thumb + "')"; }
+        else if (t.bg) { pv.style.background = t.bg; }
+        b.appendChild(pv);
+        var meta = el('span', 'sb-tpl-meta');
+        meta.appendChild(el('b', null, t.name || 'Template'));
+        if (t.slideCount) meta.appendChild(el('span', null, t.slideCount + ' slides'));
+        b.appendChild(meta);
+        b.addEventListener('click', function () { run('applyTemplate', t.id); });
+        holder.appendChild(b);
+      });
     }
+    var inp = sw.querySelector('input');
+    if (inp) inp.addEventListener('input', function () { draw(inp.value.trim().toLowerCase()); });
+    draw('');
   }
   function svgCard(html, label, cmd, arg) {
     var b = el('button', 'sb-card sb-card-svg');
@@ -391,6 +418,7 @@
   });
 
   listen('selection', function () { if (open === 'layers' || open === 'effects') paint(); });
+  listen('templates', function () { if (open === 'templates') paint(); });
   listen('slides', function () { if (open === 'pages' || open === 'layers') paint(); });
 
   slot.appendChild(rail);

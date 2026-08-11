@@ -1,62 +1,89 @@
 /* ═══════════════════════════════════════════════════════════════════════
    LAZYDOG EDITOR v2 — ENGINE STAGE 5 · opus handoff wiring    owner: Fable
-   PowerPoint import (cloud parse) + Fill frames with images.
+   PowerPoint import (cloud parse, small + big road) + Fill frames.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── PPTX import — v1's cloud-parse road (direct path, <18 MB) ── */
+/* ── Shared PPTX-file importer: takes a File, picks the road, loads deck ──
+   Small (<18 MB): direct POST to /parse (proxy gate caps both directions at
+   32 MB and a parsed reply runs ~1.4× the file — 18 MB keeps replies under).
+   Big (≥18 MB): storage road — /upload_url → resumable PUT → /parse{gcsPath}
+   (functions live in engine6.js; they exist by click-time).               */
+window.ldImportPptxFile = async function (file) {
+  try {
+    var deckIR;
+    if (file.size >= 18 * 1024 * 1024) {
+      if (typeof window.ldBigUploadParse !== 'function')
+        throw new Error('Big-file road not loaded — refresh and try again');
+      deckIR = await window.ldBigUploadParse(file);
+    } else {
+      showToast('Parsing PPTX in LazyDog cloud…', 8000);
+      var buf = await file.arrayBuffer();
+      for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timedOut = false;
+      var to = ctrl ? setTimeout(function () { timedOut = true; ctrl.abort(); }, 120000) : null;
+      var resp;
+      try {
+        resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
+          method: 'POST', headers: window.ldHeaders('application/octet-stream'),
+          body: buf, signal: ctrl ? ctrl.signal : undefined
+        });
+      } catch (netErr) {
+        if (timedOut || (netErr && netErr.name === 'AbortError'))
+          throw new Error('Upload timed out — try a smaller file or stronger connection');
+        throw new Error('Could not reach the import service');
+      } finally { if (to) clearTimeout(to); }
+      if (resp.status === 401 || resp.status === 403) throw new Error('Please sign in first — import needs a designer account');
+      if (!resp.ok) throw new Error('Import service error (' + resp.status + ')');
+      deckIR = await resp.json();
+      /* worker may park a heavy IR in Storage and hand back a pointer —
+         happens on the direct road too. Unwrap via the range-download
+         helper when present, plain fetch otherwise. */
+      if (deckIR && deckIR.big === true && deckIR.irUrl) {
+        showToast('Finishing up…');
+        if (typeof window.ldFetchLargeJson === 'function') {
+          if (window.ldDownloadProgress) window.ldDownloadProgress(0);
+          var big = await window.ldFetchLargeJson(deckIR.irUrl, function (f) {
+            if (window.ldDownloadProgress) window.ldDownloadProgress(f);
+          });
+          if (window.ldDownloadProgress) window.ldDownloadProgress(null);
+          deckIR = big.json;
+        } else {
+          var r2 = await fetch(deckIR.irUrl);
+          if (!r2.ok) throw new Error('IR download ' + r2.status);
+          deckIR = await r2.json();
+        }
+      }
+    }
+    if (!deckIR || !deckIR.slides) throw new Error('The reply was not a deck');
+    window._deckIR = deckIR;
+    await window.loadDeckIRIntoEditor(deckIR);
+    var totalEls = deckIR.slides.reduce(function (a, s) { return a + (s.elements || []).length; }, 0);
+    if (deckIR.report && deckIR.report.length) {
+      showToast('Imported ' + deckIR.slides.length + ' slides / ' + totalEls + ' elements. Notes: '
+        + deckIR.report.map(function (r) { return r.kind + ' (slide ' + r.slide + ')'; }).join(', '), 9000);
+    } else {
+      showToast('Imported ' + deckIR.slides.length + ' slides / ' + totalEls + ' elements — nothing lost', 5000);
+    }
+    /* background: probe chart-looking pictures against the dissolve
+       service; confirmed charts become native editable charts (engine6) */
+    try { if (typeof window.ldAutoCrackCharts === 'function') window.ldAutoCrackCharts(); } catch (e) {}
+    return true;
+  } catch (e) {
+    console.error('[v2] pptx import', e);
+    showToast('Import failed: ' + e.message, 6000);
+    return false;
+  }
+};
+
 Editor._register({
   importPptx: function () {
     var inp = document.createElement('input');
     inp.type = 'file';
     inp.accept = '.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation';
-    inp.onchange = async function () {
+    inp.onchange = function () {
       var file = inp.files && inp.files[0];
-      if (!file) return;
-      if (file.size >= 18 * 1024 * 1024) {
-        showToast('Keep the file under 18 MB for now — big-file road arrives next', 5000);
-        return;
-      }
-      showToast('Parsing PPTX in LazyDog cloud…', 8000);
-      try {
-        var buf = await file.arrayBuffer();
-        for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
-        var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-        var timedOut = false;
-        var to = ctrl ? setTimeout(function () { timedOut = true; ctrl.abort(); }, 120000) : null;
-        var resp;
-        try {
-          resp = await fetch((window.LD_BACKEND || 'http://localhost:8080') + '/parse', {
-            method: 'POST', headers: window.ldHeaders('application/octet-stream'),
-            body: buf, signal: ctrl ? ctrl.signal : undefined
-          });
-        } catch (netErr) {
-          if (timedOut || (netErr && netErr.name === 'AbortError'))
-            throw new Error('Upload timed out — try a smaller file or stronger connection');
-          throw new Error('Could not reach the import service');
-        } finally { if (to) clearTimeout(to); }
-        if (resp.status === 401 || resp.status === 403) throw new Error('Please sign in first — import needs a designer account');
-        if (!resp.ok) throw new Error('Import service error (' + resp.status + ')');
-        var deckIR = await resp.json();
-        /* worker may park a heavy IR in Storage and hand back a pointer */
-        if (deckIR && deckIR.big === true && deckIR.irUrl) {
-          showToast('Finishing up…');
-          var r2 = await fetch(deckIR.irUrl);
-          if (!r2.ok) throw new Error('IR download ' + r2.status);
-          deckIR = await r2.json();
-        }
-        if (!deckIR || !deckIR.slides) throw new Error('The reply was not a deck');
-        await window.loadDeckIRIntoEditor(deckIR);
-        var totalEls = deckIR.slides.reduce(function (a, s) { return a + (s.elements || []).length; }, 0);
-        if (deckIR.report && deckIR.report.length) {
-          showToast('Imported ' + deckIR.slides.length + ' slides / ' + totalEls + ' elements. Notes: '
-            + deckIR.report.map(function (r) { return r.kind + ' (slide ' + r.slide + ')'; }).join(', '), 9000);
-        } else {
-          showToast('Imported ' + deckIR.slides.length + ' slides / ' + totalEls + ' elements — nothing lost', 5000);
-        }
-      } catch (e) {
-        console.error('[v2] pptx import', e);
-        showToast('Import failed: ' + e.message, 6000);
-      }
+      if (file) window.ldImportPptxFile(file);
     };
     inp.click();
   },

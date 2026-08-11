@@ -688,6 +688,7 @@
       pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint (.pptx)', hint: 'Import a deck', onClick: function () { run('importPptx'); } }));
       pop.appendChild(el('div', 'rb-pop-div'));
       pop.appendChild(popRow({ matIcon: 'burst_mode', label: 'Fill frames with images…', hint: 'Drop photos into frames', onClick: function () { run('fillFrames'); } }));
+      pop.appendChild(popRow({ matIcon: 'auto_fix_high', label: 'Dissolve PDF / Image', hint: 'Turn a flat file into an editable design', onClick: function () { run('dissolve'); } }));
     });
   });
   var dlB = el('button', 'rb-action is-primary'); dlB.type = 'button';

@@ -104,3 +104,13 @@ repeatedly for live preview — the engine debounces history entries
 
 Unknown command → the engine toasts "Not wired yet: <cmd>" and returns
 false. Nothing crashes. UI can therefore be built ahead of the engine.
+
+### Dissolve & Templates (Stage 6)
+
+| Command | Arg | What it does |
+|---|---|---|
+| `dissolve` | — | Pick a PDF / image / pptx; the LazyDog dissolve service turns it into a fully editable deck and loads it. |
+| `applyTemplate` | template id | Opens one of the free cloud templates (Templates panel) into the editor. |
+
+Query `templates` now returns the live Firestore list: `[{ id, name, slideCount, bg, thumb? }]`.
+Event `templates` fires when the list (or a thumbnail) arrives — rebuild the panel on it.
