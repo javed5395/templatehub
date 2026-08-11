@@ -2602,9 +2602,43 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
   const grid = document.getElementById('featuredGrid');
   if (!grid) return;
 
+  /* The demo SVGs were drawn 400x500, so .feature-preview is a 4/5 PORTRAIT
+     frame. Real deck and media-kit covers are 16:9 LANDSCAPE, and object-fit:
+     cover was solving that mismatch by cropping their sides off — the same
+     bug the studio pages had. Give the live cards a frame the shape of the
+     artwork instead, so nothing is cut and there are no dead bands. Scoped to
+     .feature-card--live: the demo cards keep their portrait frame. */
+  /* Matches the LazyDog Studios store card: a 16:9 cover with the caption
+     sitting UNDERNEATH in the open, not inside a bordered panel. The card
+     frame, glass background and description are dropped so the artwork is
+     the card and the type is quiet beside it. Prices are deliberately absent
+     here — this section shows what Hexa can make, it is not a shop shelf. */
+  const fix = document.createElement('style');
+  fix.textContent =
+    /* four columns instead of the demo grid's five, so the covers read larger */
+    '#featuredGrid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:26px!important;}' +
+    '@media (max-width:900px){#featuredGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}}' +
+    '.feature-card--live{background:none!important;border:none!important;' +
+      'backdrop-filter:none!important;-webkit-backdrop-filter:none!important;' +
+      'box-shadow:none!important;border-radius:0!important;overflow:visible!important;}' +
+    '.feature-card--live .feature-preview{aspect-ratio:16/9;background:#0F0F14;' +
+      'border-radius:0;overflow:hidden;}' +
+    '.feature-card--live .feature-preview img{width:100%;height:100%;' +
+      'object-fit:cover;object-position:center;display:block;}' +
+    '.feature-card--live .feature-body{padding:16px 2px 0!important;background:none!important;}' +
+    '.feature-card--live .lv-cat{display:block;font-family:Inter,sans-serif;font-size:10px;' +
+      'letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.45);' +
+      'margin-bottom:9px;}' +
+    '.feature-card--live .lv-title{font-family:\'Instrument Serif\',Georgia,serif;' +
+      'font-size:21px;font-weight:400;line-height:1.28;color:#F4F4F6;margin:0;}';
+  document.head.appendChild(fix);
+
   /* The grid is `repeat(5, 1fr)`, so five per row fills both rows exactly.
      Change this one number to 4 and set grid-template-columns to 4 to match. */
-  const PER_ROW = 5;
+  /* Was 5. At five across each cover was only ~230px wide — too small to read
+     a deck cover, which is the whole point of the section. Four across gives
+     each card ~25% more width. The grid override below matches it. */
+  const PER_ROW = 4;
 
   /* Top row, then bottom row. Firestore `template.category` -> the page that
      shows it, mirroring what the folder pages already use. */
@@ -2665,30 +2699,18 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
       return;
     }
 
-    grid.innerHTML = rows.map(({ row, items }) => items.map((it, i) => {
-      const desc = it.desc
-        || (it.name + ' — ' + (it.n ? it.n + ' ' + row.unit + ', ' : '') + 'editable and ready to adapt.');
-      return '' +
-      '<a class="feature-card reveal is-visible" data-delay="' + ((i % 5) + 1) + '" ' +
+    grid.innerHTML = rows.map(({ row, items }) => items.map((it, i) => '' +
+      '<a class="feature-card feature-card--live reveal is-visible" data-delay="' + ((i % 5) + 1) + '" ' +
          'href="' + row.page + '?firebase=' + esc(it.id) + '" ' +
          'style="text-decoration:none;color:inherit;display:block;">' +
         '<div class="feature-preview">' +
-          '<span class="feature-tag">' + esc(row.label) + '</span>' +
-          '<img src="' + esc(it.img) + '" alt="' + esc(it.name) + '" loading="lazy" ' +
-               'style="width:100%;height:100%;object-fit:cover;display:block;">' +
+          '<img src="' + esc(it.img) + '" alt="' + esc(it.name) + '" loading="lazy">' +
         '</div>' +
         '<div class="feature-body">' +
-          '<h3 class="feature-title">' + esc(it.name) + '</h3>' +
-          '<p class="feature-desc">' + esc(desc.length > 110 ? desc.slice(0,107) + '...' : desc) + '</p>' +
-          '<div class="feature-meta">' +
-            '<span class="cat">' + esc(row.label) + (it.n ? ' &middot; ' + it.n + ' ' + row.unit : '') + '</span>' +
-            '<span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-              'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
-              '<path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>' +
-          '</div>' +
+          '<span class="lv-cat">' + esc(row.label) + '</span>' +
+          '<h3 class="lv-title">' + esc(it.name) + '</h3>' +
         '</div>' +
-      '</a>';
-    }).join('')).join('');
+      '</a>').join('')).join('');
 
     /* The page reveals cards with an IntersectionObserver that was already
        wired to the OLD nodes. These are new ones, so show them directly. */
