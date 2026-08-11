@@ -2584,5 +2584,123 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
   };
   window.submitAuth = function() { if(window._authMode==='signin') doSignIn(); else doSignUp(); };
 </script>
+
+<!-- ============================================================================
+     FEATURED EXAMPLES — live catalogue (11 Aug 2026)
+     The ten cards above are hand-drawn SVG mock-ups of templates that do not
+     exist. They now act only as a FALLBACK: this script replaces them with real
+     approved kits from Firestore — top row pitch decks, bottom row media kits.
+     If Firestore is unreachable the demo cards simply stay, so the section is
+     never empty or broken.
+
+     Markup is rebuilt with the SAME classes (.feature-card / .feature-preview /
+     .feature-body), so the existing styling and the tilt in tilt.js apply
+     without any change. Cards link straight to the product page.
+     ============================================================================ -->
+<script type="module">
+(async () => {
+  const grid = document.getElementById('featuredGrid');
+  if (!grid) return;
+
+  /* The grid is `repeat(5, 1fr)`, so five per row fills both rows exactly.
+     Change this one number to 4 and set grid-template-columns to 4 to match. */
+  const PER_ROW = 5;
+
+  /* Top row, then bottom row. Firestore `template.category` -> the page that
+     shows it, mirroring what the folder pages already use. */
+  const ROWS = [
+    { cat: 'pitch_deck', label: 'Pitch Deck', page: 'pitch_deck_slides.html',  unit: 'slides' },
+    { cat: 'media_kit',  label: 'Media Kit',  page: 'media_kits_slides.html',  unit: 'slides' }
+  ];
+
+  const esc = v => String(v == null ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  try {
+    const { initializeApp, getApps, getApp } =
+      await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+    const { getFirestore, collection, query, where, getDocs } =
+      await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+
+    const cfg = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+                  authDomain:"templatehub-16cd7.firebaseapp.com",
+                  projectId:"templatehub-16cd7",
+                  storageBucket:"templatehub-16cd7.firebasestorage.app",
+                  messagingSenderId:"143000893683",
+                  appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
+    const db = getFirestore(getApps().length ? getApp() : initializeApp(cfg));
+
+    const rows = await Promise.all(ROWS.map(async row => {
+      const snap = await getDocs(query(
+        collection(db, 'templates'),
+        where('status', '==', 'approved'),
+        where('template.category', '==', row.cat)
+      ));
+      const items = [];
+      snap.forEach(d => {
+        const data = d.data() || {};
+        const t = data.template || {};
+        const img = t.coverImage || (t.slides && t.slides[0]) || '';
+        if (!img) return;                       // no cover = nothing to show
+        items.push({
+          id: d.id, name: t.name || 'Untitled', img: img,
+          desc: t.designNotes || '',
+          n: t.slideCount || (t.slides ? t.slides.length : 0),
+          uploaded: data.uploadedAt
+            ? (data.uploadedAt.toDate ? data.uploadedAt.toDate().getTime()
+                                      : new Date(data.uploadedAt).getTime())
+            : 0
+        });
+      });
+      /* Newest first — "latest" is what was asked for, and it keeps the
+         section fresh on its own as kits are added. */
+      items.sort((a, b) => b.uploaded - a.uploaded);
+      return { row, items: items.slice(0, PER_ROW) };
+    }));
+
+    /* Only take over the section if BOTH rows can be filled. A half-empty
+       live grid looks worse than the demo it replaced. */
+    if (!rows.every(r => r.items.length === PER_ROW)) {
+      console.warn('[hexa featured] not enough approved kits yet — keeping the demo cards');
+      return;
+    }
+
+    grid.innerHTML = rows.map(({ row, items }) => items.map((it, i) => {
+      const desc = it.desc
+        || (it.name + ' — ' + (it.n ? it.n + ' ' + row.unit + ', ' : '') + 'editable and ready to adapt.');
+      return '' +
+      '<a class="feature-card reveal is-visible" data-delay="' + ((i % 5) + 1) + '" ' +
+         'href="' + row.page + '?firebase=' + esc(it.id) + '" ' +
+         'style="text-decoration:none;color:inherit;display:block;">' +
+        '<div class="feature-preview">' +
+          '<span class="feature-tag">' + esc(row.label) + '</span>' +
+          '<img src="' + esc(it.img) + '" alt="' + esc(it.name) + '" loading="lazy" ' +
+               'style="width:100%;height:100%;object-fit:cover;display:block;">' +
+        '</div>' +
+        '<div class="feature-body">' +
+          '<h3 class="feature-title">' + esc(it.name) + '</h3>' +
+          '<p class="feature-desc">' + esc(desc.length > 110 ? desc.slice(0,107) + '...' : desc) + '</p>' +
+          '<div class="feature-meta">' +
+            '<span class="cat">' + esc(row.label) + (it.n ? ' &middot; ' + it.n + ' ' + row.unit : '') + '</span>' +
+            '<span class="feature-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+              'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+              '<path d="M7 17L17 7M17 7H8M17 7v9"/></svg></span>' +
+          '</div>' +
+        '</div>' +
+      '</a>';
+    }).join('')).join('');
+
+    /* The page reveals cards with an IntersectionObserver that was already
+       wired to the OLD nodes. These are new ones, so show them directly. */
+    grid.querySelectorAll('.feature-card').forEach(c => {
+      c.classList.add('is-visible', 'in-view', 'revealed');
+      c.style.opacity = '1';
+      c.style.transform = '';
+    });
+  } catch (err) {
+    console.warn('[hexa featured] live catalogue unavailable, demo cards kept:', err && err.message);
+  }
+})();
+</script>
 </body>
 </html>
