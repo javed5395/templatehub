@@ -39,6 +39,13 @@
 <!-- Whop embedded checkout, exactly as whop-checkout.js loads it on the slide
      pages: the payment card opens ON this site instead of redirecting away. -->
 <script async defer id="whop-loader" src="https://js.whop.com/static/checkout/loader.js"></script>
+<!-- 11 Aug 2026 — a buyer can now pay AND download here, so this page needs the
+     same two builders the slide pages use: jsPDF assembles the PDF from the
+     slide images, JSZip bundles the PNGs into one archive. Both are deferred;
+     if either fails to load the download degrades to a plain message rather
+     than a broken button. -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 /* ============== RESET ============== */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -725,6 +732,36 @@ body::before{
   transition:transform 1.2s var(--ease-out),filter .8s;
 }
 .product-card:hover .product-card__image{transform:scale(1.06);filter:grayscale(0) brightness(1)}
+/* ---- Live catalogue cards (Store items synced from Firestore) ----
+   These thumbnails are full 16:9 slide screenshots, not artistic crops.
+   Forcing them into the 3/4 card frame either cropped their edges
+   ("bleeding") or left dead bands above and below. Instead the frame
+   itself becomes 16:9 so the deck fills it exactly, and the caption
+   moves OUT of the image into normal flow underneath — smaller, in ink
+   on the page tone — so the display type never sits over the artwork. */
+.product-card[data-live="1"]{
+  aspect-ratio:auto;overflow:visible;background:transparent;border:none;
+  display:flex;flex-direction:column;
+}
+.product-card[data-live="1"] .product-card__image{
+  position:relative;inset:auto;width:100%;aspect-ratio:16/9;
+  background-size:cover;background-position:center;background-color:var(--bone-2);
+  border:1px solid var(--hairline);
+}
+/* the zoom would spill past the (now unclipped) card, so live cards
+   brighten on hover instead of scaling. */
+.product-card[data-live="1"]:hover .product-card__image{transform:none;filter:grayscale(0) brightness(1)}
+.product-card[data-live="1"] .product-card__overlay{display:none}
+.product-card[data-live="1"] .product-card__content{
+  position:relative;inset:auto;padding:14px 2px 0;
+  align-items:baseline;gap:12px;
+}
+.product-card[data-live="1"] .product-card__cat{margin-bottom:5px;color:var(--oxblood)}
+.product-card[data-live="1"] .product-card__name{
+  font-size:16px;line-height:1.25;color:var(--ink);
+}
+.product-card[data-live="1"] .product-card__name em{color:var(--oxblood)}
+.product-card[data-live="1"] .product-card__price{font-size:14px;color:var(--ink)}
 .product-card__overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(22,19,15,0.55) 80%,rgba(22,19,15,0.85) 100%);z-index:1}
 .product-card__content{position:absolute;bottom:0;left:0;right:0;padding:28px;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
 .product-card__main{display:flex;flex-direction:column;gap:4px}
@@ -746,6 +783,14 @@ body::before{
 .featured-spread:nth-child(even){direction:rtl}
 .featured-spread:nth-child(even) > *{direction:ltr}
 .featured-spread__media{aspect-ratio:4/5;background-size:cover;background-position:center;filter:grayscale(0.15) brightness(0.95);position:relative;overflow:hidden}
+/* Live collection spreads (page 04) carry the same 16:9 deck covers as the
+   Store cards, so the 4/5 portrait frame cropped their sides. Match the
+   artwork's own ratio and contain it — nothing cut, no dead bands. */
+.featured-spread[data-live-collection] .featured-spread__media,
+.featured-spread[data-live-spread] .featured-spread__media{
+  aspect-ratio:16/9;background-size:contain;background-repeat:no-repeat;
+  background-color:var(--bone-2);
+}
 .featured-spread__media-label{position:absolute;top:20px;left:20px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--bone);background:rgba(22,19,15,0.7);padding:6px 12px;backdrop-filter:blur(8px)}
 .featured-spread__info{display:flex;flex-direction:column;gap:24px}
 .featured-spread__num{font-family:var(--font-mono);font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--oxblood);font-weight:500}
@@ -864,6 +909,14 @@ body::before{
 .product-detail__hero{padding:140px 0 80px}
 .product-detail__inner{display:grid;grid-template-columns:1.4fr 1fr;gap:60px}
 .product-detail__media{aspect-ratio:4/5;background-size:cover;background-position:center;filter:grayscale(0.1) brightness(0.96);position:relative;border:1px solid var(--hairline)}
+/* Same story as the Store cards: a live kit's cover is a 16:9 slide, so the
+   4/5 portrait frame was cropping its sides off. Give live products a 16:9
+   frame and contain the artwork inside it — a deck fills it exactly, and an
+   odd-sized cover (a tall webkit screenshot) is shown whole rather than cut. */
+.product-detail__media[data-live="1"]{
+  aspect-ratio:16/9;background-size:contain;background-repeat:no-repeat;
+  background-color:var(--bone-2);align-self:start;
+}
 .product-detail__media-badge{position:absolute;top:20px;left:20px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--bone);background:rgba(22,19,15,0.7);padding:6px 12px;backdrop-filter:blur(8px)}
 .product-detail__info{display:flex;flex-direction:column;gap:24px;padding-top:20px}
 .product-detail__cat{font-family:var(--font-mono);font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--oxblood);font-weight:500}
@@ -891,6 +944,29 @@ body::before{
 .feature__title{font-family:var(--font-display);font-size:22px;font-weight:400;margin-bottom:12px;color:var(--ink)}
 .feature__title em{font-style:italic;color:var(--oxblood)}
 .feature__desc{font-size:13px;line-height:1.7;color:var(--whisper)}
+/* ---- Deliverables block (media kits & pitch decks) ----
+   Four items instead of three: the free Design Brief, then the three
+   files that only unlock once the kit is paid for. */
+.product-features--files{grid-template-columns:repeat(4,1fr)}
+@media (max-width:1024px){.product-features--files{grid-template-columns:repeat(2,1fr)}
+  .product-features--files .feature:nth-child(2n){border-right:none}
+  .product-features--files .feature:nth-child(-n+2){border-bottom:1px solid var(--hairline)}}
+@media (max-width:640px){.product-features--files{grid-template-columns:1fr}
+  .product-features--files .feature{border-right:none;border-bottom:1px solid var(--hairline)}
+  .product-features--files .feature:last-child{border-bottom:none}}
+.feature__tag{
+  display:inline-flex;align-items:center;gap:7px;margin-top:16px;
+  font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  padding:6px 11px;border:1px solid var(--hairline);color:var(--whisper);
+}
+.feature__tag--free{
+  border-color:var(--oxblood);color:var(--oxblood);text-decoration:none;
+  transition:background .35s var(--ease),color .35s var(--ease);
+}
+a.feature__tag--free:hover,button.feature__tag--free:hover{background:var(--oxblood);color:var(--bone)}
+button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;cursor:pointer}
+@media (pointer:fine){button.feature__tag{cursor:none}}
+.feature--locked .feature__icon{color:var(--whisper)}
 
 /* documentation preview */
 .doc-preview{margin:80px 0;padding:40px;border:1px solid var(--hairline);background:var(--bone-2)}
@@ -3871,6 +3947,9 @@ document.addEventListener('keydown',e=>{
     window.Commerce.auth = window.Commerce.auth || {};
     window.Commerce.auth.getCurrentUser = () => auth.currentUser;
     window.ldsCurrentUser = () => auth.currentUser;
+    /* Same helper name the slide pages use, so the download endpoint can
+       authenticate a buyer from this page exactly as it does from there. */
+    window.ldGetToken = async () => auth.currentUser ? await auth.currentUser.getIdToken() : null;
     window.openAuth = m => { setMode(m==='signup'?'signup':'signin'); openModal(); };
 
     function paint(user){
@@ -4010,6 +4089,232 @@ document.addEventListener('keydown',e=>{
         });
       }
 
+      /* ══════════════════════════════════════════════════════════════════
+         FILE DELIVERY (page 05)
+         A buyer can pay on this page, so a buyer must be able to download on
+         this page — routing them back to the main store to collect what they
+         just bought would be a dead end.
+
+         The gate is the SAME one the slide pages use — Commerce.library
+         .ownsProduct() against the signed-in user — so there is one notion of
+         ownership across the site, not a second, weaker one living here.
+         It FAILS CLOSED: not signed in, library not loaded, network error, or
+         any exception all leave the file locked. Nothing is handed out unless
+         ownership is positively confirmed.
+
+         PDF and PNG are assembled in the browser from the same slide images
+         the previews already use. PPTX never touches this page — it is fetched
+         from download_url_http, which re-checks entitlement server-side, so
+         the real source file is never exposed by client code.
+         ══════════════════════════════════════════════════════════════════ */
+      const LDS_DL_ENDPOINT =
+        'https://us-central1-templatehub-16cd7.cloudfunctions.net/download_url_http';
+      let ldsPkg = null;   // the kit currently shown on page 05
+
+      function ldsToast(msg){
+        let t = document.getElementById('ldsToast');
+        if(!t){
+          t = document.createElement('div');
+          t.id = 'ldsToast';
+          t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);'
+            + 'background:#16130F;color:#F2EEE5;padding:13px 22px;font-family:var(--font-mono);'
+            + 'font-size:11px;letter-spacing:0.12em;text-transform:uppercase;z-index:100000;'
+            + 'opacity:0;transition:opacity .25s;max-width:90vw;text-align:center;'
+            + 'box-shadow:0 8px 30px rgba(22,19,15,.28);';
+          document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.opacity = '1';
+        clearTimeout(window._ldsToastT);
+        window._ldsToastT = setTimeout(()=>{ t.style.opacity = '0'; }, 3200);
+      }
+
+      /* Conservative by design, copied from the slide pages' ldtIsFreePrice:
+         ONLY an explicit zero or the word "free" counts as free. A blank or
+         unparseable price is treated as PAID, so a data slip can never give a
+         paid kit away. */
+      function ldsIsFree(v){
+        if(typeof v === 'number') return v === 0;
+        if(typeof v !== 'string') return false;
+        const s = v.trim().toLowerCase().replace(/[^a-z0-9.]/g,'');
+        if(s === 'free') return true;
+        if(s === '') return false;
+        const n = parseFloat(s);
+        return !isNaN(n) && n === 0;
+      }
+
+      async function ldsOwnsCurrent(){
+        if(!ldsPkg || !ldsPkg.productId) return false;
+        try{
+          const C = window.Commerce;
+          if(!(C && C.library && typeof C.library.ownsProduct === 'function')) return false;
+          const user = (C.auth && typeof C.auth.getCurrentUser === 'function')
+            ? C.auth.getCurrentUser() : null;
+          if(!(user && user.uid)) return false;
+          return !!(await C.library.ownsProduct(user.uid, ldsPkg.productId));
+        }catch(e){ return false; }   // fail closed
+      }
+
+      function ldsLoadImage(url){
+        return new Promise((resolve,reject)=>{
+          const im = new Image();
+          im.crossOrigin = 'anonymous';
+          im.onload  = ()=>resolve(im);
+          im.onerror = ()=>reject(new Error('image failed'));
+          im.src = url;
+        });
+      }
+
+      async function ldsDeliverPdf(){
+        const jsPDFctor = window.jspdf && window.jspdf.jsPDF;
+        if(!jsPDFctor){ ldsToast('PDF builder is still loading — try again in a moment.'); return; }
+        const slides = (ldsPkg.t.slides || []).filter(Boolean);
+        if(!slides.length){ ldsToast('This kit has no slides to build a PDF from.'); return; }
+        ldsToast('Building your PDF…');
+        const doc = new jsPDFctor({ orientation:'landscape', unit:'px', format:[1280,720] });
+        let placed = 0;
+        for(let i=0; i<slides.length; i++){
+          try{
+            const im = await ldsLoadImage(slides[i]);
+            if(placed) doc.addPage([1280,720],'landscape');
+            doc.addImage(im,'PNG',0,0,1280,720);
+            placed++;
+          }catch(e){ /* skip an unreachable slide rather than abort the file */ }
+        }
+        if(!placed){ ldsToast('Could not load the slides for this PDF.'); return; }
+        doc.save((ldsPkg.name || 'lazydog-kit') + '.pdf');
+      }
+
+      async function ldsDeliverPng(){
+        const slides = (ldsPkg.t.slides || []).filter(Boolean);
+        if(!slides.length){ ldsToast('This kit has no images to download.'); return; }
+        const base = (ldsPkg.name || 'lazydog-kit').replace(/[^\w\- ]+/g,'').trim() || 'lazydog-kit';
+        if(!window.JSZip){
+          /* No zip library — hand over the first image rather than nothing, and
+             say so, instead of silently doing half the job. */
+          window.open(slides[0], '_blank', 'noopener');
+          ldsToast('Zip builder unavailable — opened the first image instead.');
+          return;
+        }
+        ldsToast('Packaging your PNG files…');
+        const zip = new JSZip();
+        let added = 0;
+        for(let i=0; i<slides.length; i++){
+          try{
+            const res = await fetch(slides[i], { mode:'cors' });
+            if(!res.ok) continue;
+            zip.file(base + '-' + String(i+1).padStart(2,'0') + '.png', await res.blob());
+            added++;
+          }catch(e){ /* skip unreachable image */ }
+        }
+        if(!added){ ldsToast('Could not fetch the images for this kit.'); return; }
+        const blob = await zip.generateAsync({ type:'blob' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url; a.download = base + '-png.zip';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      }
+
+      async function ldsDeliverPptx(){
+        if(!ldsPkg.productId){ ldsToast('This kit has no file attached yet.'); return; }
+        ldsToast('Fetching your PPTX…');
+        const headers = { 'Content-Type':'application/json' };
+        try{
+          const tok = window.ldGetToken ? await window.ldGetToken() : null;
+          if(tok) headers['Authorization'] = 'Bearer ' + tok;
+        }catch(e){}
+        let j = {};
+        try{
+          const res = await fetch(LDS_DL_ENDPOINT, {
+            method:'POST', headers,
+            body: JSON.stringify({ kitId: ldsPkg.productId, kind:'pptx' })
+          });
+          try{ j = await res.json(); }catch(e){}
+          if(!res.ok || !j.url) throw new Error((j && j.error) || 'Download unavailable');
+        }catch(err){
+          const msg = (err && err.message) || '';
+          if(msg === 'purchase required')   { ldsToast('Locked — buy this kit first.'); return; }
+          if(msg === 'sign in to download') { ldsToast('Please sign in to download this kit.'); return; }
+          if(msg === 'not published')       { ldsToast('This kit is not published yet.'); return; }
+          ldsToast('PPTX download unavailable: ' + (msg || 'unknown error'));
+          return;
+        }
+        /* Google Drive view links must be converted or the browser opens a
+           preview page instead of downloading the file. */
+        const m = j.url.match(/\/d\/([A-Za-z0-9_-]+)/) || j.url.match(/[?&]id=([A-Za-z0-9_-]+)/);
+        const href = m ? 'https://drive.google.com/uc?export=download&id=' + m[1] : j.url;
+        const a = document.createElement('a');
+        a.href = href; a.target = '_blank'; a.rel = 'noopener';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      }
+
+      window.ldsFileGate = async function(kind){
+        if(!ldsPkg){ return; }
+        if(ldsIsFree(ldsPkg.price)){
+          /* Matches the slide pages: nothing on the site is genuinely free, so
+             a zero price is a data slip, not a giveaway. Stay locked. */
+          ldsToast('This kit has no price set yet, so it cannot be downloaded. Email support@lazydogtemplates.com.');
+          return;
+        }
+        const C = window.Commerce;
+        const user = (C && C.auth && typeof C.auth.getCurrentUser === 'function')
+          ? C.auth.getCurrentUser() : null;
+        if(!(user && user.uid)){
+          ldsToast('Please sign in — downloads unlock on the account that bought the kit.');
+          if(window.openAuth) window.openAuth('signin');
+          return;
+        }
+        if(!(await ldsOwnsCurrent())){
+          ldsToast('Locked — buy this kit first. Downloads unlock after payment.');
+          return;
+        }
+        try{
+          if(kind === 'pdf')  return await ldsDeliverPdf();
+          if(kind === 'png')  return await ldsDeliverPng();
+          if(kind === 'pptx') return await ldsDeliverPptx();
+        }catch(e){
+          ldsToast('That download failed — please try again.');
+        }
+      };
+
+      /* Swap the three "Unlocks after purchase" chips for live download
+         buttons once ownership is confirmed. Runs after the block is drawn and
+         again whenever the signed-in user changes, so buying in the Whop modal
+         and coming back leaves the buyer with working buttons. */
+      async function ldsPaintEntitlement(){
+        const host = document.getElementById('productFeatures');
+        if(!host || !ldsPkg) return;
+        const chips = host.querySelectorAll('[data-lds-file]');
+        if(!chips.length) return;
+        const owns = await ldsOwnsCurrent();
+        chips.forEach(chip=>{
+          const kind = chip.dataset.ldsFile;
+          if(owns){
+            chip.classList.add('feature__tag--free');
+            chip.innerHTML = '<i class="fa-solid fa-download"></i> Download ' + kind.toUpperCase();
+          }else{
+            chip.classList.remove('feature__tag--free');
+            chip.innerHTML = '<i class="fa-solid fa-lock"></i> Unlocks after purchase';
+          }
+        });
+      }
+      window.ldsPaintEntitlement = ldsPaintEntitlement;
+      /* commerce-loader.js pulls the engine in as a deferred module, so
+         Commerce.auth may not exist yet when this runs. Poll briefly instead
+         of registering once and silently missing the listener — otherwise a
+         buyer who signs in after page load keeps seeing locked chips. */
+      (function bindUserChange(tries){
+        try{
+          if(window.Commerce && window.Commerce.auth
+             && typeof window.Commerce.auth.onUserChange === 'function'){
+            window.Commerce.auth.onUserChange(()=>ldsPaintEntitlement());
+            return;
+          }
+        }catch(e){}
+        if(tries > 0) setTimeout(()=>bindUserChange(tries-1), 600);
+      })(25);
+
       function galleryFor(t){
         const items=[];
         (t.slides||[]).forEach(u=>{ if(u) items.push({type:'image',url:u}); });
@@ -4055,6 +4360,9 @@ document.addEventListener('keydown',e=>{
         if(productEl.metaDoc)    productEl.metaDoc.textContent   = PRODUCT_DEFAULT.metaDoc;
         if(productEl.addP)       productEl.addP.innerHTML        = PRODUCT_DEFAULT.addP;
         if(productEl.addC)       productEl.addC.innerHTML        = PRODUCT_DEFAULT.addC;
+        if(productEl.media)      delete productEl.media.dataset.live;  /* back to the stock 4/5 hero */
+        if(productEl.features)   productEl.features.classList.remove('product-features--files');
+        ldsPkg = null;   /* stock product = nothing to hand out */
         ldsProductGallery = null;
       }
       // A stock flagship product must never inherit a live kit's dossier.
@@ -4087,7 +4395,10 @@ document.addEventListener('keydown',e=>{
         const desc  = t.designNotes || (name + ' — a ' + label.toLowerCase() + ' from the LazyDog collection.');
         const unit  = (catKey === 'webkit') ? 'page' : 'slide';
 
-        if(productEl.media)   productEl.media.style.backgroundImage = "url('" + img + "')";
+        if(productEl.media){
+          productEl.media.style.backgroundImage = "url('" + img + "')";
+          productEl.media.dataset.live = '1';   /* switches the hero to the 16:9 uncropped frame */
+        }
         if(productEl.badge)   productEl.badge.textContent   = catTxt;
         if(productEl.catLine) productEl.catLine.textContent = catTxt;
         if(productEl.title)   productEl.title.textContent   = name;
@@ -4152,8 +4463,66 @@ document.addEventListener('keydown',e=>{
         ldsProductGallery = { items: galleryFor(t), meta:{title:name, meta:label} };
 
         const slideTxt = n ? n + ' ' + unit + (n===1?'':'s') : 'every ' + unit;
-        productEl.features.innerHTML = (catKey === 'media')
-          // ── MEDIA KIT — the three dossier reports ──
+
+        /* 11 Aug 2026 — Media kits and pitch decks no longer describe three
+           abstract "reports". They now list what actually ships: the Design
+           Brief (the one free download, same PDF the main site links as
+           "Download Design Brief"), then the PDF, PNG and PPTX files, which
+           stay locked until the kit is paid for. Slide previews remain
+           view-only — the lightbox enlarges them and offers no download. */
+        const FILE_CATS = { media:1, deck:1 };
+        productEl.features.classList.toggle('product-features--files', !!FILE_CATS[catKey]);
+
+        if(FILE_CATS[catKey]){
+          const brief = t.designDocUrl || t.designDoc || '';
+          /* Remember which kit page 05 is showing, so the download gate knows
+             what it is being asked to hand over. */
+          ldsPkg = { t, catKey, name, price: t.price, productId: pid, sellerId: sid };
+          const lockTag = k =>
+            '<button type="button" class="feature__tag" data-lds-file="' + k + '" ' +
+              'onclick="ldsFileGate(\'' + k + '\')">' +
+              '<i class="fa-solid fa-lock"></i> Unlocks after purchase</button>';
+          productEl.features.innerHTML =
+            '<div class="feature">' +
+              '<div class="feature__icon"><i class="fa-solid fa-file-lines"></i></div>' +
+              '<h3 class="feature__title">Design <em>Brief</em> Report</h3>' +
+              '<p class="feature__desc">A comprehensive PDF report on the kit — who it speaks to, the ' +
+                'hierarchy decisions across ' + esc(slideTxt) + ', the typographic and colour system, and ' +
+                'notes on adapting it to your own brand.</p>' +
+              (brief
+                ? '<a class="feature__tag feature__tag--free" href="' + esc(brief) + '" target="_blank" rel="noopener">' +
+                    '<i class="fa-solid fa-download"></i> Free · Read the brief</a>'
+                : '<span class="feature__tag">Included with the kit</span>') +
+            '</div>' +
+            '<div class="feature feature--locked">' +
+              '<div class="feature__icon"><i class="fa-solid fa-file-pdf"></i></div>' +
+              '<h3 class="feature__title">PDF <em>File</em></h3>' +
+              '<p class="feature__desc">The complete ' + esc(slideTxt) + ' as a readable, print-ready PDF — ' +
+                'ready to send to a client or present straight from the file.</p>' +
+              lockTag('pdf') +
+            '</div>' +
+            '<div class="feature feature--locked">' +
+              '<div class="feature__icon"><i class="fa-solid fa-images"></i></div>' +
+              '<h3 class="feature__title">PNG <em>Images</em></h3>' +
+              '<p class="feature__desc">Every ' + esc(unit) + ' exported as a high-resolution PNG for decks, ' +
+                'social posts and mockups. Previews on this page can be enlarged, but not downloaded.</p>' +
+              lockTag('png') +
+            '</div>' +
+            '<div class="feature feature--locked">' +
+              '<div class="feature__icon"><i class="fa-solid fa-file-powerpoint"></i></div>' +
+              '<h3 class="feature__title">PPTX <em>Source</em></h3>' +
+              '<p class="feature__desc">The fully editable PowerPoint source — every layer, grid and colour ' +
+                'token intact, so any ' + esc(unit) + ' can be rewritten or reset back to the original.</p>' +
+              lockTag('pptx') +
+            '</div>';
+          ldsPaintEntitlement();          // show real Download buttons if already bought
+          navigateTo('product');
+          return;
+        }
+
+        productEl.features.innerHTML = (catKey === '__three_reports__')
+          // ── Legacy three-report dossier. Kept intact: point this at
+          //    'keynote' or 'webkit' if those should read this way too. ──
           ? '<div class="feature">' +
               '<div class="feature__icon"><i class="fa-solid fa-lightbulb"></i></div>' +
               '<h3 class="feature__title">Design <em>Intelligence</em> Report</h3>' +
