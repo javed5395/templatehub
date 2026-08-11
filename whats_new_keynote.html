@@ -4,21 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>LazyDogTemplates — Meet your template library</title>
-<!-- FAVICON (10 Aug 2026) — this page does not load navbar.js. -->
-<link rel="icon" type="image/png" href="images/site_logo_round.png" />
-<link rel="shortcut icon" type="image/png" href="images/site_logo_round.png" />
-<link rel="apple-touch-icon" href="images/site_logo_round.png" />
-<meta name="description" content="Meet LazyDog Templates - pitch decks, media kits, web kits, CVs and digital keynotes. Not just slides, a whole toolkit you can edit in the browser.">
-<link rel="canonical" href="https://www.lazydogtemplates.com/whats_new_keynote.html">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="LazyDogTemplates">
-<meta property="og:title" content="Meet your template library — LazyDogTemplates">
-<meta property="og:description" content="Pitch decks, media kits, web kits, CVs and digital keynotes. Not just slides, a whole toolkit you can edit in the browser.">
-<meta property="og:url" content="https://www.lazydogtemplates.com/whats_new_keynote.html">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Meet your template library — LazyDogTemplates">
-<meta name="twitter:description" content="Pitch decks, media kits, web kits, CVs and digital keynotes. Not just slides, a whole toolkit you can edit in the browser.">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   :root{
@@ -226,7 +212,7 @@
 
 
   <div class="card-stack reveal in d3" id="cardStack">
-    <div class="stack-card sc3"><div class="tag">Brand Kit</div><div class="swatch"></div><div class="name">Brand Kit</div></div>
+    <div class="stack-card sc3"><div class="tag">Brand Kit</div><div class="swatch"></div><div class="name">Social Kit</div></div>
     <div class="stack-card sc2"><div class="tag">Slides</div><div class="swatch"></div><div class="name">Pitch Deck</div></div>
     <div class="stack-card sc1"><div class="tag">Web</div><div class="swatch"></div><div class="name">Media Kit</div></div>
   </div>
@@ -437,14 +423,80 @@
   border-radius: 10px;
   margin-bottom: 8px;
 }.wnflip .mock__stat-num { font-size: 22px; font-weight: 700; color: var(--black); letter-spacing: -1px; }.wnflip .mock__stat-lbl { font-size: 10.5px; color: #999; font-weight: 500; margin-top: 2px; }
+
+/* ── Journal cards on the sticky stack (12 Aug 2026) ──────────────────────
+   The four white browser mock-ups were replaced with the SAME card the blog
+   grid uses (.bcard2 in blog.html), copied rule-for-rule so the two pages
+   cannot drift apart.
+
+   The white .sticky-card panel and the grey .sticky-card__visual behind it
+   are stripped so the cream card sits on the dark canvas, as on the blog.
+
+   NOTHING HERE TOUCHES THE MOVEMENT. The GSAP ScrollTrigger drives #sc1–#sc4
+   and those elements are untouched — the stack still slides up, scales, fades
+   and stacks on scroll exactly as before. Only the contents of
+   .sticky-card__visual changed. */
+.wnflip .sticky-card { background: none !important; border-radius: 0 !important;
+  box-shadow: none !important; overflow: visible !important; }
+.wnflip .sticky-card__inner { min-height: 0 !important; }
+.wnflip .sticky-card__visual { background: none !important; border-left: none !important;
+  padding: 0 !important; }
+
+.wnflip .bcard2 { position: relative; width: 100%; background: #f2eee5;
+  border: 1px solid #d9d4c7; aspect-ratio: 1200 / 630; padding: 30px 34px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  text-decoration: none; color: inherit;
+  transition: transform .2s, box-shadow .2s; }
+.wnflip .bcard2::before { content: ""; position: absolute; inset: 14px;
+  border: 1px solid rgba(0,0,0,.09); pointer-events: none; }
+.wnflip .bcard2:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(0,0,0,.14); }
+.wnflip .bcard2-eyebrow { font-family: 'Consolas','SFMono-Regular',Menlo,monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+  color: #b8442a; padding-bottom: 6px; border-bottom: 1.5px solid #b8442a;
+  display: inline-block; width: max-content; margin-bottom: 16px; }
+.wnflip .bcard2-title { font-family: 'Instrument Serif', serif; font-weight: 400;
+  font-size: clamp(18px, 2.4vw, 26px); line-height: 1.18; color: #1a1a2e;
+  margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden; }
+.wnflip .bcard2-title em { color: #b8442a; font-style: italic; }
+.wnflip .bcard2-excerpt { font-family: 'Inter', sans-serif; font-size: 13.5px;
+  color: #46414d; line-height: 1.5; margin-bottom: 5px; display: -webkit-box;
+  -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.wnflip .bcard2-byline { font-family: 'Inter', sans-serif; font-size: 12px; color: #8a8496; }
+.wnflip .bcard2-divider { border-top: 1px solid #e2dccd; margin: 14px 0; }
+.wnflip .bcard2-footrow { display: flex; align-items: center; justify-content: space-between; }
+.wnflip .bcard2-url { font-family: 'Consolas','SFMono-Regular',Menlo,monospace;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .12em; color: #1a1a2e;
+  text-transform: uppercase; }
+.wnflip .bcard2-logo { width: 42px; height: 42px; border-radius: 50%;
+  object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+
+/* top row: eyebrow left, Explore button right ------------------------------ */
+.wnflip .bcard2 { justify-content: flex-start; }
+.wnflip .bcard2-top { display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 16px; margin-bottom: 4px; }
+.wnflip .bcard2-tail { margin-top: auto; }
+.wnflip .bcard2-explore {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: 'Consolas','SFMono-Regular',Menlo,monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  color: #b8442a; text-decoration: none;
+  border: 1px solid rgba(184,68,42,.55); padding: 7px 12px;
+  background: rgba(184,68,42,.05); position: relative; z-index: 2;
+  transition: background .25s, color .25s, border-color .25s, transform .25s;
+}
+.wnflip .bcard2-explore svg { width: 12px; height: 12px; transition: transform .25s; }
+.wnflip .bcard2-explore:hover { background: #b8442a; color: #f2eee5;
+  border-color: #b8442a; transform: translateY(-1px); }
+.wnflip .bcard2-explore:hover svg { transform: translate(2px,-2px); }
 </style>
 <!-- ══ STICKY SCROLL CARDS ══ -->
 <section class="sticky-section" id="wnFlipFeatures">
   <div class="container">
     <div class="section-header">
       <span class="section-tag">Platform</span>
-      <h2 class="section-heading serif"></h2>
-      <p class="section-sub"></p>
+      <h2 class="section-heading serif">Every layer of revenue,<br>handled with precision</h2>
+      <p class="section-sub">From first charge to annual renewal — Meridian owns the entire revenue lifecycle so nothing slips through.</p>
     </div>
   </div>
 
@@ -457,31 +509,28 @@
           <div class="sticky-card__inner">
             <div class="sticky-card__content">
               <div class="sticky-card__number">01 — Billing</div>
-              <h3 class="sticky-card__title serif"></h3>
-              <p class="sticky-card__desc"></p>
+              <h3 class="sticky-card__title serif">Intelligent billing that adapts to any pricing model</h3>
+              <p class="sticky-card__desc">From usage-based and seat licensing to hybrid enterprise contracts — configure any billing logic without custom code. Meridian handles proration, mid-cycle changes, and multi-currency natively.</p>
               <a href="#" class="sticky-card__link">Explore billing → </a>
             </div>
             <div class="sticky-card__visual">
-              <div class="mock" id="mock1">
-                <div class="mock__header">
-                  <span class="mock__dot" style="background:#FF5F57"></span>
-                  <span class="mock__dot" style="background:#FFBD2E"></span>
-                  <span class="mock__dot" style="background:#28CA42"></span>
-                  <span style="font-size:11px;color:#999;margin-left:8px;font-weight:500"></span>
+              <div class="bcard2">
+                <div class="bcard2-top">
+                  <span class="bcard2-eyebrow">Launch 1 &middot; 19 Jun 2026</span>
+                  <a class="bcard2-explore" href="lazydog_studio.html">Explore
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                         stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+                  </a>
                 </div>
-                <div class="mock__body">
-                  <div class="mock__stat"><div class="mock__stat-num" id="rev1"></div><div class="mock__stat-lbl"></div></div>
-                  <div class="mock__chart" id="chart1">
-                    <div class="mock__bar" style="height:40%"></div>
-                    <div class="mock__bar" style="height:55%"></div>
-                    <div class="mock__bar" style="height:45%"></div>
-                    <div class="mock__bar" style="height:70%"></div>
-                    <div class="mock__bar" style="height:60%"></div>
-                    <div class="mock__bar active" style="height:85%"></div>
+                <div class="bcard2-title">LazyDog Studios — <em>the other face of the store</em>.</div>
+                <div class="bcard2-excerpt">A curated atelier and visual showroom.</div>
+                <div class="bcard2-byline">A guided, sixteen-chapter walk through the collection.</div>
+                <div class="bcard2-tail">
+                  <div class="bcard2-divider"></div>
+                  <div class="bcard2-footrow">
+                    <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+                    <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
                   </div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__value"></span></div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__value"></span></div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__badge mock__badge--green"></span></div>
                 </div>
               </div>
             </div>
@@ -493,27 +542,27 @@
           <div class="sticky-card__inner">
             <div class="sticky-card__content">
               <div class="sticky-card__number">02 — Tax</div>
-              <h3 class="sticky-card__title serif"></h3>
-              <p class="sticky-card__desc"></p>
+              <h3 class="sticky-card__title serif">Automatic tax compliance across every jurisdiction</h3>
+              <p class="sticky-card__desc">Meridian calculates, collects, and remits sales tax, VAT, and GST in 190+ countries. Stay compliant as you expand globally — with zero manual work and real-time audit logs.</p>
               <a href="#" class="sticky-card__link">Explore tax engine → </a>
             </div>
             <div class="sticky-card__visual">
-              <div class="mock" id="mock2">
-                <div class="mock__header">
-                  <span class="mock__dot" style="background:#FF5F57"></span>
-                  <span class="mock__dot" style="background:#FFBD2E"></span>
-                  <span class="mock__dot" style="background:#28CA42"></span>
-                  <span style="font-size:11px;color:#999;margin-left:8px;font-weight:500"></span>
+              <div class="bcard2">
+                <div class="bcard2-top">
+                  <span class="bcard2-eyebrow">Launch 2 &middot; 22 Jun 2026</span>
+                  <a class="bcard2-explore" href="Hexa_Promptbox.html">Explore
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                         stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+                  </a>
                 </div>
-                <div class="mock__body">
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__badge mock__badge--green"></span></div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__badge mock__badge--green"></span></div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__badge mock__badge--green"></span></div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__badge mock__badge--blue"></span></div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__badge mock__badge--amber"></span></div>
-                  <div style="margin-top:12px">
-                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin-bottom:4px"><span>Q4 Remittance</span><span>87%</span></div>
-                    <div class="mock__progress"><div class="mock__progress-fill" id="taxBar" style="width:87%"></div></div>
+                <div class="bcard2-title">Meet Hexa — <em>LazyDog&rsquo;s own AI engine</em>.</div>
+                <div class="bcard2-excerpt">An in-house action engine, not a chatbot.</div>
+                <div class="bcard2-byline">One prompt box, three modes: Chat, Create Design, Create Presentation.</div>
+                <div class="bcard2-tail">
+                  <div class="bcard2-divider"></div>
+                  <div class="bcard2-footrow">
+                    <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+                    <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
                   </div>
                 </div>
               </div>
@@ -526,26 +575,28 @@
           <div class="sticky-card__inner">
             <div class="sticky-card__content">
               <div class="sticky-card__number">03 — Analytics</div>
-              <h3 class="sticky-card__title serif"></h3>
-              <p class="sticky-card__desc"></p>
+              <h3 class="sticky-card__title serif">Revenue intelligence that drives decisions</h3>
+              <p class="sticky-card__desc">Real-time MRR, churn forecasting, cohort analysis, and expansion revenue tracking — all in one unified dashboard. Export to your data warehouse in one click.</p>
               <a href="#" class="sticky-card__link">Explore analytics → </a>
             </div>
             <div class="sticky-card__visual">
-              <div class="mock" id="mock3">
-                <div class="mock__header">
-                  <span class="mock__dot" style="background:#FF5F57"></span>
-                  <span class="mock__dot" style="background:#FFBD2E"></span>
-                  <span class="mock__dot" style="background:#28CA42"></span>
-                  <span style="font-size:11px;color:#999;margin-left:8px;font-weight:500"></span>
+              <div class="bcard2">
+                <div class="bcard2-top">
+                  <span class="bcard2-eyebrow">Launch 3 &middot; 23 Jun 2026</span>
+                  <a class="bcard2-explore" href="editor.html">Explore
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                         stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+                  </a>
                 </div>
-                <div class="mock__body">
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                    <div class="mock__stat"><div class="mock__stat-num" style="font-size:18px" id="mrr3"></div><div class="mock__stat-lbl"></div></div>
-                    <div class="mock__stat"><div class="mock__stat-num" style="font-size:18px;color:#1B7F3E"></div><div class="mock__stat-lbl"></div></div>
+                <div class="bcard2-title">Meet the Editor — <em>design anything, right in the browser</em>.</div>
+                <div class="bcard2-excerpt">LazyDog&rsquo;s full design editor, open in the browser.</div>
+                <div class="bcard2-byline">Export cleanly to Canva, Google Slides, PowerPoint or Keynote.</div>
+                <div class="bcard2-tail">
+                  <div class="bcard2-divider"></div>
+                  <div class="bcard2-footrow">
+                    <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+                    <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
                   </div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__value" style="color:#1B7F3E"></span></div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__value"></span></div>
-                  <div class="mock__row"><span class="mock__label"></span><span class="mock__value"></span></div>
                 </div>
               </div>
             </div>
@@ -557,29 +608,28 @@
           <div class="sticky-card__inner">
             <div class="sticky-card__content">
               <div class="sticky-card__number">04 — Checkout</div>
-              <h3 class="sticky-card__title serif"></h3>
-              <p class="sticky-card__desc"></p>
+              <h3 class="sticky-card__title serif">Conversion-optimized checkout, fully branded</h3>
+              <p class="sticky-card__desc">Drop in a checkout that converts 30% better than average. Localized currencies, local payment methods, and smart retry logic — all without a single line of payment code.</p>
               <a href="#" class="sticky-card__link">Explore checkout → </a>
             </div>
             <div class="sticky-card__visual">
-              <div class="mock" id="mock4">
-                <div class="mock__header">
-                  <span class="mock__dot" style="background:#FF5F57"></span>
-                  <span class="mock__dot" style="background:#FFBD2E"></span>
-                  <span class="mock__dot" style="background:#28CA42"></span>
-                  <span style="font-size:11px;color:#999;margin-left:8px;font-weight:500"></span>
+              <div class="bcard2">
+                <div class="bcard2-top">
+                  <span class="bcard2-eyebrow">Launch 4 &middot; 28 Jul 2026</span>
+                  <a class="bcard2-explore" href="pitch_deck_folder_section.html">Explore
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                         stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+                  </a>
                 </div>
-                <div class="mock__body">
-                  <div class="mock__stat"><div class="mock__stat-num" id="conv4"></div><div class="mock__stat-lbl"></div></div>
-                  <div style="margin-top:10px">
-                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin-bottom:4px"><span>Card payments</span><span>62%</span></div>
-                    <div class="mock__progress"><div class="mock__progress-fill" id="bar4a" style="width:62%"></div></div>
-                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin:8px 0 4px"><span>Local methods</span><span>28%</span></div>
-                    <div class="mock__progress"><div class="mock__progress-fill" id="bar4b" style="width:28%"></div></div>
-                    <div style="display:flex;justify-content:space-between;font-size:11px;color:#999;margin:8px 0 4px"><span>Digital wallets</span><span>10%</span></div>
-                    <div class="mock__progress"><div class="mock__progress-fill" id="bar4c" style="width:10%"></div></div>
+                <div class="bcard2-title">Search Engine Updated: <em>sixteen fields on one card</em>.</div>
+                <div class="bcard2-excerpt">The search card rebuilt into one column of sixteen fields.</div>
+                <div class="bcard2-byline">Every option wired to real results, ranked by fit.</div>
+                <div class="bcard2-tail">
+                  <div class="bcard2-divider"></div>
+                  <div class="bcard2-footrow">
+                    <span class="bcard2-url">WWW.LAZYDOGTEMPLATES.COM</span>
+                    <img class="bcard2-logo" src="images/site_logo_round.png" alt="LazyDog Templates logo" />
                   </div>
-                  <div class="mock__row" style="margin-top:8px"><span class="mock__label"></span><span class="mock__badge mock__badge--green"></span></div>
                 </div>
               </div>
             </div>
@@ -698,7 +748,7 @@ const cards = [
       // MRR counter
       const rev1 = document.getElementById('rev1');
       if (rev1) {
-        let val = 0; const target = 0;   /* washed 29 Jul 2026 */
+        let val = 0; const target = 142800;
         const dur = 1400; const s = performance.now();
         const tick = (now) => {
           const p = Math.min((now - s)/dur, 1);
@@ -717,7 +767,7 @@ const cards = [
     if (cardIndex === 2) {
       const mrr3 = document.getElementById('mrr3');
       if (mrr3) {
-        let val = 0; const target = 0;   /* washed 29 Jul 2026 */
+        let val = 0; const target = 284500;
         const dur = 1400; const s = performance.now();
         const tick = (now) => {
           const p = Math.min((now - s)/dur, 1);
@@ -766,21 +816,6 @@ const cards = [
 });
 </script>
 
-<!-- ══ WASHED 29 Jul 2026 (owner instruction) ═════════════════════════════
-     Every heading, card title and body on this page has been EMPTIED, not
-     deleted. The layout, cards, grid, CSS, fonts and scroll animations are
-     untouched — the page renders exactly as before, just blank.
-
-     What was removed and why:
-       - A fictional SaaS pitch about billing, tax compliance in 190+ countries,
-         MRR/churn analytics and "converts 30% better" checkout. None of it
-         described LazyDog; it promised services you do not sell.
-       - Three mentions of "Meridian" — a ghost product name that also appears
-         in the Studio product defaults.
-       - The four toolkit cards, so they can be reused for What's New posts.
-
-     Type your announcements straight into the empty elements below.
-     ═══════════════════════════════════════════════════════════════════ -->
 <!-- OFFER GRID -->
 <section id="offer">
   <div class="eyebrow reveal">What's inside</div>
@@ -788,24 +823,24 @@ const cards = [
 
   <div class="offer-grid">
     <div class="offer-card reveal d1">
-      <div class="n"></div>
-      <h4></h4>
-      <p></p>
+      <div class="n">Pitch Decks</div>
+      <h4>Investor-ready, in one download.</h4>
+      <p>Structured narrative slides with real layout hierarchy — not just pretty backgrounds.</p>
     </div>
     <div class="offer-card reveal d2">
-      <div class="n"></div>
-      <h4></h4>
-      <p></p>
+      <div class="n">Media Kits</div>
+      <h4>Press-ready in minutes.</h4>
+      <p>Bios, stats, and brand assets pre-arranged so you only fill in the blanks.</p>
     </div>
     <div class="offer-card reveal d3">
-      <div class="n"></div>
-      <h4></h4>
-      <p></p>
+      <div class="n">Digital Keynotes</div>
+      <h4>Present like a pro.</h4>
+      <p>Polished keynote decks with real structure — just drop in your story and present.</p>
     </div>
     <div class="offer-card reveal d4">
-      <div class="n"></div>
-      <h4></h4>
-      <p></p>
+      <div class="n">Web Templates</div>
+      <h4>Launch-ready pages.</h4>
+      <p>Responsive, lightweight, and built to be customised — not fought with.</p>
     </div>
   </div>
 </section>
