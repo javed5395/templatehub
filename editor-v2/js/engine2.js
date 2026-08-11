@@ -562,6 +562,11 @@ window.ldCompose = async function (sentence) {
 
 /* ═════════ export to PPTX (cloud writer) ═════════ */
 async function exportPptxFileV2() {
+  /* re-entrancy guard (11 Aug): a slow cloud export invited second and third
+     clicks on Download — each one ran a FULL export and dropped another copy
+     of the same file in Downloads. One export at a time. */
+  if (window._ldExporting) { showToast('Already exporting — the file will download when ready'); return; }
+  window._ldExporting = true;
   showToast('Building PPTX in LazyDog cloud…', 6000);
   try {
     var deck = await buildEffectiveDeckIR();
@@ -592,6 +597,8 @@ async function exportPptxFileV2() {
   } catch (e) {
     console.error('[v2] export', e);
     showToast('Export failed: ' + e.message, 5000);
+  } finally {
+    window._ldExporting = false;
   }
 }
 
