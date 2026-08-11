@@ -104,6 +104,11 @@
         if (t.slideCount) meta.appendChild(el('span', null, t.slideCount + ' slides'));
         b.appendChild(meta);
         b.addEventListener('click', function () { run('applyTemplate', t.id); });
+        var del = el('button', 'sb-tpl-del');
+        del.type = 'button'; del.title = 'Remove template (admin)';
+        del.appendChild(mat('close', 'sb-btn-i'));
+        del.addEventListener('click', function (ev) { ev.stopPropagation(); run('deleteTemplate', t.id); });
+        b.appendChild(del);
         holder.appendChild(b);
       });
     }

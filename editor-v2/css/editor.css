@@ -446,3 +446,10 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .film-thumb:hover .film-del { display: grid; }
 .film-thumb .film-del .material-icons-outlined { font-size: 13px; }
 .film-thumb .film-del:hover { background: #DC2626; }
+
+/* template card delete (admin) */
+.sb-tpl-card { position: relative; }
+.sb-tpl-del { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; display: none; place-items: center; border: 0; border-radius: 50%; background: rgba(15,23,42,.75); color: #fff; cursor: pointer; }
+.sb-tpl-card:hover .sb-tpl-del { display: grid; }
+.sb-tpl-del:hover { background: #DC2626; }
+.sb-tpl-del .sb-btn-i { font-size: 13px; }

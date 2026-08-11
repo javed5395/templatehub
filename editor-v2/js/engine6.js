@@ -395,5 +395,41 @@ Editor._register({
       console.error('publishTemplate', e);
       showToast('Publish failed: ' + ((e && e.message) || e), 7000);
     }
+  },
+
+  /* remove a published template (admin) — deletes the Firestore record and
+     the JSON in Storage; the panel refreshes for everyone on next load */
+  deleteTemplate: async function (id) {
+    if (!id) return;
+    try {
+      var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+      var authMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+      var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({
+        apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes',
+        authDomain: 'templatehub-16cd7.firebaseapp.com',
+        projectId: 'templatehub-16cd7',
+        storageBucket: 'templatehub-16cd7.firebasestorage.app'
+      });
+      var user = authMod.getAuth(app).currentUser;
+      if (!user || LD_ADMIN_EMAILS.indexOf(user.email) === -1) {
+        showToast('Removing templates is for the LazyDog admin account', 4500);
+        return;
+      }
+      var tpl = (window._editorTemplates || []).filter(function (t) { return t.id === id; })[0];
+      if (!confirm('Remove "' + ((tpl && tpl.name) || id) + '" from the Templates panel for everyone?')) return;
+      var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+      await fsMod.deleteDoc(fsMod.doc(fsMod.getFirestore(app), 'editor_templates', id));
+      /* best effort: the JSON file in Storage (new publishes use <id>.json) */
+      try {
+        var stMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
+        await stMod.deleteObject(stMod.ref(stMod.getStorage(app), 'editor_templates/' + id + '.json'));
+      } catch (e2) { /* older records may keep their JSON elsewhere — fine */ }
+      window._editorTemplates = (window._editorTemplates || []).filter(function (t) { return t.id !== id; });
+      if (window.Editor && Editor._emit) Editor._emit('templates', { count: window._editorTemplates.length });
+      showToast('Template removed ✓');
+    } catch (e) {
+      console.error('deleteTemplate', e);
+      showToast('Remove failed: ' + ((e && e.message) || e), 6000);
+    }
   }
 });
