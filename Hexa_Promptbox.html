@@ -1189,6 +1189,8 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
 .auth-name-field { display: none; }
 .auth-name-field.show { display: block; }
 </style>
+<!-- cursor-reactive depth on the template + capability cards; delete to remove -->
+<script defer src="tilt.js"></script>
 </head>
 <body>
 
@@ -2489,7 +2491,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
         addMsg('🎨 Handing your order to Hexa — she\'s opening the Designer…');
         dwGo.click();
       } else {
-        addMsg('Use the design card on the right — describe your design (or type it here), set the preferences, then <b>Make my design</b>.'+((window.ldIsAdmin&&window.ldIsAdmin())?'':' (Free version: up to 5 slides. Subscriptions coming soon.)'));
+        addMsg('Use the design card on the right — describe your design (or type it here), set the preferences, then <b>Make my design</b>.'+((window.ldIsAdmin&&window.ldIsAdmin())?'':' (Free version: up to 8 slides. Subscriptions coming soon.)'));
       }
       return;
     }

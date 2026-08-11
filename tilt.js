@@ -30,7 +30,9 @@
   /* Anything matching these gets the effect, now or whenever it appears. */
   /* .tmpl-card is the career-docs page's own product-card class — same idea,
      different name, so it is named here rather than left flat. */
-  var SELECTOR = '.deck-card, .pd-card, .tmpl-card, .ld-tilt-btn';
+  /* .feature-card and .cap-card are the Hexa page's template showcase and
+     capability tiles. They carry backdrop-filter, so see the note below. */
+  var SELECTOR = '.deck-card, .pd-card, .tmpl-card, .feature-card, .cap-card, .ld-tilt-btn';
 
   /* Degrees of rotation at the very edge. Cards get more room than buttons:
      a large surface needs more angle to read as tilted, while a small button
@@ -62,7 +64,7 @@
   var style = document.createElement('style');
   style.id = 'ldTiltStyle';
   style.textContent =
-    '.deck-card,.pd-card,.tmpl-card,.ld-tilt-btn{' +
+    '.deck-card,.pd-card,.tmpl-card,.feature-card,.cap-card,.ld-tilt-btn{' +
       'transition:transform .45s cubic-bezier(.16,1,.3,1),' +
                  'box-shadow .45s cubic-bezier(.16,1,.3,1)!important;' +
       'will-change:transform;' +
@@ -72,10 +74,16 @@
   var current = null;   // element under the cursor right now
 
   function settings(el) {
-    var isBtn = el.classList.contains('ld-tilt-btn');
-    return isBtn
-      ? { tilt: TILT_BTN,  lift: LIFT_BTN,  persp: PERSP_BTN  }
-      : { tilt: TILT_CARD, lift: LIFT_CARD, persp: PERSP_CARD };
+    if (el.classList.contains('ld-tilt-btn')) {
+      return { tilt: TILT_BTN, lift: LIFT_BTN, persp: PERSP_BTN };
+    }
+    /* Glass cards (backdrop-filter: blur) make the browser recompute the
+       blurred backdrop on every frame of the rotation. A smaller angle keeps
+       that work down while still reading as depth. */
+    if (el.classList.contains('feature-card') || el.classList.contains('cap-card')) {
+      return { tilt: 4, lift: 6, persp: 1000 };
+    }
+    return { tilt: TILT_CARD, lift: LIFT_CARD, persp: PERSP_CARD };
   }
 
   function reset(el) {
