@@ -371,7 +371,9 @@ Editor._register({
       showToast('Uploading (' + Math.round(json.length / 1024) + ' KB)…');
       var stMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
       var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
-      var storage = stMod.getStorage(app);
+      /* the auth module may have initialised the app WITHOUT storageBucket —
+         name the bucket explicitly so it can never depend on init order */
+      var storage = stMod.getStorage(app, 'gs://templatehub-16cd7.firebasestorage.app');
       var id = 'tpl_' + Date.now();
       var ref = stMod.ref(storage, 'editor_templates/' + id + '.json');
       await stMod.uploadBytes(ref, new Blob([json], { type: 'application/json' }));
@@ -422,7 +424,7 @@ Editor._register({
       /* best effort: the JSON file in Storage (new publishes use <id>.json) */
       try {
         var stMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
-        await stMod.deleteObject(stMod.ref(stMod.getStorage(app), 'editor_templates/' + id + '.json'));
+        await stMod.deleteObject(stMod.ref(stMod.getStorage(app, 'gs://templatehub-16cd7.firebasestorage.app'), 'editor_templates/' + id + '.json'));
       } catch (e2) { /* older records may keep their JSON elsewhere — fine */ }
       window._editorTemplates = (window._editorTemplates || []).filter(function (t) { return t.id !== id; });
       if (window.Editor && Editor._emit) Editor._emit('templates', { count: window._editorTemplates.length });
