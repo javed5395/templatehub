@@ -38,6 +38,7 @@ var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBod
   'isFrame', 'frameKind', 'framePath', 'framePathW', 'framePathH', 'frameSrc', 'frameRect',
   'frameLook', 'frameFill', 'frameDevice', 'isAperture',
   'chartType', 'chartDef', 'datasetId', 'tableId',
+  'isSticker', 'stickerName', 'stickerAnim', 'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isIcon', 'iconName', 'iconWeight',
   'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isSticker', 'stickerName', 'stickerAnim',
@@ -243,7 +244,7 @@ function rehydrateFrames() {}
     'dataCsv','dataXlsx','dataSheet','dataSample','dataConnect','dataRefresh','dataRemove',
     'addSlideLayout','slidesOutline','outlineView','readingView','masterAdd','masterRemove','handoutMaster','notesMaster','colourMode','newWindow',
     'publishTemplate','deleteTemplate','templateThumbs','applyTemplateSlide',
-    'insertShapePreset','insertLineKind','insertGrid',
+    'insertShapePreset','insertLineKind','insertGrid','insertSticker','insertIllo','illoPalette',
     'layerAction','ai'
   ];
   var impl = {};
@@ -278,6 +279,8 @@ function rehydrateFrames() {}
         case 'shapeGroups': return impl.__qShapeGroups ? impl.__qShapeGroups() : [];
         case 'gridLayouts': return impl.__qGridLayouts ? impl.__qGridLayouts() : [];
         case 'icons': return impl.__qIcons ? impl.__qIcons() : [];
+        case 'stickers': return impl.__qStickers ? impl.__qStickers() : [];
+        case 'illos': return impl.__qIllos ? impl.__qIllos() : { palettes: [], styles: [] };
         case 'components': return [];
         default: return null;
       }

@@ -492,3 +492,16 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .sb-icon-cell { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #EEF2F7; border-radius: 8px; background: #fff; cursor: pointer; }
 .sb-icon-cell:hover { border-color: #8B3DFF; background: #F7F3FF; }
 .sb-icon-mi { font-size: 24px !important; }
+
+/* ── Graphics palettes + animated previews (engine12) ── */
+.sb-illo-pal { display: flex; gap: 7px; padding: 4px 2px 10px; flex-wrap: wrap; }
+.sb-illo-sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1.5px #CBD5E1; cursor: pointer; }
+.sb-illo-sw.on { box-shadow: 0 0 0 2px #8B3DFF; }
+.sb-anim-spin .sb-shape-art svg { animation: ldrot 2.4s linear infinite; }
+.sb-anim-pulse .sb-shape-art svg { animation: ldpulse 1.4s ease-in-out infinite; }
+.sb-anim-bounce .sb-shape-art svg { animation: ldbounce 1.2s ease-in-out infinite; }
+.sb-anim-float .sb-shape-art svg { animation: ldfloat 2.6s ease-in-out infinite; }
+@keyframes ldrot { to { transform: rotate(360deg); } }
+@keyframes ldpulse { 50% { transform: scale(1.09); } }
+@keyframes ldbounce { 50% { transform: translateY(-7px); } }
+@keyframes ldfloat { 50% { transform: translateY(-4px); } }

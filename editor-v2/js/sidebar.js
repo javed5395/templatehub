@@ -213,7 +213,9 @@
       { id: 'grids',   label: 'Grids',    ic: 'grid_view',        grad: 'linear-gradient(135deg,#0F172A,#475569)' },
       { id: 'tables',  label: 'Tables',   ic: 'table_chart',      grad: 'linear-gradient(135deg,#EA580C,#FDE047)' },
       { id: 'wordart', label: 'WordArt',  ic: 'format_color_text',grad: 'linear-gradient(135deg,#22D3EE,#7C3AED)' },
-      { id: 'mockups', label: 'Mockups',  ic: 'devices',          grad: 'linear-gradient(135deg,#12A5A0,#059669)' }
+      { id: 'mockups', label: 'Mockups',  ic: 'devices',          grad: 'linear-gradient(135deg,#12A5A0,#059669)' },
+      { id: 'graphics', label: 'Graphics', ic: 'interests',        grad: 'linear-gradient(135deg,#F97316,#DB2777)' },
+      { id: 'anims',   label: 'Animations', ic: 'animation',       grad: 'linear-gradient(135deg,#8B3DFF,#22D3EE)' }
     ];
     var g = el('div', 'sb-cat-grid');
     CATS.forEach(function (cat) {
@@ -330,6 +332,67 @@
       var inp2 = iq.querySelector('input');
       if (inp2) inp2.addEventListener('input', function () { paintIcons(inp2.value.trim().toLowerCase()); });
       paintIcons('');
+      return;
+    }
+    if (cat === 'graphics') {
+      elCatHead(p, 'Graphics');
+      var data = ask('illos') || { palettes: [], styles: [] };
+      var pal = el('div', 'sb-illo-pal');
+      data.palettes.forEach(function (pl) {
+        var b = el('button', 'sb-illo-sw' + (pl.i === data.current ? ' on' : ''));
+        b.type = 'button'; b.title = pl.name;
+        b.style.background = 'linear-gradient(135deg,' + pl.a + ' 0 50%,' + pl.b + ' 50% 100%)';
+        b.addEventListener('click', function () { run('illoPalette', pl.i); paint(); });
+        pal.appendChild(b);
+      });
+      p.appendChild(pal);
+      data.styles.forEach(function (grp) {
+        p.appendChild(subhead('Illustrations — ' + grp.name));
+        var g = el('div', 'sb-grid'); g.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        grp.items.forEach(function (it) {
+          var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = it.name;
+          var w = el('span', 'sb-shape-art'); w.innerHTML = it.svg;
+          b.appendChild(w);
+          b.appendChild(el('span', 'sb-card-lab', it.name));
+          b.addEventListener('click', function () { run('insertIllo', { i: it.i }); });
+          g.appendChild(b);
+        });
+        p.appendChild(g);
+      });
+      (ask('stickers') || []).forEach(function (grp) {
+        if (grp.name === 'Animated') return;   /* those live in Animations */
+        p.appendChild(subhead('Stickers — ' + grp.name));
+        var g2 = el('div', 'sb-grid'); g2.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        grp.items.forEach(function (it) {
+          var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = it.name;
+          var w = el('span', 'sb-shape-art'); w.innerHTML = it.svg;
+          b.appendChild(w);
+          b.addEventListener('click', function () { run('insertSticker', it.i); });
+          g2.appendChild(b);
+        });
+        p.appendChild(g2);
+      });
+      return;
+    }
+    if (cat === 'anims') {
+      elCatHead(p, 'Animated elements');
+      p.appendChild(subhead('Motion plays live on the slide'));
+      var found = false;
+      (ask('stickers') || []).forEach(function (grp) {
+        if (grp.name !== 'Animated') return;
+        found = true;
+        var g = el('div', 'sb-grid'); g.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        grp.items.forEach(function (it) {
+          var b = el('button', 'sb-shape-card sb-anim-' + (it.anim || '')); b.type = 'button'; b.title = it.name + (it.anim ? ' · ' + it.anim : '');
+          var w = el('span', 'sb-shape-art'); w.innerHTML = it.svg;
+          b.appendChild(w);
+          b.appendChild(el('span', 'sb-card-lab', it.name));
+          b.addEventListener('click', function () { run('insertSticker', it.i); });
+          g.appendChild(b);
+        });
+        p.appendChild(g);
+      });
+      if (!found) p.appendChild(emptyState('animation', 'Coming soon', 'Animated graphics arrive shortly.'));
       return;
     }
     if (cat === 'grids') {
