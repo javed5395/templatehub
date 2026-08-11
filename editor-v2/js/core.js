@@ -242,7 +242,7 @@ function rehydrateFrames() {}
     'themeFonts','themeColours','importPptx','fillFrames','dissolve','applyTemplate',
     'dataCsv','dataXlsx','dataSheet','dataSample','dataConnect','dataRefresh','dataRemove',
     'addSlideLayout','slidesOutline','outlineView','readingView','masterAdd','masterRemove','handoutMaster','notesMaster','colourMode','newWindow',
-    'publishTemplate','deleteTemplate',
+    'publishTemplate','deleteTemplate','templateThumbs','applyTemplateSlide',
     'layerAction','ai'
   ];
   var impl = {};

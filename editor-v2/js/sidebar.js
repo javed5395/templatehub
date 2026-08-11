@@ -74,11 +74,17 @@
   function subhead(t) { return el('div', 'sb-sub', t); }
 
   /* ── panels ──────────────────────────────────────────────────────── */
+  var _tplOpen = null;   /* template id whose detail view is open */
   function panelTemplates(p) {
+    var list = ask('templates') || [];
+    if (_tplOpen) {
+      var t = list.filter(function (x) { return x.id === _tplOpen; })[0];
+      if (t) { buildTplDetail(p, t); return; }
+      _tplOpen = null;
+    }
     p.appendChild(head('Templates'));
     var sw = search('Search templates…');
     p.appendChild(sw);
-    var list = ask('templates') || [];
     var holder = el('div', 'sb-tpl-list');
     p.appendChild(holder);
     function draw(filter) {
@@ -98,12 +104,38 @@
         var pv = el('span', 'sb-tpl-prev');
         if (t.thumb) { pv.style.backgroundImage = "url('" + t.thumb + "')"; }
         else if (t.bg) { pv.style.background = t.bg; }
+        /* slide-count badge (Canva style) */
+        if (t.slideCount) pv.appendChild(el('span', 'sb-tpl-count', String(t.slideCount)));
+        /* PRO crown */
+        if (t.pro) {
+          var crown = el('span', 'sb-tpl-pro');
+          crown.appendChild(mat('workspace_premium', 'sb-btn-i'));
+          pv.appendChild(crown);
+        }
         b.appendChild(pv);
         var meta = el('span', 'sb-tpl-meta');
         meta.appendChild(el('b', null, t.name || 'Template'));
         if (t.slideCount) meta.appendChild(el('span', null, t.slideCount + ' slides'));
         b.appendChild(meta);
-        b.addEventListener('click', function () { run('applyTemplate', t.id); });
+        /* hover: rotate through slide thumbs like Canva */
+        var rot = null, ri = 0;
+        b.addEventListener('mouseenter', function () {
+          var st = t.slideThumbs || [];
+          if (st.length < 2) return;
+          rot = setInterval(function () {
+            ri = (ri + 1) % st.length;
+            if (st[ri]) pv.style.backgroundImage = "url('" + st[ri] + "')";
+          }, 700);
+        });
+        b.addEventListener('mouseleave', function () {
+          if (rot) { clearInterval(rot); rot = null; ri = 0; }
+          if (t.thumb) pv.style.backgroundImage = "url('" + t.thumb + "')";
+        });
+        b.addEventListener('click', function () {
+          _tplOpen = t.id;
+          run('templateThumbs', t.id);   /* engine renders every slide thumb */
+          paint();
+        });
         var del = el('button', 'sb-tpl-del');
         del.type = 'button'; del.title = 'Remove template (admin)';
         del.appendChild(mat('close', 'sb-btn-i'));
@@ -115,6 +147,46 @@
     var inp = sw.querySelector('input');
     if (inp) inp.addEventListener('input', function () { draw(inp.value.trim().toLowerCase()); });
     draw('');
+  }
+  /* Canva-style detail: big cover, Apply-all button, per-slide grid */
+  function buildTplDetail(p, t) {
+    var top = el('div', 'sb-tpl-dhead');
+    var back = el('button', 'sb-tpl-back'); back.type = 'button'; back.title = 'Back';
+    back.appendChild(mat('arrow_back', 'sb-btn-i'));
+    back.addEventListener('click', function () { _tplOpen = null; paint(); });
+    top.appendChild(back);
+    var x = el('button', 'sb-close'); x.type = 'button'; x.title = 'Close';
+    x.appendChild(mat('close', 'sb-close-i'));
+    x.addEventListener('click', closeDrawer);
+    top.appendChild(x);
+    p.appendChild(top);
+    var cover = el('span', 'sb-tpl-dcover');
+    if (t.thumb) cover.style.backgroundImage = "url('" + t.thumb + "')";
+    p.appendChild(cover);
+    p.appendChild(el('b', 'sb-tpl-dname', t.name || 'Template'));
+    p.appendChild(el('span', 'sb-tpl-dsub', (t.slideCount || '?') + ' slides' + (t.pro ? ' · PRO' : '')));
+    var applyAll = el('button', 'sb-primary'); applyAll.type = 'button';
+    applyAll.appendChild(mat('library_add_check', 'sb-btn-i'));
+    applyAll.appendChild(document.createTextNode('Apply all ' + (t.slideCount || '') + ' pages'));
+    applyAll.addEventListener('click', function () { run('applyTemplate', t.id); });
+    p.appendChild(applyAll);
+    p.appendChild(subhead('Or add a single slide'));
+    var g = el('div', 'sb-grid'); g.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    var n = t.slideCount || (t.slideThumbs || []).length || 0;
+    for (var i = 0; i < n; i++) {
+      (function (idx) {
+        var b = el('button', 'sb-tpl-slide'); b.type = 'button'; b.title = 'Add slide ' + (idx + 1);
+        var pv = el('span', 'sb-tpl-sprev');
+        var st = (t.slideThumbs || [])[idx];
+        if (st) pv.style.backgroundImage = "url('" + st + "')";
+        else pv.classList.add('is-loading');
+        b.appendChild(pv);
+        b.appendChild(el('span', 'sb-card-lab', 'Slide ' + (idx + 1)));
+        b.addEventListener('click', function () { run('applyTemplateSlide', { id: t.id, i: idx }); });
+        g.appendChild(b);
+      })(i);
+    }
+    p.appendChild(g);
   }
   function svgCard(html, label, cmd, arg) {
     var b = el('button', 'sb-card sb-card-svg');

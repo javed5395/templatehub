@@ -453,3 +453,20 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .sb-tpl-card:hover .sb-tpl-del { display: grid; }
 .sb-tpl-del:hover { background: #DC2626; }
 .sb-tpl-del .sb-btn-i { font-size: 13px; }
+
+/* ── Templates: Canva-style badges + detail view ── */
+.sb-tpl-prev { position: relative; }
+.sb-tpl-count { position: absolute; left: 6px; bottom: 6px; background: rgba(15,23,42,.78); color: #fff; font-size: 10.5px; font-weight: 700; border-radius: 6px; padding: 1px 7px; }
+.sb-tpl-pro { position: absolute; right: 6px; bottom: 6px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(15,23,42,.78); color: #FBBF24; }
+.sb-tpl-pro .sb-btn-i { font-size: 13px; }
+.sb-tpl-dhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.sb-tpl-back { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #E2E8F0; border-radius: 8px; background: #fff; cursor: pointer; }
+.sb-tpl-back:hover { border-color: #8B3DFF; }
+.sb-tpl-dcover { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; background: #EEF2F7 center / cover no-repeat; border: 1px solid #E2E8F0; }
+.sb-tpl-dname { display: block; font-size: 14.5px; color: #0F172A; margin: 9px 2px 1px; }
+.sb-tpl-dsub { display: block; font-size: 11px; color: #64748B; margin: 0 2px 10px; }
+.sb-tpl-slide { display: flex; flex-direction: column; gap: 4px; border: 1px solid #E2E8F0; border-radius: 8px; background: #fff; padding: 4px; cursor: pointer; }
+.sb-tpl-slide:hover { border-color: #8B3DFF; box-shadow: 0 3px 10px rgba(139,61,255,.16); }
+.sb-tpl-sprev { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 5px; background: #F1F5F9 center / cover no-repeat; }
+.sb-tpl-sprev.is-loading { background: linear-gradient(100deg, #F1F5F9 40%, #E9EEF5 50%, #F1F5F9 60%); background-size: 200% 100%; animation: ldsheen 1.1s linear infinite; }
+@keyframes ldsheen { to { background-position: -200% 0; } }

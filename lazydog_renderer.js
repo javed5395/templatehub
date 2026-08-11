@@ -3534,3 +3534,133 @@ async function rasterizeSvgElToPng(el) {
     } catch (e) { resolve(null); }
   });
 }
+
+
+/* ── PRESET SHAPE GEOMETRY (ported from v1 host, 11 Aug 2026) ──
+   renderSlideIR's shape road looks these up (PRESET_PATHS[prst]) but the
+   table lived in the OLD editor.html host — v2 hosts had nothing, so any
+   deck carrying preset shapes died with 'PRESET_PATHS is not defined'
+   (found via the first published template). The renderer must carry its
+   own geometry — no host should have to provide it. */
+var PRESET_PATHS = {
+  /* action buttons: face + glyph as even-odd cutout */
+  actionButtonBackPrevious: function (w, h) {
+    return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z ' +
+           'M ' + (w * 0.75) + ' ' + (h * 0.2) + ' L ' + (w * 0.25) + ' ' + (h * 0.5) + ' L ' + (w * 0.75) + ' ' + (h * 0.8) + ' Z';
+  },
+  actionButtonForwardNext: function (w, h) {
+    return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z ' +
+           'M ' + (w * 0.25) + ' ' + (h * 0.2) + ' L ' + (w * 0.75) + ' ' + (h * 0.5) + ' L ' + (w * 0.25) + ' ' + (h * 0.8) + ' Z';
+  },
+  actionButtonHome: function (w, h) {
+    return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z ' +
+           'M ' + (w * 0.5) + ' ' + (h * 0.16) + ' L ' + (w * 0.84) + ' ' + (h * 0.5) + ' L ' + (w * 0.72) + ' ' + (h * 0.5) +
+           ' L ' + (w * 0.72) + ' ' + (h * 0.82) + ' L ' + (w * 0.28) + ' ' + (h * 0.82) + ' L ' + (w * 0.28) + ' ' + (h * 0.5) +
+           ' L ' + (w * 0.16) + ' ' + (h * 0.5) + ' Z';
+  },
+  actionButtonBlank: function (w, h) { return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z'; },
+  /* pie & arc: wedge angles come from the file's adjustment guides
+     (1/60000 deg, clockwise from 3 o'clock) */
+  pie: function (w, h, adj) {
+    var a1 = ((adj && adj.adj1 != null ? adj.adj1 : 0) / 60000) * Math.PI / 180;
+    var a2 = ((adj && adj.adj2 != null ? adj.adj2 : 16200000) / 60000) * Math.PI / 180;
+    var cx = w / 2, cy = h / 2, rx = w / 2, ry = h / 2;
+    var x1 = cx + rx * Math.cos(a1), y1 = cy + ry * Math.sin(a1);
+    var x2 = cx + rx * Math.cos(a2), y2 = cy + ry * Math.sin(a2);
+    var sweep = (a2 - a1 + Math.PI * 2) % (Math.PI * 2);
+    var large = sweep > Math.PI ? 1 : 0;
+    return 'M ' + cx + ' ' + cy + ' L ' + x1 + ' ' + y1 + ' A ' + rx + ' ' + ry + ' 0 ' + large + ' 1 ' + x2 + ' ' + y2 + ' Z';
+  },
+  arc: function (w, h, adj) {
+    var a1 = ((adj && adj.adj1 != null ? adj.adj1 : 16200000) / 60000) * Math.PI / 180;
+    var a2 = ((adj && adj.adj2 != null ? adj.adj2 : 0) / 60000) * Math.PI / 180;
+    var cx = w / 2, cy = h / 2, rx = w / 2, ry = h / 2;
+    var x1 = cx + rx * Math.cos(a1), y1 = cy + ry * Math.sin(a1);
+    var x2 = cx + rx * Math.cos(a2), y2 = cy + ry * Math.sin(a2);
+    var sweep = (a2 - a1 + Math.PI * 2) % (Math.PI * 2);
+    var large = sweep > Math.PI ? 1 : 0;
+    return 'M ' + x1 + ' ' + y1 + ' A ' + rx + ' ' + ry + ' 0 ' + large + ' 1 ' + x2 + ' ' + y2;
+  },
+  flowChartInternalStorage: function (w, h) { return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z M ' + (w / 8) + ' 0 L ' + (w / 8) + ' ' + h + ' M 0 ' + (h / 8) + ' L ' + w + ' ' + (h / 8); },
+  flowChartPredefinedProcess: function (w, h) { return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z M ' + (w / 8) + ' 0 L ' + (w / 8) + ' ' + h + ' M ' + (w * 7 / 8) + ' 0 L ' + (w * 7 / 8) + ' ' + h; },
+  flowChartDecision: function (w, h) { return 'M ' + (w / 2) + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + (w / 2) + ' ' + h + ' L 0 ' + (h / 2) + ' Z'; },
+  flowChartData: function (w, h) { return 'M ' + (w / 5) + ' 0 L ' + w + ' 0 L ' + (w * 4 / 5) + ' ' + h + ' L 0 ' + h + ' Z'; },
+  diamond: function (w, h) { return 'M ' + (w / 2) + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + (w / 2) + ' ' + h + ' L 0 ' + (h / 2) + ' Z'; },
+  parallelogram: function (w, h) { return 'M ' + (w / 5) + ' 0 L ' + w + ' 0 L ' + (w * 4 / 5) + ' ' + h + ' L 0 ' + h + ' Z'; },
+  star5: function (w, h) { var p = []; for (var i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, k = i % 2 ? 0.38 : 1; p.push((w / 2 + k * w / 2 * Math.cos(a)).toFixed(1) + ' ' + (h / 2 + k * h / 2 * Math.sin(a)).toFixed(1)); } return 'M ' + p.join(' L ') + ' Z'; },
+  rightArrow: function (w, h) { /* OOXML defaults: shaft 50% of height, head 50% of min side */
+    var hd = Math.min(w, h) * 0.5, x1 = w - hd;
+    return 'M 0 ' + (h * 0.25) + ' L ' + x1 + ' ' + (h * 0.25) + ' L ' + x1 + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + x1 + ' ' + h + ' L ' + x1 + ' ' + (h * 0.75) + ' L 0 ' + (h * 0.75) + ' Z';
+  },
+  leftArrow: function (w, h) {
+    var hd = Math.min(w, h) * 0.5;
+    return 'M ' + w + ' ' + (h * 0.25) + ' L ' + hd + ' ' + (h * 0.25) + ' L ' + hd + ' 0 L 0 ' + (h / 2) + ' L ' + hd + ' ' + h + ' L ' + hd + ' ' + (h * 0.75) + ' L ' + w + ' ' + (h * 0.75) + ' Z';
+  },
+  leftRightArrow: function (w, h) {
+    var hd = Math.min(w, h) * 0.5, xr = w - hd;
+    return 'M 0 ' + (h / 2) + ' L ' + hd + ' 0 L ' + hd + ' ' + (h * 0.25) + ' L ' + xr + ' ' + (h * 0.25) + ' L ' + xr + ' 0 L ' + w + ' ' + (h / 2) +
+           ' L ' + xr + ' ' + h + ' L ' + xr + ' ' + (h * 0.75) + ' L ' + hd + ' ' + (h * 0.75) + ' L ' + hd + ' ' + h + ' Z';
+  },
+  upArrow: function (w, h) {
+    var hd = Math.min(w, h) * 0.5;
+    return 'M ' + (w / 2) + ' 0 L ' + w + ' ' + hd + ' L ' + (w * 0.75) + ' ' + hd + ' L ' + (w * 0.75) + ' ' + h + ' L ' + (w * 0.25) + ' ' + h + ' L ' + (w * 0.25) + ' ' + hd + ' L 0 ' + hd + ' Z';
+  },
+  downArrow: function (w, h) {
+    var hd = Math.min(w, h) * 0.5, y1 = h - hd;
+    return 'M ' + (w * 0.25) + ' 0 L ' + (w * 0.75) + ' 0 L ' + (w * 0.75) + ' ' + y1 + ' L ' + w + ' ' + y1 + ' L ' + (w / 2) + ' ' + h + ' L 0 ' + y1 + ' L ' + (w * 0.25) + ' 0 Z';
+  },
+  /* speech bubble: rounded body filling the box, wedge tail dropping
+     below-left (OOXML defaults adj1=-20833, adj2=62500, rad 16667) */
+  wedgeRoundRectCallout: function (w, h) {
+    var r = Math.min(w, h) * 0.16667;
+    var tipX = w * (0.5 - 0.20833), tipY = h * (0.5 + 0.625);
+    var b1 = Math.max(r, w * 0.18), b2 = Math.min(w - r, w * 0.35);
+    return 'M ' + r + ' 0 L ' + (w - r) + ' 0 Q ' + w + ' 0 ' + w + ' ' + r +
+           ' L ' + w + ' ' + (h - r) + ' Q ' + w + ' ' + h + ' ' + (w - r) + ' ' + h +
+           ' L ' + b2 + ' ' + h + ' L ' + tipX + ' ' + tipY + ' L ' + b1 + ' ' + h +
+           ' L ' + r + ' ' + h + ' Q 0 ' + h + ' 0 ' + (h - r) + ' L 0 ' + r + ' Q 0 0 ' + r + ' 0 Z';
+  },
+  plus: function (w, h) { var t = 1 / 3; return 'M ' + (w * t) + ' 0 L ' + (w * (1 - t)) + ' 0 L ' + (w * (1 - t)) + ' ' + (h * t) + ' L ' + w + ' ' + (h * t) + ' L ' + w + ' ' + (h * (1 - t)) + ' L ' + (w * (1 - t)) + ' ' + (h * (1 - t)) + ' L ' + (w * (1 - t)) + ' ' + h + ' L ' + (w * t) + ' ' + h + ' L ' + (w * t) + ' ' + (h * (1 - t)) + ' L 0 ' + (h * (1 - t)) + ' L 0 ' + (h * t) + ' L ' + (w * t) + ' ' + (h * t) + ' Z'; },
+  heart: function (w, h) {
+    return 'M ' + (w / 2) + ' ' + (h * 0.25) +
+      ' C ' + (w / 2) + ' ' + (h * 0.1) + ' ' + (w * 0.36) + ' 0 ' + (w * 0.22) + ' 0' +
+      ' C ' + (w * 0.06) + ' 0 0 ' + (h * 0.14) + ' 0 ' + (h * 0.32) +
+      ' C 0 ' + (h * 0.52) + ' ' + (w * 0.2) + ' ' + (h * 0.7) + ' ' + (w / 2) + ' ' + h +
+      ' C ' + (w * 0.8) + ' ' + (h * 0.7) + ' ' + w + ' ' + (h * 0.52) + ' ' + w + ' ' + (h * 0.32) +
+      ' C ' + w + ' ' + (h * 0.14) + ' ' + (w * 0.94) + ' 0 ' + (w * 0.78) + ' 0' +
+      ' C ' + (w * 0.64) + ' 0 ' + (w / 2) + ' ' + (h * 0.1) + ' ' + (w / 2) + ' ' + (h * 0.25) + ' Z';
+  },
+  chevron: function (w, h) { return 'M 0 0 L ' + (w * 0.75) + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + (w * 0.75) + ' ' + h + ' L 0 ' + h + ' L ' + (w * 0.25) + ' ' + (h / 2) + ' Z'; },
+  homePlate: function (w, h) { return 'M 0 0 L ' + (w * 0.75) + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + (w * 0.75) + ' ' + h + ' L 0 ' + h + ' Z'; },
+  pentagon: function (w, h) { var p = []; for (var i = 0; i < 5; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / 5; p.push((w / 2 + w / 2 * Math.cos(a)).toFixed(1) + ' ' + (h / 2 + h / 2 * Math.sin(a)).toFixed(1)); } return 'M ' + p.join(' L ') + ' Z'; },
+  hexagon: function (w, h) { return 'M ' + (w * 0.25) + ' 0 L ' + (w * 0.75) + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + (w * 0.75) + ' ' + h + ' L ' + (w * 0.25) + ' ' + h + ' L 0 ' + (h / 2) + ' Z'; },
+  /* flowchart family: terminator = stadium/pill; decision = diamond;
+     process/data shapes that aren't plain rects */
+  flowChartTerminator: function (w, h) { /* OOXML caps: rx = w*3475/21600, ry = h/2 (NOT semicircles) */
+    var rx = w * 0.1609, ry = h / 2;
+    return 'M ' + rx + ' 0 L ' + (w - rx) + ' 0 A ' + rx + ' ' + ry + ' 0 0 1 ' + (w - rx) + ' ' + h +
+           ' L ' + rx + ' ' + h + ' A ' + rx + ' ' + ry + ' 0 0 1 ' + rx + ' 0 Z';
+  },
+  flowChartDecision: function (w, h) { return 'M ' + (w / 2) + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + (w / 2) + ' ' + h + ' L 0 ' + (h / 2) + ' Z'; },
+  flowChartInputOutput: function (w, h) { return 'M ' + (w * 0.2) + ' 0 L ' + w + ' 0 L ' + (w * 0.8) + ' ' + h + ' L 0 ' + h + ' Z'; },
+  flowChartConnector: function (w, h) {
+    var rx = w / 2, ry = h / 2, cy = h / 2;
+    return 'M 0 ' + cy + ' A ' + rx + ' ' + ry + ' 0 1 0 ' + w + ' ' + cy + ' A ' + rx + ' ' + ry + ' 0 1 0 0 ' + cy + ' Z';
+  },
+  /* OOXML octagon: corner cut x1 = min(w,h) * adj/100000, default adj 29289 */
+  octagon: function (w, h) {
+    var s = Math.min(w, h) * 0.29289;
+    return 'M ' + s + ' 0 L ' + (w - s) + ' 0 L ' + w + ' ' + s + ' L ' + w + ' ' + (h - s) +
+           ' L ' + (w - s) + ' ' + h + ' L ' + s + ' ' + h + ' L 0 ' + (h - s) + ' L 0 ' + s + ' Z';
+  },
+  /* OOXML trapezoid: top inset x1 = min(w,h) * adj/100000, default adj 25000 */
+  trapezoid: function (w, h) {
+    var t = Math.min(w, h) * 0.25;
+    return 'M ' + t + ' 0 L ' + (w - t) + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z';
+  },
+  donut: function (w, h) {
+    var rx = w / 2, ry = h / 2, irx = rx * 0.5, iry = ry * 0.5, cy = h / 2;
+    return 'M 0 ' + cy + ' A ' + rx + ' ' + ry + ' 0 1 0 ' + w + ' ' + cy + ' A ' + rx + ' ' + ry + ' 0 1 0 0 ' + cy + ' Z ' +
+           'M ' + (w / 2 - irx) + ' ' + cy + ' A ' + irx + ' ' + iry + ' 0 1 0 ' + (w / 2 + irx) + ' ' + cy + ' A ' + irx + ' ' + iry + ' 0 1 0 ' + (w / 2 - irx) + ' ' + cy + ' Z';
+  }
+};

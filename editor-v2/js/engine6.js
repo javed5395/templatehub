@@ -254,19 +254,40 @@ window.dissolveFlatFile = async function (file) {
 /* ════ 3 · TEMPLATES FEED — admin-uploaded free templates (Firestore) ═══ */
 window._editorTemplates = window._editorTemplates || [];
 
-async function ldRenderDeckThumb(deck) {
+async function ldRenderDeckThumb(deck, slideIdx) {
   try {
-    if (!deck || !deck.slides || !deck.slides[0] || typeof fabric === 'undefined' || !deck.size) return null;
+    var si = slideIdx || 0;
+    if (!deck || !deck.slides || !deck.slides[si] || typeof fabric === 'undefined' || !deck.size) return null;
     var W = 280, H = Math.max(80, Math.round(W * (deck.size.h || 3) / (deck.size.w || 4)));
     var tf = new fabric.StaticCanvas(null, { width: W, height: H });
     tf._baseWidth = W; tf._baseHeight = H;
-    await renderSlideIR(deck.slides[0], deck, tf);
+    await renderSlideIR(deck.slides[si], deck, tf);
     tf.renderAll();
     var url = tf.toDataURL({ format: 'jpeg', quality: 0.72 });
     try { tf.dispose(); } catch (_) {}
     return url;
   } catch (e) { console.warn('thumb render failed', e); return null; }
 }
+/* all slide thumbs for one template (detail view / hover rotation) */
+window.ldTemplateSlideThumbs = async function (tpl, maxN) {
+  if (!tpl) return [];
+  if (!tpl._deck) {
+    try {
+      var r = await fetch(tpl.jsonUrl);
+      if (!r.ok) return [];
+      tpl._deck = await r.json();
+    } catch (e) { return []; }
+  }
+  var n = Math.min(tpl._deck.slides.length, maxN || tpl._deck.slides.length);
+  tpl.slideThumbs = tpl.slideThumbs || [];
+  for (var i = 0; i < n; i++) {
+    if (!tpl.slideThumbs[i]) {
+      tpl.slideThumbs[i] = await ldRenderDeckThumb(tpl._deck, i);
+      if (window.Editor && Editor._emit) Editor._emit('templates', { partial: true });
+    }
+  }
+  return tpl.slideThumbs;
+};
 
 window.LD_loadEditorTemplates = async function () {
   try {
@@ -294,6 +315,7 @@ window.LD_loadEditorTemplates = async function () {
         .then(function (deck) { tpl._deck = deck; return ldRenderDeckThumb(deck); })
         .then(function (url) {
           if (url) { tpl.thumb = url; if (window.Editor && Editor._emit) Editor._emit('templates', { count: out.length }); }
+          return window.ldTemplateSlideThumbs(tpl, 6);
         }).catch(function () {});
     });
   } catch (e) {
@@ -315,6 +337,36 @@ Editor._register({
       if (f) window.dissolveFlatFile(f);
     };
     inp.click();
+  },
+  templateThumbs: function (id) {
+    var tpl = (window._editorTemplates || []).filter(function (t) { return t.id === id; })[0];
+    if (tpl) window.ldTemplateSlideThumbs(tpl);
+  },
+  /* add ONE slide of a template to the current design (Canva behaviour) */
+  applyTemplateSlide: async function (arg) {
+    var id = arg && arg.id, idx = (arg && arg.i) | 0;
+    var tpl = (window._editorTemplates || []).filter(function (t) { return t.id === id; })[0];
+    if (!tpl) { showToast('Template not found'); return; }
+    try {
+      if (!tpl._deck) {
+        var r = await fetch(tpl.jsonUrl);
+        if (!r.ok) throw new Error('fetch ' + r.status);
+        tpl._deck = await r.json();
+      }
+      var deck = tpl._deck;
+      if (!deck.slides[idx]) { showToast('That slide is missing'); return; }
+      addPage();
+      await new Promise(function (res) { setTimeout(res, 150); });
+      await renderSlideIR(deck.slides[idx], deck, fc);
+      fc.renderAll();
+      captureCurrentPage();
+      saveState();
+      renderPageThumbs();
+      showToast('Slide ' + (idx + 1) + ' of "' + (tpl.name || 'template') + '" added ✓');
+    } catch (e) {
+      console.error('applyTemplateSlide', e);
+      showToast('Could not add that slide: ' + e.message);
+    }
   },
   applyTemplate: async function (id) {
     var tpl = (window._editorTemplates || []).filter(function (t) { return t.id === id; })[0];
