@@ -337,3 +337,63 @@ Editor._register({
     }
   }
 });
+
+
+/* ════ 4 · PUBLISH AS TEMPLATE (admin-only experiment road, 11 Aug) ════
+   The cloud side already existed: Storage path editor_templates/ (admin
+   write, public read) + Firestore collection editor_templates (same).
+   This is the missing button: current deck → IR JSON → Storage →
+   Firestore record → appears in every visitor's Templates panel. */
+var LD_ADMIN_EMAILS = ['javed5395@gmail.com', 'lazydogtemplates@gmail.com'];
+Editor._register({
+  publishTemplate: async function () {
+    try {
+      var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+      var authMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+      var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({
+        apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes',
+        authDomain: 'templatehub-16cd7.firebaseapp.com',
+        projectId: 'templatehub-16cd7',
+        storageBucket: 'templatehub-16cd7.firebasestorage.app'
+      });
+      var user = authMod.getAuth(app).currentUser;
+      if (!user || LD_ADMIN_EMAILS.indexOf(user.email) === -1) {
+        showToast('Publishing templates is for the LazyDog admin account — sign in as admin first', 5000);
+        return;
+      }
+      var name = prompt('Template name (shown in the Templates panel):',
+        'Template ' + new Date().toLocaleDateString());
+      if (!name || !name.trim()) return;
+      showToast('Building template…');
+      var deck = await buildEffectiveDeckIR();
+      if (!deck || !deck.slides || !deck.slides.length) { showToast('Nothing to publish — the deck is empty'); return; }
+      var json = JSON.stringify(deck);
+      showToast('Uploading (' + Math.round(json.length / 1024) + ' KB)…');
+      var stMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
+      var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+      var storage = stMod.getStorage(app);
+      var id = 'tpl_' + Date.now();
+      var ref = stMod.ref(storage, 'editor_templates/' + id + '.json');
+      await stMod.uploadBytes(ref, new Blob([json], { type: 'application/json' }));
+      var jsonUrl = await stMod.getDownloadURL(ref);
+      var db = fsMod.getFirestore(app);
+      var bg = null;
+      try {
+        var bg0 = deck.slides[0] && deck.slides[0].bg;
+        if (bg0 && bg0.color) bg = bg0.color;
+      } catch (e) {}
+      await fsMod.setDoc(fsMod.doc(db, 'editor_templates', id), {
+        name: name.trim(),
+        jsonUrl: jsonUrl,
+        slideCount: deck.slides.length,
+        bg: bg,
+        createdAt: fsMod.serverTimestamp()
+      });
+      showToast('“' + name.trim() + '” published ✓ — it is now in the Templates panel for everyone', 6000);
+      try { window.LD_loadEditorTemplates(); } catch (e) {}
+    } catch (e) {
+      console.error('publishTemplate', e);
+      showToast('Publish failed: ' + ((e && e.message) || e), 7000);
+    }
+  }
+});
