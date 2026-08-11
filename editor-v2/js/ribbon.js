@@ -764,6 +764,19 @@
   dlB.addEventListener('click', function () { run('exportPptx'); });
   topRow.appendChild(upFile); topRow.appendChild(uploadB); topRow.appendChild(dlB);
 
+  /* cloud activity: spin the Upload/Download button while work runs */
+  if (window.Editor) Editor.on('busy', function (p) {
+    var btn = p.kind === 'download' ? dlB : uploadB;
+    var ico = btn.querySelector('.rb-act-ico');
+    if (p.on) {
+      if (ico && btn._ldIco == null) { btn._ldIco = ico.textContent; ico.textContent = 'autorenew'; }
+      btn.classList.add('is-busy');
+    } else {
+      if (ico && btn._ldIco != null) { ico.textContent = btn._ldIco; btn._ldIco = null; }
+      btn.classList.remove('is-busy');
+    }
+  });
+
   function paintBody() {
     reg.textOnly = []; reg.press = {}; reg.named = {};
     bodyHost.innerHTML = '';

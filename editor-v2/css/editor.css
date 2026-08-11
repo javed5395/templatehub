@@ -415,3 +415,17 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .rb-layout-lab { font-size: 10.5px; font-weight: 600; color: #1E293B; text-align: center; line-height: 1.2; }
 
 .rb-svg-big-mat { font-size: 26px !important; color: #7C3AED; }
+
+/* ── Right-click context menu (engine9, v1 look) ── */
+.ctx-menu { position: fixed; z-index: 700; min-width: 236px; background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; box-shadow: 0 14px 40px rgba(15,23,42,.18); padding: 6px; display: none; }
+.ctx-menu.open { display: block; }
+.ctx-item { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 0; background: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; font: 500 13px "DM Sans", sans-serif; color: #1E293B; }
+.ctx-item:hover { background: #F4F1FB; color: #0F172A; }
+.ctx-item-left { display: flex; align-items: center; gap: 9px; }
+.ctx-item-left .material-icons-outlined { font-size: 17px; color: #64748B; }
+.ctx-item:hover .material-icons-outlined { color: #7C3AED; }
+.ctx-shortcut { font-size: 11px; color: #94A3B8; }
+.ctx-divider { height: 1px; background: #EEF2F7; margin: 5px 8px; }
+/* ── busy spin on Upload / Download ── */
+.rb-action.is-busy .rb-act-ico { animation: ldspin 1s linear infinite; }
+@keyframes ldspin { to { transform: rotate(360deg); } }

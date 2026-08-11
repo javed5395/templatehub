@@ -9,6 +9,7 @@
    Big (≥18 MB): storage road — /upload_url → resumable PUT → /parse{gcsPath}
    (functions live in engine6.js; they exist by click-time).               */
 window.ldImportPptxFile = async function (file) {
+  if (window.ldBusy) window.ldBusy('upload', true);
   try {
     var deckIR;
     if (file.size >= 18 * 1024 * 1024) {
@@ -17,6 +18,7 @@ window.ldImportPptxFile = async function (file) {
       deckIR = await window.ldBigUploadParse(file);
     } else {
       showToast('Parsing PPTX in LazyDog cloud…', 8000);
+      if (window.ldParseHeartbeat) window.ldParseHeartbeat(true, 'Parsing PPTX in LazyDog cloud…');
       var buf = await file.arrayBuffer();
       for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
       var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
@@ -55,7 +57,9 @@ window.ldImportPptxFile = async function (file) {
         }
       }
     }
+    if (window.ldParseHeartbeat) window.ldParseHeartbeat(false);
     if (!deckIR || !deckIR.slides) throw new Error('The reply was not a deck');
+    if (window.ldParseHeartbeat) window.ldParseHeartbeat(true, 'Building slides…');
     window._deckIR = deckIR;
     await window.loadDeckIRIntoEditor(deckIR);
     var totalEls = deckIR.slides.reduce(function (a, s) { return a + (s.elements || []).length; }, 0);
@@ -73,6 +77,9 @@ window.ldImportPptxFile = async function (file) {
     console.error('[v2] pptx import', e);
     showToast('Import failed: ' + e.message, 6000);
     return false;
+  } finally {
+    if (window.ldParseHeartbeat) window.ldParseHeartbeat(false);
+    if (window.ldBusy) window.ldBusy('upload', false);
   }
 };
 

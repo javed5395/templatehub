@@ -1035,7 +1035,7 @@ Editor._register({
   Editor._register({
     presentFromStart: function () { present(false); },
     presentFromCurrent: function () { present(true); },
-    exportPptx: function () { exportPptxFileV2(); }
+    exportPptx: function () { if (window.ldBusy) window.ldBusy('download', true); Promise.resolve(exportPptxFileV2()).finally(function () { if (window.ldBusy) window.ldBusy('download', false); }); }
   });
 })();
 

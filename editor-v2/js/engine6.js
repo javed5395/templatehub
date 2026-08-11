@@ -145,7 +145,9 @@ window.ldBigUploadParse = async function (file) {
   await window.ldResumablePut(t.uploadUrl, file, ct, function (frac) { window.ldUploadProgress(frac, file.size); });
   window.ldUploadProgress(null);
   showToast('Parsing PPTX…');
-  return await window.ldParseByPath(t.gcsPath);
+  if (window.ldParseHeartbeat) window.ldParseHeartbeat(true, 'Parsing PPTX in LazyDog cloud…');
+  try { return await window.ldParseByPath(t.gcsPath); }
+  finally { if (window.ldParseHeartbeat) window.ldParseHeartbeat(false); }
 };
 
 /* ════ 2 · DISSOLVE SERVICE — PDF / image / pptx → fully editable deck ══ */
