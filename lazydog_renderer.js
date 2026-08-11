@@ -2104,7 +2104,24 @@ function _reflFollow(opt) {
 }
 
 function renderLineElementIR(el, sx, sy, fc) {
-  var x1 = el.x * sx, y1 = el.y * sy, x2 = el.x * sx + el.w * sx, y2 = el.y * sy + el.h * sy;
+  /* 11 Aug 2026 — LINES IGNORED ROTATION (media-kit-48 bug): a "vertical"
+     line in OOXML is usually a HORIZONTAL line (cy=0) with rot="5400000"
+     (90°) on its xfrm. Every other element type passes el.rot to fabric;
+     this function never did, so every rotated line drew flat at the
+     un-rotated offset — vertical grid lines vanished and a stray
+     horizontal bar cut through titles. Rotate the endpoints around the
+     box centre IN IR SPACE (before sx/sy scaling, so non-uniform scale
+     cannot bend the angle), exactly the xfrm semantics. */
+  var _rx1 = el.x, _ry1 = el.y, _rx2 = el.x + el.w, _ry2 = el.y + el.h;
+  if (el.rot) {
+    var _rcx = el.x + el.w / 2, _rcy = el.y + el.h / 2;
+    var _rth = el.rot * Math.PI / 180;
+    var _rc = Math.cos(_rth), _rs = Math.sin(_rth);
+    var _d1x = _rx1 - _rcx, _d1y = _ry1 - _rcy, _d2x = _rx2 - _rcx, _d2y = _ry2 - _rcy;
+    _rx1 = _rcx + _d1x * _rc - _d1y * _rs; _ry1 = _rcy + _d1x * _rs + _d1y * _rc;
+    _rx2 = _rcx + _d2x * _rc - _d2y * _rs; _ry2 = _rcy + _d2x * _rs + _d2y * _rc;
+  }
+  var x1 = _rx1 * sx, y1 = _ry1 * sy, x2 = _rx2 * sx, y2 = _ry2 * sy;
   if (el.flipH) { var t = x1; x1 = x2; x2 = t; }
   if (el.flipV) { var t2 = y1; y1 = y2; y2 = t2; }
   var strokeColor = el.stroke ? el.stroke.color : '#555555';
