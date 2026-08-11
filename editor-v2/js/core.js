@@ -151,6 +151,18 @@ function renderPageThumbs() {
     var n = document.createElement('span');
     n.className = 'n'; n.textContent = i + 1;
     t.appendChild(n);
+    var x = document.createElement('button');
+    x.className = 'film-del'; x.type = 'button'; x.title = 'Delete slide ' + (i + 1);
+    x.innerHTML = '<span class="material-icons-outlined">close</span>';
+    x.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      if (state.pages.length <= 1) { toast('The last slide cannot be deleted'); return; }
+      Promise.resolve()
+        .then(function () { if (i !== state.currentPage) return switchPage(i); })
+        .then(function () { return deletePage(); })
+        .then(function () { renderPageThumbs(); });
+    });
+    t.appendChild(x);
     t.addEventListener('click', function () { if (i !== state.currentPage) switchPage(i); });
     host.appendChild(t);
   });
@@ -260,6 +272,7 @@ function rehydrateFrames() {}
         case 'chartTypes': return impl.__qChartTypes ? impl.__qChartTypes() : [];
         case 'dataSamples': return impl.__qSamples ? impl.__qSamples() : [];
         case 'slideLayouts': return impl.__qSlideLayouts ? impl.__qSlideLayouts() : [];
+        case 'wordArtStyles': return impl.__qWordArtStyles ? impl.__qWordArtStyles() : [];
         case 'components': return [];
         default: return null;
       }

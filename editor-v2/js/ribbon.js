@@ -393,24 +393,18 @@
         ], 3));
       } }),
       big({ ic: 'chart', label: 'Chart', pop: function (pop) {
-        pop.appendChild(popGrid([
-          { matIcon: 'bar_chart', label: 'Column', cmd: 'insertChart', arg: 'column' },
-          { matIcon: 'stacked_bar_chart', label: 'Stacked', cmd: 'insertChart', arg: 'column-stack' },
-          { matIcon: 'notes', label: 'Bar', cmd: 'insertChart', arg: 'bar' },
-          { matIcon: 'show_chart', label: 'Line', cmd: 'insertChart', arg: 'line' },
-          { matIcon: 'multiline_chart', label: 'Smooth line', cmd: 'insertChart', arg: 'line-smooth' },
-          { matIcon: 'area_chart', label: 'Area', cmd: 'insertChart', arg: 'area' },
-          { matIcon: 'pie_chart_outline', label: 'Pie', cmd: 'insertChart', arg: 'pie' },
-          { matIcon: 'donut_large', label: 'Donut', cmd: 'insertChart', arg: 'donut' },
-          { matIcon: 'data_usage', label: 'Progress', cmd: 'insertChart', arg: 'progress' },
-          { matIcon: 'filter_alt', label: 'Funnel', cmd: 'insertChart', arg: 'funnel' },
-          { matIcon: 'radar', label: 'Radar', cmd: 'insertChart', arg: 'radar' },
-          { matIcon: 'speed', label: 'Gauge', cmd: 'insertChart', arg: 'gauge' },
-          { matIcon: 'scatter_plot', label: 'Scatter', cmd: 'insertChart', arg: 'scatter' },
-          { matIcon: 'bubble_chart', label: 'Bubble', cmd: 'insertChart', arg: 'bubble' },
-          { matIcon: 'waterfall_chart', label: 'Waterfall', cmd: 'insertChart', arg: 'waterfall' },
-          { matIcon: 'donut_small', label: 'Half donut', cmd: 'insertChart', arg: 'half-donut' }
-        ], 4));
+        pop.appendChild(el('div', 'rb-pop-head', 'Chart types — live, data-editable'));
+        var cg = el('div', 'rb-chart-grid');
+        (ask('chartTypes') || []).forEach(function (c) {
+          var b = el('button', 'rb-chart-card'); b.type = 'button'; b.title = c.name;
+          var pv = el('span', 'rb-chart-prev');
+          if (c.thumb) pv.style.backgroundImage = "url('" + c.thumb + "')";
+          b.appendChild(pv);
+          b.appendChild(el('span', 'rb-chart-lab', c.name));
+          b.addEventListener('click', function () { run('insertChart', c.id); });
+          cg.appendChild(b);
+        });
+        pop.appendChild(cg);
       } })
     ));
     body.appendChild(sepd());
@@ -420,7 +414,18 @@
         pop.appendChild(popRow({ matIcon: 'text_fields', label: 'Subheading', hint: 'Section label', cmd: 'insertText', arg: 'subheading' }));
         pop.appendChild(popRow({ matIcon: 'notes', label: 'Body text', hint: 'Paragraph copy', cmd: 'insertText', arg: 'body' }));
       } }),
-      big({ ic: 'wordart', label: 'WordArt', cmd: 'insertWordArt' })
+      big({ ic: 'wordart', label: 'WordArt', pop: function (pop) {
+        pop.appendChild(el('div', 'rb-pop-head', 'WordArt styles'));
+        var g = el('div', 'rb-wa-grid');
+        (ask('wordArtStyles') || []).forEach(function (st) {
+          var b = el('button', 'rb-wa-item'); b.type = 'button'; b.title = st.name;
+          var a = el('span', 'rb-wa-A', 'A'); a.style.cssText = st.css;
+          b.appendChild(a);
+          b.addEventListener('click', function () { run('insertWordArt', st.i); });
+          g.appendChild(b);
+        });
+        pop.appendChild(g);
+      } })
     ));
     body.appendChild(sepd());
     body.appendChild(group('Media',

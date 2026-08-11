@@ -429,3 +429,20 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 /* ── busy spin on Upload / Download ── */
 .rb-action.is-busy .rb-act-ico { animation: ldspin 1s linear infinite; }
 @keyframes ldspin { to { transform: rotate(360deg); } }
+
+/* ── WordArt style gallery (engine10) ── */
+.rb-wa-grid { display: grid; grid-template-columns: repeat(4, 46px); gap: 7px; padding: 6px 12px 12px; }
+.rb-wa-item { display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid #E2E8F0; border-radius: 9px; background: #fff; cursor: pointer; }
+.rb-wa-item:hover { border-color: #8B3DFF; box-shadow: 0 3px 10px rgba(139,61,255,.18); }
+.rb-wa-A { font-family: "DM Sans", sans-serif; font-size: 27px; font-weight: 800; line-height: 1; }
+/* ── Chart type cards in ribbon menu ── */
+.rb-chart-grid { display: grid; grid-template-columns: repeat(4, 108px); gap: 8px; padding: 6px 12px 12px; max-height: 380px; overflow: auto; }
+.rb-chart-card { display: flex; flex-direction: column; gap: 4px; border: 1px solid #E2E8F0; border-radius: 9px; background: #fff; padding: 5px; cursor: pointer; }
+.rb-chart-card:hover { border-color: #8B3DFF; box-shadow: 0 4px 12px rgba(139,61,255,.16); }
+.rb-chart-prev { display: block; width: 100%; aspect-ratio: 132 / 82; border-radius: 6px; background: #F8FAFC center / contain no-repeat; border: 1px solid #EEF2F7; }
+.rb-chart-lab { font-size: 10.5px; font-weight: 600; color: #1E293B; text-align: center; }
+/* ── filmstrip delete ✕ ── */
+.film-thumb .film-del { position: absolute; top: -7px; right: -7px; width: 20px; height: 20px; display: none; place-items: center; border: 0; border-radius: 50%; background: #0F172A; color: #fff; cursor: pointer; z-index: 2; }
+.film-thumb:hover .film-del { display: grid; }
+.film-thumb .film-del .material-icons-outlined { font-size: 13px; }
+.film-thumb .film-del:hover { background: #DC2626; }
