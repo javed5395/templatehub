@@ -364,11 +364,23 @@
       } }),
       big({ ic: 'chart', label: 'Chart', pop: function (pop) {
         pop.appendChild(popGrid([
-          { matIcon: 'bar_chart', label: 'Bar', cmd: 'insertChart', arg: 'bar' },
+          { matIcon: 'bar_chart', label: 'Column', cmd: 'insertChart', arg: 'column' },
+          { matIcon: 'stacked_bar_chart', label: 'Stacked', cmd: 'insertChart', arg: 'column-stack' },
+          { matIcon: 'notes', label: 'Bar', cmd: 'insertChart', arg: 'bar' },
           { matIcon: 'show_chart', label: 'Line', cmd: 'insertChart', arg: 'line' },
+          { matIcon: 'multiline_chart', label: 'Smooth line', cmd: 'insertChart', arg: 'line-smooth' },
+          { matIcon: 'area_chart', label: 'Area', cmd: 'insertChart', arg: 'area' },
           { matIcon: 'pie_chart_outline', label: 'Pie', cmd: 'insertChart', arg: 'pie' },
-          { matIcon: 'donut_large', label: 'Donut', cmd: 'insertChart', arg: 'donut' }
-        ], 2));
+          { matIcon: 'donut_large', label: 'Donut', cmd: 'insertChart', arg: 'donut' },
+          { matIcon: 'data_usage', label: 'Progress', cmd: 'insertChart', arg: 'progress' },
+          { matIcon: 'filter_alt', label: 'Funnel', cmd: 'insertChart', arg: 'funnel' },
+          { matIcon: 'radar', label: 'Radar', cmd: 'insertChart', arg: 'radar' },
+          { matIcon: 'speed', label: 'Gauge', cmd: 'insertChart', arg: 'gauge' },
+          { matIcon: 'scatter_plot', label: 'Scatter', cmd: 'insertChart', arg: 'scatter' },
+          { matIcon: 'bubble_chart', label: 'Bubble', cmd: 'insertChart', arg: 'bubble' },
+          { matIcon: 'waterfall_chart', label: 'Waterfall', cmd: 'insertChart', arg: 'waterfall' },
+          { matIcon: 'donut_small', label: 'Half donut', cmd: 'insertChart', arg: 'half-donut' }
+        ], 4));
       } })
     ));
     body.appendChild(sepd());

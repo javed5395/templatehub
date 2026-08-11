@@ -172,6 +172,30 @@
     var b = el('button', 'sb-text sb-text-b'); b.type = 'button'; b.textContent = 'Add body text';
     b.addEventListener('click', function () { run('insertText', 'body'); });
     p.appendChild(h); p.appendChild(s); p.appendChild(b);
+    p.appendChild(subhead('Charts — live, data-editable'));
+    var groups = {};
+    (ask('chartTypes') || []).forEach(function (c) {
+      (groups[c.group] = groups[c.group] || []).push(c);
+    });
+    Object.keys(groups).forEach(function (gname) {
+      p.appendChild(el('div', 'sb-chart-gname', gname));
+      var cg = el('div', 'sb-grid'); cg.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      groups[gname].forEach(function (c) {
+        var b = el('button', 'sb-chart-card');
+        b.type = 'button'; b.title = c.name;
+        var pv = el('span', 'sb-chart-prev');
+        if (c.thumb) pv.style.backgroundImage = "url('" + c.thumb + "')";
+        b.appendChild(pv);
+        b.appendChild(el('span', 'sb-card-lab', c.name));
+        b.addEventListener('click', function () { run('insertChart', c.id); });
+        cg.appendChild(b);
+      });
+      p.appendChild(cg);
+    });
+    p.appendChild(subhead('Table'));
+    p.appendChild(grid([
+      { matIcon: 'table_chart', label: 'Table', cmd: 'insertTable' }
+    ], 2));
     p.appendChild(subhead('Special'));
     p.appendChild(grid([
       { ic: 'wordart', label: 'WordArt', cmd: 'insertWordArt' },
@@ -302,23 +326,66 @@
   }
   function panelData(p) {
     p.appendChild(head('Data'));
-    var file = el('input'); file.type = 'file'; file.accept = '.csv,.xlsx'; file.style.display = 'none';
-    file.addEventListener('change', function () {
-      var f = file.files && file.files[0];
-      if (!f) return;
-      var r = new FileReader();
-      r.onload = function () { run('dataUpload', r.result); };
-      r.readAsDataURL(f);
-      file.value = '';
+    var row = el('div', 'sb-ds-src');
+    [['description', 'CSV', 'dataCsv'], ['grid_on', 'Excel', 'dataXlsx'], ['link', 'Google Sheet', 'dataSheet']]
+      .forEach(function (d) {
+        var b = el('button', 'sb-ds-srcbtn'); b.type = 'button';
+        b.appendChild(mat(d[0], 'sb-btn-i'));
+        b.appendChild(el('span', null, d[1]));
+        b.addEventListener('click', function () { run(d[2]); });
+        row.appendChild(b);
+      });
+    p.appendChild(row);
+
+    var list = ask('datasets') || [];
+    if (list.length) {
+      p.appendChild(subhead('My data'));
+      list.forEach(function (d) {
+        var card = el('div', 'sb-ds-card');
+        var top = el('div', 'sb-ds-top');
+        top.appendChild(el('b', null, d.name));
+        top.appendChild(el('span', 'sb-ds-tag', d.rows + '×' + d.cols));
+        card.appendChild(top);
+        var tbl = el('table', 'sb-ds-tbl');
+        var trh = el('tr'); trh.appendChild(el('th'));
+        d.series.forEach(function (sr) { trh.appendChild(el('th', null, sr.name)); });
+        tbl.appendChild(trh);
+        d.cats.forEach(function (cat, r) {
+          var tr = el('tr');
+          tr.appendChild(el('td', 'sb-ds-cat', cat));
+          d.series.forEach(function (sr) { tr.appendChild(el('td', null, String(sr.data[r] == null ? '' : sr.data[r]))); });
+          tbl.appendChild(tr);
+        });
+        card.appendChild(tbl);
+        var acts = el('div', 'sb-ds-acts');
+        [['insert_link', 'Connect to selected chart', 'dataConnect'],
+         ['refresh', 'Refresh', 'dataRefresh'],
+         ['delete_outline', 'Remove', 'dataRemove']].forEach(function (a) {
+          var b = el('button', 'sb-ds-act'); b.type = 'button'; b.title = a[1];
+          b.appendChild(mat(a[0], 'sb-btn-i'));
+          if (a[2] === 'dataConnect') b.appendChild(el('span', null, 'Connect'));
+          b.addEventListener('click', function () { run(a[2], d.id); });
+          acts.appendChild(b);
+        });
+        card.appendChild(acts);
+        p.appendChild(card);
+      });
+    } else {
+      p.appendChild(emptyState('dataset', 'Datasets feed your charts',
+        'First row = series names, first column = labels. Load a file, select a chart, press Connect.'));
+    }
+
+    p.appendChild(subhead('Sample data'));
+    (ask('dataSamples') || []).forEach(function (sm) {
+      var b = el('button', 'sb-ds-sample'); b.type = 'button';
+      b.appendChild(mat('add', 'sb-btn-i'));
+      var m = el('span', 'sb-ds-smeta');
+      m.appendChild(el('b', null, sm.name));
+      m.appendChild(el('span', null, sm.rows + ' rows · ' + sm.cols + ' series'));
+      b.appendChild(m);
+      b.addEventListener('click', function () { run('dataSample', sm.i); });
+      p.appendChild(b);
     });
-    p.appendChild(file);
-    var up = el('button', 'sb-primary'); up.type = 'button';
-    up.appendChild(mat('upload_file', 'sb-btn-i'));
-    up.appendChild(document.createTextNode('Bring in CSV / Excel'));
-    up.addEventListener('click', function () { file.click(); });
-    p.appendChild(up);
-    p.appendChild(emptyState('dataset', 'Datasets feed your charts',
-      'First row = series names, first column = labels.'));
   }
   function panelAI(p) {
     p.appendChild(head('AI'));
@@ -419,6 +486,7 @@
 
   listen('selection', function () { if (open === 'layers' || open === 'effects') paint(); });
   listen('templates', function () { if (open === 'templates') paint(); });
+  listen('datasets', function () { if (open === 'data') paint(); });
   listen('slides', function () { if (open === 'pages' || open === 'layers') paint(); });
 
   slot.appendChild(rail);

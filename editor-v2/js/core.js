@@ -37,7 +37,7 @@ var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBod
   'irSoftRadPx', 'softPad', 'mediaSrc', 'mediaKind', 'irC0',
   'isFrame', 'frameKind', 'framePath', 'framePathW', 'framePathH', 'frameSrc', 'frameRect',
   'frameLook', 'frameFill', 'frameDevice', 'isAperture',
-  'chartType', 'datasetId',
+  'chartType', 'chartDef', 'datasetId', 'tableId',
   'isIcon', 'iconName', 'iconWeight',
   'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isSticker', 'stickerName', 'stickerAnim',
@@ -228,6 +228,7 @@ function rehydrateFrames() {}
     'viewNormal','viewSorter','openHelp','showShortcuts','sendFeedback',
     'effect','brandApply','templateUse','projectOpen','componentInsert','dataUpload',
     'themeFonts','themeColours','importPptx','fillFrames','dissolve','applyTemplate',
+    'dataCsv','dataXlsx','dataSheet','dataSample','dataConnect','dataRefresh','dataRemove',
     'layerAction','ai'
   ];
   var impl = {};
@@ -254,6 +255,9 @@ function rehydrateFrames() {}
         case 'photos':    return impl.__qPhotos ? impl.__qPhotos() : [];
         case 'projects':  return [];
         case 'templates': return window._editorTemplates || [];
+        case 'datasets':   return impl.__qDatasets ? impl.__qDatasets() : [];
+        case 'chartTypes': return impl.__qChartTypes ? impl.__qChartTypes() : [];
+        case 'dataSamples': return impl.__qSamples ? impl.__qSamples() : [];
         case 'components': return [];
         default: return null;
       }
