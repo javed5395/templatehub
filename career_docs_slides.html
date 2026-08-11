@@ -10,7 +10,16 @@
   <meta name="keywords" content="resume templates, CV templates, cover letter templates, ATS resume, professional resume, modern resume, career document templates, LazyDogTemplates" />
   <meta name="author" content="LazyDogTemplates" />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://www.lazydogtemplates.com/career_docs_slides.html" />
+  <!-- 11 Aug 2026 — the hardcoded canonical that used to sit here pointed at
+       this page WITHOUT its ?firebase=<id>, i.e. at the empty shell that just
+       redirects to the folder page. Every kit therefore shipped raw HTML
+       telling Google "the real version of me is that empty page", and only
+       corrected itself after JavaScript ran. Google asks for the raw and
+       rendered canonical to agree; when they disagree it may take the raw one,
+       which makes every kit look like a duplicate of one contentless URL.
+       The per-kit canonical is set in loadDesign() further down, which creates
+       the tag when it is absent — so removing it here leaves the correct one
+       and no conflicting signal. -->
 
   <!-- Open Graph -->
   <meta property="og:title" content="Resume / CV Templates — LazyDogTemplates" />
