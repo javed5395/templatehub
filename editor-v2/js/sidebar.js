@@ -97,15 +97,6 @@
     p.appendChild(head('Elements'));
     p.appendChild(search('Search elements…'));
     var A = window.RBAssets || {};
-    p.appendChild(subhead('Shapes'));
-    var sg = el('div', 'sb-grid'); sg.style.gridTemplateColumns = 'repeat(3, 1fr)';
-    [['rect', 'Rectangle'], ['rounded', 'Rounded'], ['circle', 'Ellipse'],
-     ['triangle', 'Triangle'], ['diamond', 'Diamond'], ['hexagon', 'Hexagon'],
-     ['star', 'Star'], ['arrow', 'Arrow'], ['line', 'Line']].forEach(function (s) {
-      var art = A.shapePreviewSvg ? A.shapePreviewSvg(s[0], 34) : '';
-      sg.appendChild(svgCard(art, s[1], s[0] === 'line' ? 'insertLine' : 'insertShape', s[0]));
-    });
-    p.appendChild(sg);
     p.appendChild(subhead('Frames — drop a photo in'));
     var fg = el('div', 'sb-grid'); fg.style.gridTemplateColumns = 'repeat(2, 1fr)';
     var fi = 0;
@@ -124,18 +115,6 @@
       dg.appendChild(svgCard(art, label, 'insertFrame', k));
     });
     p.appendChild(dg);
-    p.appendChild(subhead('Charts'));
-    p.appendChild(grid([
-      { matIcon: 'bar_chart', label: 'Bar', cmd: 'insertChart', arg: 'bar' },
-      { matIcon: 'show_chart', label: 'Line', cmd: 'insertChart', arg: 'line' },
-      { matIcon: 'pie_chart_outline', label: 'Pie', cmd: 'insertChart', arg: 'pie' },
-      { matIcon: 'donut_large', label: 'Donut', cmd: 'insertChart', arg: 'donut' }
-    ]));
-    p.appendChild(subhead('More'));
-    p.appendChild(grid([
-      { ic: 'table', label: 'Table', cmd: 'insertTable' },
-      { ic: 'wordart', label: 'WordArt', cmd: 'insertWordArt' }
-    ], 2));
     p.appendChild(subhead('Icons'));
     var iq = el('input'); iq.type = 'text'; iq.placeholder = 'Search icons…';
     var iw = el('div', 'sb-search'); iw.appendChild(iq);
@@ -366,10 +345,8 @@
   var RAIL = [
     { id: 'templates', label: 'Templates', ic: 'templates', build: panelTemplates },
     { id: 'elements', label: 'Elements', ic: 'elements', build: panelElements },
-    { id: 'text', label: 'Text', ic: 'text-rail', build: panelText },
     { id: 'photos', label: 'Photos', ic: 'photos', build: panelPhotos },
     { id: 'layers', label: 'Layers', ic: 'layers-i', build: panelLayers },
-    { id: 'pages', label: 'Pages', ic: 'pages-i', build: panelPages },
     { id: 'brand', label: 'Brand', ic: 'brand-i', build: panelBrand },
     { id: 'effects', label: 'Effects', ic: 'effects-i', build: panelEffects },
     { id: 'data', label: 'Data', ic: 'data-i', build: panelData },

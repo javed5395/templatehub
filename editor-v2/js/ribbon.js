@@ -348,16 +348,7 @@
     ));
     body.appendChild(sepd());
     body.appendChild(group('Images',
-      big({ ic: 'image', label: 'Pictures', onClick: function () { file.click(); } }),
-      big({ ic: 'frames-lib', label: 'Frames', pop: function (pop) {
-        pop.appendChild(popGrid([
-          { matIcon: 'crop_square', label: 'Square', cmd: 'insertFrame', arg: 'square' },
-          { matIcon: 'circle', label: 'Circle', cmd: 'insertFrame', arg: 'circle' },
-          { matIcon: 'rounded_corner', label: 'Rounded', cmd: 'insertFrame', arg: 'rounded' },
-          { matIcon: 'door_front', label: 'Arch', cmd: 'insertFrame', arg: 'arch' },
-          { matIcon: 'favorite_border', label: 'Heart', cmd: 'insertFrame', arg: 'heart' }
-        ], 3));
-      } })
+      big({ ic: 'image', label: 'Pictures', onClick: function () { file.click(); } })
     ));
     body.appendChild(sepd());
     body.appendChild(group('Illustrations',
@@ -371,7 +362,6 @@
           { matIcon: 'star_outline', label: 'Star', cmd: 'insertShape', arg: 'star' }
         ], 3));
       } }),
-      big({ ic: 'icons-lib', label: 'Icons', cmd: 'insertIcon' }),
       big({ ic: 'chart', label: 'Chart', pop: function (pop) {
         pop.appendChild(popGrid([
           { matIcon: 'bar_chart', label: 'Bar', cmd: 'insertChart', arg: 'bar' },
@@ -380,10 +370,6 @@
           { matIcon: 'donut_large', label: 'Donut', cmd: 'insertChart', arg: 'donut' }
         ], 2));
       } })
-    ));
-    body.appendChild(sepd());
-    body.appendChild(group('Comments',
-      big({ ic: 'comment-add', label: 'Comment', cmd: 'addComment' })
     ));
     body.appendChild(sepd());
     body.appendChild(group('Text',
