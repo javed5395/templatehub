@@ -4061,7 +4061,7 @@ document.addEventListener('keydown',e=>{
          SAME session the main site created — Firebase keys the stored session
          by API key + app name, so a second app would not see it. */
       const { initializeApp, getApps, getApp } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
-      const { getFirestore, collection, onSnapshot, query, where } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+      const { getFirestore, collection, onSnapshot, query, where, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
 
       const firebaseConfig = {
         apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
@@ -4668,6 +4668,45 @@ document.addEventListener('keydown',e=>{
 
         navigateTo('signature');
       };
+
+      /* ── DEEP LINK FROM THE MAIN SITE (11 Aug 2026) ──────────────────
+         WebKit and Digital Keynote cards on the main site now open the kit
+         HERE instead of their own slide page. They arrive as
+             lazydog_studio.html?kit=<docId>&cat=webkit|keynote
+         so we fetch that one document and rebuild page 04 around it.
+
+         Read directly with getDoc rather than waiting for the category
+         snapshot: the listener only covers approved kits in its own category
+         and may not have fired yet, and a visitor who clicked a card should
+         not watch the home page while it does.
+
+         Approval is re-checked here. The card that sent them was drawn from
+         approved data, but the id is visible in the URL and could be edited
+         by hand, so an unapproved kit must not become viewable through it. */
+      (async function ldsOpenFromUrl(){
+        try{
+          const q      = new URLSearchParams(location.search);
+          const kitId  = q.get('kit');
+          if(!kitId) return;
+          let catKey   = q.get('cat') || '';
+          const snap   = await getDoc(doc(db, 'templates', kitId));
+          if(!snap.exists()) return;                 // stale link -> stock page
+          const data   = snap.data() || {};
+          if(data.status !== 'approved') return;     // never expose an unapproved kit
+          const t      = data.template || {};
+          t.__docId    = snap.id;
+          t.__sellerId = data.sellerId || data.uploaderUid || 'lazydogtemplates';
+          /* Trust the record's own category over the ?cat= hint, which anyone
+             could mistype; fall back to the hint, then to webkit. */
+          if(!CATS[catKey]){
+            const found = Object.keys(CATS).find(k => CATS[k][0] === t.category);
+            catKey = found || (CATS[catKey] ? catKey : 'webkit');
+          }
+          window.ldsOpenCollectionKit(t, catKey);
+        }catch(e){
+          console.warn('[LDS] deep link could not open:', e && e.message);
+        }
+      })();
 
       // Reaching the Collection any other way (nav, menu, side rail) restores
       // the stock 16-spread page instead of leaving the last kit stuck there.

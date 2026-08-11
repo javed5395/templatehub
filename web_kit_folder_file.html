@@ -643,7 +643,10 @@ window.mkCatMap = {};                   // reset live category map
           if (!window.mkCatLabelMap) window.mkCatLabelMap = {};
           window.mkCatLabelMap[subCat] = subCatDisplayLabel;
           var title  = t.name || 'Untitled Website Kit';
-          var href   = 'web_kit_slides.html?firebase=' + docSnap.id;
+          /* 11 Aug 2026 — these cards now open the kit inside LazyDog
+             Studios instead of the main-site slide page. The studio reads
+             ?kit=<docId> on load and rebuilds page 04 around that kit. */
+          var href   = 'lazydog_studio.html?kit=' + docSnap.id + '&cat=webkit';
 
           // populate category map for panel
           if (!window.mkCatMap[subCat]) window.mkCatMap[subCat] = [];

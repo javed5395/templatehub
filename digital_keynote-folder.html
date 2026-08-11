@@ -655,7 +655,10 @@ window.dkCatMap = {};                   // reset live category map
           if (!window.dkCatLabelMap) window.dkCatLabelMap = {};
           window.dkCatLabelMap[subCat] = subCatDisplayLabel;
           var title  = t.name || 'Untitled Digital Keynote';
-          var href   = 'digital_keynote_slides.html?firebase=' + docSnap.id;
+          /* 11 Aug 2026 — these cards now open the kit inside LazyDog
+             Studios instead of the main-site slide page. The studio reads
+             ?kit=<docId> on load and rebuilds page 04 around that kit. */
+          var href   = 'lazydog_studio.html?kit=' + docSnap.id + '&cat=keynote';
 
           // populate category map for panel
           if (!window.dkCatMap[subCat]) window.dkCatMap[subCat] = [];
