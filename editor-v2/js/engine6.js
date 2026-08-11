@@ -10,7 +10,7 @@
         32 MB request cap: editor → /upload_url → resumable PUT straight
         to Storage → /parse { gcsPath }) ════════════════════════════════ */
 async function _ldAuthWait() {
-  for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
+  for (var w = 0; w < 24 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
 }
 window.ldRequestUploadUrl = async function (file, ct) {
   await _ldAuthWait();
@@ -19,6 +19,7 @@ window.ldRequestUploadUrl = async function (file, ct) {
     body: JSON.stringify({ filename: file.name || 'deck.pptx', contentType: ct })
   });
   if (r.status === 401 || r.status === 403) throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
+  if (r.status === 404 || r.status === 405) throw new Error('Big-file service (/upload_url) is not on the deployed proxy — tell Fable status ' + r.status + '.');
   if (!r.ok) throw new Error('Could not start the upload (service error ' + r.status + ').');
   var j = await r.json();
   if (!j || !j.uploadUrl || !j.gcsPath) throw new Error('Upload service returned an unexpected response.');

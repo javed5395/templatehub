@@ -550,7 +550,13 @@ window.ldCompose = async function (sentence) {
   try { q = new URLSearchParams(location.search).get('compose'); } catch (e) {}
   if (!q) return;
   window.addEventListener('load', function () {
-    setTimeout(function () { window.ldCompose(q).catch(function (e) { showToast('Compose error: ' + e.message); }); }, 600);
+    setTimeout(function () {
+      window.ldCompose(q).then(function () {
+        /* drop the compose param — a reload must give a fresh editor, not
+           re-import the previous design (user report, 11 Aug) */
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      }).catch(function (e) { showToast('Compose error: ' + e.message); });
+    }, 600);
   });
 })();
 

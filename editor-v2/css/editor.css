@@ -113,7 +113,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   flex: 0 0 auto;
   width: 96px;
   height: 58px;
-  border: 2px solid var(--line-2);
+  border: 2px solid #0F172A;
   border-radius: 6px;
   background: #fff center/cover no-repeat;
   position: relative;
@@ -266,13 +266,13 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .rb-anim-chip { display: block; width: 30px; height: 30px; border-radius: 9px; box-shadow: inset 0 -2px 4px rgba(0,0,0,0.12); }
 
 /* draw colour swatches */
-.rb-drawsw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line-2); margin: 0 2px; transition: transform 100ms ease; }
+.rb-drawsw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #0F172A; margin: 0 2px; transition: transform 100ms ease; }
 .rb-drawsw:hover { transform: scale(1.18); }
 
 /* colour swatches */
 .rb-pop-colours { padding: 9px; }
 .rb-swatches { display: grid; grid-template-columns: repeat(6, 24px); gap: 6px; }
-.rb-sw { position: relative; width: 24px; height: 24px; border-radius: 6px; border: 1px solid rgba(15,23,42,0.14); cursor: pointer; transition: transform 100ms ease; }
+.rb-sw { position: relative; width: 24px; height: 24px; border-radius: 6px; border: 1px solid #0F172A; cursor: pointer; transition: transform 100ms ease; }
 .rb-sw:hover { transform: scale(1.14); }
 .rb-sw-custom { display: grid; place-items: center; background: var(--bg-inset); overflow: hidden; }
 .rb-sw-custom .rb-sw-ico { font-size: 15px !important; color: var(--text-2); pointer-events: none; }
@@ -285,9 +285,9 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .sb-rail-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 9px 2px 7px; border-radius: 9px; transition: background 100ms ease; }
 .sb-rail-btn:hover { background: var(--bg-inset); }
 .sb-rail-btn.is-active { background: var(--accent-soft); }
-.sb-rail-btn.is-active .sb-rail-lab { color: var(--accent); font-weight: 600; }
+.sb-rail-btn.is-active .sb-rail-lab { color: #0F172A; font-weight: 700; }
 .sb-rail-i, .sb-rail-i svg { width: 24px; height: 24px; }
-.sb-rail-lab { font-size: 10.5px; color: var(--text-2); line-height: 1; }
+.sb-rail-lab { font-size: 10.5px; color: #1E293B; line-height: 1; }
 .sb-svg { display: block; line-height: 0; }
 .sb-svg svg { display: block; }
 

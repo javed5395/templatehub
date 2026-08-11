@@ -182,6 +182,24 @@ function rehydrateFrames() {}
     setTimeout(function () { t.remove(); }, ms || 2200);
   }
 
+  /* click the grey area around the slide → deselect (Canva behaviour) */
+  document.addEventListener('DOMContentLoaded', function () {
+    var area = document.getElementById('canvas-area');
+    if (!area) return;
+    area.addEventListener('mousedown', function (e) {
+      if (e.target === area || (e.target.id === 'canvas-holder')) {
+        if (window.fc) { try { fc.discardActiveObject(); fc.renderAll(); } catch (_) {} }
+      }
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && window.fc) {
+      var ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+      try { fc.discardActiveObject(); fc.renderAll(); } catch (_) {}
+    }
+  });
+
   var listeners = {};
   function emit(ev, payload) {
     (listeners[ev] || []).forEach(function (fn) { try { fn(payload); } catch (e) { console.error('[core] listener', ev, e); } });
