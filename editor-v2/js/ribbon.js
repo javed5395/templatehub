@@ -659,15 +659,42 @@
   saveB.addEventListener('click', function () { run('saveProject'); });
   topRow.appendChild(newB); topRow.appendChild(saveB);
 
-  var presentB = el('button', 'rb-action'); presentB.type = 'button';
-  presentB.appendChild(mat('slideshow', 'rb-act-ico'));
-  presentB.appendChild(document.createTextNode('Present'));
-  presentB.addEventListener('click', function () { run('presentFromStart'); });
+  /* hidden picker for the Image option — reuses the engine's existing
+     insertImage command, so this stays pure UI (no engine wiring here) */
+  var upFile = el('input'); upFile.type = 'file'; upFile.accept = 'image/*'; upFile.className = 'rb-file';
+  upFile.addEventListener('change', function () {
+    var f = upFile.files && upFile.files[0];
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () { run('insertImage', r.result); };
+    r.readAsDataURL(f);
+    upFile.value = '';
+  });
+  /* UI-only note for options still owned by the engine (Fable wires these) */
+  function upNote(msg) {
+    var host = document.getElementById('toast-host');
+    if (!host) return;
+    var t = el('div', 'toast', msg);
+    host.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2600);
+  }
+  var uploadB = el('button', 'rb-action'); uploadB.type = 'button'; uploadB.title = 'Upload';
+  uploadB.appendChild(mat('upload', 'rb-act-ico'));
+  uploadB.appendChild(document.createTextNode('Upload'));
+  uploadB.appendChild(mat('arrow_drop_down', 'rb-caret-s'));
+  uploadB.addEventListener('click', function () {
+    showPop(uploadB, function (pop) {
+      pop.appendChild(popRow({ matIcon: 'image', label: 'Image', hint: 'Photo from your device', onClick: function () { upFile.click(); } }));
+      pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint (.pptx)', hint: 'Import a deck', onClick: function () { upNote('PowerPoint import — to be wired by Fable'); } }));
+      pop.appendChild(el('div', 'rb-pop-div'));
+      pop.appendChild(popRow({ matIcon: 'burst_mode', label: 'Fill frames with images…', hint: 'Drop photos into frames', onClick: function () { upNote('Fill frames — to be wired by Fable'); } }));
+    });
+  });
   var dlB = el('button', 'rb-action is-primary'); dlB.type = 'button';
   dlB.appendChild(mat('download', 'rb-act-ico'));
   dlB.appendChild(document.createTextNode('Download'));
   dlB.addEventListener('click', function () { run('exportPptx'); });
-  topRow.appendChild(presentB); topRow.appendChild(dlB);
+  topRow.appendChild(upFile); topRow.appendChild(uploadB); topRow.appendChild(dlB);
 
   function paintBody() {
     reg.textOnly = []; reg.press = {}; reg.named = {};
