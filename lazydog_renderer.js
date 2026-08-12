@@ -684,8 +684,14 @@ function ldFontAuditPrompt(deckIR) {
         '<button id="ld-fa-keep" style="display:block;width:100%;padding:10px 0;margin-bottom:8px;background:#F1F5F9;color:#0F172A;border-radius:8px;font-weight:600;font-size:13px;">Keep original fonts <span style="font-weight:400;color:#64748B;">(client file — exports unchanged)</span></button>' +
         '<button id="ld-fa-free" style="display:block;width:100%;padding:10px 0;background:var(--accent,#7C3AED);color:#fff;border-radius:8px;font-weight:600;font-size:13px;">Switch to free fonts <span style="font-weight:400;opacity:0.85;">(our kit — safe to distribute)</span></button></div>';
       document.body.appendChild(pop);
-      document.getElementById('ld-fa-keep').onclick = function () { deckIR.fontPolicy = 'keep'; pop.remove(); resolve(); };
+      /* 12 Aug: the 'Building slides… Xm' heartbeat kept counting BEHIND this
+         dialog, so a deck waiting for the user's font choice looked HUNG.
+         Pause the pill while the dialog is open; resume on either choice. */
+      try { if (window.ldParseHeartbeat) window.ldParseHeartbeat(false); } catch (he) {}
+      function _ldFaResume() { try { if (window.ldParseHeartbeat) window.ldParseHeartbeat(true, 'Building slides\u2026'); } catch (he) {} }
+      document.getElementById('ld-fa-keep').onclick = function () { deckIR.fontPolicy = 'keep'; pop.remove(); _ldFaResume(); resolve(); };
       document.getElementById('ld-fa-free').onclick = function () {
+        _ldFaResume();
         deckIR.fontPolicy = 'free';
         function convP(p) { (p.runs || []).forEach(function (r) {
           /* r.fontDisplay can BE the commercial name (parser found no twin)
