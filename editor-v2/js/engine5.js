@@ -36,7 +36,10 @@ window.ldImportPptxFile = async function (file) {
         throw new Error('Could not reach the import service');
       } finally { if (to) clearTimeout(to); }
       if (resp.status === 401 || resp.status === 403) throw new Error('Please sign in first — import needs a designer account');
-      if (!resp.ok) throw new Error('Import service error (' + resp.status + ')');
+      if (!resp.ok) {
+        var det = ''; try { det = (await resp.text()).slice(0, 200); } catch (e2) {}
+        throw new Error('Import service error (' + resp.status + ')' + (det ? ' — ' + det : ''));
+      }
       deckIR = await resp.json();
       /* worker may park a heavy IR in Storage and hand back a pointer —
          happens on the direct road too. Unwrap via the range-download

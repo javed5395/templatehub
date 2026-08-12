@@ -759,7 +759,6 @@
       pop.appendChild(popRow({ matIcon: 'image', label: 'Image', hint: 'Photo from your device', onClick: function () { upFile.click(); } }));
       pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint (.pptx)', hint: 'Import a deck', onClick: function () { run('importPptx'); } }));
       pop.appendChild(el('div', 'rb-pop-div'));
-      pop.appendChild(popRow({ matIcon: 'burst_mode', label: 'Fill frames with images…', hint: 'Drop photos into frames', onClick: function () { run('fillFrames'); } }));
       pop.appendChild(popRow({ matIcon: 'auto_fix_high', label: 'Dissolve PDF / Image', hint: 'Turn a flat file into an editable design', onClick: function () { run('dissolve'); } }));
       pop.appendChild(el('div', 'rb-pop-div'));
       pop.appendChild(popRow({ matIcon: 'cloud_upload', label: 'Publish as template', hint: 'Admin only — puts this deck in the free Templates panel', onClick: function () { run('publishTemplate'); } }));

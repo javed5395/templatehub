@@ -126,7 +126,10 @@ window.ldParseByPath = async function (gcsPath) {
     body: JSON.stringify({ gcsPath: gcsPath })
   });
   if (r.status === 401 || r.status === 403) throw new Error('Please sign in first — PowerPoint import needs a signed-in designer account.');
-  if (!r.ok) throw new Error('Import service error (' + r.status + '). Please try again in a moment.');
+  if (!r.ok) {
+    var det = ''; try { det = (await r.text()).slice(0, 200); } catch (e2) {}
+    throw new Error('Import service error (' + r.status + ')' + (det ? ' — ' + det : ''));
+  }
   var j = await r.json();
   /* big decks: worker parks IR in Storage, returns { irUrl, big:true } */
   if (j && j.big === true && j.irUrl) {
@@ -163,7 +166,10 @@ window.dissolveFlatFile = async function (file) {
     var headers = {};
     if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
     var r = await fetch(base + '/dissolve', { method: 'POST', headers: headers, body: fd });
-    if (!r.ok) { showToast('Dissolve failed (' + r.status + ')'); return; }
+    if (!r.ok) {
+      var det = ''; try { det = (await r.text()).slice(0, 200); } catch (e2) {}
+      showToast('Dissolve failed (' + r.status + ')' + (det ? ' — ' + det : ''), 9000); return;
+    }
     var blob = await r.blob();
     var nm = (file.name || 'design').replace(/\.[^.]+$/, '') + '_EDITABLE.pptx';
     var pptx = new File([blob], nm,
