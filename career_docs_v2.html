@@ -94,6 +94,19 @@
   .c-price{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--oxblood);letter-spacing:.06em}
   .c-free{color:#1f7a4d}
 
+  /* live upload card */
+  .c.live{background:#fff;border-color:#e6e0d3;padding:0;overflow:hidden;min-height:0}
+  .c.live::before{display:none}
+  .c.live .lv-th{aspect-ratio:4/3;background:var(--bone);border-bottom:1px solid var(--line);
+       line-height:0;position:relative}
+  .c.live .lv-th img{width:100%;height:100%;object-fit:cover}
+  .c.live .lv-nw{position:absolute;top:10px;left:10px;font-family:var(--mono);font-size:9px;
+       font-weight:700;letter-spacing:.18em;background:var(--ink);color:var(--gold);padding:4px 8px}
+  .c.live .lv-in{padding:16px 18px 17px}
+  .c.live .c-title{font-size:19px;margin-bottom:6px}
+  .c.live .c-div{margin:12px 0 10px}
+  .bhead .btag.new{border-color:#1f7a4d;color:#1f7a4d}
+
   /* build-your-own tile */
   .c.mk{background:var(--navy);border-color:var(--navy);justify-content:center;text-align:center;align-items:center}
   .c.mk::before{border-color:rgba(212,175,55,.3)}
@@ -253,6 +266,47 @@ const TOTAL_SETS    = DOCS.reduce((n,d) => n + d.sets, 0);
 const TOTAL_SAMPLES = DOCS.reduce((n,d) => n + d.samples, 0);
 
 let active = 'resume';
+let mode   = 'all';
+
+/* live uploads pulled from Firestore land here, keyed by document type */
+const LIVE = {};
+
+function liveBand(type){
+  let arr = (LIVE[type] || []).slice();
+  if (mode === 'free')    arr = arr.filter(x => x.priceNum === 0);
+  if (mode === 'popular') arr.sort((a,b) => b.pop - a.pop);
+  else                    arr.sort((a,b) => b.time - a.time);
+  if (!arr.length) return '';
+  return `
+    <div class="band">
+      <div class="bhead">
+        <span class="btag new">NEW</span>
+        <h3>Latest Uploads</h3><i></i><b>${arr.length} live from contributors</b>
+      </div>
+      <div class="row">
+        ${arr.map(x => `
+          <a class="c live" href="${x.href}">
+            <div class="lv-th">${x.cover
+              ? `<img src="${x.cover}" alt="${x.title}">`
+              : `<div style="display:flex;align-items:center;justify-content:center;height:100%;
+                   font-family:'Instrument Serif',serif;font-size:19px;color:#8a8496;padding:16px;
+                   text-align:center">${x.title}</div>`}
+              <span class="lv-nw">NEW</span>
+            </div>
+            <div class="lv-in">
+              <div class="c-title">${x.title}</div>
+              <div class="c-div"></div>
+              <div class="c-foot">
+                <span class="c-meta">${x.label} · PDF</span>
+                <span class="c-price ${x.priceNum===0?'c-free':''}">${x.price}</span>
+              </div>
+            </div>
+          </a>`).join('')}
+      </div>
+    </div>`;
+}
+
+function setMode(m){ mode = m; draw(); }
 
 document.getElementById('tabs').innerHTML = DOCS.map(d =>
   `<button class="tab ${d.id===active?'on':''}" data-id="${d.id}" onclick="go('${d.id}')">
@@ -268,10 +322,12 @@ function draw(){
            ${d.sets} sets · ${d.samples} samples${d.free ? ` · ${d.free} free` : ''}</p>
       </div>
       <div class="sorts">
-        <button class="sort on">All</button><button class="sort">Popular</button>
-        <button class="sort">New</button><button class="sort">Free</button>
+        ${['All','Popular','New','Free'].map(s =>
+          `<button class="sort ${s.toLowerCase()===mode?'on':''}"
+                   onclick="setMode('${s.toLowerCase()}')">${s}</button>`).join('')}
       </div>
     </div>
+    ${liveBand(d.id)}
     ${d.bands.map(b => `
       <div class="band">
         <div class="bhead">
@@ -310,5 +366,75 @@ function go(id){
 }
 draw();
 </script>
+
+<!-- ══ live contributor uploads — same Firestore query the old page used ══ -->
+<script type="module">
+(async function loadCareerUploads(){
+  try{
+    const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js");
+    const { getFirestore, collection, onSnapshot, query, where } =
+      await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+      authDomain: "templatehub-16cd7.firebaseapp.com",
+      projectId: "templatehub-16cd7",
+      storageBucket: "templatehub-16cd7.firebasestorage.app",
+      messagingSenderId: "143000893683",
+      appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+    };
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    /* old page's type keys -> this page's tab ids */
+    const MAP = { resume:'resume', cv:'cv', 'cover-letter':'cover', reference:'ref',
+                  resignation:'resign', recommendation:'recomm', thankyou:'thanks',
+                  linkedin:'linkedin', portfolio:'portfolio' };
+    const LABEL = { resume:'Resume', cv:'CV', cover:'Cover Letter', ref:'Reference',
+                    resign:'Resignation', recomm:'Recommendation', thanks:'Thank You',
+                    linkedin:'LinkedIn', portfolio:'Portfolio' };
+    const esc = s => String(s==null?'':s).replace(/[&<>"']/g,
+                     c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    const q = query(collection(db,'templates'),
+                    where('status','==','approved'),
+                    where('template.category','==','resume_cv'));
+
+    onSnapshot(q, snap => {
+      Object.keys(LIVE).forEach(k => delete LIVE[k]);
+      snap.forEach(doc => {
+        const data = doc.data(), t = data.template || {};
+        let key = String(data.docType || t.docType || '').toLowerCase();
+        const id = MAP[key] || 'resume';
+        const p  = data.price;
+        const priceNum = (p==null||p===''||p==='free') ? 0 : (parseFloat(p)||0);
+        (LIVE[id] = LIVE[id] || []).push({
+          title: esc(t.name || data.title || 'Untitled'),
+          cover: data.pngUrl || (Array.isArray(data.slideImages) && data.slideImages[0])
+                 || (Array.isArray(t.slides) && t.slides[0]) || '',
+          href : 'career_docs_slides.html?firebase=' + doc.id,
+          label: LABEL[id] || 'Document',
+          price: priceNum === 0 ? 'Free' : '$' + priceNum.toFixed(2),
+          priceNum,
+          pop  : data.sales || data.downloads || data.purchases || 0,
+          time : data.uploadedAt && data.uploadedAt.toDate ? data.uploadedAt.toDate().getTime() : 0
+        });
+      });
+      draw();   // repaint with whatever is actually published
+    }, err => console.error('Career uploads failed to load:', err));
+
+  }catch(e){ console.error('Career loader init failed:', e); }
+})();
+</script>
+
+<nav style="background:#07071a;padding:26px 30px;text-align:center;display:flex;gap:24px;
+            justify-content:center;flex-wrap:wrap">
+  <a href="index.html" style="color:#b8bfd0;text-decoration:none;font-size:13.5px">Home</a>
+  <a href="main.html" style="color:#b8bfd0;text-decoration:none;font-size:13.5px">Marketplace Hub</a>
+  <a href="career_docs_slides.html" style="color:#b8bfd0;text-decoration:none;font-size:13.5px">View Career Documents</a>
+  <a href="pitch_deck_folder_section.html" style="color:#b8bfd0;text-decoration:none;font-size:13.5px">Pitch Decks</a>
+  <a href="media_kits_folder_section.html" style="color:#b8bfd0;text-decoration:none;font-size:13.5px">Media Kits</a>
+  <a href="web_kit_folder_file.html" style="color:#b8bfd0;text-decoration:none;font-size:13.5px">Website UI Kits</a>
+</nav>
 </body>
 </html>

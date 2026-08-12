@@ -44,6 +44,28 @@ service cloud.firestore {
       return isSignedIn() && resource.data[field] == request.auth.uid;
     }
 
+    // ── CONTRIBUTOR GATE (6 Aug 2026) ─────────────────────────────────────
+    // True only when this user has an application we have APPROVED.
+    //
+    // This is the real gate for the freelancer program. Hiding the upload
+    // button in upload_form.html is presentation only — anyone can open the
+    // console and write to Firestore directly. This function is what actually
+    // stops them, because it is evaluated by Firestore on the server.
+    //
+    // get() costs one document read per write attempt. That is the correct
+    // trade: uploads are rare, and letting an unapproved stranger publish to
+    // the store would be far more expensive than a lookup.
+    function isApprovedContributor() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/contributor_applications/$(request.auth.uid))
+        && get(/databases/$(database)/documents/contributor_applications/$(request.auth.uid)).data.status == 'approved';
+    }
+
+    // Who may submit a kit at all: us, or a freelancer we have approved.
+    function mayUpload() {
+      return isAdmin() || isApprovedContributor();
+    }
+
     // ── kits collection (PRIVATE — 28 Jul 2026) ───────────────────────────
     // This holds `encoded_raw`: every metadata CODE for every kit. It was
     // `allow read: if true`, so anyone could open the collection in a browser
@@ -73,7 +95,11 @@ service cloud.firestore {
       // upload_form.html writes (status/sellerId/uploaderUid, ~line 1628).
       // The server (on_seller_submission) owns the transition to 'approved';
       // a client can no longer hand itself that value.
-      allow create: if isSignedIn()
+      // 6 Aug 2026 — now also requires mayUpload(). Before the freelancer
+      // program, "any signed-in user" was effectively "the two of us". Once
+      // strangers can create accounts on the site that is no longer true, so
+      // submission is restricted to admins and APPROVED contributors.
+      allow create: if mayUpload()
                     && request.resource.data.status == 'pending'
                     && request.resource.data.sellerId    == request.auth.uid
                     && request.resource.data.uploaderUid == request.auth.uid;
@@ -96,8 +122,94 @@ service cloud.firestore {
     // read access here is the whole exposure we are closing.
     match /templates_files/{kitId} {
       allow read:   if isAdmin();
-      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
+      // Gated the same way as templates/ — the two are written together during
+      // submission, so leaving this one open would let an unapproved user
+      // create orphan file records.
+      allow create: if mayUpload() && request.resource.data.sellerId == request.auth.uid;
       allow update, delete: if isAdmin();
+    }
+
+    // ── contributor_applications (FREELANCER PROGRAM — 6 Aug 2026) ───────
+    // A designer applies here; an admin approves; only then may they upload.
+    //
+    // Doc id IS the applicant's uid. That single choice does most of the
+    // security work: a signed-in user can only ever touch the document whose
+    // id equals their own uid, so nobody can read, edit or create somebody
+    // else's application.
+    //
+    // THE CRITICAL RULE is that `status` must be 'pending' on create, and a
+    // non-admin may only keep it 'pending' on update. Without that, an
+    // applicant could simply write status:'approved' from the browser console
+    // and let themselves in.
+    //
+    // Editing is allowed while pending (fix a portfolio link, add a category)
+    // but stops the moment a decision is made — an approved contributor must
+    // not be able to quietly rewrite the terms they agreed to, and a rejected
+    // one must not be able to reopen their own case.
+    match /contributor_applications/{uid} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+
+      // request.auth.token.email_verified is checked server-side by Firebase
+      // itself, so an unverified address cannot apply even if someone skips
+      // the UI and writes to Firestore directly.
+      allow create: if isSignedIn()
+                    && request.auth.uid == uid
+                    && request.auth.token.email_verified == true
+                    && request.resource.data.uid == uid
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.agreedTerms == true
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 1
+                    && request.resource.data.portfolio is string
+                    && request.resource.data.portfolio.size() > 3
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() > 4;
+
+      allow update: if isAdmin()
+                    || (isSignedIn()
+                        && request.auth.uid == uid
+                        && resource.data.status == 'pending'
+                        && request.resource.data.status == 'pending');
+
+      allow delete: if isAdmin();
+    }
+
+    // ── downloads (DELIVERY RECORD — 6 Aug 2026) ─────────────────────────
+    // Written ONLY by download_url_http (Admin SDK, bypasses these rules) the
+    // moment a buyer actually takes the deliverable.
+    //
+    // This is the evidence behind the refund rule: cancel within 14 days ONLY
+    // if you never downloaded. So the browser must not be able to write one
+    // (a buyer could forge "no download" by never creating it — or worse,
+    // create records for someone else), and must not be able to delete one to
+    // erase proof of delivery. It also stays unreadable: it is our record for
+    // settling disputes and paying contributors, not customer-facing data.
+    //
+    // Locked completely. Every legitimate write comes from the Cloud Function.
+    match /downloads/{docId} {
+      allow read:   if isAdmin();
+      allow write:  if false;
+    }
+
+    // ── earnings (CONTRIBUTOR REVENUE SHARE, 9 Aug 2026) ──────────────────
+    // One row per contributor line per paid order: gross, the real Whop fees,
+    // net, and the 75% share. Written ONLY by the Cloud Function that reads
+    // Whop's fee data — never by a browser, or a contributor could write
+    // their own earnings. A contributor may read their own rows and nothing
+    // else, which is what the earnings dashboard needs and no more.
+    match /earnings/{docId} {
+      allow read:  if isAdmin()
+                   || (isSignedIn() && resource.data.contributorUid == request.auth.uid);
+      allow write: if false;
+    }
+
+    // ── payouts (RECORD OF MONEY ACTUALLY SENT, 9 Aug 2026) ───────────────
+    // Payouts are MANUAL — a human sends the money and records it here. Same
+    // rule: a contributor sees their own history, only an admin can create it.
+    match /payouts/{docId} {
+      allow read:  if isAdmin()
+                   || (isSignedIn() && resource.data.contributorUid == request.auth.uid);
+      allow write: if isAdmin();
     }
 
     // ── design_orders (BACKGROUND DESIGN ORDERS, 2 Aug 2026) ──────────────
@@ -254,6 +366,33 @@ service cloud.firestore {
     // out exactly how much room it has left to abuse.
     match /chat_quota/{id} {
       allow read, write: if false;
+    }
+
+    // ── reviews (per-kit star ratings, 8 Aug 2026) ─────────────────────────
+    // Public read so every visitor sees real ratings on kit pages. Any
+    // signed-in visitor may write, but ONLY their own review, and the doc id
+    // is forced to be `${kitId}_${uid}` — that is what makes "one review per
+    // person per kit" actually true instead of a client-side promise; posting
+    // again just overwrites their own doc, it can never create a second one.
+    // createdAt must equal request.time so nobody can backdate a review.
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create, update: if isSignedIn()
+                    && reviewId == (request.resource.data.kitId + '_' + request.auth.uid)
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.kitId is string
+                    && request.resource.data.kitId.size() > 0
+                    && request.resource.data.rating is int
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.comment is string
+                    && request.resource.data.comment.size() <= 1000
+                    && request.resource.data.userName is string
+                    && request.resource.data.userName.size() <= 80
+                    && request.resource.data.createdAt == request.time;
+      // A reviewer may remove their own review; admins may remove any
+      // (moderation — e.g. abusive text).
+      allow delete: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
     // Block everything else

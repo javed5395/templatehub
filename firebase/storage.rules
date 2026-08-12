@@ -11,11 +11,30 @@ service firebase.storage {
       // 28 Jul 2026 — upload_form.html now drops <docId>_SYSTEM.pdf here so the
       // Cloud Function can read the coded Section 11 server-side. Both admin
       // accounts need write; nobody can read.
+      //
+      // 10 Aug 2026 — APPROVED CONTRIBUTORS TOO. This was admin-only, which
+      // meant a freelancer's upload silently failed this one step: their kit
+      // saved, but with a red "the kit is saved but has NO codes" warning and
+      // no metadata for the search engine. Every contributor kit would have
+      // been weaker in search than our own, and every contributor would have
+      // seen an alarming error on their very first upload.
+      //
+      // Gated on the SAME condition as firestore.rules mayUpload(), read via
+      // cross-service rules (exists + get = the 2-document maximum allowed).
+      // Reads stay closed to everyone; this is a write-only drop box.
       allow write: if request.auth != null
-                   && request.auth.token.email in [
-                        'lazydogtemplates@gmail.com',
-                        'javed5395@gmail.com'
-                      ];
+                   && (
+                        request.auth.token.email in [
+                          'lazydogtemplates@gmail.com',
+                          'javed5395@gmail.com'
+                        ]
+                        || (
+                          firestore.exists(/databases/(default)/documents/contributor_applications/$(request.auth.uid))
+                          && firestore.get(/databases/(default)/documents/contributor_applications/$(request.auth.uid)).data.status == 'approved'
+                          && request.resource.size < 25 * 1024 * 1024
+                          && request.resource.contentType == 'application/pdf'
+                        )
+                      );
       allow read: if false;
     }
 
@@ -28,6 +47,34 @@ service firebase.storage {
                    && request.auth.token.email in [
                         'javed5395@gmail.com',
                         'lazydogtemplates@gmail.com'
+                      ];
+    }
+
+    // ── Contributor ID documents (6 Aug 2026) ─────────────────────────────
+    // Government ID photos from freelancer applications. This is the most
+    // sensitive data on the whole platform, so the rules are deliberately
+    // tighter than anywhere else:
+    //
+    //   WRITE — only the applicant, and only into the folder named after
+    //           their own uid. They cannot write into anyone else's folder,
+    //           cannot upload anything that is not an image, and cannot use
+    //           this path as free file hosting (8 MB cap).
+    //   READ  — admins only. Not even the applicant can read it back. Nothing
+    //           public ever links here, and no download URL is stored in
+    //           Firestore — only the path, which is useless without auth.
+    //
+    // If an ID ever leaks it is a serious problem for the person who trusted
+    // us with it, not just for us. Delete these once identity is verified —
+    // the safest copy of a document is the one you are not storing.
+    match /contributor_ids/{uid}/{fileName} {
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 8 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+      allow read:  if request.auth != null
+                   && request.auth.token.email in [
+                        'lazydogtemplates@gmail.com',
+                        'javed5395@gmail.com'
                       ];
     }
 

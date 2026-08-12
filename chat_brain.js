@@ -981,7 +981,11 @@
          || words.match(/\b(?:slides?|pages?)\s*[:=]?\s*(\d{1,3})\b/i)
          || words.match(/\b(\d{1,3})\b/);
     var slides = m ? parseInt(m[1], 10) : 5;
-    if (!(slides > 0 && slides <= 60)) slides = 5;
+    /* 9 Aug 2026 (Javed) — ceiling 60 → 100. This is only the sanity check on
+       what a person typed; who is ALLOWED that many is decided server-side.
+       A free account is still stopped at 8 by the free-tier gate in
+       composer_proxy; admin is exempt there and may order the full 100. */
+    if (!(slides > 0 && slides <= 100)) slides = 5;
 
     if (kind === 'routine') {
       var hour = window.hexaWhenHour(text);
@@ -1038,7 +1042,22 @@
 
   window.hexaDesign = function (text) {
     var raw  = String(text || '');
-    var seed = raw.slice(0, 200);
+    /* ── 9 Aug 2026 (Javed) — THE 200-CHARACTER CUT ─────────────────────────
+       This slice was the single worst bug in the ordering chain. The design
+       card writes the whole order as ONE sentence, in a fixed order:
+         type, sub-category, industry, colour, finish, style, fonts, tone,
+         audience, best-for, ACCENT, SLIDES, ratio, formality, the four canvas
+         dials, mock-ups, PAST DESIGN, inspired-by.
+       A fully filled card passes 200 characters at roughly "purple accents" —
+       so everything from the SLIDE COUNT onwards was silently thrown away on
+       every order. The composer, hearing no number, fell back to its own
+       default of 8. That is why "33 slides" always came back as 8, why the
+       ratio / formality / text / shapes / graphs / empty-space dials never did
+       anything, and why "use design PD-0xx" was never even seen.
+       The card caps its own sentence at 1000 characters, so this now carries
+       the whole order and nothing is lost in transit. A URL of this length is
+       far below every browser's limit. */
+    var seed = raw.slice(0, 1000);
     var m    = norm(raw).match(/\b(\d{1,3})\s*(slides?|pages?)\b/);
     var want = m ? parseInt(m[1], 10) : 0;
 

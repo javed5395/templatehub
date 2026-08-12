@@ -46,6 +46,7 @@ Test all of this against Whop's SANDBOX first (see the test checklist).
 import os
 import re
 import json
+import math
 import time
 import urllib.request as _req
 import urllib.error as _err
@@ -89,12 +90,74 @@ _member_raw = os.environ.get('WHOP_MEMBER_AFFILIATE_PERCENT', '').strip()
 MEMBER_AFFILIATE_PERCENT = float(_member_raw) if _member_raw else None
 
 
-def _affiliate_fields():
-    """The affiliate settings applied to every kit product."""
+AFFILIATE_MAX = 40.0     # ceiling — see _affiliate_percent_for
+
+
+def _affiliate_percent_for(kit_doc):
+    """The affiliate rate for THIS kit, 0-40.
+
+    PER-KIT, not global (9 Aug 2026, Javed's decision). Whoever uploads a kit
+    chooses what a marketer earns for selling it, because that commission comes
+    out of the sale before the 75/25 split — so it is mostly the uploader's own
+    money being spent on promotion, and theirs to decide.
+
+    Why a ceiling of 40: past that, the sale stops paying for the risk attached
+    to it. A single chargeback costs a flat $15 regardless of the sale size, and
+    that lands on us, not the marketer.
+
+    Why 0 is allowed: on a $60-150 kit, 40% is a lot of money to hand over, and
+    the owner may prefer to sell fewer at full margin. The trade-off is real —
+    affiliates on Whop pick what pays, so a 0% kit gets no promotion.
+
+    Anything missing or unparseable falls back to the account default rather
+    than to zero: a kit that silently stopped paying affiliates would look like
+    it had simply stopped selling.
+
+    FIXED AMOUNTS. The uploader may instead say "pay the marketer $25". Whop has
+    no flat-amount affiliate field — VERIFIED against its product schema on
+    9 Aug 2026, only global_affiliate_percentage exists — so an amount is
+    converted to the equivalent percentage of THIS kit's price. The original
+    intent is stored alongside, and the percentage is recomputed here on every
+    sync, so changing a kit's price keeps the marketer on the amount that was
+    actually promised instead of silently re-pricing it.
+    """
+    t = (kit_doc or {}).get('template') or {}
+
+    def _pick(key):
+        v = t.get(key)
+        return v if v is not None else (kit_doc or {}).get(key)
+
+    mode = str(_pick('affiliateMode') or 'percent').strip().lower()
+
+    if mode == 'amount':
+        price = _parse_price(_pick('price'))
+        try:
+            amount = float(_pick('affiliateValue'))
+        except (TypeError, ValueError):
+            return AFFILIATE_PERCENT
+        if not price or price <= 0 or amount <= 0:
+            return 0.0
+        return max(0.0, min(amount / price * 100.0, AFFILIATE_MAX))
+
+    raw = _pick('affiliatePercent')
+    if raw is None or str(raw).strip() == '':
+        return AFFILIATE_PERCENT
+    try:
+        v = float(raw)
+    except (TypeError, ValueError):
+        return AFFILIATE_PERCENT
+    if v < 0:
+        return 0.0
+    return min(v, AFFILIATE_MAX)
+
+
+def _affiliate_fields(kit_doc=None):
+    """The affiliate settings applied to a kit's product."""
     out = {}
-    if AFFILIATE_PERCENT and AFFILIATE_PERCENT > 0:
+    pct = _affiliate_percent_for(kit_doc) if kit_doc is not None else AFFILIATE_PERCENT
+    if pct and pct > 0:
         out['global_affiliate_status']     = 'enabled'
-        out['global_affiliate_percentage'] = AFFILIATE_PERCENT
+        out['global_affiliate_percentage'] = pct
     else:
         out['global_affiliate_status'] = 'disabled'
     if MEMBER_AFFILIATE_PERCENT and MEMBER_AFFILIATE_PERCENT > 0:
@@ -148,6 +211,30 @@ def _request(method, path, body=None, timeout=25):
     except Exception as e:
         print(f'[whop-sync] {method} {path} failed: {e}')
         return (0, None)
+
+
+def request_verbose(method, path, body=None, timeout=25, limit=1500):
+    """Like _request, but returns Whop's ERROR TEXT instead of discarding it.
+
+    _request logs the detail and returns None, which is fine in production but
+    useless from outside the logs. Chasing a 403 with no message cost real time
+    on 9 Aug 2026, so diagnostics use this instead. Never raises.
+    """
+    if not WHOP_API_KEY:
+        return (0, 'WHOP_API_KEY not set')
+    url = WHOP_API_BASE.rstrip('/') + path
+    data = json.dumps(body).encode() if body is not None else None
+    req = _req.Request(url, data=data, method=method, headers=_headers())
+    try:
+        with _req.urlopen(req, timeout=timeout) as r:
+            return (r.status, r.read().decode()[:limit])
+    except _err.HTTPError as e:
+        try:
+            return (e.code, e.read().decode()[:limit])
+        except Exception:
+            return (e.code, '(no body)')
+    except Exception as e:
+        return (0, f'{type(e).__name__}: {e}')
 
 
 def _parse_price(raw):
@@ -338,7 +425,52 @@ def _extract_plan_id(product_body):
     return None
 
 
-def _create_plan(product_id, amount, title):
+def _commercial_price(personal, kit_doc=None):
+    """Commercial licence price. ONE rule, defined here and nowhere else.
+
+    THE UPLOADER SETS IT (Javed, 9 Aug 2026). The upload form has two price
+    boxes — single-use and commercial — and whatever is typed in the second one
+    is what gets charged. A designer knows what their own work is worth better
+    than a formula does, and on a $150 kit the difference between a fixed
+    multiplier and a considered price is real money.
+
+    FALLBACK: 1.5x rounded UP to a whole dollar, used only when no commercial
+    price was given. That keeps every kit uploaded before this change working
+    exactly as it did ($4 -> $6, $5 -> $8, $18 -> $27), and means a contributor
+    who ignores the second box still ends up with a sane commercial licence
+    rather than none at all.
+
+    Rounding UP, never nearest, so the fallback can never land below 1.5x.
+    """
+    if kit_doc is not None:
+        t = (kit_doc or {}).get('template') or {}
+        raw = t.get('commercialPrice', (kit_doc or {}).get('commercialPrice'))
+        chosen = _parse_price(raw)
+        if chosen:
+            return float(chosen)
+
+    try:
+        p = float(personal)
+    except (TypeError, ValueError):
+        return None
+    if p <= 0:
+        return None
+    return float(math.ceil(p * 1.5))
+
+
+def _plan_metadata(kit_id, licence):
+    """Metadata stamped on every plan.
+
+    Whop copies plan metadata into the payment webhook payload, so this is how
+    the webhook knows WHICH kit and WHICH licence was bought — without it a
+    Commercial sale is indistinguishable from a Personal one.
+    Whop limits: 50 keys, 100 chars per key, 500 chars per value.
+    """
+    return {'kitId': str(kit_id or '')[:100],
+            'licence': str(licence or 'personal')[:100]}
+
+
+def _create_plan(product_id, amount, title, kit_id='', licence='personal'):
     """Create the one-time plan under a product and return (plan_id, url).
 
     VERIFIED 5 Aug 2026: passing `plan_options` to POST /products does NOT
@@ -351,11 +483,21 @@ def _create_plan(product_id, amount, title):
         'product_id':      product_id,
         'plan_type':       'one_time',
         'release_method':  'buy_now',
-        'visibility':      'visible',      # 'visible' so the store card shows a price
+        # Personal stays 'visible' so the store card shows a price. Commercial
+        # is 'quick_link' — reachable by direct link, but it must not add a
+        # second price card to the store listing.
+        'visibility':      'visible' if licence == 'personal' else 'quick_link',
         'currency':        'usd',
         'initial_price':   round(float(amount), 2),
         'title':           (title or 'LazyDog Template')[:30],
         'unlimited_stock': True,
+        'metadata':        _plan_metadata(kit_id, licence),
+        # USD ONLY (Javed's decision, 9 Aug 2026). Whop defaults this to true,
+        # which shows a Hong Kong buyer "HK$48.01" for a $6 kit. The site quotes
+        # dollars, so checkout must charge dollars — the price shown must be the
+        # price charged. It also keeps every contributor's share denominated in
+        # the same currency the sale was advertised in.
+        'adaptive_pricing_enabled': False,
     }
     _, body = _request('POST', '/plans', body=payload)
     if not body or not body.get('id'):
@@ -448,13 +590,127 @@ def _should_sync(kit_doc):
     return (True, 'ok', price, category)
 
 
+def _sync_commercial_plan(doc_id, product_id, personal_price, title, t,
+                          fs_client=None):
+    """Create or update the Commercial-licence plan. Returns a Firestore patch
+    dict (possibly empty) — the caller writes it.
+
+    DANGER — READ BEFORE EDITING. sync_kit runs from an on_document_written
+    trigger, and it writes back to the same document, which re-fires the
+    trigger. Creation MUST therefore be guarded on the id being absent. If this
+    function ever creates a plan unconditionally, every write to any template
+    mints another Whop plan, forever. That is the single fastest way to get the
+    Whop account flagged. The `if existing:` branch below is that guard — do not
+    remove it.
+
+    The Commercial plan lives under the SAME product as Personal. That matters:
+    the payment webhook resolves a sale to a kit via product id, so keeping one
+    product means a Commercial sale still resolves even if plan metadata is
+    ever lost.
+    """
+    # `t` is the kit's template map, which is where commercialPrice lives.
+    price = _commercial_price(personal_price, {'template': t})
+    if not price:
+        return {}
+
+    existing = t.get('whopCommercialPlanId')
+    if existing:
+        # UPDATE path — never creates. Keeps price in step with the Personal
+        # price and re-asserts the licence stamp.
+        _request('PATCH', f'/plans/{existing}',
+                 body={'initial_price': price,
+                       'visibility': 'quick_link',
+                       'metadata': _plan_metadata(doc_id, 'commercial'),
+                       'adaptive_pricing_enabled': False})
+        if t.get('whopCommercialPrice') == price:
+            return {}
+        return {'whopCommercialPrice': price}
+
+    # CREATE path — reached only when no commercial plan id exists.
+    plan_id, url = _create_plan(product_id, price,
+                                f'{title} Commercial'[:30],
+                                kit_id=doc_id, licence='commercial')
+    if not plan_id:
+        print(f'[whop-sync] commercial plan create FAILED for {doc_id}')
+        return {}
+    print(f'[whop-sync] created commercial plan {plan_id} (${price:.0f}) for {doc_id}')
+    out = {'whopCommercialPlanId':      plan_id,
+           'whopCommercialPurchaseUrl': url,
+           'whopCommercialPrice':       price}
+
+    # SAVE THE ID NOW, not with the rest of the patch at the end of sync_kit.
+    # 9 Aug 2026: the caller batched this write until after the gallery rebuild
+    # and Discover publish. A run that timed out in between left the plan alive
+    # on Whop with nothing pointing at it, and the next run — seeing no id —
+    # created ANOTHER. Six duplicates before it was spotted. The window between
+    # "plan exists" and "we know about it" must be as close to zero as possible.
+    if fs_client is not None:
+        try:
+            fs_client.collection(_COLLECTION).document(doc_id).set(
+                {'template': out}, merge=True)
+        except Exception as e:
+            print(f'[whop-sync] URGENT: commercial plan {plan_id} created for '
+                  f'{doc_id} but its id could not be saved: {e}')
+    return out
+
+
+# ------------------------------------------------------------------ take-down
+def _takedown_kit(doc_id, kit_doc, fs_client, reason):
+    """The kit already has a live Whop product but is no longer eligible
+    (status flipped to rejected/pending, price removed, category changed).
+
+    Hide it on Whop so it stops selling. Deliberately HIDE rather than delete:
+    a rejection is often temporary, and deleting would orphan existing orders.
+    Re-approving the kit puts it straight back (the edit path below PATCHes
+    visibility from _store_visibility and re-submits to Discover).
+    """
+    t = kit_doc.get('template') or {}
+    product_id = t.get('whopProductId') or kit_doc.get('whopProductId')
+    if not product_id:
+        print(f'[whop-sync] skip {doc_id}: {reason}')
+        return
+    if t.get('whopVisibility') == 'hidden':
+        return                      # already down — don't hammer the API
+
+    for _p in (t.get('whopPlanId') or kit_doc.get('whopPlanId'),
+               t.get('whopCommercialPlanId')):
+        if _p:
+            # Hiding the product alone still leaves the checkout link buyable,
+            # and the Commercial plan is a second buyable link — hide both.
+            _request('PATCH', f'/plans/{_p}', body={'visibility': 'hidden'})
+
+    code, _ = _request('PATCH', f'/products/{product_id}',
+                       body={'visibility': 'hidden'})
+    if code == 404:
+        # Already removed on Whop by hand. Clear the pointers so the flags stop
+        # claiming the kit is live (this is exactly what misled us on
+        # "Arrowai Brand Guidelines Pitch Deck", 9 Aug 2026).
+        fs_client.collection(_COLLECTION).document(doc_id).set(
+            {'template': {'whopProductId':   None, 'whopPlanId':      None,
+                          'whopPurchaseUrl': None, 'whopPublished':   False,
+                          'whopImageDone':   False, 'whopImageCount':  0,
+                          'whopVisibility':  None,
+                          'whopTakedownReason': 'deleted on Whop'}},
+            merge=True)
+        print(f'[whop-sync] {product_id} already gone on Whop — cleared {doc_id}')
+    elif code in (200, 201, 202, 204):
+        fs_client.collection(_COLLECTION).document(doc_id).set(
+            {'template': {'whopVisibility':     'hidden',
+                          'whopPublished':      False,   # re-submit on re-approve
+                          'whopTakedownReason': reason}},
+            merge=True)
+        print(f'[whop-sync] took down {product_id} for {doc_id}: {reason}')
+    else:
+        print(f'[whop-sync] TAKEDOWN FAILED {product_id} ({code}) for {doc_id}')
+
+
 # ------------------------------------------------------------------ create / update
 def sync_kit(doc_id, kit_doc, fs_client):
-    """Create (or update) the Whop store product for one kit. Safe no-op when
-    the kit is not eligible."""
+    """Create (or update) the Whop store product for one kit. Takes the product
+    down when the kit stops being eligible."""
     ok, reason, price, category = _should_sync(kit_doc)
     if not ok:
-        print(f'[whop-sync] skip {doc_id}: {reason}')
+        _takedown_kit(doc_id, kit_doc, fs_client, reason)
         return
 
     t     = kit_doc.get('template') or {}
@@ -463,6 +719,26 @@ def sync_kit(doc_id, kit_doc, fs_client):
     desc  = _description(t)
     existing = t.get('whopProductId') or kit_doc.get('whopProductId')
 
+    # Self-heal stale pointers: the product may have been deleted directly on
+    # Whop, which leaves whopProductId/whopPlanId pointing at nothing. Without
+    # this check the kit would take the PATCH path forever and never come back.
+    if existing:
+        chk, _ = _request('GET', f'/products/{existing}')
+        if chk == 404:
+            print(f'[whop-sync] product {existing} is gone on Whop — rebuilding {doc_id}')
+            fs_client.collection(_COLLECTION).document(doc_id).set(
+                {'template': {'whopProductId':   None, 'whopPlanId':     None,
+                              'whopPurchaseUrl': None, 'whopPublished':  False,
+                              'whopImageDone':   False, 'whopImageCount': 0}},
+                merge=True)
+            t = {k: v for k, v in t.items()
+                 if k not in ('whopProductId', 'whopPlanId', 'whopPurchaseUrl')}
+            kit_doc = dict(kit_doc)
+            kit_doc['template'] = t
+            kit_doc.pop('whopProductId', None)
+            kit_doc.pop('whopPlanId', None)
+            existing = None
+
     # ---- EDIT SYNC: product already exists -> PATCH price/title/desc ----
     if existing:
         plan_id = t.get('whopPlanId') or kit_doc.get('whopPlanId')
@@ -470,7 +746,8 @@ def sync_kit(doc_id, kit_doc, fs_client):
         # Self-heal: the product exists but never got a plan (so the store card
         # shows "--" and it cannot be bought). Create the missing plan.
         if not plan_id:
-            plan_id, purchase_url = _create_plan(existing, price, title)
+            plan_id, purchase_url = _create_plan(existing, price, title,
+                                                 kit_id=doc_id, licence='personal')
             if plan_id:
                 fs_client.collection(_COLLECTION).document(doc_id).set(
                     {'template': {'whopPlanId': plan_id,
@@ -478,17 +755,31 @@ def sync_kit(doc_id, kit_doc, fs_client):
                     merge=True)
                 print(f'[whop-sync] backfilled missing plan {plan_id} on {existing}')
         else:
-            _request('PATCH', f'/plans/{plan_id}', body={'initial_price': price})
+            # 'visibility' here also un-does a previous take-down (see
+            # _takedown_kit) when a rejected kit is later approved.
+            # 'metadata' back-fills kitId/licence onto plans created before
+            # 9 Aug 2026 — without it the webhook cannot tell which licence
+            # was bought. Re-sending it every time is harmless (it overwrites
+            # with the same values) and self-heals any plan we miss.
+            _request('PATCH', f'/plans/{plan_id}',
+                     body={'initial_price': price, 'visibility': 'visible',
+                           'metadata': _plan_metadata(doc_id, 'personal'),
+                           'adaptive_pricing_enabled': False})
 
+        _vis = _store_visibility(kit_doc)
         _patch_body = {'title': title, 'headline': head, 'description': desc,
-                       'visibility': _store_visibility(kit_doc)}
-        _patch_body.update(_affiliate_fields())   # keeps the 40% program in sync
+                       'visibility': _vis}
+        _patch_body.update(_affiliate_fields(kit_doc))   # per-kit affiliate rate
         _request('PATCH', f'/products/{existing}', body=_patch_body)
 
         # Image and Discover-publish can fail on the first (create) pass —
         # the image needs time to finish processing, and publish is refused
         # until a headline exists. Retry them here until each one sticks.
         patch = {}
+        patch.update(_sync_commercial_plan(doc_id, existing, price, title, t, fs_client))
+        if t.get('whopVisibility') != _vis:
+            patch['whopVisibility']     = _vis
+            patch['whopTakedownReason'] = None
         # Rebuild the gallery when it has never been done OR when the number of
         # previews we would now upload differs from what is currently attached
         # (e.g. GALLERY_MAX changed, or the kit gained slides). Without this
@@ -522,7 +813,7 @@ def sync_kit(doc_id, kit_doc, fs_client):
         'visibility':  _store_visibility(kit_doc),   # listOnWhop -> visible/hidden
         'metadata':    {'kitId': doc_id, 'slug': (t.get('slug') or '')},
     }
-    payload.update(_affiliate_fields())    # contributor program, e.g. 40%
+    payload.update(_affiliate_fields(kit_doc))   # per-kit affiliate rate
     _, body = _request('POST', '/products', body=payload)
     if not body or not body.get('id'):
         fs_client.collection(_COLLECTION).document(doc_id).set(
@@ -537,7 +828,8 @@ def sync_kit(doc_id, kit_doc, fs_client):
 
     # ---- CREATE the plan (separate call — see _create_plan docstring) ----
     if not plan_id:
-        plan_id, purchase_url = _create_plan(product_id, price, title)
+        plan_id, purchase_url = _create_plan(product_id, price, title,
+                                             kit_id=doc_id, licence='personal')
     if plan_id and not purchase_url:
         purchase_url = f'https://whop.com/checkout/{plan_id}'
 
@@ -548,17 +840,21 @@ def sync_kit(doc_id, kit_doc, fs_client):
     pub_code, _ = _request('POST', f'/products/{product_id}/publish', body={})
     published = pub_code in (200, 201, 202, 204)
 
+    _new = {
+        'whopProductId':   product_id,
+        'whopPlanId':      plan_id,
+        'whopPurchaseUrl': purchase_url,
+        'whopImageDone':   image_done,
+        'whopImageCount':  len(_kit_gallery_urls(t)) if image_done else 0,
+        'whopPublished':   published,
+        'whopVisibility':  _store_visibility(kit_doc),
+        'whopSyncError':   None,
+    }
+    # t has no whopCommercialPlanId on this path (brand new product), so this
+    # always takes the CREATE branch — which is correct, and still guarded.
+    _new.update(_sync_commercial_plan(doc_id, product_id, price, title, t, fs_client))
     fs_client.collection(_COLLECTION).document(doc_id).set(
-        {'template': {
-            'whopProductId':   product_id,
-            'whopPlanId':      plan_id,
-            'whopPurchaseUrl': purchase_url,
-            'whopImageDone':   image_done,
-            'whopImageCount':  len(_kit_gallery_urls(t)) if image_done else 0,
-            'whopPublished':   published,
-            'whopSyncError':   None,
-        }},
-        merge=True)
+        {'template': _new}, merge=True)
     print(f'[whop-sync] created product {product_id} / plan {plan_id} for kit {doc_id}')
 
 
@@ -578,6 +874,96 @@ def archive_kit(kit_doc):
         print(f'[whop-sync] archived product {product_id} (delete not allowed)')
     else:
         print(f'[whop-sync] deleted product {product_id}')
+
+
+# ------------------------------------------------------------------ cart checkout
+def create_cart_checkout(total, cart_ref, buyer_email=''):
+    """One Whop payment for a basket of several kits.
+
+    Whop has no cart: a checkout charges ONE plan. The supported way to charge a
+    basket is a "checkout configuration" with an inline plan at the basket total.
+    VERIFIED against Whop's docs, 9 Aug 2026:
+      - POST /checkout_configurations accepts an inline `plan` and `metadata`
+      - "Payments and memberships created from a checkout session inherit its
+        metadata" — so the payment webhook receives our metadata
+      - the payment also carries `checkout_configuration_id`
+
+    We deliberately put ONLY a short reference (cart_ref) in the metadata, never
+    the basket itself. Whop caps metadata at 500 characters per value; a basket
+    of any size would eventually be silently truncated and we would deliver the
+    wrong kits. The real basket lives in Firestore under carts/{cart_ref}.
+
+    We do NOT pass force_create_new_plan. Letting Whop reuse an equivalent plan
+    keeps the account from filling up with one throwaway plan per checkout,
+    which was a real risk flagged in review. Reuse is safe precisely because the
+    cart reference rides on the checkout configuration, not on the plan.
+
+    Returns (purchase_url, checkout_id) or (None, None).
+    """
+    try:
+        amount = round(float(total), 2)
+    except (TypeError, ValueError):
+        return (None, None)
+    if amount <= 0:
+        return (None, None)
+
+    payload = {
+        'company_id': WHOP_COMPANY_ID,
+        'currency':   'usd',
+        'mode':       'payment',
+        'plan': {
+            'company_id':      WHOP_COMPANY_ID,
+            'plan_type':       'one_time',
+            'release_method':  'buy_now',
+            'currency':        'usd',
+            'initial_price':   amount,
+            'title':           'LazyDog Templates order',
+            # quick_link keeps basket plans off the public store listing.
+            'visibility':      'quick_link',
+            'unlimited_stock': True,
+            'metadata':        {'kind': 'cart'},
+        },
+        # THIS is what the webhook reads back.
+        'metadata': {'cartRef': str(cart_ref)[:100], 'kind': 'cart'},
+    }
+    code, body = _request('POST', '/checkout_configurations', body=payload)
+    if not isinstance(body, dict) or not body.get('id'):
+        print(f'[whop-cart] checkout config create FAILED ({code}) for {cart_ref}')
+        return (None, None)
+
+    # USD only. The inline `plan` object on POST /checkout_configurations does
+    # NOT accept adaptive_pricing_enabled (checked against Whop's schema,
+    # 9 Aug 2026), so the plan is created with Whop's default of ON and turned
+    # off immediately afterwards. Best-effort: a basket that shows local
+    # currency is a nuisance, not a reason to block the sale.
+    plan = body.get('plan') or {}
+    plan_id = plan.get('id') if isinstance(plan, dict) else None
+    if plan_id:
+        _request('PATCH', f'/plans/{plan_id}',
+                 body={'adaptive_pricing_enabled': False})
+
+    url = body.get('purchase_url') or ''
+    if not url and plan_id:
+        url = f'https://whop.com/checkout/{plan_id}?session={body["id"]}'
+    print(f'[whop-cart] checkout {body["id"]} for cart {cart_ref} (${amount:.2f})')
+    return (url or None, body['id'])
+
+
+def cart_ref_from_checkout(checkout_id):
+    """Second, independent way to recover the cart reference.
+
+    If a payment arrives carrying checkout_configuration_id but no metadata (an
+    API version change, a field rename), we can still read the configuration
+    back and recover the basket. Money must never land with nothing delivered.
+    """
+    if not checkout_id:
+        return ''
+    _, body = _request('GET', f'/checkout_configurations/{checkout_id}')
+    if isinstance(body, dict):
+        meta = body.get('metadata') or {}
+        if isinstance(meta, dict):
+            return str(meta.get('cartRef') or '')
+    return ''
 
 
 # ------------------------------------------------------------------ backfill
@@ -611,6 +997,14 @@ def backfill_existing_kits(fs_client, only_docs=None, limit=None,
         ok, reason, _price, _cat = _should_sync(
             {**kit, 'template': {**t, 'listOnWhop': True}} if force_list else kit)
         if not ok:
+            # Ineligible AND already on Whop = it must come down. Without this
+            # the backfill silently walks past a rejected kit whose product is
+            # still selling, and leaves stale whopProductId/whopPlanId behind.
+            if t.get('whopProductId'):
+                try:
+                    _takedown_kit(snap.id, kit, fs_client, reason)
+                except Exception as e:
+                    print(f'[whop-sync] takedown FAILED for {snap.id}: {e}')
             skipped.append(f'{snap.id} ({reason})')
             continue
 

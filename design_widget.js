@@ -486,7 +486,11 @@
     // that), builds the deck and writes the file back onto the row.
     function placeOrder(sentence) {
       var slidesRaw = parseInt((document.getElementById('dw_slides') || {}).value || '', 10);
-      var slides = (slidesRaw > 0 && slidesRaw <= 60) ? slidesRaw : FREE_SLIDES;
+      /* 9 Aug 2026 (Javed) — ceiling 60 → 100. The page is never trusted for
+         who may have that many: on_design_order re-checks the plan server-side
+         and the free-tier gate still stops a free account at 8. Admin is
+         exempt there, so an admin order may run to the full 100. */
+      var slides = (slidesRaw > 0 && slidesRaw <= 100) ? slidesRaw : FREE_SLIDES;
       goBtn.disabled = true;
       note.style.color = '';
       note.textContent = '⏳ Placing your order…';
@@ -612,7 +616,13 @@
       }
       var insp = v('dw_inspired'); if (insp) bits.push('inspired by ' + insp);
 
-      return bits.join(', ').slice(0, 600);
+      /* 9 Aug 2026 (Javed) — 600 → 1000. A fully filled card, plus a
+         description typed into Hexa's prompt bar, runs past 600 characters —
+         and the boxes cut are always the LAST ones said: mock-up slides, past
+         design and inspired-by. Those are the three that matter most.
+         hexaDesign now carries 1000 characters too, so the two agree end
+         to end and an order arrives whole. */
+      return bits.join(', ').slice(0, 1000);
     }
 
     // live preview — you see exactly what Hexa is about to be told
