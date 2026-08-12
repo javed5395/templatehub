@@ -762,6 +762,12 @@ body::before{
 }
 .product-card[data-live="1"] .product-card__name em{color:var(--oxblood)}
 .product-card[data-live="1"] .product-card__price{font-size:14px;color:var(--ink)}
+/* 12 Aug 2026 - career sample covers are drawn in the page's own bone palette,
+   so the default card treatment (grayscale 0.2, brightness 0.92) muddies them
+   against the bone background they are meant to sit on. Firestore thumbnails
+   are photographic and still want it; these do not. */
+.product-card[data-career="1"] .product-card__image{filter:none}
+.product-card[data-career="1"]:hover .product-card__image{filter:none;opacity:.92}
 .product-card__overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(22,19,15,0.55) 80%,rgba(22,19,15,0.85) 100%);z-index:1}
 .product-card__content{position:absolute;bottom:0;left:0;right:0;padding:28px;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
 .product-card__main{display:flex;flex-direction:column;gap:4px}
@@ -3083,6 +3089,10 @@ function openProduct(kitId){
 
 
 
+
+
+
+
 /* ===== CAREER SAMPLE SETS - injected block, do not hand-edit ===== */
 /* 12 Aug 2026 - the Resume / CV tab sat on 0 because this grid is fed only by
    Firestore, and the 49 career sample sets are static pages, not uploaded
@@ -4821,6 +4831,10 @@ document.addEventListener('keydown',e=>{
 
         setCategoryCountLabel(catKey, docs.length +
           ((catKey === 'resume' && window.LDS_CAREER_SETS) ? window.LDS_CAREER_SETS.length : 0));
+        if(typeof renderCareerCards==='function') renderCareerCards();
+        if(typeof renderCareerCards==='function') renderCareerCards();
+        if(typeof renderCareerCards==='function') renderCareerCards();
+        if(typeof renderCareerCards==='function') renderCareerCards();
         if(typeof renderCareerCards==='function') renderCareerCards();
         if(typeof renderCareerCards==='function') renderCareerCards();
         if(typeof renderCareerCards==='function') renderCareerCards();
