@@ -1,670 +1,579 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Build your resume with Hexa | LazyDogTemplates</title>
-<meta name="description" content="Paste your old resume or LinkedIn text and Hexa rewrites it into the sample layout you just read. Free to preview.">
-<link rel="canonical" href="https://www.lazydogtemplates.com/career/build.html">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Build your resume with Hexa | LazyDogTemplates">
-<meta property="og:description" content="Paste your old resume or LinkedIn text and Hexa rewrites it into the sample layout you just read. Free to preview.">
-<meta property="og:url" content="https://www.lazydogtemplates.com/career/build.html">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resume Builder — LazyDog Templates</title>
 <style>
+  :root{
+    --ink:#14142B; --muted:#6B7280; --line:#E5E7EB; --bg:#F4F5F7;
+    --accent:#2B59FF; --ok:#0F9D58; --card:#fff;
+  }
   *{box-sizing:border-box}
-  body{margin:0;background:#fdfaf6;font-family:'Inter',sans-serif;color:#20202f}
-  :root{--bone:#f2eee5;--ink:#1a1a2e;--navy:#07071a;--gold:#d4af37;
-        --oxblood:#b8442a;--muted:#8a8496;--line:#e2dccd;
-        --mono:'Consolas','SFMono-Regular',Menlo,monospace}
+  body{margin:0;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink)}
 
-  /* ── top bar ── */
-  .bar{background:#07071a;color:#fff;padding:13px 30px;display:flex;align-items:center;gap:16px;
-       position:sticky;top:0;z-index:60}
-  .bar a.bk{color:#b8bfd0;text-decoration:none;font-size:13px;border:1px solid rgba(255,255,255,.22);
-       padding:7px 14px;border-radius:5px}
-  .bar a.bk:hover{color:#fff}
-  .bar .sp{flex:1}
-  .bar .cta{background:#e03030;color:#fff;text-decoration:none;font-family:'Poppins',sans-serif;
-       font-size:12.5px;font-weight:600;padding:10px 19px;border-radius:5px}
-  .bar .cta2{border:1px solid rgba(255,255,255,.28);color:#fff;text-decoration:none;
-       font-family:'Poppins',sans-serif;font-size:12.5px;font-weight:600;padding:10px 19px;border-radius:5px}
+  /* ---------- top bar ---------- */
+  .top{position:sticky;top:0;z-index:50;background:var(--ink);color:#fff;
+       display:flex;align-items:center;gap:16px;padding:12px 20px}
+  .top h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px}
+  .top .sp{flex:1}
+  .top select{padding:7px 10px;border-radius:7px;border:1px solid #3a3a5c;
+              background:#20203c;color:#fff;font-size:13px}
+  .btn{border:0;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:600;
+       cursor:pointer;background:var(--accent);color:#fff}
+  .btn.ghost{background:#20203c;color:#fff;border:1px solid #3a3a5c}
+  .btn:hover{opacity:.9}
 
-  /* ── article head ── */
-  .head{max-width:1120px;margin:0 auto;padding:52px 34px 0}
-  .kick{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
-        color:var(--oxblood);padding-bottom:6px;border-bottom:1.5px solid var(--oxblood);
-        display:inline-block;margin-bottom:18px}
-  .head h1{font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(30px,4.4vw,46px);
-        line-height:1.1;margin:0 0 16px;color:var(--ink)}
-  .head h1 em{color:var(--oxblood);font-style:italic}
-  .head .stand{font-size:17px;line-height:1.62;color:#46414d;max-width:730px;margin:0}
-  .facts{display:flex;gap:26px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
-  .fact{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
-        color:var(--muted);font-weight:700}
-  .fact b{color:var(--ink);display:block;font-size:15px;letter-spacing:0;font-family:'Instrument Serif',serif;
-        font-weight:400;text-transform:none;margin-top:3px}
+  /* ---------- layout ---------- */
+  .wrap{display:grid;grid-template-columns:440px 1fr;gap:24px;padding:24px;
+        align-items:start;max-width:1500px;margin:0 auto}
+  @media(max-width:1100px){.wrap{grid-template-columns:1fr}}
 
-  /* ── contents ── */
-  .toc{max-width:1120px;margin:34px auto 0;padding:0 34px}
-  .toc-in{background:var(--bone);border:1px solid #ddd7c8;padding:20px 24px;position:relative}
-  .toc-in::before{content:"";position:absolute;inset:8px;border:1px solid rgba(0,0,0,.06);pointer-events:none}
-  .toc h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
-        color:var(--oxblood);margin:0 0 12px;position:relative}
-  .toc ol{margin:0;padding-left:20px;position:relative;columns:2;column-gap:34px}
-  @media(max-width:700px){.toc ol{columns:1}}
-  .toc li{margin-bottom:7px;font-size:14px}
-  .toc a{color:#3a3a4c;text-decoration:none;border-bottom:1px solid transparent}
-  .toc a:hover{color:var(--oxblood);border-bottom-color:var(--oxblood)}
+  /* ---------- form ---------- */
+  .form{background:var(--card);border-radius:12px;padding:4px 20px 20px;
+        box-shadow:0 1px 3px rgba(0,0,0,.08);max-height:calc(100vh - 110px);
+        overflow-y:auto;position:sticky;top:80px}
+  .sec{border-bottom:1px solid var(--line);padding:16px 0}
+  .sec:last-child{border-bottom:0}
+  .sec>h3{margin:0 0 12px;font-size:12px;text-transform:uppercase;
+          letter-spacing:.9px;color:var(--accent);font-weight:700}
+  label{display:block;font-size:11px;font-weight:600;color:var(--muted);
+        margin:10px 0 4px;text-transform:uppercase;letter-spacing:.4px}
+  input,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);
+       border-radius:7px;font-size:13.5px;font-family:inherit;color:var(--ink);background:#fff}
+  input:focus,textarea:focus{outline:0;border-color:var(--accent);
+       box-shadow:0 0 0 3px rgba(43,89,255,.12)}
+  textarea{resize:vertical;min-height:64px;line-height:1.5}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hint{font-size:11px;color:var(--muted);margin:5px 0 0;line-height:1.45}
 
-  .body{max-width:1120px;margin:0 auto;padding:14px 34px 90px}
+  .card{border:1px solid var(--line);border-radius:9px;padding:12px;
+        margin-bottom:12px;background:#FAFBFC;position:relative}
+  .card .del{position:absolute;top:8px;right:8px;border:0;background:#fff;
+        border:1px solid var(--line);color:#B91C1C;border-radius:6px;
+        width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1}
+  .add{width:100%;padding:9px;border:1px dashed #C7CBD4;background:#fff;
+       border-radius:8px;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer}
+  .add:hover{background:#F5F7FF;border-color:var(--accent)}
 
-  /* ── section divider ── */
-  .slab{display:flex;align-items:center;gap:16px;margin:60px 0 8px}
-  .slab b{font-family:'Instrument Serif',serif;font-size:26px;font-weight:400;color:var(--ink);white-space:nowrap}
-  .slab span{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-        color:var(--muted);font-weight:700;white-space:nowrap}
-  .slab i{flex:1;height:1px;background:var(--line)}
-  .intro{font-size:15px;line-height:1.65;color:#46414d;max-width:760px;margin:0 0 22px}
+  /* ---------- preview ---------- */
+  .stage{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .meter{background:#fff;border-radius:9px;padding:10px 16px;width:100%;max-width:816px;
+         display:flex;align-items:center;gap:12px;font-size:12.5px;
+         box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .bar{flex:1;height:7px;background:var(--line);border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
 
-  /* ── the paper ── */
-  .paper{background:#fff;border:1px solid #e6e0d3;padding:56px 60px;
-         box-shadow:0 3px 22px rgba(26,26,46,.07);position:relative}
-  .paper::before{content:"";position:absolute;inset:15px;border:1px solid #f0ebe0;pointer-events:none}
-  @media(max-width:700px){.paper{padding:30px 24px}}
-  .cv{position:relative;font-size:14.4px;line-height:1.55}
-  .cv-name{font-family:'Instrument Serif',serif;font-size:39px;font-weight:400;line-height:1;
-        letter-spacing:.4px;margin-bottom:7px}
-  .cv-role{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.28em;
-        text-transform:uppercase;color:var(--oxblood)}
-  .cv-rule{border-top:2px solid var(--ink);margin:14px 0 6px}
-  .cv-ct{font-size:12.4px;color:#6a6478}
-  .cv h4{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;
-        color:var(--oxblood);margin:28px 0 11px;display:flex;align-items:center;gap:13px}
-  .cv h4::after{content:"";flex:1;height:1px;background:var(--line)}
-  .lead{font-family:'Instrument Serif',serif;font-size:17px;line-height:1.5;color:#2c2c3d}
-  .job{margin-bottom:17px}
-  .job-top{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
-  .job-t{font-family:'Instrument Serif',serif;font-size:19.5px;line-height:1.25}
-  .job-c{font-style:italic;color:var(--oxblood)}
-  .job-d{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#8a8496;white-space:nowrap;
-        text-transform:uppercase}
-  .job ul{margin:7px 0 0;padding-left:0;list-style:none}
-  .job li{position:relative;padding-left:19px;margin-bottom:4px;color:#3a3a4c}
-  .job li::before{content:"—";position:absolute;left:0;color:var(--gold);font-weight:700}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:32px}
-  @media(max-width:700px){.two{grid-template-columns:1fr;gap:0}}
-  .sk{display:flex;flex-wrap:wrap;gap:6px}
-  .sk span{border:1px solid var(--line);background:#fbf9f4;padding:5px 11px;font-size:12.3px;color:#3a3a4c}
+  .page{background:#fff;width:816px;min-height:1056px;padding:52px 58px;
+        box-shadow:0 4px 20px rgba(0,0,0,.13)}
+  @media(max-width:900px){.page{width:100%;padding:32px}}
 
-  /* ── why box ── */
-  .why{background:var(--bone);border:1px solid #ddd7c8;padding:24px 28px;margin-top:20px;position:relative}
-  .why::before{content:"";position:absolute;inset:8px;border:1px solid rgba(0,0,0,.06);pointer-events:none}
-  .why h5{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
-        color:var(--oxblood);margin:0 0 12px;font-weight:700;position:relative}
-  .why ul{margin:0;padding-left:18px;position:relative}
-  .why li{font-size:14px;line-height:1.68;color:#46414d;margin-bottom:8px}
-  .why b{color:var(--ink)}
-  .why .bad{color:#8a8496;font-style:italic}
-
-  /* ── prose ── */
-  .prose{max-width:790px}
-  .prose h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:30px;margin:52px 0 14px;color:var(--ink)}
-  .prose h2 em{color:var(--oxblood);font-style:italic}
-  .prose h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:22px;margin:32px 0 10px}
-  .prose p{font-size:15.4px;line-height:1.72;color:#3f3a4a;margin:0 0 15px}
-  .prose ul{padding-left:20px}
-  .prose li{font-size:15.4px;line-height:1.72;color:#3f3a4a;margin-bottom:8px}
-  .pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0}
-  @media(max-width:700px){.pair{grid-template-columns:1fr}}
-  .pbox{border:1px solid var(--line);padding:18px 20px;background:#fff}
-  .pbox.no{border-left:3px solid #c0392b}
-  .pbox.yes{border-left:3px solid #1f7a4d}
-  .pbox h6{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
-        margin:0 0 9px;font-weight:700}
-  .pbox.no h6{color:#c0392b}
-  .pbox.yes h6{color:#1f7a4d}
-  .pbox p{margin:0;font-size:14.2px;line-height:1.6}
-
-  /* ── closing ── */
-  .close{margin-top:60px;background:#07071a;color:#fff;padding:52px 44px;text-align:center;
-         position:relative;overflow:hidden}
-  .close::before{content:"";position:absolute;top:-90px;right:-60px;width:260px;height:260px;border-radius:50%;
-        background:radial-gradient(circle,rgba(212,175,55,.15),transparent 70%)}
-  .close h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:31px;margin:0 0 12px;position:relative}
-  .close h3 em{color:#e8b04b;font-style:italic}
-  .close p{color:#b8bfd0;margin:0 auto 26px;max-width:540px;line-height:1.62;font-size:15px;position:relative}
-  .close a{position:relative;display:inline-block;margin:0 5px;font-family:'Poppins',sans-serif;
-        font-size:13.5px;font-weight:600;padding:13px 26px;border-radius:6px;text-decoration:none}
-  .c1{background:#e03030;color:#fff}
-  .c2{border:1.5px solid rgba(255,255,255,.3);color:#fff}
-
-  .disc{max-width:790px;margin:34px auto 0;font-size:12.5px;line-height:1.6;color:#8a8496;
-        border-top:1px solid var(--line);padding-top:16px}
-
-  /* ════════ EXECUTIVE PAPER ════════ */
-  .paper.exec{padding:0;background:#fff;overflow:hidden}
-  .paper.exec::before{display:none}
-  .xhead{background:#12121f;padding:34px 46px 0;position:relative}
-  .xname{font-family:'Instrument Serif',serif;font-size:40px;line-height:1;color:#fff;font-weight:400}
-  .xname em{color:#d4af37;font-style:normal}
-  .xrole{font-family:var(--mono);font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;
-         color:#8d8a99;margin-top:11px}
-  .xct{font-size:12px;color:#b6b2c2;margin:12px 0 22px}
-  .xct a,.xct span{color:#d4af37}
-  .xbar{display:flex;height:9px}
-  .xbar i{display:block;height:100%}
-  .xbar i:nth-child(1){width:22%;background:#8a6a1f}
-  .xbar i:nth-child(2){width:26%;background:#d4af37}
-  .xbar i:nth-child(3){flex:1;background:#12121f}
-
-  .xkpi{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #e6e0d3;background:#fbf9f4}
-  .xkpi div{padding:17px 10px;text-align:center;border-right:1px solid #e6e0d3}
-  .xkpi div:last-child{border-right:0}
-  .xkpi b{display:block;font-family:'Instrument Serif',serif;font-size:27px;color:#8a6a1f;line-height:1}
-  .xkpi span{display:block;font-size:10.5px;color:#6f6a7c;margin-top:6px;letter-spacing:.04em}
-  @media(max-width:700px){.xkpi{grid-template-columns:repeat(2,1fr)}}
-
-  .xbody{display:grid;grid-template-columns:1fr 292px;gap:0}
-  @media(max-width:820px){.xbody{grid-template-columns:1fr}}
-  .xmain{padding:26px 34px 34px 46px}
-  .xside{padding:26px 40px 34px 26px;background:#faf8f3;border-left:1px solid #eee8dc}
-  .xh{font-family:'Instrument Serif',serif;font-size:20px;color:#12121f;margin:0 0 12px;
-      padding-bottom:7px;border-bottom:1.5px solid #12121f}
-  .xh.small{font-size:17px;border-bottom-width:1px}
-  .xmain .xh::before{content:"— ";color:#d4af37}
-  .xq{border-left:3px solid #d4af37;padding:2px 0 2px 15px;font-style:italic;color:#3d3849;
-      font-size:14px;line-height:1.5;margin-bottom:20px}
-  .xjob{margin-bottom:17px}
-  .xjt{font-family:'Instrument Serif',serif;font-size:18px;color:#12121f;line-height:1.3}
-  .xjt em{color:#8a6a1f;font-style:normal}
-  .xjd{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#8a8496;text-transform:uppercase;
-       margin-top:2px}
-  .xjob ul{margin:8px 0 0;padding-left:0;list-style:none}
-  .xjob li{position:relative;padding-left:18px;margin-bottom:5px;font-size:13.8px;line-height:1.5;color:#3a3a4c}
-  .xjob li::before{content:"◆";position:absolute;left:0;color:#d4af37;font-size:9px;top:3px}
-  .xlist{margin:0 0 22px;padding:0;list-style:none}
-  .xlist li{position:relative;padding-left:16px;margin-bottom:6px;font-size:13px;color:#3a3a4c}
-  .xlist li::before{content:"◆";position:absolute;left:0;color:#d4af37;font-size:8px;top:4px}
-  .xitem{margin-bottom:13px}
-  .xitem b{display:block;font-size:13.5px;color:#12121f}
-  .xitem span{display:block;font-size:12px;color:#7a7488;margin-top:1px}
-  .xquote{border-left:3px solid #d4af37;padding-left:14px;font-style:italic;font-size:13px;
-          line-height:1.5;color:#3d3849}
-  .xquote cite{display:block;font-style:normal;font-size:11.5px;color:#8a8496;margin-top:8px}
-
-  /* ════════ CV EXTRA BLOCKS ════════ */
-  .cvline{font-size:13.8px;line-height:1.55;color:#3a3a4c;margin-bottom:6px;
-          padding-left:16px;text-indent:-16px}
-  .cvline.sub{font-size:12.8px;color:#6a6478;margin:2px 0 8px;padding-left:0;text-indent:0}
-  .cvrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:2px}
-  .cvrow-t{font-size:14px;color:#20202f}
-  .cvrow-d{font-family:var(--mono);font-size:10px;letter-spacing:.09em;color:#8a8496;
-           white-space:nowrap;text-transform:uppercase}
-
-  /* ════════ LETTER PAPER ════════ */
-  .paper.letter{padding:58px 66px}
-  @media(max-width:700px){.paper.letter{padding:32px 26px}}
-  .lt{position:relative;font-size:14.6px;line-height:1.62;color:#26263a}
-  .lt-from{margin-bottom:4px}
-  .lt-name{font-family:'Instrument Serif',serif;font-size:29px;line-height:1.1;color:#1a1a2e}
-  .lt-ct{font-size:12.4px;color:#6a6478;margin-top:5px}
-  .lt-rule{border-top:1.5px solid var(--ink);margin:14px 0 26px}
-  .lt-date{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#6a6478;
-           text-transform:uppercase;margin-bottom:22px}
-  .lt-to{font-size:14px;line-height:1.5;color:#3a3a4c;margin-bottom:22px;white-space:pre-line}
-  .lt-subj{font-weight:600;color:#1a1a2e;margin-bottom:20px;font-size:14.6px}
-  .lt-sal{margin-bottom:14px}
-  .lt-body p{margin:0 0 14px}
-  .lt-sign{margin-top:26px}
-  .lt-sig{font-family:'Instrument Serif',serif;font-size:21px;color:#1a1a2e;margin-top:22px}
-  .lt-enc{font-size:12.4px;color:#6a6478;margin-top:20px;padding-top:12px;
-          border-top:1px solid var(--line)}
-
-  /* ════════ COPY KIT ════════ */
-  .paper.copy{padding:44px 50px}
-  @media(max-width:700px){.paper.copy{padding:28px 24px}}
-  .ck{position:relative}
-  .ck-top{padding-bottom:16px;border-bottom:2px solid var(--ink);margin-bottom:26px}
-  .ck-name{font-family:'Instrument Serif',serif;font-size:28px;color:#1a1a2e;line-height:1.1}
-  .ck-role{font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
-           color:var(--oxblood);margin-top:7px}
-  .ck-b{margin-bottom:26px}
-  .ck-h{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.22em;
-        text-transform:uppercase;color:var(--oxblood);margin-bottom:9px;
-        display:flex;align-items:center;gap:11px}
-  .ck-h::after{content:"";flex:1;height:1px;background:var(--line)}
-  .ck-n{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:#8a8496;
-        border:1px solid var(--line);padding:2px 7px;border-radius:2px;order:3;flex:none}
-  .ck-t{background:#fbf9f4;border:1px solid var(--line);border-left:3px solid var(--gold);
-        padding:15px 18px;font-size:14.4px;line-height:1.6;color:#26263a;white-space:pre-line}
-  .ck-note{font-size:12.6px;color:#6a6478;margin-top:8px;line-height:1.55}
-</style>
-<style>
-  /* ── builder-only chrome. The document itself uses the shared .paper/.cv
-       rules above, untouched, so the preview and the samples are the same
-       object rendered from different data. ── */
-  .bx{max-width:940px;margin:0 auto;padding:0 30px 90px}
-  .bx-step{font-family:var(--mono);font-size:10.5px;letter-spacing:.26em;
-           text-transform:uppercase;color:var(--oxblood);margin:0 0 10px}
-  .bx-card{border:1px solid var(--line);background:#fff;padding:28px 30px;margin:0 0 22px}
-  .bx-card h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:25px;margin:0 0 6px}
-  .bx-card p.hint{font-size:13.5px;color:#6a6478;margin:0 0 16px;line-height:1.6}
-  .bx-card textarea{width:100%;min-height:230px;padding:15px 16px;border:1px solid var(--line);
-      background:#fdfcf9;font-family:var(--mono);font-size:13px;line-height:1.65;color:#2c2c3d;
-      resize:vertical}
-  .bx-card input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--line);
-      background:#fdfcf9;font-family:inherit;font-size:14px;color:#2c2c3d;margin-top:4px}
-  .bx-card label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.2em;
-      text-transform:uppercase;color:#8a8496;margin:16px 0 0}
-  .bx-row{display:flex;gap:18px;flex-wrap:wrap}
-  .bx-row>div{flex:1;min-width:220px}
-  .bx-go{margin-top:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .bx-btn{background:#e03030;color:#fff;border:0;font-family:'Poppins',sans-serif;font-size:13px;
-      font-weight:600;padding:13px 26px;border-radius:5px;cursor:pointer}
-  .bx-btn[disabled]{opacity:.45;cursor:default}
-  .bx-btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
-  .bx-note{font-size:12.5px;color:#8a8496}
-  .bx-err{border-left:3px solid #b8442a;background:#fdf6f4;padding:12px 15px;font-size:13.5px;
-      color:#7a2e1f;margin:16px 0 0;line-height:1.6}
-  #bxOut{display:none;margin-top:34px}
-  .bx-missing{border:1px solid var(--line);background:#fbf7ee;padding:20px 24px;margin:0 0 22px}
-  .bx-missing h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
-      color:var(--oxblood);margin:0 0 10px}
-  .bx-missing ul{margin:0;padding-left:20px}
-  .bx-missing li{font-size:13.8px;line-height:1.65;color:#3a3a4c;margin:5px 0}
-  /* The lock. Preview is free and complete - what payment buys is taking it
-     away with you, so nothing here blurs or hides the document itself. */
-  .bx-lock{border:1px solid var(--line);background:#fff;padding:26px 28px;margin:22px 0 0;
-      display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-  .bx-lock b{display:block;font-family:'Instrument Serif',serif;font-weight:400;font-size:21px}
-  .bx-lock span{font-size:13.2px;color:#6a6478}
-  /* ── the watermark ──
-     Real DOM elements, not a CSS background image: browsers do not print
-     background images by default, so a background-image watermark would vanish
-     from the one output that matters most - the printed page. Text nodes always
-     print.
-
-     It sits above the document but is pointer-events:none and user-select:none,
-     so it cannot be clicked through, dragged off, or swept up in a select-all.
-     Payment removes the element entirely rather than hiding it. */
-  .bx-wm{position:absolute;inset:0;z-index:4;overflow:hidden;
-      pointer-events:none;user-select:none;-webkit-user-select:none}
-  .bx-wm div{position:absolute;top:50%;left:50%;
-      transform:translate(-50%,-50%) rotate(-32deg);
-      display:flex;flex-wrap:wrap;gap:34px 46px;
-      width:190%;justify-content:center;align-items:center}
-  .bx-wm span{font-family:'Poppins',sans-serif;font-weight:700;font-size:27px;
-      letter-spacing:.2em;color:rgba(184,68,42,.13);white-space:nowrap}
-  body.bx-unlocked .bx-wm{display:none}
-
-  /* The locked preview keeps its full height so the buyer can see the shape of
-     what they are buying; only the words after the first role are withheld. */
-  .bx-tease{font-family:var(--mono);font-size:11px;letter-spacing:.12em;
-      text-transform:uppercase;color:#b3adbe;margin:8px 0 0}
+  /* ---------- the resume itself ---------- */
+  .r{font-family:Calibri,'Segoe UI',Arial,sans-serif;color:#1A1A2E;font-size:14.2px;line-height:1.42}
+  .r .name{font-size:31px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;line-height:1.1}
+  .r .role{font-size:15px;font-weight:700;color:var(--accent);margin-top:3px}
+  .r .cta{font-size:12.4px;color:#555;margin-top:5px;padding-bottom:7px;
+          border-bottom:2px solid #1A1A2E}
+  .r h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);
+        margin:17px 0 6px;padding-bottom:3px;border-bottom:1px solid #D9DCE1;font-weight:700}
+  .r .jh{display:flex;justify-content:space-between;align-items:baseline;
+         gap:14px;margin-top:11px}
+  .r .jt{font-size:14.6px}
+  .r .jt b{font-weight:700}
+  .r .jd{font-size:12.4px;color:#666;white-space:nowrap}
+  .r .loc{font-size:12.4px;color:#666;font-style:italic}
+  .r ul{margin:5px 0 0;padding-left:19px}
+  .r li{margin-bottom:3px}
+  .r .inline{margin-top:3px}
+  .r .empty{color:#C2C6CE;font-style:italic}
 
   @media print{
-    /* Ctrl+P used to print the finished document for anyone at all, which made
-       the download button decorative. Printing now obeys the same unlock.
-
-       Written as "hide the chrome when unlocked / hide everything when not",
-       rather than "hide body's children and un-hide the document": #bxOut is
-       three levels deep, so un-hiding it left its hidden ancestors in place and
-       printed a blank page even for the owner. */
-    /* Printing is allowed either way - the watermark is what protects the
-       unpaid version, not a locked door. Blocking print entirely just teaches
-       people to screenshot, and a watermarked page in a stranger's hands is an
-       advertisement rather than a loss. Paying removes the watermark. */
-    .bar,.head,.bx-card,.bx-missing,.bx-lock,.bx-step,.disc{display:none !important}
-
-    /* Forced because browsers drop background colour on print by default, and
-       a watermark that only appears on screen protects nothing. */
-    .bx-wm span{color:rgba(184,68,42,.16) !important;
-      -webkit-print-color-adjust:exact;print-color-adjust:exact}
-
-    #bxOut{margin:0}
-    .bx{padding:0}
-    .paper{border:0;box-shadow:none;padding:0}
-    .paper::before{display:none}
+    .top,.form,.meter{display:none!important}
+    .wrap{display:block;padding:0;max-width:none}
+    .page{width:auto;min-height:0;box-shadow:none;padding:0.5in 0.6in}
+    body{background:#fff}
+    @page{size:letter;margin:0}
   }
+
+/* ── added for the live site ─────────────────────────────────────────────── */
+.btn.hexa{background:#7A2E1F}
+.btn[disabled]{opacity:.45;cursor:default}
+
+/* The watermark is real text, not a background image: browsers drop background
+   images when printing, and a watermark that vanishes on the printed page
+   protects nothing. Paying removes the element. */
+#wm{position:absolute;inset:0;z-index:5;overflow:hidden;pointer-events:none;
+    user-select:none;-webkit-user-select:none}
+#wm div{position:absolute;top:50%;left:50%;width:200%;
+    transform:translate(-50%,-50%) rotate(-32deg);
+    display:flex;flex-wrap:wrap;gap:38px 52px;justify-content:center;align-items:center}
+#wm span{font:700 26px/1 system-ui,sans-serif;letter-spacing:.2em;
+    color:rgba(122,46,31,.13);white-space:nowrap}
+body.paid #wm{display:none}
+.page{position:relative}
+
+#notes{margin:14px 0 0;border:1px solid #E5E7EB;background:#FFFBEB;padding:14px 16px;
+    border-radius:6px;display:none}
+#notes h4{margin:0 0 8px;font:700 11px/1 system-ui,sans-serif;letter-spacing:.16em;
+    text-transform:uppercase;color:#92400E}
+#notes ul{margin:0;padding-left:18px}
+#notes li{font:400 13px/1.6 system-ui,sans-serif;color:#3F3F46;margin:4px 0}
+
+#hxmsg{font:400 12.5px/1.5 system-ui,sans-serif;color:#6B7280;margin-left:10px}
+#hxmsg.bad{color:#B91C1C}
+
+@media print{
+  /* Printing obeys the same lock as the button. Without body.paid the sheet
+     prints one line instead of the resume. */
+  body:not(.paid) *{visibility:hidden !important}
+  body:not(.paid)::after{visibility:visible;content:"This draft is locked. Unlock it at lazydogtemplates.com to download.";
+     position:fixed;top:40px;left:40px;font:400 16px system-ui,sans-serif}
+  body.paid .top,body.paid .form,body.paid .meter,body.paid #notes{display:none !important}
+  body.paid .wrap{display:block}
+  body.paid .page{box-shadow:none;border:0;margin:0}
+  #wm span{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
 
-<div class="bar">
-  <a class="bk" href="../career_docs_folder_section.html">&larr; Career Documents</a>
+<div class="top">
+  <h1>Resume Builder</h1>
+  <select id="tpl">
+    <option value="clean_ats">Clean ATS</option>
+    <option value="minimal">Minimal Pro</option>
+    <option value="executive">Executive</option>
+  </select>
   <span class="sp"></span>
-  <a class="cta2" id="bxBackToSample" href="#">Back to the samples</a>
+  <button class="btn ghost" onclick="saveJson()">Save my data</button>
+  <button class="btn ghost" onclick="document.getElementById('load').click()">Load</button>
+  <input type="file" id="load" accept=".json" hidden onchange="loadJson(this)">
+  <button class="btn hexa" id="btnHexa" onclick="runHexa()">Hexa, write it &rarr;</button>
+  <button class="btn" id="btnGet" onclick="getIt()">Unlock &middot; $4.99</button>
 </div>
 
-<div class="head">
-  <div class="kick" id="bxKicker">Hexa &middot; Career Documents</div>
-  <h1>Your record, <em>in this shape</em>.</h1>
-  <p class="stand" id="bxStand">Paste whatever you already have &mdash; an old resume, your
-     LinkedIn text, or a few rough lines about each job. Hexa restructures it into the
-     layout you just read. It will not invent anything you did not write.</p>
-</div>
+<div class="wrap">
 
-<div class="body">
-<div class="bx">
+  <!-- ============ FORM ============ -->
+  <div class="form">
 
-  <div class="bx-card">
-    <div class="bx-step">Step one</div>
-    <h3>Paste what you have</h3>
-    <p class="hint">Messy is fine. Bullet points, half sentences, an old file &mdash; it all works.
-       The more numbers you include, the better the result: ward size, budget, percentage,
-       headcount, anything you actually measured.</p>
-    <textarea id="bxText" placeholder="Sana Iqbal, Karachi, sana@email.com, 0300 1234567
-
-Marketing Executive at Bonanza, 2021 to now
-- run the email programme, list is about 240,000
-- last year the welcome series got open rate from 18% to 31%
-- manage two juniors
-
-Before that: intern at Zameen, 2020, wrote listings copy
-
-BBA from IBA Karachi 2020"></textarea>
-
-    <div class="bx-row">
-      <div>
-        <label for="bxRole">The job you are going for (optional)</label>
-        <input type="text" id="bxRole" placeholder="e.g. Marketing Manager, FMCG">
+    <div class="sec">
+      <h3>1 · Your details</h3>
+      <label>Full name</label>
+      <input id="f_name" placeholder="Jordan Mitchell">
+      <label>Job title you are applying for</label>
+      <input id="f_role" placeholder="Product Marketing Manager">
+      <p class="hint">Use the exact title from the job ad. This is the first thing a recruiter reads.</p>
+      <div class="row2">
+        <div><label>Email</label><input id="f_email" placeholder="you@email.com"></div>
+        <div><label>Phone</label><input id="f_phone" placeholder="+92 300 1234567"></div>
+      </div>
+      <div class="row2">
+        <div><label>City, Country</label><input id="f_loc" placeholder="Lahore, Pakistan"></div>
+        <div><label>LinkedIn (optional)</label><input id="f_li" placeholder="linkedin.com/in/you"></div>
       </div>
     </div>
 
-    <div class="bx-go">
-      <button class="bx-btn" id="bxRun">Write my resume &rarr;</button>
-      <span class="bx-note" id="bxNote">Free to preview. Takes about ten seconds.</span>
+    <div class="sec">
+      <h3>2 · Summary</h3>
+      <label>2–3 lines about you</label>
+      <textarea id="f_sum" placeholder="Product Marketing Manager with 6+ years launching B2B SaaS products. Increased qualified pipeline by 40% and lifted win rate 18% through data-backed positioning."></textarea>
+      <p class="hint">Say what you do, how many years, and one number you improved.</p>
     </div>
-    <div class="bx-err" id="bxErr" style="display:none"></div>
+
+    <div class="sec">
+      <h3>3 · Work experience</h3>
+      <div id="jobs"></div>
+      <button class="add" onclick="addJob()">+ Add a job</button>
+    </div>
+
+    <div class="sec">
+      <h3>4 · Education</h3>
+      <div id="edus"></div>
+      <button class="add" onclick="addEdu()">+ Add education</button>
+    </div>
+
+    <div class="sec">
+      <h3>5 · Skills</h3>
+      <label>Skills, separated by commas</label>
+      <textarea id="f_skills" placeholder="Go-to-Market Strategy, Competitive Analysis, SQL, HubSpot, Salesforce"></textarea>
+    </div>
+
+    <div class="sec">
+      <h3>6 · Certifications <span style="color:#9AA0AA;font-weight:400">(optional)</span></h3>
+      <label>One per line — Name — Issuer — Year</label>
+      <textarea id="f_certs" placeholder="Google Analytics 4 — Google — 2023"></textarea>
+    </div>
+
   </div>
 
-  <div id="bxOut">
-    <div class="bx-step">Your draft</div>
-    <div id="bxMissing"></div>
-    <div id="bxPaper"></div>
+  <!-- ============ PREVIEW ============ -->
+  <div class="stage">
+    <div class="meter">
+      <b id="pct">0%</b>
+      <div class="bar"><i id="fill"></i></div>
+      <span id="tip" style="color:#6B7280">Start with your name</span>
+    </div>
 
-    <div class="bx-lock" id="bxLock">
-      <div>
-        <b>Take it with you</b>
-        <span id="bxLockMsg">Reading is free. Download and editing unlock with the set.</span>
-      </div>
-      <div class="bx-go" style="margin:0">
-        <button class="bx-btn ghost" id="bxRedo">Write it again</button>
-        <button class="bx-btn" id="bxGet">Unlock the download</button>
+    <div class="page">
+      <div id="wm" aria-hidden="true"><div></div></div>
+      <div class="r" id="R">
+        <div class="name" id="o_name">YOUR NAME</div>
+        <div class="role" id="o_role">Job title</div>
+        <div class="cta" id="o_cta">email · phone · city</div>
+        <div id="o_body"></div>
       </div>
     </div>
+    <div id="notes"></div>
   </div>
 
-</div>
 </div>
 
 <script>
-(function(){
-  'use strict';
+/* ------------------------------------------------------------------ state */
+let jobs = [], edus = [];
 
-  var ENDPOINT = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/resume_fill_http';
+const $ = id => document.getElementById(id);
+const esc = s => (s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
-  var q  = function(id){ return document.getElementById(id); };
-  var esc = function(v){ return String(v==null?'':v)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
+/* ------------------------------------------------------------- repeatables */
+function addJob(d={}){
+  jobs.push({title:'',company:'',loc:'',start:'',end:'',bullets:'',...d});
+  drawJobs();
+}
+function drawJobs(){
+  $('jobs').innerHTML = jobs.map((j,i)=>`
+   <div class="card">
+     <button class="del" onclick="jobs.splice(${i},1);drawJobs();render()">×</button>
+     <label>Job title</label>
+     <input value="${esc(j.title)}" oninput="jobs[${i}].title=this.value;render()" placeholder="Senior Marketing Manager">
+     <div class="row2">
+       <div><label>Company</label>
+         <input value="${esc(j.company)}" oninput="jobs[${i}].company=this.value;render()" placeholder="TechFlow"></div>
+       <div><label>City</label>
+         <input value="${esc(j.loc)}" oninput="jobs[${i}].loc=this.value;render()" placeholder="Lahore"></div>
+     </div>
+     <div class="row2">
+       <div><label>Started</label>
+         <input value="${esc(j.start)}" oninput="jobs[${i}].start=this.value;render()" placeholder="Jan 2022"></div>
+       <div><label>Ended</label>
+         <input value="${esc(j.end)}" oninput="jobs[${i}].end=this.value;render()" placeholder="Present"></div>
+     </div>
+     <label>What you achieved — one per line</label>
+     <textarea oninput="jobs[${i}].bullets=this.value;render()"
+       placeholder="Led 3 product launches generating $2.4M in new pipeline&#10;Improved win rate by 18% with a new messaging framework">${esc(j.bullets)}</textarea>
+     <p class="hint">Start with a verb. End with a number. "Grew sales 40%" beats "Responsible for sales".</p>
+   </div>`).join('');
+}
 
-  /* Which sample set sent them here. Used for emphasis and for the back link,
-     and it is validated against a known list rather than trusted, because it
-     arrives in the URL. */
-  var STYLES = {ats:1, exec:1, graduate:1, change:1};
-  var p     = new URLSearchParams(location.search);
-  var setSlug = (p.get('set') || '').replace(/[^a-z0-9-]/g, '').slice(0, 60);
-  var style   = STYLES[p.get('style')] ? p.get('style') : 'ats';
+function addEdu(d={}){
+  edus.push({degree:'',school:'',year:'',grade:'',...d});
+  drawEdus();
+}
+function drawEdus(){
+  $('edus').innerHTML = edus.map((e,i)=>`
+   <div class="card">
+     <button class="del" onclick="edus.splice(${i},1);drawEdus();render()">×</button>
+     <label>Degree</label>
+     <input value="${esc(e.degree)}" oninput="edus[${i}].degree=this.value;render()" placeholder="BS Computer Science">
+     <label>Institution</label>
+     <input value="${esc(e.school)}" oninput="edus[${i}].school=this.value;render()" placeholder="University of the Punjab">
+     <div class="row2">
+       <div><label>Year</label>
+         <input value="${esc(e.year)}" oninput="edus[${i}].year=this.value;render()" placeholder="2017"></div>
+       <div><label>Grade (optional)</label>
+         <input value="${esc(e.grade)}" oninput="edus[${i}].grade=this.value;render()" placeholder="3.6 CGPA"></div>
+     </div>
+   </div>`).join('');
+}
 
-  if (setSlug) {
-    q('bxBackToSample').setAttribute('href', setSlug + '.html');
-  } else {
-    q('bxBackToSample').setAttribute('href', '../career_docs_folder_section.html');
-  }
+/* ----------------------------------------------------------------- render */
+function render(){
+  const name = $('f_name').value.trim();
+  const role = $('f_role').value.trim();
 
-  /* ── the SHAPE. Mirrors the resume() renderer in build_pages.py exactly, so a
-     generated document and a sample document are the same object. ── */
-  function renderCv(cv, locked){
-    var sect = function(h, inner){ return inner ? '<h4>' + esc(h) + '</h4>' + inner : ''; };
+  $('o_name').textContent = name || 'YOUR NAME';
+  $('o_name').className = 'name' + (name?'':' empty');
+  $('o_role').textContent = role || 'Job title';
 
-    var hid = function(n, what){
-      return '<div class="bx-tease">' + n + ' more ' + what
-           + (n === 1 ? '' : 's') + ' in the full version</div>';
-    };
+  const cta = ['f_email','f_phone','f_loc','f_li'].map(i=>$(i).value.trim()).filter(Boolean);
+  $('o_cta').textContent = cta.length ? cta.join('   |   ') : 'email · phone · city';
 
-    /* Enough tiles to cover the sheet at any length the document reaches. */
-    var wm = '';
-    if (locked) {
-      var marks = '';
-      for (var w = 0; w < 40; w++) marks += '<span>LAZYDOG &middot; PREVIEW</span>';
-      wm = '<div class="bx-wm" aria-hidden="true"><div>' + marks + '</div></div>';
-    }
+  let h = '';
+  const sum = $('f_sum').value.trim();
+  if(sum) h += `<h2>Professional Summary</h2><div>${esc(sum)}</div>`;
 
-    var jobs = (cv.jobs || []).map(function(j, i){
-      /* First job in full, the rest structure-only. The reader can see the
-         standard of the writing on their own material without being handed the
-         finished article. */
-      if (locked && i > 0) {
-        return '<div class="job"><div class="job-top">'
-             +   '<div class="job-t">' + esc(j.title)
-             +     (j.org ? ', <span class="job-c">' + esc(j.org) + '</span>' : '') + '</div>'
-             +   '<div class="job-d">' + esc(j.dates) + '</div></div>'
-             + hid((j.bullets || []).length || 1, 'line') + '</div>';
-      }
-      var bl = (j.bullets || []).map(function(b){ return '<li>' + esc(b) + '</li>'; }).join('');
-      return '<div class="job"><div class="job-top">'
-           +   '<div class="job-t">' + esc(j.title)
-           +     (j.org ? ', <span class="job-c">' + esc(j.org) + '</span>' : '') + '</div>'
-           +   '<div class="job-d">' + esc(j.dates) + '</div></div>'
-           + (bl ? '<ul>' + bl + '</ul>' : '') + '</div>';
-    }).join('');
-
-    var pairs = function(a){
-      return (a || []).map(function(e){
-        return '<div class="job"><div class="job-t" style="font-size:17px">' + esc(e.what) + '</div>'
-             + '<div class="cv-ct">' + esc(e.where) + '</div></div>';
-      }).join('');
-    };
-    var left = pairs(cv.education), right = pairs(cv.credentials);
-    var two = (left || right)
-      ? '<div class="two"><div>' + sect('Education', left) + '</div>'
-      +               '<div>' + sect('Certification', right) + '</div></div>'
-      : '';
-
-    var skills = '';
-    if (cv.skills && cv.skills.length) {
-      skills = locked
-        ? sect('Skills', hid(cv.skills.length, 'skill'))
-        : sect('Skills', '<div class="sk">'
-            + cv.skills.map(function(s){ return '<span>' + esc(s) + '</span>'; }).join('')
-            + '</div>');
-    }
-
-    return '<div class="paper">' + wm + '<div class="cv">'
-         +   '<div class="cv-name">' + esc(cv.name) + '</div>'
-         +   '<div class="cv-role">' + esc(cv.role) + '</div>'
-         +   '<div class="cv-rule"></div>'
-         +   '<div class="cv-ct">' + esc(cv.contact) + '</div>'
-         +   sect('Profile', cv.profile ? '<div class="lead">' + esc(cv.profile) + '</div>' : '')
-         +   sect('Experience', jobs)
-         +   two + skills
-         + '</div></div>';
-  }
-
-  function renderMissing(list){
-    if (!list || !list.length) { q('bxMissing').innerHTML = ''; return; }
-    q('bxMissing').innerHTML =
-      '<div class="bx-missing"><h4>Before you send this</h4><ul>'
-      + list.map(function(m){ return '<li>' + esc(m) + '</li>'; }).join('')
-      + '</ul></div>';
-  }
-
-  function showErr(msg){
-    var e = q('bxErr');
-    e.textContent = msg;
-    e.style.display = 'block';
-  }
-
-  var lastCv = null;
-
-  /* One place decides what is visible, so the lock state and the document can
-     never disagree. Called on generation AND whenever auth resolves, because
-     sign-in usually lands after the first paint. */
-  function paint(){
-    if (!lastCv) return;
-    var unlocked = owned;
-    q('bxPaper').innerHTML = renderCv(lastCv, !unlocked);
-    document.body.classList.toggle('bx-unlocked', unlocked);
-  }
-
-  var busy = false;
-  function run(){
-    if (busy) return;
-    var text = q('bxText').value.trim();
-    q('bxErr').style.display = 'none';
-
-    if (text.length < 40) {
-      showErr('Add a little more first — at least your name and one job.');
-      return;
-    }
-
-    busy = true;
-    q('bxRun').disabled = true;
-    q('bxNote').textContent = 'Writing…';
-
-    fetch(ENDPOINT, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({text: text, role: q('bxRole').value.trim(), style: style})
-    })
-    .then(function(r){ return r.json().then(function(d){ return {status: r.status, d: d}; }); })
-    .then(function(res){
-      var d = res.d || {};
-      if (!d.ok || !d.resume) {
-        showErr(d.detail || 'That did not work. Try pasting a bit more of your existing resume.');
-        return;
-      }
-      lastCv = d.resume;
-      paint();
-      renderMissing(d.resume.missing);
-      q('bxOut').style.display = 'block';
-      q('bxOut').scrollIntoView({behavior: 'smooth', block: 'start'});
-      gate();
-    })
-    .catch(function(){
-      showErr('Could not reach the writer. Check your connection and try again.');
-    })
-    .then(function(){
-      busy = false;
-      q('bxRun').disabled = false;
-      q('bxNote').textContent = 'Free to preview. Takes about ten seconds.';
-      q('bxRun').textContent = 'Write it again \u2192';
+  const realJobs = jobs.filter(j=>j.title||j.company);
+  if(realJobs.length){
+    h += '<h2>Experience</h2>';
+    realJobs.forEach(j=>{
+      const dates = [j.start,j.end].filter(Boolean).join(' – ');
+      h += `<div class="jh">
+              <div class="jt"><b>${esc(j.title)}</b>${j.company?'  —  '+esc(j.company):''}</div>
+              <div class="jd">${esc(dates)}</div>
+            </div>`;
+      if(j.loc) h += `<div class="loc">${esc(j.loc)}</div>`;
+      const bs = (j.bullets||'').split('\n').map(s=>s.trim()).filter(Boolean);
+      if(bs.length) h += '<ul>'+bs.map(b=>`<li>${esc(b)}</li>`).join('')+'</ul>';
     });
   }
 
-  /* ── the LOCK ──
-     Reading is free; leaving with the file is what is bought. Ownership is
-     asked of the same Commerce.library the rest of the site uses, so there is
-     one notion of ownership sitewide rather than a second, weaker one here.
-     It FAILS CLOSED: not signed in, library absent, network error or any
-     exception all leave the download locked.
-
-     The two owner accounts are unlocked on the SAME list Hexa_Promptbox.html
-     already uses, deliberately reusing it rather than starting a second one -
-     two lists of admins drift, and the day they disagree nobody can say which
-     is right.
-
-     Worth being straight about what this check is and is not: it runs in the
-     browser, against the signed-in Firebase user's email, so a determined
-     person could fake it in devtools. That is acceptable here because the only
-     thing behind it is printing a document already displayed for free on the
-     same screen. When a real file is served - the Word version - that gate
-     must be server-side against a verified token, exactly as ai_fill_http
-     already does. This one is a convenience, not a vault. */
-  var ADMINS = ['javed5395@gmail.com', 'lazydogtemplates@gmail.com'];
-  var isOwnerAccount = false;
-
-  (function watchAuth(){
-    Promise.all([
-      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
-    ]).then(function(m){
-      var A = m[0], B = m[1];
-      var app = A.getApps().length ? A.getApp() : A.initializeApp({
-        apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-        authDomain: "templatehub-16cd7.firebaseapp.com",
-        projectId: "templatehub-16cd7"
-      });
-      B.onAuthStateChanged(B.getAuth(app), function(u){
-        isOwnerAccount = !!(u && ADMINS.indexOf(String(u.email || '').toLowerCase()) > -1);
-        gate();          // re-run: sign-in usually resolves after first paint
-      });
-    }).catch(function(){ /* auth unavailable - stays locked, as it should */ });
-  })();
-
-  var owned = false;
-
-  function ownsThisSet(){
-    if (isOwnerAccount) return Promise.resolve(true);
-    try {
-      var C = window.Commerce;
-      if (!(C && C.library && typeof C.library.ownsProduct === 'function')) {
-        return Promise.resolve(false);
-      }
-      var user = (C.auth && typeof C.auth.getCurrentUser === 'function')
-        ? C.auth.getCurrentUser() : null;
-      if (!(user && user.uid) || !setSlug) return Promise.resolve(false);
-      return Promise.resolve(C.library.ownsProduct(user.uid, 'career_' + setSlug))
-        .then(function(v){ return !!v; })
-        .catch(function(){ return false; });
-    } catch (e) {
-      return Promise.resolve(false);
-    }
-  }
-
-  function gate(){
-    ownsThisSet().then(function(v){
-      owned = v;
-      paint();
-      if (owned) {
-        q('bxGet').textContent = 'Download \u2192';
-        q('bxLockMsg').textContent = isOwnerAccount
-          ? 'Owner account \u2014 unlocked. Download saves a PDF.'
-          : 'Yours. Download saves a PDF; the Word file is in your library.';
-      } else {
-        q('bxGet').textContent = 'Unlock the download';
-        q('bxLockMsg').textContent =
-          'Your opening and first role are shown in full. Unlock to reveal the rest, '
-          + 'print it, and get the editable Word file.';
-      }
+  const realEdus = edus.filter(e=>e.degree||e.school);
+  if(realEdus.length){
+    h += '<h2>Education</h2>';
+    realEdus.forEach(e=>{
+      const tail = [e.year,e.grade].filter(Boolean).join(' | ');
+      h += `<div class="jh">
+              <div class="jt"><b>${esc(e.degree)}</b>${e.school?'  —  '+esc(e.school):''}</div>
+              <div class="jd">${esc(tail)}</div>
+            </div>`;
     });
   }
 
-  q('bxRun').addEventListener('click', run);
-  q('bxRedo').addEventListener('click', function(){
-    q('bxText').scrollIntoView({behavior: 'smooth', block: 'center'});
-    q('bxText').focus();
-  });
+  const sk = $('f_skills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(sk.length) h += `<h2>Skills</h2><div class="inline">${sk.map(esc).join('   •   ')}</div>`;
 
-  q('bxGet').addEventListener('click', function(){
-    if (owned) { window.print(); return; }
-    /* Not owned: send them to the set's own page, which is where buying
-       happens. No dead end, and no second checkout to keep in step. */
-    window.location.href = setSlug ? (setSlug + '.html') : '../career_docs_folder_section.html';
-  });
+  const cs = $('f_certs').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(cs.length) h += '<h2>Certifications</h2>'+cs.map(c=>`<div class="inline">${esc(c)}</div>`).join('');
 
-  gate();
-})();
+  $('o_body').innerHTML = h;
+  score(name, role, sum, realJobs, realEdus, sk);
+}
+
+/* ---------------------------------------------------------------- scoring */
+function score(name, role, sum, js, es, sk){
+  const checks = [
+    [!!name,               'Add your name'],
+    [!!role,               'Add the job title you want'],
+    [!!$('f_email').value.trim() && !!$('f_phone').value.trim(), 'Add email and phone'],
+    [sum.length>60,        'Write a 2–3 line summary'],
+    [js.length>0,          'Add at least one job'],
+    [js.some(j=>(j.bullets||'').trim()), 'Add achievements under your job'],
+    [js.some(j=>/\d/.test(j.bullets||'')), 'Put a number in at least one achievement'],
+    [es.length>0,          'Add your education'],
+    [sk.length>=5,         'Add at least 5 skills'],
+  ];
+  const done = checks.filter(c=>c[0]).length;
+  const pct = Math.round(done/checks.length*100);
+  $('pct').textContent = pct+'%';
+  $('fill').style.width = pct+'%';
+  const next = checks.find(c=>!c[0]);
+  $('tip').textContent = next ? '→ ' + next[1] : '✓ Ready to download';
+  $('fill').style.background = pct===100 ? '#0F9D58' : (pct>60 ? '#F5A623' : '#DC2626');
+}
+
+/* ------------------------------------------------------------ save / load */
+function collect(){
+  return {
+    meta:{schema_version:'1.0', template:$('tpl').value, country_format:'us'},
+    contact:{full_name:$('f_name').value, headline:$('f_role').value,
+             email:$('f_email').value, phone:$('f_phone').value,
+             location:$('f_loc').value, linkedin:$('f_li').value},
+    summary:$('f_sum').value,
+    experience:jobs.filter(j=>j.title||j.company).map(j=>({
+      title:j.title, company:j.company, location:j.loc,
+      start_date:j.start, end_date:j.end,
+      current:/present/i.test(j.end||''),
+      bullets:(j.bullets||'').split('\n').map(s=>s.trim()).filter(Boolean)})),
+    education:edus.filter(e=>e.degree||e.school).map(e=>({
+      degree:e.degree, institution:e.school, end_date:e.year, grade:e.grade})),
+    skills:$('f_skills').value.split(',').map(s=>s.trim()).filter(Boolean),
+    certifications:$('f_certs').value.split('\n').map(s=>s.trim()).filter(Boolean)
+                     .map(l=>{const p=l.split('—').map(s=>s.trim());
+                              return {name:p[0], issuer:p[1]||null, year:p[2]||null};})
+  };
+}
+function saveJson(){
+  const b = new Blob([JSON.stringify(collect(),null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = ($('f_name').value.trim().replace(/\s+/g,'_')||'resume')+'.json';
+  a.click();
+}
+function loadJson(inp){
+  const f = inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { apply(JSON.parse(r.result)); };
+  r.readAsText(f);
+}
+function apply(d){
+  const c = d.contact||{};
+  $('f_name').value=c.full_name||''; $('f_role').value=c.headline||'';
+  $('f_email').value=c.email||''; $('f_phone').value=c.phone||'';
+  $('f_loc').value=c.location||''; $('f_li').value=c.linkedin||'';
+  $('f_sum').value=d.summary||'';
+  jobs = (d.experience||[]).map(j=>({title:j.title||'',company:j.company||'',
+    loc:j.location||'',start:j.start_date||'',end:j.end_date||(j.current?'Present':''),
+    bullets:(j.bullets||[]).join('\n')}));
+  edus = (d.education||[]).map(e=>({degree:e.degree||'',school:e.institution||'',
+    year:e.end_date||'',grade:e.grade||''}));
+  $('f_skills').value = (d.skills||[]).map(s=>typeof s==='string'?s:s.group).join(', ');
+  $('f_certs').value = (d.certifications||[]).map(x=>
+    [x.name,x.issuer,x.year].filter(Boolean).join(' — ')).join('\n');
+  drawJobs(); drawEdus(); render();
+}
+
+/* ==================================================================== HEXA ==
+   The buyer fills the form; the preview builds as they type; Hexa rewrites the
+   prose when they ask. Structure stays theirs - Haiku is only allowed to touch
+   the summary and the achievement lines, and the server clamps the bullets back
+   to the count the buyer actually wrote, so it cannot add or drop a line from
+   someone's real history.
+   ========================================================================= */
+const HEXA_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/resume_fill_http';
+
+function hxSay(msg, bad){
+  let e = $('hxmsg');
+  if(!e){ e = document.createElement('span'); e.id='hxmsg'; $('btnHexa').after(e); }
+  e.textContent = msg || '';
+  e.className = bad ? 'bad' : '';
+}
+
+let hxBusy = false;
+function runHexa(){
+  if(hxBusy) return;
+  const data = collect();
+  if(!data.summary.trim() && !data.experience.some(j=>j.bullets.length)){
+    hxSay('Write your summary or one achievement first.', true);
+    return;
+  }
+  hxBusy = true; $('btnHexa').disabled = true; hxSay('Writing…');
+
+  fetch(HEXA_URL, {method:'POST', headers:{'Content-Type':'application/json'},
+                   body: JSON.stringify({form: data})})
+    .then(r => r.json())
+    .then(d => {
+      const R = d && d.resume;
+      if(!d || !d.ok || !R){ hxSay((d && d.detail) || 'Could not write that.', true); return; }
+
+      if(R.summary) $('f_sum').value = R.summary;
+
+      /* Written back BY INDEX against the jobs the buyer actually filled, in the
+         same order collect() sent them - so a rewritten line lands on the job it
+         came from and nowhere else. */
+      const real = jobs.filter(j=>j.title||j.company);
+      Object.keys(R.jobs || {}).forEach(k => {
+        const j = real[+k];
+        if(j && Array.isArray(R.jobs[k]) && R.jobs[k].length) j.bullets = R.jobs[k].join('\n');
+      });
+
+      if(R.skills && R.skills.length){
+        const have = $('f_skills').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+        const add  = R.skills.filter(s => !have.includes(String(s).toLowerCase()));
+        if(add.length) $('f_skills').value = ($('f_skills').value.trim()
+                          ? $('f_skills').value.trim() + ', ' : '') + add.join(', ');
+      }
+
+      drawJobs(); render();
+      showNotes(R.missing);
+      hxSay('Done — read it over, it is your name on it.');
+    })
+    .catch(() => hxSay('Could not reach Hexa. Check your connection.', true))
+    .then(() => { hxBusy = false; $('btnHexa').disabled = false; });
+}
+
+/* Hexa's honest notes on what the resume still lacks. Nobody else tells an
+   applicant this, and it costs nothing to show. */
+function showNotes(list){
+  const n = $('notes');
+  if(!list || !list.length){ n.style.display='none'; return; }
+  n.innerHTML = '<h4>Before you send this</h4><ul>'
+              + list.map(m => '<li>' + esc(m) + '</li>').join('') + '</ul>';
+  n.style.display = 'block';
+}
+
+/* ==================================================================== LOCK ==
+   Free: the whole document builds live, watermarked, no download.
+   Paid: watermark gone, PDF and Word.
+
+   Ownership is asked of the same Commerce.library the rest of the site uses,
+   and FAILS CLOSED - not signed in, library missing, network error or any
+   exception all leave it locked. The two owner accounts are on the same list
+   Hexa_Promptbox.html already uses; a second list would drift from it.
+   ========================================================================= */
+const ADMINS = ['javed5395@gmail.com','lazydogtemplates@gmail.com'];
+const PRODUCT = 'career_resume_builder';
+let paid = false, ownerAcct = false;
+
+function paintLock(){
+  document.body.classList.toggle('paid', paid);
+  $('btnGet').textContent = paid
+    ? 'Download PDF'
+    : 'Unlock · $4.99';
+  if(paid && !$('btnDoc')){
+    const b = document.createElement('button');
+    b.className='btn ghost'; b.id='btnDoc'; b.textContent='Download Word';
+    b.onclick = downloadDoc;
+    $('btnGet').after(b);
+  }
+}
+
+function checkPaid(){
+  Promise.resolve()
+    .then(() => {
+      if(ownerAcct) return true;
+      const C = window.Commerce;
+      if(!(C && C.library && typeof C.library.ownsProduct === 'function')) return false;
+      const u = (C.auth && C.auth.getCurrentUser) ? C.auth.getCurrentUser() : null;
+      if(!(u && u.uid)) return false;
+      return C.library.ownsProduct(u.uid, PRODUCT);
+    })
+    .then(v => { paid = !!v; paintLock(); })
+    .catch(() => { paid = false; paintLock(); });
+}
+
+Promise.all([
+  import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js'),
+  import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
+]).then(m => {
+  const A=m[0], B=m[1];
+  const app = A.getApps().length ? A.getApp() : A.initializeApp({
+    apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+    authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7"});
+  B.onAuthStateChanged(B.getAuth(app), u => {
+    ownerAcct = !!(u && ADMINS.indexOf(String(u.email||'').toLowerCase()) > -1);
+    checkPaid();
+  });
+}).catch(() => {});   /* auth unreachable -> stays locked, which is correct */
+
+function getIt(){
+  if(paid){ window.print(); return; }
+  window.location.href = '../career_docs_folder_section.html';
+}
+
+/* Word export. A .doc built from the rendered HTML rather than a real .docx:
+   Word opens it, keeps the headings, bullets and spacing, and it needs no
+   library. A true .docx can replace this later without changing anything the
+   buyer sees. */
+function downloadDoc(){
+  if(!paid) return;
+  const name = ($('f_name').value.trim().replace(/\s+/g,'_') || 'resume');
+  const css  = '<style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#111}'
+             + 'h2{font-size:11pt;text-transform:uppercase;letter-spacing:1px;'
+             + 'border-bottom:1px solid #999;padding-bottom:3px;margin:16pt 0 6pt}'
+             + '.name{font-size:22pt;font-weight:700}.role{font-size:12pt;color:#444}'
+             + '.jt{font-weight:700}.jd{color:#555;font-size:10pt}'
+             + 'ul{margin:4pt 0 0 16pt}li{margin:2pt 0}</style>';
+  const html = '<html xmlns:w="urn:schemas-microsoft-com:office:word"><head>'
+             + '<meta charset="utf-8">' + css + '</head><body>'
+             + $('R').innerHTML.replace(/<div id="wm"[\s\S]*?<\/div>\s*<\/div>/, '')
+             + '</body></html>';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿'+html], {type:'application/msword'}));
+  a.download = name + '.doc';
+  a.click();
+}
+
+/* -------------------------------------------------------------- bootstrap */
+document.querySelectorAll('.form input, .form textarea')
+        .forEach(el => el.addEventListener('input', render));
+
+/* Enough tiles to cover the sheet however long the resume runs. */
+$('wm').firstElementChild.innerHTML =
+  Array.from({length:44}, () => '<span>LAZYDOG · PREVIEW</span>').join('');
+
+addJob(); addEdu(); render(); paintLock(); checkPaid();
 </script>
-
-<p class="disc">Hexa writes only from what you paste. It does not invent employers, dates,
-qualifications or numbers &mdash; if something is missing from your draft, it is missing from
-what you gave it, and it will say so above.</p>
-
 </body>
 </html>
