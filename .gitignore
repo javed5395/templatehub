@@ -41,8 +41,13 @@ editor_brain.html
 firebase/users.json
 
 # Backend function source — deploys via `firebase deploy`, git never needs it.
-firebase/functions/main.py
-firebase/functions/venv/
+# The whole folder, not a list of filenames: resume_fill.py was added on
+# 12 Aug 2026 and, because only main.py was named here, it was committed and
+# then served at lazydogtemplates.com/firebase/functions/resume_fill.py for
+# anyone to read. No key leaked (those come from .env), but the prompts and the
+# logic did. A directory rule cannot be forgotten the next time a file is added.
+firebase/functions/
+!firebase/functions/requirements.txt
 
 # Common local-only / sensitive files
 *.bak
