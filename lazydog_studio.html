@@ -1689,7 +1689,7 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
           <button class="filter-btn" data-filter="webkit">Website UI Kits<span class="filter-btn__count">16</span></button>
           <button class="filter-btn" data-filter="keynote" data-fallback-count="0">Digital Keynotes<span class="filter-btn__count">0</span></button>
           <button class="filter-btn" data-filter="deck">Pitch Deck Templates<span class="filter-btn__count">0</span></button>
-          <button class="filter-btn" data-filter="resume">Resume / CV Templates<span class="filter-btn__count">0</span></button>
+          <button class="filter-btn" data-filter="resume">Resume / CV Templates<span class="filter-btn__count">49</span></button>
           <button class="filter-btn" data-filter="media">Media Kit Templates<span class="filter-btn__count">0</span></button>
           <button class="filter-btn" data-filter="social">New Template<span class="filter-btn__count">0</span></button>
         </div>
@@ -3079,6 +3079,73 @@ function openProduct(kitId){
 
 // renderWebkitCards() intentionally not called — Store stays empty until
 // real files/thumbnails are ready to go live. Re-enable by calling it again.
+/* ===== CAREER SAMPLE SETS - injected block, do not hand-edit ===== */
+/* 12 Aug 2026 - the Resume / CV tab sat on 0 because this grid is fed only by
+   Firestore, and the 49 career sample sets are static pages, not uploaded
+   products. They are real catalogue items, so they belong in the same grid.
+
+   These cards carry data-career="1" as well as data-live="1": data-live keeps
+   them inside the totals and the filter counts, data-career marks them so the
+   Firestore listener's cleanup pass leaves them alone. Clicking one opens its
+   sample page, because that is what actually exists today - there is no
+   Firestore record behind them to open a buy panel against. */
+window.LDS_CAREER_SETS = [{"s":"clean-ats-resume-samples","n":"The clean ATS resume, stripped to what parses","c":"Resumes","x":"No tables, no columns, no graphics. Three samples across career stages.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"minimal-pro-resume-samples","n":"Minimal Pro, for crowded fields","c":"Resumes","x":"Same parse safety, tighter type. Built for high-volume applications.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"healthcare-resume-samples","n":"Healthcare ATS, licences up top","c":"Resumes","x":"Registration number in the header where a verifier looks first.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"developer-resume-samples","n":"Technical ATS, shipped work first","c":"Resumes","x":"Stack lists moved below the evidence, where they belong.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"two-column-resume-samples","n":"The side-panel resume, done restrained","c":"Resumes","x":"Two columns without the parsing damage a sidebar usually causes.","m":"3 samples · DOCX + PDF","p":"$5.99"},{"s":"career-change-resume-samples","n":"Fresh Start, for a change of field","c":"Resumes","x":"Leads on transferable evidence rather than job titles.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"creative-portfolio-resume-samples","n":"Creative sidebar, for portfolio work","c":"Resumes","x":"Room for links and selected projects without the clutter.","m":"3 samples · DOCX + PDF","p":"$5.99"},{"s":"first-resume-samples","n":"Ultra Clean, and free to take","c":"Resumes","x":"Our starting point. One page, one column, no ornament.","m":"3 samples · DOCX + PDF","p":"Free"},{"s":"designer-resume-samples","n":"Swiss Minimal, set on a grid","c":"Resumes","x":"Typographic discipline for design and architecture applications.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"executive-resume-samples","n":"The C-suite resume, led by outcome","c":"Resumes","x":"Board-level language: P&L owned, headcount led, markets entered.","m":"3 samples · 2 pages","p":"$6.99"},{"s":"senior-manager-resume-samples","n":"Senior Manager, scope made plain","c":"Resumes","x":"Team size, budget and remit stated in the first four lines.","m":"3 samples · 2 pages","p":"$5.99"},{"s":"director-resume-samples","n":"Director level, strategy over task","c":"Resumes","x":"What changed under you, not what landed on your desk.","m":"3 samples · 2 pages","p":"$5.99"},{"s":"fresh-graduate-resume-samples","n":"Fresh graduate, with nothing yet","c":"Resumes","x":"How to fill a page truthfully when you have never been hired.","m":"3 samples · DOCX + PDF","p":"Free"},{"s":"internship-resume-samples","n":"The internship resume, coursework as proof","c":"Resumes","x":"Projects and society work written like real experience.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"nurse-resume-samples","n":"Nurse resumes, numbers that prove care","c":"Resumes","x":"Ward size, error reduction, nurses precepted.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"teacher-resume-samples","n":"Teacher resumes, proof beyond the class","c":"Resumes","x":"What happened to the class average, in figures.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"accountant-resume-samples","n":"Accountant resumes, in rupees and days","c":"Resumes","x":"Close time, recovery, filing accuracy.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"driver-technician-resume-samples","n":"Driver and trade resumes, kept plain","c":"Resumes","x":"Licence, record, distance. Four facts that convince.","m":"3 samples · DOCX + PDF","p":"Free"},{"s":"academic-cv-samples","n":"The academic CV, publications first","c":"CVs","x":"Ordering that a hiring committee actually reads.","m":"3 samples · Multi-page","p":"$6.99"},{"s":"research-cv-samples","n":"Research CV, grants and methods","c":"CVs","x":"Funding history and technique inventory laid out properly.","m":"3 samples · Multi-page","p":"$6.99"},{"s":"physician-cv-samples","n":"Physician CV, rotations in order","c":"CVs","x":"Training, registration and clinical hours in the expected sequence.","m":"3 samples · Multi-page","p":"$6.99"},{"s":"nurse-cv-samples","n":"Nurse CV, the long form","c":"CVs","x":"For senior and international posts that ask for a CV, not a resume.","m":"3 samples · Multi-page","p":"$5.99"},{"s":"educator-cv-samples","n":"Educator CV, and a teaching statement","c":"CVs","x":"Courses taught, supervision load, statement included.","m":"3 samples · Multi-page","p":"$5.99"},{"s":"lecturer-cv-samples","n":"Lecturer CV, for university posts","c":"CVs","x":"Modules, supervision and service to the department.","m":"3 samples · Multi-page","p":"$5.99"},{"s":"phd-candidate-cv-samples","n":"PhD candidate CV, mid-programme","c":"CVs","x":"How to present unfinished work without underselling it.","m":"3 samples · Multi-page","p":"$5.99"},{"s":"cover-letter-samples","n":"The modern cover letter, opened properly","c":"Cover Letters","x":"Three openings that are not \"I am writing to apply for\".","m":"3 samples · DOCX + PDF","p":"$3.99"},{"s":"short-cover-letter-samples","n":"Minimal letter, under 200 words","c":"Cover Letters","x":"For applications where nobody will read a full page.","m":"3 samples · DOCX + PDF","p":"$3.99"},{"s":"formal-cover-letter-samples","n":"Classic professional, correctly formal","c":"Cover Letters","x":"Government, legal and banking conventions observed.","m":"3 samples · DOCX + PDF","p":"$3.99"},{"s":"executive-cover-letter-samples","n":"Executive letter, peer to peer","c":"Cover Letters","x":"Written to a board or founder, not to an HR inbox.","m":"3 samples · DOCX + PDF","p":"$4.99"},{"s":"application-letter-samples","n":"The application letter, as asked for here","c":"Cover Letters","x":"Distinct from a cover letter — and most ads want this one.","m":"3 samples · DOCX + PDF","p":"$3.99"},{"s":"speculative-cover-letter-samples","n":"Speculative letter, no advertised post","c":"Cover Letters","x":"Approaching a company that is not hiring yet.","m":"3 samples · DOCX + PDF","p":"$3.99"},{"s":"reference-page-samples","n":"The clean reference page, set to match","c":"Reference Pages","x":"Same header as the resume so the pair reads as one document.","m":"3 samples · DOCX + PDF","p":"$2.99"},{"s":"reference-request-samples","n":"How to ask, and what to send them","c":"Reference Pages","x":"The request message, and the brief your referee needs.","m":"3 samples · DOCX + PDF","p":"$2.99"},{"s":"confidential-reference-samples","n":"When you cannot name your current boss","c":"Reference Pages","x":"Handling references during a quiet job search.","m":"3 samples · DOCX + PDF","p":"Free"},{"s":"resignation-letter-samples","n":"The simple resignation, two weeks given","c":"Resignation Letters","x":"The standard letter. Warm, brief, unambiguous on dates.","m":"3 samples · DOCX + PDF","p":"Free"},{"s":"resignation-with-handover-samples","n":"Professional resignation, with handover","c":"Resignation Letters","x":"For senior roles where the transition plan matters.","m":"3 samples · DOCX + PDF","p":"$2.99"},{"s":"immediate-resignation-samples","n":"Immediate resignation, said carefully","c":"Resignation Letters","x":"Leaving without notice while keeping the reference intact.","m":"3 samples · DOCX + PDF","p":"$2.99"},{"s":"experience-certificate-request-samples","n":"Certificate of Employment, requested","c":"Resignation Letters","x":"The COE request letter, and what to do if they delay.","m":"3 samples · DOCX + PDF","p":"$2.99"},{"s":"recommendation-letter-samples","n":"Professional recommendation, with evidence","c":"Recommendation Letters","x":"Two specifics beat ten adjectives. Three worked examples.","m":"3 samples · DOCX + PDF","p":"$3.99"},{"s":"academic-recommendation-samples","n":"Academic recommendation, for admissions","c":"Recommendation Letters","x":"What a scholarship committee is actually scanning for.","m":"3 samples · DOCX + PDF","p":"$3.99"},{"s":"character-reference-samples","n":"Character reference, kept honest","c":"Recommendation Letters","x":"Vouching for someone without overstating what you know.","m":"3 samples · DOCX + PDF","p":"$2.99"},{"s":"thank-you-email-samples","n":"After the interview, within a day","c":"Thank You Letters","x":"Reference one thing they said. Answer the question you fumbled.","m":"3 samples · DOCX + PDF","p":"Free"},{"s":"networking-thank-you-samples","n":"Networking thank you, after a referral","c":"Thank You Letters","x":"Closing the loop with the person who opened the door.","m":"3 samples · DOCX + PDF","p":"$2.99"},{"s":"linkedin-headline-samples","n":"The headline, rewritten to be found","c":"LinkedIn","x":"220 characters carrying the words recruiters type in.","m":"3 samples · Copy kit","p":"$3.99"},{"s":"linkedin-about-samples","n":"The About section, in first person","c":"LinkedIn","x":"Not a pasted resume summary. Three versions by career stage.","m":"3 samples · Copy kit","p":"$3.99"},{"s":"linkedin-banner-samples","n":"Profile banner, 1584 by 396","c":"LinkedIn","x":"Editable banner set, sized exactly, text kept clear of the avatar.","m":"PNG + PSD","p":"$3.99"},{"s":"designer-portfolio-samples","n":"Designer portfolio, case by case","c":"Portfolio","x":"Problem, approach, outcome — the structure clients respond to.","m":"3 samples · PPTX","p":"$6.99"},{"s":"ux-portfolio-samples","n":"UI/UX portfolio, process shown","c":"Portfolio","x":"Research and iteration, not just the final screens.","m":"3 samples · PPTX","p":"$6.99"},{"s":"freelancer-portfolio-samples","n":"Freelancer showcase, priced openly","c":"Portfolio","x":"Selected work with rates included, ready to send cold.","m":"3 samples · PPTX","p":"$5.99"}];
+function renderCareerCards(){
+  var grid = document.getElementById('marketplaceGrid');
+  var sets = window.LDS_CAREER_SETS || [];
+  if(!grid || !sets.length) return;
+  if(grid.querySelector('.product-card[data-career="1"]')) return;   // already drawn
+
+  var esc = function(v){ return String(v==null?'':v)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
+
+  function commercial(p){
+    var n = parseFloat(String(p).replace(/[^0-9.]/g,''));
+    return (!isNaN(n) && n > 0) ? '$' + (Math.round(n * 1.5 * 100) / 100).toFixed(2) : '';
+  }
+
+  var frag = document.createDocumentFragment();
+  sets.forEach(function(k){
+    var free  = /free/i.test(k.p);
+    var comm  = free ? '' : commercial(k.p);
+    var price = free
+      ? '<div class="product-card__price">Free</div>'
+      : '<div class="product-card__price">' + esc(k.p) +
+        (comm ? ' <span style="opacity:.55;font-size:.8em">/ ' + esc(comm) + '</span>' : '') +
+        '</div>';
+
+    var card = document.createElement('article');
+    card.className = 'product-card product-card--sm';
+    card.dataset.cat    = 'resume';
+    card.dataset.live   = '1';
+    card.dataset.career = '1';
+    card.dataset.cursorLabel = 'Read';
+    card.innerHTML =
+      '<div class="product-card__image" style="background-image:url(\'career/thumbs/'
+        + esc(k.s) + '.jpg\');background-position:top center"></div>'
+      + '<div class="product-card__overlay"></div>'
+      + '<div class="product-card__content">'
+      +   '<div class="product-card__main">'
+      +     '<span class="product-card__cat">' + esc(k.c) + '</span>'
+      +     '<h3 class="product-card__name">' + esc(k.n) + '</h3>'
+      +   '</div>' + price
+      + '</div>';
+    card.addEventListener('click', function(){
+      window.location.href = 'career/' + k.s + '.html';
+    });
+    frag.appendChild(card);
+  });
+  grid.appendChild(frag);
+
+  document.querySelectorAll('.category-card[data-cat="resume"] .category-card__count')
+    .forEach(function(el){ el.textContent = sets.length + ' Artifacts'; });
+
+  if(typeof updateFilterCounts === 'function') updateFilterCounts();
+  if(typeof ldsSyncLiveTotals === 'function') ldsSyncLiveTotals();
+}
+renderCareerCards();
+/* ===== end career sample sets ===== */
 renderCollectionSpreads();
 updateFilterCounts();
 
@@ -4717,7 +4784,7 @@ document.addEventListener('keydown',e=>{
       function renderLiveCards(catKey, docs){
         const grid = document.getElementById('marketplaceGrid');
         if(!grid)return;
-        grid.querySelectorAll(`.product-card[data-live="1"][data-cat="${catKey}"]`).forEach(el=>el.remove());
+        grid.querySelectorAll(`.product-card[data-live="1"][data-cat="${catKey}"]:not([data-career])`).forEach(el=>el.remove());
 
         const [,label] = CATS[catKey];
         docs.forEach(docSnap=>{
@@ -4751,7 +4818,9 @@ document.addEventListener('keydown',e=>{
           grid.appendChild(card);
         });
 
-        setCategoryCountLabel(catKey, docs.length);
+        setCategoryCountLabel(catKey, docs.length +
+          ((catKey === 'resume' && window.LDS_CAREER_SETS) ? window.LDS_CAREER_SETS.length : 0));
+        if(typeof renderCareerCards==='function') renderCareerCards();
         if(typeof updateFilterCounts==='function') updateFilterCounts();
         ldsSyncLiveTotals();
 
