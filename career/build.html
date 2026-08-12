@@ -282,11 +282,40 @@
       display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
   .bx-lock b{display:block;font-family:'Instrument Serif',serif;font-weight:400;font-size:21px}
   .bx-lock span{font-size:13.2px;color:#6a6478}
+  /* Locked content, shown as structure without substance. The buyer sees their
+     own name, their own opening, and their first job in full - enough to judge
+     the quality - while the rest keeps its shape and loses its words. Hiding
+     the whole thing would prove nothing; showing the whole thing would sell
+     nothing. */
+  .bx-hid{display:flex;align-items:center;gap:9px;margin:7px 0 0;
+      font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+      color:#a8a2b4}
+  .bx-hid i{flex:1;height:1px;background:repeating-linear-gradient(90deg,
+      var(--line) 0 9px,transparent 9px 15px)}
+
   @media print{
-    body>*{display:none !important}
-    #bxOut,#bxOut *{display:revert !important}
-    .bx-missing,.bx-lock,.bx-step{display:none !important}
+    /* Ctrl+P used to print the finished document for anyone at all, which made
+       the download button decorative. Printing now obeys the same unlock.
+
+       Written as "hide the chrome when unlocked / hide everything when not",
+       rather than "hide body's children and un-hide the document": #bxOut is
+       three levels deep, so un-hiding it left its hidden ancestors in place and
+       printed a blank page even for the owner. */
+    body:not(.bx-unlocked) > *{display:none !important}
+    body:not(.bx-unlocked)::after{
+      content:"This draft is locked. Unlock it at lazydogtemplates.com to print or download.";
+      display:block;font-family:'Instrument Serif',serif;font-size:17px;padding:40px}
+
+    body.bx-unlocked .bar,
+    body.bx-unlocked .head,
+    body.bx-unlocked .bx-card,
+    body.bx-unlocked .bx-missing,
+    body.bx-unlocked .bx-lock,
+    body.bx-unlocked .bx-step,
+    body.bx-unlocked .disc{display:none !important}
+
     #bxOut{margin:0}
+    .bx{padding:0}
     .paper{border:0;box-shadow:none;padding:0}
     .paper::before{display:none}
   }
@@ -389,10 +418,25 @@ BBA from IBA Karachi 2020"></textarea>
 
   /* ── the SHAPE. Mirrors the resume() renderer in build_pages.py exactly, so a
      generated document and a sample document are the same object. ── */
-  function renderCv(cv){
+  function renderCv(cv, locked){
     var sect = function(h, inner){ return inner ? '<h4>' + esc(h) + '</h4>' + inner : ''; };
 
-    var jobs = (cv.jobs || []).map(function(j){
+    var hid = function(n, what){
+      return '<div class="bx-hid"><i></i><span>' + n + ' ' + what
+           + (n === 1 ? '' : 's') + ' locked</span><i></i></div>';
+    };
+
+    var jobs = (cv.jobs || []).map(function(j, i){
+      /* First job in full, the rest structure-only. The reader can see the
+         standard of the writing on their own material without being handed the
+         finished article. */
+      if (locked && i > 0) {
+        return '<div class="job"><div class="job-top">'
+             +   '<div class="job-t">' + esc(j.title)
+             +     (j.org ? ', <span class="job-c">' + esc(j.org) + '</span>' : '') + '</div>'
+             +   '<div class="job-d">' + esc(j.dates) + '</div></div>'
+             + hid((j.bullets || []).length || 1, 'line') + '</div>';
+      }
       var bl = (j.bullets || []).map(function(b){ return '<li>' + esc(b) + '</li>'; }).join('');
       return '<div class="job"><div class="job-top">'
            +   '<div class="job-t">' + esc(j.title)
@@ -413,11 +457,14 @@ BBA from IBA Karachi 2020"></textarea>
       +               '<div>' + sect('Certification', right) + '</div></div>'
       : '';
 
-    var skills = (cv.skills && cv.skills.length)
-      ? sect('Skills', '<div class="sk">'
-          + cv.skills.map(function(s){ return '<span>' + esc(s) + '</span>'; }).join('')
-          + '</div>')
-      : '';
+    var skills = '';
+    if (cv.skills && cv.skills.length) {
+      skills = locked
+        ? sect('Skills', hid(cv.skills.length, 'skill'))
+        : sect('Skills', '<div class="sk">'
+            + cv.skills.map(function(s){ return '<span>' + esc(s) + '</span>'; }).join('')
+            + '</div>');
+    }
 
     return '<div class="paper"><div class="cv">'
          +   '<div class="cv-name">' + esc(cv.name) + '</div>'
@@ -442,6 +489,18 @@ BBA from IBA Karachi 2020"></textarea>
     var e = q('bxErr');
     e.textContent = msg;
     e.style.display = 'block';
+  }
+
+  var lastCv = null;
+
+  /* One place decides what is visible, so the lock state and the document can
+     never disagree. Called on generation AND whenever auth resolves, because
+     sign-in usually lands after the first paint. */
+  function paint(){
+    if (!lastCv) return;
+    var unlocked = owned;
+    q('bxPaper').innerHTML = renderCv(lastCv, !unlocked);
+    document.body.classList.toggle('bx-unlocked', unlocked);
   }
 
   var busy = false;
@@ -471,7 +530,8 @@ BBA from IBA Karachi 2020"></textarea>
         showErr(d.detail || 'That did not work. Try pasting a bit more of your existing resume.');
         return;
       }
-      q('bxPaper').innerHTML = renderCv(d.resume);
+      lastCv = d.resume;
+      paint();
       renderMissing(d.resume.missing);
       q('bxOut').style.display = 'block';
       q('bxOut').scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -551,6 +611,7 @@ BBA from IBA Karachi 2020"></textarea>
   function gate(){
     ownsThisSet().then(function(v){
       owned = v;
+      paint();
       if (owned) {
         q('bxGet').textContent = 'Download \u2192';
         q('bxLockMsg').textContent = isOwnerAccount
@@ -559,7 +620,8 @@ BBA from IBA Karachi 2020"></textarea>
       } else {
         q('bxGet').textContent = 'Unlock the download';
         q('bxLockMsg').textContent =
-          'Reading is free. Download and the editable Word file unlock with the set.';
+          'Your opening and first role are shown in full. Unlock to reveal the rest, '
+          + 'print it, and get the editable Word file.';
       }
     });
   }
