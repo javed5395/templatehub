@@ -172,6 +172,31 @@
       const p = snap.data();
       const title = p.title || (p.template && p.template.name) || 'Untitled';
       document.title = title + ' — LazyDogTemplates';
+      // 12 Aug 2026 — every blog-view.html?id=<id> URL used to ship the same
+      // title, the same description and no canonical at all, so Google saw
+      // eighteen identical pages and indexed none of them. Set the per-post
+      // signals here, the same way media_kits_slides.html and
+      // pitch_deck_slides.html already do in loadDesign().
+      (function setPostMeta(){
+        var canonUrl = location.origin + '/blog-view.html?id=' + encodeURIComponent(id);
+        var link = document.querySelector('link[rel="canonical"]');
+        if (!link) { link = document.createElement('link'); link.rel = 'canonical'; document.head.appendChild(link); }
+        link.href = canonUrl;
+        var summary = (p.summary || p.excerpt || p.description ||
+                       (p.template && p.template.description) || '').toString().trim();
+        if (summary.length > 300) summary = summary.slice(0, 297) + '…';
+        if (!summary) summary = title + ' — from the LazyDogTemplates journal.';
+        function meta(sel, attr, key, val){
+          var el = document.querySelector(sel);
+          if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+          el.setAttribute('content', val);
+        }
+        meta('meta[name="description"]', 'name', 'description', summary);
+        meta('meta[property="og:title"]', 'property', 'og:title', title + ' — LazyDogTemplates');
+        meta('meta[property="og:description"]', 'property', 'og:description', summary);
+        meta('meta[property="og:url"]', 'property', 'og:url', canonUrl);
+        meta('meta[property="og:type"]', 'property', 'og:type', 'article');
+      })();
       // 30 Jul 2026 — also look inside `template`. The upload form writes the
       // PDF link at the root AND inside the template object; reading only the
       // root meant one stray record shape could show as "no file attached".
