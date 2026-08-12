@@ -161,6 +161,8 @@ window.dissolveFlatFile = async function (file) {
   var base = String(window.LD_DISSOLVE_URL || '').replace(/\/$/, '');
   if (!base) { showToast('Dissolve service not set up yet (LD_DISSOLVE_URL missing)'); return; }
   showToast('Dissolving ' + (file.name || 'file') + ' … this can take a moment', 8000);
+  if (window.ldParseHeartbeat) window.ldParseHeartbeat(true, 'Dissolving ' + (file.name || 'file') + ' in LazyDog cloud…');
+  if (window.ldBusy) window.ldBusy('upload', true);
   try {
     var fd = new FormData(); fd.append('file', file, file.name || 'upload');
     var headers = {};
@@ -178,6 +180,9 @@ window.dissolveFlatFile = async function (file) {
     if (ok) showToast('Dissolved → editable ✓');
   } catch (err) {
     showToast('Dissolve error: ' + ((err && err.message) || err));
+  } finally {
+    if (window.ldParseHeartbeat) window.ldParseHeartbeat(false);
+    if (window.ldBusy) window.ldBusy('upload', false);
   }
 };
 
