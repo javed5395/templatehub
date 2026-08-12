@@ -282,16 +282,29 @@
       display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
   .bx-lock b{display:block;font-family:'Instrument Serif',serif;font-weight:400;font-size:21px}
   .bx-lock span{font-size:13.2px;color:#6a6478}
-  /* Locked content, shown as structure without substance. The buyer sees their
-     own name, their own opening, and their first job in full - enough to judge
-     the quality - while the rest keeps its shape and loses its words. Hiding
-     the whole thing would prove nothing; showing the whole thing would sell
-     nothing. */
-  .bx-hid{display:flex;align-items:center;gap:9px;margin:7px 0 0;
-      font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-      color:#a8a2b4}
-  .bx-hid i{flex:1;height:1px;background:repeating-linear-gradient(90deg,
-      var(--line) 0 9px,transparent 9px 15px)}
+  /* ── the watermark ──
+     Real DOM elements, not a CSS background image: browsers do not print
+     background images by default, so a background-image watermark would vanish
+     from the one output that matters most - the printed page. Text nodes always
+     print.
+
+     It sits above the document but is pointer-events:none and user-select:none,
+     so it cannot be clicked through, dragged off, or swept up in a select-all.
+     Payment removes the element entirely rather than hiding it. */
+  .bx-wm{position:absolute;inset:0;z-index:4;overflow:hidden;
+      pointer-events:none;user-select:none;-webkit-user-select:none}
+  .bx-wm div{position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%) rotate(-32deg);
+      display:flex;flex-wrap:wrap;gap:34px 46px;
+      width:190%;justify-content:center;align-items:center}
+  .bx-wm span{font-family:'Poppins',sans-serif;font-weight:700;font-size:27px;
+      letter-spacing:.2em;color:rgba(184,68,42,.13);white-space:nowrap}
+  body.bx-unlocked .bx-wm{display:none}
+
+  /* The locked preview keeps its full height so the buyer can see the shape of
+     what they are buying; only the words after the first role are withheld. */
+  .bx-tease{font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+      text-transform:uppercase;color:#b3adbe;margin:8px 0 0}
 
   @media print{
     /* Ctrl+P used to print the finished document for anyone at all, which made
@@ -301,18 +314,16 @@
        rather than "hide body's children and un-hide the document": #bxOut is
        three levels deep, so un-hiding it left its hidden ancestors in place and
        printed a blank page even for the owner. */
-    body:not(.bx-unlocked) > *{display:none !important}
-    body:not(.bx-unlocked)::after{
-      content:"This draft is locked. Unlock it at lazydogtemplates.com to print or download.";
-      display:block;font-family:'Instrument Serif',serif;font-size:17px;padding:40px}
+    /* Printing is allowed either way - the watermark is what protects the
+       unpaid version, not a locked door. Blocking print entirely just teaches
+       people to screenshot, and a watermarked page in a stranger's hands is an
+       advertisement rather than a loss. Paying removes the watermark. */
+    .bar,.head,.bx-card,.bx-missing,.bx-lock,.bx-step,.disc{display:none !important}
 
-    body.bx-unlocked .bar,
-    body.bx-unlocked .head,
-    body.bx-unlocked .bx-card,
-    body.bx-unlocked .bx-missing,
-    body.bx-unlocked .bx-lock,
-    body.bx-unlocked .bx-step,
-    body.bx-unlocked .disc{display:none !important}
+    /* Forced because browsers drop background colour on print by default, and
+       a watermark that only appears on screen protects nothing. */
+    .bx-wm span{color:rgba(184,68,42,.16) !important;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
 
     #bxOut{margin:0}
     .bx{padding:0}
@@ -422,9 +433,17 @@ BBA from IBA Karachi 2020"></textarea>
     var sect = function(h, inner){ return inner ? '<h4>' + esc(h) + '</h4>' + inner : ''; };
 
     var hid = function(n, what){
-      return '<div class="bx-hid"><i></i><span>' + n + ' ' + what
-           + (n === 1 ? '' : 's') + ' locked</span><i></i></div>';
+      return '<div class="bx-tease">' + n + ' more ' + what
+           + (n === 1 ? '' : 's') + ' in the full version</div>';
     };
+
+    /* Enough tiles to cover the sheet at any length the document reaches. */
+    var wm = '';
+    if (locked) {
+      var marks = '';
+      for (var w = 0; w < 40; w++) marks += '<span>LAZYDOG &middot; PREVIEW</span>';
+      wm = '<div class="bx-wm" aria-hidden="true"><div>' + marks + '</div></div>';
+    }
 
     var jobs = (cv.jobs || []).map(function(j, i){
       /* First job in full, the rest structure-only. The reader can see the
@@ -466,7 +485,7 @@ BBA from IBA Karachi 2020"></textarea>
             + '</div>');
     }
 
-    return '<div class="paper"><div class="cv">'
+    return '<div class="paper">' + wm + '<div class="cv">'
          +   '<div class="cv-name">' + esc(cv.name) + '</div>'
          +   '<div class="cv-role">' + esc(cv.role) + '</div>'
          +   '<div class="cv-rule"></div>'
