@@ -493,10 +493,45 @@ BBA from IBA Karachi 2020"></textarea>
      asked of the same Commerce.library the rest of the site uses, so there is
      one notion of ownership sitewide rather than a second, weaker one here.
      It FAILS CLOSED: not signed in, library absent, network error or any
-     exception all leave the download locked. */
+     exception all leave the download locked.
+
+     The two owner accounts are unlocked on the SAME list Hexa_Promptbox.html
+     already uses, deliberately reusing it rather than starting a second one -
+     two lists of admins drift, and the day they disagree nobody can say which
+     is right.
+
+     Worth being straight about what this check is and is not: it runs in the
+     browser, against the signed-in Firebase user's email, so a determined
+     person could fake it in devtools. That is acceptable here because the only
+     thing behind it is printing a document already displayed for free on the
+     same screen. When a real file is served - the Word version - that gate
+     must be server-side against a verified token, exactly as ai_fill_http
+     already does. This one is a convenience, not a vault. */
+  var ADMINS = ['javed5395@gmail.com', 'lazydogtemplates@gmail.com'];
+  var isOwnerAccount = false;
+
+  (function watchAuth(){
+    Promise.all([
+      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
+    ]).then(function(m){
+      var A = m[0], B = m[1];
+      var app = A.getApps().length ? A.getApp() : A.initializeApp({
+        apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+        authDomain: "templatehub-16cd7.firebaseapp.com",
+        projectId: "templatehub-16cd7"
+      });
+      B.onAuthStateChanged(B.getAuth(app), function(u){
+        isOwnerAccount = !!(u && ADMINS.indexOf(String(u.email || '').toLowerCase()) > -1);
+        gate();          // re-run: sign-in usually resolves after first paint
+      });
+    }).catch(function(){ /* auth unavailable - stays locked, as it should */ });
+  })();
+
   var owned = false;
 
   function ownsThisSet(){
+    if (isOwnerAccount) return Promise.resolve(true);
     try {
       var C = window.Commerce;
       if (!(C && C.library && typeof C.library.ownsProduct === 'function')) {
@@ -518,7 +553,9 @@ BBA from IBA Karachi 2020"></textarea>
       owned = v;
       if (owned) {
         q('bxGet').textContent = 'Download \u2192';
-        q('bxLockMsg').textContent = 'Yours. Download saves a PDF; the Word file is in your library.';
+        q('bxLockMsg').textContent = isOwnerAccount
+          ? 'Owner account \u2014 unlocked. Download saves a PDF.'
+          : 'Yours. Download saves a PDF; the Word file is in your library.';
       } else {
         q('bxGet').textContent = 'Unlock the download';
         q('bxLockMsg').textContent =
