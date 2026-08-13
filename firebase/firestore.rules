@@ -212,6 +212,44 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── deployment_requests (WEB KIT DEPLOYMENT ENQUIRIES, 13 Aug 2026) ───
+    // Someone wants us to build and host a web kit on their own domain. That
+    // price is negotiated per client, so it never appears in the store — this
+    // is just the enquiry that starts the conversation.
+    //
+    // WHY CREATE IS OPEN TO EVERYONE
+    //   The person asking is usually not a customer yet and has no account.
+    //   Requiring sign-in here would lose the enquiry. There is no money and
+    //   no private data in this document, so an open create is the right call.
+    //
+    // WHY NOBODY CAN READ THEM BACK
+    //   The documents hold a stranger's name, email and phone. If read were
+    //   open, anyone could harvest every lead we have ever received. Only the
+    //   two admin accounts may read, edit or delete.
+    //
+    // FIELD VALIDATION ON CREATE
+    //   Caps the size so the collection cannot be used as free storage, and
+    //   forces status to 'new' so a submitter cannot mark their own enquiry
+    //   as quoted or closed.
+    match /deployment_requests/{reqId} {
+      allow read:   if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+
+      allow create: if request.resource.data.status == 'new'
+                    && request.resource.data.name  is string
+                    && request.resource.data.name.size()  >= 2
+                    && request.resource.data.name.size()  <= 80
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() <= 120
+                    && request.resource.data.email.matches('.+@.+[.].+')
+                    && request.resource.data.needs is list
+                    && request.resource.data.needs.size() >= 1
+                    && request.resource.data.needs.size() <= 20
+                    && request.resource.data.get('notes', '').size() <= 2000
+                    && request.resource.data.keys().size() <= 14;
+    }
+
     // ── design_orders (BACKGROUND DESIGN ORDERS, 2 Aug 2026) ──────────────
     // A buyer places an order and walks away; on_design_order builds it.
     // A signed-out visitor cannot create one at all — that is the whole

@@ -534,6 +534,39 @@
             <div class="file-list" id="videoList"></div>
           </div>
 
+          <!-- REPORT DOCUMENTS — Web Kits & Digital Keynotes only (13 Aug 2026) -->
+          <div id="reportDocsSection" style="display:none;">
+            <p style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin:18px 0 4px;">📑 Report Documents <span class="required">*</span></p>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Required for Website Kits and Digital Keynotes — the three report PDFs included with the kit.</p>
+            <div class="field">
+              <label>Creative Exploration Report <span class="required">*</span></label>
+              <div class="upload-box">
+                <input type="file" id="reportDoc1" accept=".pdf" onchange="showFiles('reportDoc1','reportList1')"/>
+                <div class="upload-icon">🎨</div>
+                <p><strong>Click to upload Creative Exploration Report (PDF)</strong></p>
+              </div>
+              <div class="file-list" id="reportList1"></div>
+            </div>
+            <div class="field">
+              <label>Design Intelligence Report <span class="required">*</span></label>
+              <div class="upload-box">
+                <input type="file" id="reportDoc2" accept=".pdf" onchange="showFiles('reportDoc2','reportList2')"/>
+                <div class="upload-icon">🧠</div>
+                <p><strong>Click to upload Design Intelligence Report (PDF)</strong></p>
+              </div>
+              <div class="file-list" id="reportList2"></div>
+            </div>
+            <div class="field">
+              <label>Design Engineering Report <span class="required">*</span></label>
+              <div class="upload-box">
+                <input type="file" id="reportDoc3" accept=".pdf" onchange="showFiles('reportDoc3','reportList3')"/>
+                <div class="upload-icon">⚙️</div>
+                <p><strong>Click to upload Design Engineering Report (PDF)</strong></p>
+              </div>
+              <div class="file-list" id="reportList3"></div>
+            </div>
+          </div>
+
           <!-- DYNAMIC EXTRA BOXES -->
           <div id="extraFormatsContainer"></div>
           <button type="button" class="btn btn-outline" onclick="addExtraFormat()" style="margin-top:8px;font-size:13px;">
@@ -1991,6 +2024,30 @@ window.submitForm = async function() {
     if (el && el.files[0]) extraFiles.push(el.files[0]);
   }
 
+  // ── REPORT DOCUMENTS (Web Kits & Digital Keynotes) — 13 Aug 2026 ─────────
+  // Three fixed-name report PDFs, required for these two categories. They ride
+  // the existing extraFiles pipeline (Drive upload + extraFiles badges), but
+  // are renamed to their canonical titles so buyers always see the same names.
+  if (category === 'web_kit' || category === 'digital_keynotes') {
+    const REPORT_SLOTS = [
+      ['reportDoc1', 'Creative Exploration Report.pdf'],
+      ['reportDoc2', 'Design Intelligence Report.pdf'],
+      ['reportDoc3', 'Design Engineering Report.pdf']
+    ];
+    const missing = [];
+    for (const [id, canonName] of REPORT_SLOTS) {
+      const el = document.getElementById(id);
+      const f  = el && el.files[0];
+      if (!f) { missing.push(canonName.replace('.pdf','')); continue; }
+      if (!/\.pdf$/i.test(f.name)) { alert(canonName.replace('.pdf','') + ' must be a PDF file.'); return; }
+      extraFiles.push(new File([f], canonName, { type: 'application/pdf' }));
+    }
+    if (missing.length) {
+      alert('This category requires all three report PDFs. Missing: ' + missing.join(', '));
+      return;
+    }
+  }
+
   // Collect editable apps checkboxes
   const editableApps = Array.from(document.querySelectorAll('input[name="editableApps"]:checked')).map(cb => cb.value);
 
@@ -2653,6 +2710,10 @@ window.updateSubCategories = function() {
 window.applyCategoryRequirements = function(cat) {
   var isResume = cat === 'resume_cv';
   var isBlog   = cat === 'blog';
+
+  // Report Documents section — only for Website Kits & Digital Keynotes
+  var reportSec = document.getElementById('reportDocsSection');
+  if (reportSec) reportSec.style.display = (cat === 'web_kit' || cat === 'digital_keynotes') ? '' : 'none';
 
   var pngLabel   = document.getElementById('pngLabel');
   var pdfLabel   = document.getElementById('pdfLabel');

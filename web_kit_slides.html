@@ -208,6 +208,24 @@
     body.light .lic-btn { background:#f4f5fb; border-color:#d8dcea; color:#3a4260; }
     body.light .lic-btn.is-on { background:#e8eeff; border-color:#3f6fd8; color:#12203f; box-shadow:0 0 0 1px #3f6fd8 inset; }
     body.light .lic-note { color:#6b7280; }
+    /* -- Deployment upsell (13 Aug 2026) -----------------------------------
+       Deliberately quieter than the buy buttons. The kit sale is the default
+       path; this is the alternative for people who don't want to touch code.
+       No price shown anywhere -- every deployment is quoted individually. */
+    .deploy-box { margin-top:16px; padding:15px 16px; border:1px solid #2a3560;
+                  border-radius:12px; background:#101736; }
+    .deploy-box__t { font-size:13.5px; font-weight:700; color:#fff; margin-bottom:6px; }
+    .deploy-box__d { font-size:12px; color:#9fb0c8; line-height:1.65; margin:0 0 12px; }
+    .deploy-box__btn { display:block; text-align:center; text-decoration:none;
+                       padding:10px; border:1px solid #64c8ff; border-radius:30px;
+                       color:#64c8ff; font-size:13px; font-weight:700; transition:.15s; }
+    .deploy-box__btn:hover { background:rgba(100,200,255,.12); }
+    .deploy-box__n { font-size:10.5px; color:#7d8ba3; text-align:center; margin-top:8px; }
+    body.light .deploy-box { background:#f4f5fb; border-color:#d8dcea; }
+    body.light .deploy-box__t { color:#12203f; }
+    body.light .deploy-box__d { color:#5b6478; }
+    body.light .deploy-box__btn { color:#2f63c9; border-color:#2f63c9; }
+    body.light .deploy-box__n { color:#7b8496; }
     .etsy-keywords { font-size:12px; color:#8899aa; }
     .etsy-seller-row { display:flex; align-items:center; justify-content:space-between; }
     .etsy-seller-name { font-size:13px; color:#64c8ff; font-weight:600; }
@@ -498,6 +516,28 @@ document.addEventListener('click',function(e){
       <button class="etsy-btn-outline" onclick="buyItNow()">Buy it now</button>
       <button class="etsy-btn-filled" onclick="addToBasket()">Add to basket</button>
       <button class="etsy-collection-link"><span class="heart">♥</span> Add to collection</button>
+
+      <!-- ── DEPLOYMENT UPSELL (13 Aug 2026) ────────────────────────────────
+           Two ways to buy a web kit. The buttons above sell the FILES at a
+           fixed price through Whop. This sells the SERVICE — we build it and
+           put it live on their domain — and that price is negotiated per
+           client, so it deliberately has no number and never touches Whop
+           from this page. It only opens an enquiry form.
+           Link is built in JS below so the request records which kit it came
+           from. -->
+      <div class="deploy-box">
+        <div class="deploy-box__t">Don't want to build it yourself?</div>
+        <p class="deploy-box__d">
+          We'll put your text and images in, and hand you the finished site
+          live on your own domain. Priced per job — tell us what you need and
+          we'll send a quote.
+        </p>
+        <a class="deploy-box__btn" id="deployQuoteLink" href="deployment/quote.html">
+          Get a deployment quote →
+        </a>
+        <div class="deploy-box__n">Free to ask. Nothing is charged here.</div>
+      </div>
+
       <div class="etsy-accordion open">
         <div class="etsy-accordion-header" onclick="toggleAccordion(this)">
           <span>Item details</span><span class="etsy-arrow">∧</span>
@@ -714,9 +754,26 @@ function ldtInitLicence(k){
   paintNote();
 }
 
+/* -- Deployment quote link (13 Aug 2026) -------------------------------------
+   Stamps the kit id and title onto the enquiry link so the request that lands
+   in deployment_requests says WHICH kit the person was looking at. Both are
+   optional on the form, so a failure here degrades to a plain enquiry rather
+   than breaking the page. */
+function ldtPaintDeployLink(k){
+  try {
+    var a = document.getElementById('deployQuoteLink');
+    if (!a) return;
+    var id   = new URLSearchParams(location.search).get('firebase') || (k && k.id) || '';
+    var name = (k && k.name) || '';
+    a.href = 'deployment/quote.html?kit=' + encodeURIComponent(id)
+           + '&name=' + encodeURIComponent(name);
+  } catch(e){ /* leave the plain href in place */ }
+}
+
 function loadKit(k) {
   currentKitData = k;
   ldtInitLicence(k);
+  ldtPaintDeployLink(k);
   document.getElementById('breadcrumbName').textContent = k.name;
   // Fix price display
   var priceEl = document.querySelector('.etsy-price');

@@ -938,6 +938,16 @@ body::before{
 .product-detail__price-amount em{font-style:italic;color:var(--oxblood)}
 .product-detail__price-label{font-family:var(--font-mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--whisper)}
 .product-detail__actions{display:flex;gap:12px}
+/* Deployment upsell (13 Aug 2026) — WebKits only. Quieter than the buy
+   buttons: buying the files stays the default path, this is the alternative. */
+.deploy-box{margin-top:8px;padding:22px 24px;border:1px solid var(--hairline);background:rgba(22,19,15,0.025)}
+.deploy-box__t{font-family:var(--font-display);font-size:20px;line-height:1.25;color:var(--ink);margin-bottom:8px}
+.deploy-box__d{font-size:14px;line-height:1.75;color:var(--whisper);margin:0 0 16px}
+.deploy-box__btn{display:inline-block;text-decoration:none;font-family:var(--font-mono);font-size:11px;
+  letter-spacing:0.18em;text-transform:uppercase;color:var(--oxblood);border-bottom:1px solid var(--oxblood);
+  padding-bottom:4px;transition:opacity .3s}
+.deploy-box__btn:hover{opacity:.65}
+.deploy-box__n{font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:var(--whisper);margin-top:14px}
 .btn-primary{flex:1;padding:18px 28px;background:var(--ink);color:var(--bone);font-family:var(--font-mono);font-size:11px;letter-spacing:0.25em;text-transform:uppercase;font-weight:500;transition:background .4s;display:flex;align-items:center;justify-content:center;gap:10px}
 .btn-primary:hover{background:var(--oxblood)}
 .btn-secondary{padding:18px 28px;border:1px solid var(--hairline-strong);font-family:var(--font-mono);font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--ink);font-weight:500;transition:all .4s;display:flex;align-items:center;gap:10px}
@@ -1745,6 +1755,28 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
             <button class="btn-primary" id="productAddPersonalBtn" data-cursor-label="Store" onclick="navigateTo('marketplace')"><i class="fa-solid fa-bag-shopping"></i> Choose a Product</button>
             <button class="btn-primary" id="productAddCommercialBtn" data-cursor-label="Store" onclick="navigateTo('marketplace')" style="display:none"><i class="fa-solid fa-bag-shopping"></i> Buy Commercial</button>
             <button class="btn-secondary" id="productLivePreviewBtn" data-cursor-label="Preview"><i class="fa-solid fa-eye"></i> Live Preview</button>
+          </div>
+
+          <!-- ── DEPLOYMENT UPSELL (13 Aug 2026) ──────────────────────────────
+               A visitor can buy from two places on this site: the main store
+               slide pages and this Studio product view. The deployment offer
+               has to exist in BOTH, or half the buyers never see it.
+
+               Shown for WebKits only — you cannot "deploy" a pitch deck.
+               ldsOpenPackage() reveals it when catKey === 'webkit' and hides
+               it for every other category. No price here on purpose: each
+               deployment is quoted individually and never goes through Whop
+               from this page. -->
+          <div class="deploy-box" id="ldsDeployBox" style="display:none">
+            <div class="deploy-box__t">Want it built and deployed for you?</div>
+            <p class="deploy-box__d">
+              We'll drop in your content and hand you the finished site, live on
+              your own domain. Quoted per job — tell us what you need.
+            </p>
+            <a class="deploy-box__btn" id="ldsDeployLink" href="deployment/quote.html">
+              Request a deployment quote →
+            </a>
+            <div class="deploy-box__n">Free to ask. Nothing is charged here.</div>
           </div>
         </div>
       </div>
@@ -4489,6 +4521,20 @@ document.addEventListener('keydown',e=>{
                                                             : (n ? n + ' ' + unit + (n===1?'':'s') : 'Included');
         if(productEl.pPrice)  productEl.pPrice.textContent  = personal;
         if(productEl.cPrice)  productEl.cPrice.textContent  = commercial;
+
+        /* ── DEPLOYMENT UPSELL (13 Aug 2026) ──────────────────────────────
+           WebKits only — there is nothing to "deploy" about a pitch deck, and
+           offering it there would just confuse the buyer. The link carries the
+           kit id and name so the enquiry that lands in deployment_requests
+           says exactly which product the person was looking at. */
+        try {
+          const dBox = document.getElementById('ldsDeployBox');
+          const dLnk = document.getElementById('ldsDeployLink');
+          if (dBox) dBox.style.display = (catKey === 'webkit') ? '' : 'none';
+          if (dLnk) dLnk.href = 'deployment/quote.html?kit='
+                              + encodeURIComponent(t.__docId || '')
+                              + '&name=' + encodeURIComponent(name);
+        } catch(e){ /* upsell is optional — never block the product view */ }
 
         // ── CHECKOUT ──────────────────────────────────────────────────
         // ensure_whop_plan() writes template.whopPurchaseUrl back onto every
