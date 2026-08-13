@@ -3048,8 +3048,15 @@ function renderCollectionSpreads(){
       ? '$'+Math.round(price)+' Personal · '+commercialPrice('$'+price)+' Commercial'
       : 'Free';
     const slideN=t.slideCount||(t.slides?t.slides.length:0)||'—';
+    /* Third view that shows the file list — the featured-spread renderer.
+       Same ".PDF / .PDF / .PDF" problem as the other two, so it uses the same
+       collapsing helper. Guarded because this block lives in an earlier script
+       tag than where ldsFileList is defined; if it somehow has not loaded yet
+       we fall back to the old raw join rather than throwing. */
     const third=(catKey==='webkit')
-      ? {l:'Stack', v:(t.fileTypes&&t.fileTypes.length?t.fileTypes.join(' / '):'HTML / CSS / JS')}
+      ? {l:'Stack', v:(typeof window.ldsFileList==='function'
+                        ? window.ldsFileList(t, catKey, ' / ')
+                        : (t.fileTypes&&t.fileTypes.length?t.fileTypes.join(' / '):'HTML / CSS / JS'))}
       : {l:'Slides',v:slideN};
     const desc=t.designNotes||(name+' — a '+label.toLowerCase()+' from the LazyDog collection, ready to adapt.');
     const num ='LDS-'+String(i+1).padStart(3,'0');
@@ -4432,6 +4439,39 @@ document.addEventListener('keydown',e=>{
         return items;
       }
 
+      /* ── FILE LIST (13 Aug 2026) ──────────────────────────────────────────
+         t.fileTypes is a flat list of EXTENSIONS, one per uploaded file. A web
+         kit ships the main PDF plus three report PDFs, so it rendered as
+         ".PNG / .PPTX / .PDF / .VIDEO / .PDF / .PDF / .PDF" — four identical
+         entries that tell a buyer nothing and read like a bug.
+
+         Collapse repeats and show the count instead: ".PDF ×4".
+
+         Shared by BOTH views on purpose. A buyer coming from the main site
+         lands on the Collection page first and only reaches the Product page
+         after clicking through, so fixing one and not the other would leave
+         the ugly version on the page most people see first. */
+      function ldsFileList(t, catKey, sep){
+        const raw = (t && t.fileTypes && t.fileTypes.length) ? t.fileTypes : null;
+        const fallback = (catKey === 'webkit') ? 'HTML / CSS / JS' : 'PPTX / PDF';
+        if (!raw) return (sep === ', ') ? fallback.replace(/ \/ /g, ', ') : fallback;
+        const order = [];
+        const count = {};
+        raw.forEach(function(x){
+          const k = String(x || '').trim().toUpperCase();
+          if (!k) return;
+          if (!(k in count)) { count[k] = 0; order.push(k); }
+          count[k]++;
+        });
+        if (!order.length) return fallback;
+        return order.map(function(k){
+          return count[k] > 1 ? (k + ' ×' + count[k]) : k;
+        }).join(sep || ', ');
+      }
+      /* Exposed globally: the featured-spread renderer lives in an earlier
+         script tag and needs the same collapsing. */
+      window.ldsFileList = ldsFileList;
+
       // ── PRODUCT PACKAGE (page 05) — media kits only ──────────────────
       // The three dossier reports describe what ships inside a media kit.
       // They are meaningless for a webkit or a resume, so only catKey
@@ -4505,20 +4545,7 @@ document.addEventListener('keydown',e=>{
 
            Collapse repeats and say how many: ".PNG, .PPTX, .PDF x4, .VIDEO".
            The names of those PDFs are shown separately under Documentation. */
-        const files = (function(){
-          const raw = (t.fileTypes && t.fileTypes.length) ? t.fileTypes : null;
-          if (!raw) return (catKey === 'webkit' ? 'HTML, CSS, JS' : 'PPTX, PDF');
-          const seen = [];
-          const n    = {};
-          raw.forEach(function(x){
-            const k = String(x || '').trim().toUpperCase();
-            if (!k) return;
-            if (!(k in n)) { n[k] = 0; seen.push(k); }
-            n[k]++;
-          });
-          return seen.map(function(k){ return n[k] > 1 ? (k + ' ×' + n[k]) : k; })
-                     .join(', ');
-        })();
+        const files = ldsFileList(t, catKey, ', ');
         const price = parseFloat(t.price);
         const personal   = (price>0) ? '$' + Math.round(price) : 'Free';
         const commercial = (price>0) ? commercialPrice('$'+price) : 'Free';
@@ -4772,7 +4799,7 @@ document.addEventListener('keydown',e=>{
         const slideN = t.slideCount || (t.slides ? t.slides.length : 0) || '—';
         // WebKits ship code, everything else ships slides — label the 3rd cell to suit
         const third = (catKey === 'webkit')
-          ? { l:'Stack',  v:(t.fileTypes && t.fileTypes.length ? t.fileTypes.join(' / ') : 'HTML / CSS / JS') }
+          ? { l:'Stack',  v: ldsFileList(t, catKey, ' / ') }
           : { l:'Slides', v:slideN };
         const desc = t.designNotes
           || (name + ' — a ' + label.toLowerCase() + ' from the LazyDog collection, ready to adapt.');
