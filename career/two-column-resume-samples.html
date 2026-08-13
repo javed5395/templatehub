@@ -242,6 +242,164 @@
   .ck-t{background:#fbf9f4;border:1px solid var(--line);border-left:3px solid var(--gold);
         padding:15px 18px;font-size:14.4px;line-height:1.6;color:#26263a;white-space:pre-line}
   .ck-note{font-size:12.6px;color:#6a6478;margin-top:8px;line-height:1.55}
+
+  /* ══════════════════════════════════════════════════════════════════════
+     THREE LAYOUTS, ADDED 13 AUG 2026
+
+     Until now every one of the 147 samples rendered in the same single
+     column. Two pages were literally named after layouts they did not show:
+     "two-column-resume-samples" and "creative-portfolio-resume-samples" both
+     drew a plain one-column sheet. A visitor arrives to see a LAYOUT; three
+     identical samples show them one.
+
+     All three are built from the same data dict as the plain renderer, in the
+     site's own palette. No stock template, no skill-rating dots - a recruiter
+     cannot verify "Excel 4 out of 5" and it is the most mocked thing on a
+     resume. The portrait is an optional drawn silhouette, never a photograph:
+     the sample is a shape to pour your own record into, and a stranger's face
+     in it helps nobody.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  /* ── SPLIT: coloured side panel, body on the right ── */
+  .paper.split{padding:0;overflow:hidden;--ac:#0f3d3e;--ac2:#d4af37}
+  .paper.split::before{display:none}
+  .sp-grid{display:grid;grid-template-columns:227px 1fr;min-height:100%}
+  @media(max-width:700px){.sp-grid{grid-template-columns:1fr}}
+  .sp-side{background:var(--ac);color:#e9e5da;padding:34px 24px}
+  .sp-side .sp-nm{font-family:'Instrument Serif',serif;font-size:28px;line-height:1.08;color:#fff}
+  .sp-side .sp-rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--ac2);margin:7px 0 20px}
+  .sp-h{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--ac2);margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid rgba(233,229,218,.22)}
+  .sp-side div.sp-i{font-size:11.8px;line-height:1.55;color:#cdc8bd;margin:0 0 5px;word-break:break-word}
+  .sp-side ul{margin:0;padding-left:14px}
+  .sp-side li{font-size:11.8px;line-height:1.6;color:#cdc8bd;margin:3px 0}
+  .sp-main{padding:34px 34px 38px;background:#fff}
+  .sp-main h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--ac);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .sp-main h4+h4{margin-top:22px}
+  .sp-main .lead{font-size:13.6px;line-height:1.62;font-family:inherit;color:#3a3a4c;margin:0 0 20px}
+
+  /* ── BAND: full-width colour header, one column beneath ── */
+  .paper.band{padding:0;overflow:hidden;--ac:#b8442a}
+  .paper.band::before{display:none}
+  .bd-top{background:var(--ac);color:#fff;padding:26px 40px 22px}
+  .bd-nm{font-family:'Instrument Serif',serif;font-size:34px;line-height:1}
+  .bd-rl{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+      color:rgba(255,255,255,.82);margin:6px 0 0}
+  .bd-ct{font-size:11.8px;color:rgba(255,255,255,.9);margin:13px 0 0}
+  .bd-strip{display:flex;background:#f7f3ea;border-bottom:1px solid var(--line)}
+  .bd-strip div{flex:1;padding:12px 14px;text-align:center;border-right:1px solid var(--line)}
+  .bd-strip div:last-child{border-right:0}
+  .bd-strip b{display:block;font-family:'Instrument Serif',serif;font-size:20px;color:var(--ac)}
+  .bd-strip span{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;
+      color:#8a8496}
+  .bd-body{padding:26px 40px 34px;background:#fff}
+
+  /* ── FOLIO: dark panel with a drawn portrait, for creative work ── */
+  .paper.folio{padding:0;overflow:hidden;--ac:#14141f;--ac2:#d4af37}
+  .paper.folio::before{display:none}
+  .fo-grid{display:grid;grid-template-columns:1fr 238px}
+  @media(max-width:700px){.fo-grid{grid-template-columns:1fr}}
+  .fo-main{padding:34px 32px 38px;background:#fff}
+  .fo-nm{font-family:'Instrument Serif',serif;font-size:33px;line-height:1.05}
+  .fo-rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--ac);margin:6px 0 16px}
+  .fo-side{background:var(--ac);color:#ded9cf;padding:28px 22px 34px}
+  .fo-av{width:96px;height:96px;border-radius:50%;margin:0 auto 18px;display:block;
+      background:rgba(255,255,255,.09);border:2px solid var(--ac2)}
+  .fo-h{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--ac2);margin:18px 0 8px}
+  .fo-side .fo-i{font-size:11.6px;line-height:1.55;color:#c2bcb1;margin:0 0 5px;word-break:break-word}
+  .fo-tags{display:flex;flex-wrap:wrap;gap:5px}
+  .fo-tags span{border:1px solid rgba(222,217,207,.28);padding:3px 8px;font-size:10.5px;color:#ded9cf}
+
+  @media print{
+    .sp-side,.fo-side,.bd-top{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+
+  /* ── RAIL: the devices the commercial templates actually use ──
+     Studied from a pack of thirteen sold templates. Four things they do that a
+     plain typeset sheet does not, each with a reason:
+
+       icons on contact lines  - the block is scanned, not read; a glyph is
+                                 found faster than the word "Phone"
+       a timeline rail         - chronology becomes visible instead of inferred
+       a hairline divider      - separates two columns without spending a solid
+                                 block of ink, so the page stays light
+       bold caps headings      - a far stronger hierarchy than small letterspaced
+                                 type, readable at a glance and at arm's length
+
+     Set entirely in sans. The serif is this site's editorial voice and it reads
+     as old-fashioned on a modern resume - a different document deserves a
+     different typeface, not the same one rearranged. */
+  .paper.rail{padding:0;overflow:hidden;--ac:#1d3b6e;--ac2:#e8eef7;position:relative}
+  .paper.rail::before{display:none}
+  .paper.rail::after{content:"";position:absolute;top:0;right:0;width:150px;height:88px;
+      background:var(--ac);opacity:.10;clip-path:polygon(100% 0,0 0,100% 100%)}
+  .rl-wrap{font-family:'Inter',sans-serif;padding:34px 38px 36px;background:#fff;position:relative;z-index:1}
+  .rl-nm{font-family:'Poppins',sans-serif;font-weight:800;font-size:33px;line-height:1;
+      letter-spacing:-.01em;color:var(--ac);text-transform:uppercase}
+  .rl-rl{font-family:'Poppins',sans-serif;font-weight:500;font-size:13px;letter-spacing:.22em;
+      text-transform:uppercase;color:#5a6472;margin:7px 0 0}
+  .rl-hr{height:3px;width:64px;background:var(--ac);margin:14px 0 20px}
+  .rl-cols{display:grid;grid-template-columns:1fr 1px 1.55fr;gap:0 26px}
+  @media(max-width:700px){.rl-cols{grid-template-columns:1fr;gap:0}.rl-line{display:none}}
+  .rl-line{background:#e3e7ee}
+  .rl-h{font-family:'Poppins',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.13em;
+      text-transform:uppercase;color:var(--ac);margin:0 0 10px;padding-bottom:6px;
+      border-bottom:2px solid var(--ac2)}
+  .rl-h+.rl-h,.rl-blk+.rl-blk .rl-h{margin-top:22px}
+  .rl-blk{margin:0 0 20px}
+  .rl-p{font-size:13.2px;line-height:1.62;color:#41485a;margin:0}
+
+  /* contact: glyph + value, aligned on a grid so the values line up */
+  .rl-ct{display:grid;grid-template-columns:20px 1fr;gap:7px 9px;align-items:start}
+  .rl-ct svg{width:14px;height:14px;fill:none;stroke:var(--ac);stroke-width:1.7;margin-top:2px}
+  .rl-ct span{font-size:12.4px;line-height:1.5;color:#41485a;word-break:break-word}
+
+  .rl-it{margin:0 0 11px}
+  .rl-it b{display:block;font-family:'Poppins',sans-serif;font-weight:600;font-size:12.8px;color:#22272f}
+  .rl-it span{font-size:12px;color:#6b7385}
+
+  .rl-tags{display:flex;flex-wrap:wrap;gap:6px}
+  .rl-tags span{background:var(--ac2);color:var(--ac);font-family:'Poppins',sans-serif;
+      font-weight:600;font-size:11px;padding:4px 9px;border-radius:2px}
+
+  /* the rail itself: a line down the left with a dot per role */
+  .rl-tl{position:relative;padding-left:20px}
+  .rl-tl::before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:2px;background:var(--ac2)}
+  .rl-job{position:relative;margin:0 0 17px}
+  .rl-job::before{content:"";position:absolute;left:-20px;top:5px;width:10px;height:10px;
+      border-radius:50%;background:var(--ac);box-shadow:0 0 0 3px #fff}
+  .rl-dt{font-family:'Poppins',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.1em;
+      text-transform:uppercase;color:var(--ac)}
+  .rl-jt{font-family:'Poppins',sans-serif;font-weight:700;font-size:14.5px;color:#22272f;margin:2px 0 1px}
+  .rl-co{font-size:12.4px;color:#6b7385;margin:0 0 6px}
+  .rl-job ul{margin:0;padding-left:16px}
+  .rl-job li{font-size:12.8px;line-height:1.58;color:#41485a;margin:3px 0}
+  .rl-job li::marker{color:var(--ac)}
+
+  @media print{.paper.rail::after,.rl-tags span,.rl-job::before{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+  /* ── the portrait slot ──
+     A drawn silhouette, never a stock photograph. Two reasons: a sample is a
+     shape to pour your own record into and a stranger's face in it helps
+     nobody, and every stock face on the internet is already on a thousand other
+     template sites. This reads unmistakably as "your photo goes here".
+
+     Whether to use one at all is the reader's call. It is expected across much
+     of Asia, the Gulf and continental Europe, and unusual in the US, UK and
+     Canada - so the samples show both, and the note under each says which is
+     which rather than pretending there is one rule. */
+  .rl-photo{width:104px;height:104px;border-radius:50%;background:var(--ac2);
+      border:3px solid var(--ac);display:flex;align-items:center;justify-content:center;
+      overflow:hidden;flex:0 0 auto}
+  .rl-photo svg{width:104px;height:104px;display:block}
+  .rl-photo svg *{fill:var(--ac);opacity:.42}
+  .rl-head{display:flex;gap:22px;align-items:center;margin:0 0 6px}
+  .rl-head .rl-hr{margin:12px 0 0}
+  @media print{.rl-photo{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
 </head>
 <body>
@@ -260,7 +418,7 @@
   <div class="facts"><div class="fact">Samples<b>Three, complete</b></div><div class="fact">Formats<b>DOCX and PDF</b></div><div class="fact">Reading<b>Free, no signup</b></div><div class="fact">Layout<b>Two columns, parse-safe</b></div></div>
 </div>
 
-<div class="toc"><div class="toc-in"><h4>On this page</h4><ol><li><a href="#s1">Sample one — project manager</a></li><li><a href="#s2">Sample two — architect</a></li><li><a href="#s3">Sample three — the mistake, corrected</a></li><li><a href="#when-safe">When two columns are safe</a></li><li><a href="#when-not">When to use one column instead</a></li><li><a href="#panel-contents">What belongs in the panel</a></li><li><a href="#rewrites">Three rewrites</a></li></ol></div></div>
+<div class="toc"><div class="toc-in"><h4>On this page</h4><ol><li><a href="#s1">Sample one — project manager</a></li><li><a href="#s2">Sample two — architect</a></li><li><a href="#s3">Sample three — the panel used well</a></li><li><a href="#when-safe">When two columns are safe</a></li><li><a href="#when-not">When to use one column instead</a></li><li><a href="#panel-contents">What belongs in the panel</a></li><li><a href="#rewrites">Three rewrites</a></li></ol></div></div>
 
 <div class="body">
 <div class="slab" id="s1"><b>Sample One</b><span>Eight years · Construction projects</span><i></i></div><p class="intro">The panel carries contact details, certifications and software. The main column carries every job, every date and every bullet — the parts a tracker must read in order.</p>
@@ -285,18 +443,7 @@
   <div class="two"><div><h4>Education</h4><div class="job"><div class="job-t" style="font-size:17px">B.Arch</div><div class="cv-ct">National College of Arts · 2019</div></div></div><div><h4>Certification</h4><div class="job"><div class="job-t" style="font-size:17px">PCATP Registered Architect</div><div class="cv-ct">Pakistan Council of Architects · 2020</div></div><div class="job"><div class="job-t" style="font-size:17px">Autodesk Revit Professional</div><div class="cv-ct">Autodesk · 2021</div></div></div></div>
   <h4>Skills</h4><div class="sk"><span>Revit</span><span>AutoCAD</span><span>SketchUp</span><span>Rhino</span><span>Adobe Creative Suite</span><span>Construction Detailing</span><span>Authority Approvals</span><span>Consultant Coordination</span><span>Client Presentation</span></div>
   
-</div></div><div class="why"><h5>Why this one works</h5><ul><li><b>Area figures do the work.</b> 90,000 and 340,000 square feet tell an architecture practice the scale of project this person can be trusted with. It is the profession's natural unit.</li><li><b>The portfolio URL is in the header.</b> For any design role the resume is a summary; the work is the argument. Make the link impossible to miss.</li><li><b>The BIM transition is a leadership bullet in a junior role.</b> Running a nine-person office through a software change at that level says more than any adjective.</li><li><b>Software is in the panel, not the profile.</b> It matters and it is searchable, but it is not the reason to hire an architect.</li></ul></div><div class="slab" id="s3"><b>Sample Three</b><span>Five years · Bank operations</span><i></i></div><p class="intro">This one exists to show the failure mode. The same person, with employment history wrongly placed inside the side panel, becomes unfindable — so here it sits where it belongs, and the panel holds only what is safe to lose.</p>
-<div class="paper"><div class="cv">
-  <div class="cv-name">Ahmed Raza</div>
-  <div class="cv-role">Branch Operations Officer</div>
-  <div class="cv-rule"></div>
-  <div class="cv-ct">ahmed.raza@email.com &nbsp;·&nbsp; +92 345 3390 771 &nbsp;·&nbsp; Multan, Pakistan</div>
-  <h4>Profile</h4><div class="lead">Branch operations officer with five years in retail banking. Cut account opening time from 48 hours to 6, and closed three consecutive internal audits with zero exceptions.</div>
-  <h4>Experience</h4><div class="job"><div class="job-top"><div class="job-t">Branch Operations Officer, <span class="job-c">Bank Alfalah</span></div><div class="job-d">Jul 2022 — Present</div></div><ul><li>Run daily operations for a branch handling 1,100 transactions and PKR 40M in cash flow</li><li>Cut account opening turnaround from 48 hours to 6 by restructuring the KYC checklist</li><li>Closed three consecutive internal audits with zero exceptions raised</li><li>Supervise four tellers and own the end-of-day reconciliation</li></ul></div><div class="job"><div class="job-top"><div class="job-t">Customer Services Officer, <span class="job-c">Meezan Bank</span></div><div class="job-d">Jan 2021 — Jun 2022</div></div><ul><li>Handled 80+ customer interactions daily across account services and remittances</li><li>Resolved a backlog of 240 pending KYC files within two months</li></ul></div>
-  <div class="two"><div><h4>Education</h4><div class="job"><div class="job-t" style="font-size:17px">MBA — Banking &amp; Finance</div><div class="cv-ct">Bahauddin Zakariya University · 2020</div></div></div><div><h4>Certification</h4><div class="job"><div class="job-t" style="font-size:17px">AML / CFT Certification</div><div class="cv-ct">NIBAF · 2023</div></div><div class="job"><div class="job-t" style="font-size:17px">Islamic Banking Fundamentals</div><div class="cv-ct">IBA CEIF · 2022</div></div></div></div>
-  <h4>Skills</h4><div class="sk"><span>Branch Operations</span><span>KYC / AML Compliance</span><span>Cash Management</span><span>Account Opening</span><span>Internal Audit</span><span>Temenos T24</span><span>Customer Servicing</span><span>Team Supervision</span></div>
-  
-</div></div><div class="why"><h5>Why this one works</h5><ul><li><b>The employment history stayed in the main column.</b> This is the whole discipline of the format. The moment jobs and dates move into a side panel, a tracker can interleave them with skills and produce nonsense — and nobody tells you it happened.</li><li><b>Audit outcomes are stated.</b> "Three consecutive audits with zero exceptions" is the strongest sentence available in banking operations, and almost nobody writes it.</li><li><b>The core system is named.</b> Temenos T24 is a searchable term that separates candidates who need training from those who do not.</li><li><b>Turnaround has both ends.</b> 48 hours to 6 is a process rebuild. "Improved efficiency" is a hope.</li></ul></div>
+</div></div><div class="why"><h5>Why this one works</h5><ul><li><b>Area figures do the work.</b> 90,000 and 340,000 square feet tell an architecture practice the scale of project this person can be trusted with. It is the profession's natural unit.</li><li><b>The portfolio URL is in the header.</b> For any design role the resume is a summary; the work is the argument. Make the link impossible to miss.</li><li><b>The BIM transition is a leadership bullet in a junior role.</b> Running a nine-person office through a software change at that level says more than any adjective.</li><li><b>Software is in the panel, not the profile.</b> It matters and it is searchable, but it is not the reason to hire an architect.</li></ul></div><div class="slab" id="s3"><b>Sample Three</b><span>Nine years · Supply chain · Dubai</span><i></i></div><p class="intro">The same layout in a different colour, and a longer career. Nine years across three countries, and the panel still holds nothing that would hurt to lose &mdash; every employer, date and number sits in the main column where both a parser and a person read first.</p><div class="paper split" style="--ac:#0d4f4a;--ac2:#f0c14b"><div class="sp-grid"><div class="sp-side"><div class="sp-nm">Daniel Osei</div><div class="sp-rl">Supply Chain Manager</div><div class="sp-h">Contact</div><div class="sp-i">daniel.osei@email.com</div><div class="sp-i">+971 50 442 8817</div><div class="sp-i">Dubai, UAE</div><div class="sp-i">linkedin.com/in/danielosei</div><div class="sp-h">Skills</div><ul><li>Procurement</li><li>Supplier Negotiation</li><li>Customs &amp; Trade Compliance</li><li>Demand Planning</li><li>SAP MM</li><li>Power BI</li><li>Cost Modelling</li><li>Team Leadership</li></ul><div class="sp-h">Education</div><div class="sp-i"><b>BSc Logistics &amp; Supply Chain</b><br>KNUST, Ghana &nbsp;·&nbsp; 2016</div><div class="sp-h">Certification</div><div class="sp-i"><b>CIPS Level 4</b><br>Chartered Institute of Procurement &nbsp;·&nbsp; 2021</div><div class="sp-i"><b>Lean Six Sigma Green Belt</b><br>ASQ &nbsp;·&nbsp; 2020</div></div><div class="sp-main"><h4>Profile</h4><div class="lead">Supply chain manager with nine years across Ghana, the UAE and Kenya. Cut landed cost per unit 14% across a 40-supplier base and brought on-time delivery from 71% to 94% in eighteen months.</div><h4>Experience</h4><div class="job"><div class="job-top"><div class="job-t">Supply Chain Manager, <span class="job-c">Aramex</span></div><div class="job-d">MAR 2022 — PRESENT</div></div><ul><li>Own procurement and inbound logistics for 40 suppliers across 6 countries, USD 22M annual spend</li><li>Raised on-time delivery from 71% to 94% by re-tiering carriers and adding two regional consolidation points</li><li>Cut landed cost per unit 14% in the first year without changing supplier mix</li><li>Lead a team of 7 across Dubai and Nairobi</li></ul></div><div class="job"><div class="job-top"><div class="job-t">Logistics Lead, <span class="job-c">Bolloré Logistics</span></div><div class="job-d">JUN 2019 — FEB 2022</div></div><ul><li>Ran customs clearance and last-mile for East African inbound, averaging 380 shipments a month</li><li>Reduced average clearance time from 6 days to 3.5 by pre-filing documentation</li><li>Built the supplier scorecard still used across the regional office</li></ul></div><div class="job"><div class="job-top"><div class="job-t">Procurement Officer, <span class="job-c">Unilever Ghana</span></div><div class="job-d">AUG 2016 — MAY 2019</div></div><ul><li>Managed indirect procurement for two plants, GHS 18M annual spend</li><li>Consolidated 60 vendors to 22 and saved 11% on the remaining contracts</li></ul></div></div></div></div><div class="why"><h5>Why this one works</h5><ul><li><b>The panel still carries nothing critical.</b> Contact, skills, education, certification. Every employer, date and number is in the main column, so a parser that mishandles columns loses decoration rather than evidence.</li><li><b>Colour costs nothing in an applicant tracking system.</b> The software reads text, not ink. A green panel parses exactly like a grey one, so a page can look like something and still behave.</li><li><b>Nine years, three countries, one page.</b> The scope line does the work: 40 suppliers, six countries, USD 22M. A reader knows the size of the job before the first bullet.</li><li><b>Every job carries a number.</b> 71% to 94%. Six days to 3.5. Sixty vendors to 22. The layout is what gets noticed; the numbers are what gets him interviewed.</li></ul></div>
 <div class="prose"><h2 id="when-safe">When two columns are <em>safe</em></h2><p>The blanket rule — never use two columns — exists because the failure is invisible. Your resume looks perfect on screen, the tracker scrambles it, and nobody ever tells you.</p><p>But the rule is broader than the risk. Parsers fail when they cannot decide the reading order of things that belong in sequence. Job title, employer, start date, end date — those must stay in one uninterrupted column, in order.</p><p>Everything else is a list where order barely matters. Contact details, software, certifications, languages. If a parser reads those in a strange sequence, nothing is lost, because each item means the same thing wherever it lands.</p><p>So the line is simple. <b>Sequence in the main column. Lists in the panel.</b> Follow that and a two-column resume is as safe as a one-column one.</p><h2 id="when-not">When to use <em>one column</em> anyway</h2><p>Even done correctly, a side panel is not always the right choice.</p><ul><li><b>Government and public-sector applications.</b> Older systems, stricter formats, and often a required template. Do not be clever.</li><li><b>Large-volume graduate schemes.</b> Thousands of applications through one pipeline; the safest possible format wins.</li><li><b>When you have eleven years to fit.</b> A panel costs roughly a third of your page width. Long histories need the space more than they need the styling.</li><li><b>When the advert names a file format or template.</b> Follow the instruction exactly. It is sometimes a test of whether you read the advert.</li></ul><p>And one that surprises people: if you are applying through a recruitment agency, the agency will frequently retype your resume into its own template before the client sees it. Elegant layout is discarded at that step; only the words survive.</p><h2 id="panel-contents">What belongs in the <em>panel</em></h2><ul><li><b>Safe:</b> contact details, software and tools, certifications with years, languages, professional memberships, short skill lists, a portfolio link.</li><li><b>Never:</b> job titles, employers, employment dates, bullets describing what you did, education dates, anything where order carries meaning.</li></ul><p>A useful test before sending: copy the whole document, paste it into Notepad, and read the result. If job titles still sit next to their employers and their dates, you are fine. If the panel contents have been shuffled into the middle of your job history, move the panel contents until they cannot do damage.</p><h2 id="rewrites">Three rewrites for <em>project work</em></h2><div class="pair"><div class="pbox no"><h6>Weak</h6><p>Managed multiple construction projects from start to finish.</p></div><div class="pbox yes"><h6>Strong</h6><p>Deliver commercial builds of PKR 400M to 1.4B, managing 12 subcontractors on site.</p></div></div><p>Value range and subcontractor count answer the only two questions a construction client has.</p><div class="pair"><div class="pbox no"><h6>Weak</h6><p>Maintained a strong focus on health and safety at all times.</p></div><div class="pbox yes"><h6>Strong</h6><p>Zero lost-time injuries across 2.1M cumulative site hours.</p></div></div><p>Focus is an intention. Hours without injury is a record, and it is already in the site log.</p><div class="pair"><div class="pbox no"><h6>Weak</h6><p>Worked on various architectural projects of different sizes.</p></div><div class="pbox yes"><h6>Strong</h6><p>Lead designer on a 90,000 sq ft mixed-use retail development, concept through handover.</p></div></div><p>"Various" and "different sizes" are what people write when they have not checked the drawings for the actual area. Check them; the number is on the title block.</p></div>
 
 <div class="close">

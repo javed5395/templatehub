@@ -242,6 +242,164 @@
   .ck-t{background:#fbf9f4;border:1px solid var(--line);border-left:3px solid var(--gold);
         padding:15px 18px;font-size:14.4px;line-height:1.6;color:#26263a;white-space:pre-line}
   .ck-note{font-size:12.6px;color:#6a6478;margin-top:8px;line-height:1.55}
+
+  /* ══════════════════════════════════════════════════════════════════════
+     THREE LAYOUTS, ADDED 13 AUG 2026
+
+     Until now every one of the 147 samples rendered in the same single
+     column. Two pages were literally named after layouts they did not show:
+     "two-column-resume-samples" and "creative-portfolio-resume-samples" both
+     drew a plain one-column sheet. A visitor arrives to see a LAYOUT; three
+     identical samples show them one.
+
+     All three are built from the same data dict as the plain renderer, in the
+     site's own palette. No stock template, no skill-rating dots - a recruiter
+     cannot verify "Excel 4 out of 5" and it is the most mocked thing on a
+     resume. The portrait is an optional drawn silhouette, never a photograph:
+     the sample is a shape to pour your own record into, and a stranger's face
+     in it helps nobody.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  /* ── SPLIT: coloured side panel, body on the right ── */
+  .paper.split{padding:0;overflow:hidden;--ac:#0f3d3e;--ac2:#d4af37}
+  .paper.split::before{display:none}
+  .sp-grid{display:grid;grid-template-columns:227px 1fr;min-height:100%}
+  @media(max-width:700px){.sp-grid{grid-template-columns:1fr}}
+  .sp-side{background:var(--ac);color:#e9e5da;padding:34px 24px}
+  .sp-side .sp-nm{font-family:'Instrument Serif',serif;font-size:28px;line-height:1.08;color:#fff}
+  .sp-side .sp-rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--ac2);margin:7px 0 20px}
+  .sp-h{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--ac2);margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid rgba(233,229,218,.22)}
+  .sp-side div.sp-i{font-size:11.8px;line-height:1.55;color:#cdc8bd;margin:0 0 5px;word-break:break-word}
+  .sp-side ul{margin:0;padding-left:14px}
+  .sp-side li{font-size:11.8px;line-height:1.6;color:#cdc8bd;margin:3px 0}
+  .sp-main{padding:34px 34px 38px;background:#fff}
+  .sp-main h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--ac);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .sp-main h4+h4{margin-top:22px}
+  .sp-main .lead{font-size:13.6px;line-height:1.62;font-family:inherit;color:#3a3a4c;margin:0 0 20px}
+
+  /* ── BAND: full-width colour header, one column beneath ── */
+  .paper.band{padding:0;overflow:hidden;--ac:#b8442a}
+  .paper.band::before{display:none}
+  .bd-top{background:var(--ac);color:#fff;padding:26px 40px 22px}
+  .bd-nm{font-family:'Instrument Serif',serif;font-size:34px;line-height:1}
+  .bd-rl{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+      color:rgba(255,255,255,.82);margin:6px 0 0}
+  .bd-ct{font-size:11.8px;color:rgba(255,255,255,.9);margin:13px 0 0}
+  .bd-strip{display:flex;background:#f7f3ea;border-bottom:1px solid var(--line)}
+  .bd-strip div{flex:1;padding:12px 14px;text-align:center;border-right:1px solid var(--line)}
+  .bd-strip div:last-child{border-right:0}
+  .bd-strip b{display:block;font-family:'Instrument Serif',serif;font-size:20px;color:var(--ac)}
+  .bd-strip span{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;
+      color:#8a8496}
+  .bd-body{padding:26px 40px 34px;background:#fff}
+
+  /* ── FOLIO: dark panel with a drawn portrait, for creative work ── */
+  .paper.folio{padding:0;overflow:hidden;--ac:#14141f;--ac2:#d4af37}
+  .paper.folio::before{display:none}
+  .fo-grid{display:grid;grid-template-columns:1fr 238px}
+  @media(max-width:700px){.fo-grid{grid-template-columns:1fr}}
+  .fo-main{padding:34px 32px 38px;background:#fff}
+  .fo-nm{font-family:'Instrument Serif',serif;font-size:33px;line-height:1.05}
+  .fo-rl{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--ac);margin:6px 0 16px}
+  .fo-side{background:var(--ac);color:#ded9cf;padding:28px 22px 34px}
+  .fo-av{width:96px;height:96px;border-radius:50%;margin:0 auto 18px;display:block;
+      background:rgba(255,255,255,.09);border:2px solid var(--ac2)}
+  .fo-h{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+      color:var(--ac2);margin:18px 0 8px}
+  .fo-side .fo-i{font-size:11.6px;line-height:1.55;color:#c2bcb1;margin:0 0 5px;word-break:break-word}
+  .fo-tags{display:flex;flex-wrap:wrap;gap:5px}
+  .fo-tags span{border:1px solid rgba(222,217,207,.28);padding:3px 8px;font-size:10.5px;color:#ded9cf}
+
+  @media print{
+    .sp-side,.fo-side,.bd-top{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+
+  /* ── RAIL: the devices the commercial templates actually use ──
+     Studied from a pack of thirteen sold templates. Four things they do that a
+     plain typeset sheet does not, each with a reason:
+
+       icons on contact lines  - the block is scanned, not read; a glyph is
+                                 found faster than the word "Phone"
+       a timeline rail         - chronology becomes visible instead of inferred
+       a hairline divider      - separates two columns without spending a solid
+                                 block of ink, so the page stays light
+       bold caps headings      - a far stronger hierarchy than small letterspaced
+                                 type, readable at a glance and at arm's length
+
+     Set entirely in sans. The serif is this site's editorial voice and it reads
+     as old-fashioned on a modern resume - a different document deserves a
+     different typeface, not the same one rearranged. */
+  .paper.rail{padding:0;overflow:hidden;--ac:#1d3b6e;--ac2:#e8eef7;position:relative}
+  .paper.rail::before{display:none}
+  .paper.rail::after{content:"";position:absolute;top:0;right:0;width:150px;height:88px;
+      background:var(--ac);opacity:.10;clip-path:polygon(100% 0,0 0,100% 100%)}
+  .rl-wrap{font-family:'Inter',sans-serif;padding:34px 38px 36px;background:#fff;position:relative;z-index:1}
+  .rl-nm{font-family:'Poppins',sans-serif;font-weight:800;font-size:33px;line-height:1;
+      letter-spacing:-.01em;color:var(--ac);text-transform:uppercase}
+  .rl-rl{font-family:'Poppins',sans-serif;font-weight:500;font-size:13px;letter-spacing:.22em;
+      text-transform:uppercase;color:#5a6472;margin:7px 0 0}
+  .rl-hr{height:3px;width:64px;background:var(--ac);margin:14px 0 20px}
+  .rl-cols{display:grid;grid-template-columns:1fr 1px 1.55fr;gap:0 26px}
+  @media(max-width:700px){.rl-cols{grid-template-columns:1fr;gap:0}.rl-line{display:none}}
+  .rl-line{background:#e3e7ee}
+  .rl-h{font-family:'Poppins',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.13em;
+      text-transform:uppercase;color:var(--ac);margin:0 0 10px;padding-bottom:6px;
+      border-bottom:2px solid var(--ac2)}
+  .rl-h+.rl-h,.rl-blk+.rl-blk .rl-h{margin-top:22px}
+  .rl-blk{margin:0 0 20px}
+  .rl-p{font-size:13.2px;line-height:1.62;color:#41485a;margin:0}
+
+  /* contact: glyph + value, aligned on a grid so the values line up */
+  .rl-ct{display:grid;grid-template-columns:20px 1fr;gap:7px 9px;align-items:start}
+  .rl-ct svg{width:14px;height:14px;fill:none;stroke:var(--ac);stroke-width:1.7;margin-top:2px}
+  .rl-ct span{font-size:12.4px;line-height:1.5;color:#41485a;word-break:break-word}
+
+  .rl-it{margin:0 0 11px}
+  .rl-it b{display:block;font-family:'Poppins',sans-serif;font-weight:600;font-size:12.8px;color:#22272f}
+  .rl-it span{font-size:12px;color:#6b7385}
+
+  .rl-tags{display:flex;flex-wrap:wrap;gap:6px}
+  .rl-tags span{background:var(--ac2);color:var(--ac);font-family:'Poppins',sans-serif;
+      font-weight:600;font-size:11px;padding:4px 9px;border-radius:2px}
+
+  /* the rail itself: a line down the left with a dot per role */
+  .rl-tl{position:relative;padding-left:20px}
+  .rl-tl::before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:2px;background:var(--ac2)}
+  .rl-job{position:relative;margin:0 0 17px}
+  .rl-job::before{content:"";position:absolute;left:-20px;top:5px;width:10px;height:10px;
+      border-radius:50%;background:var(--ac);box-shadow:0 0 0 3px #fff}
+  .rl-dt{font-family:'Poppins',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.1em;
+      text-transform:uppercase;color:var(--ac)}
+  .rl-jt{font-family:'Poppins',sans-serif;font-weight:700;font-size:14.5px;color:#22272f;margin:2px 0 1px}
+  .rl-co{font-size:12.4px;color:#6b7385;margin:0 0 6px}
+  .rl-job ul{margin:0;padding-left:16px}
+  .rl-job li{font-size:12.8px;line-height:1.58;color:#41485a;margin:3px 0}
+  .rl-job li::marker{color:var(--ac)}
+
+  @media print{.paper.rail::after,.rl-tags span,.rl-job::before{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+  /* ── the portrait slot ──
+     A drawn silhouette, never a stock photograph. Two reasons: a sample is a
+     shape to pour your own record into and a stranger's face in it helps
+     nobody, and every stock face on the internet is already on a thousand other
+     template sites. This reads unmistakably as "your photo goes here".
+
+     Whether to use one at all is the reader's call. It is expected across much
+     of Asia, the Gulf and continental Europe, and unusual in the US, UK and
+     Canada - so the samples show both, and the note under each says which is
+     which rather than pretending there is one rule. */
+  .rl-photo{width:104px;height:104px;border-radius:50%;background:var(--ac2);
+      border:3px solid var(--ac);display:flex;align-items:center;justify-content:center;
+      overflow:hidden;flex:0 0 auto}
+  .rl-photo svg{width:104px;height:104px;display:block}
+  .rl-photo svg *{fill:var(--ac);opacity:.42}
+  .rl-head{display:flex;gap:22px;align-items:center;margin:0 0 6px}
+  .rl-head .rl-hr{margin:12px 0 0}
+  @media print{.rl-photo{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
 </head>
 <body>
@@ -260,7 +418,7 @@
   <div class="facts"><div class="fact">Samples<b>Three, complete</b></div><div class="fact">Formats<b>DOCX and PDF</b></div><div class="fact">Reading<b>Free, no signup</b></div><div class="fact">Layout<b>Single column, no tables</b></div></div>
 </div>
 
-<div class="toc"><div class="toc-in"><h4>On this page</h4><ol><li><a href="#s1">Sample one — first office job</a></li><li><a href="#s2">Sample two — mid-career</a></li><li><a href="#s3">Sample three — senior</a></li><li><a href="#what-ats-does">What an ATS actually does</a></li><li><a href="#what-breaks">Six things that break parsing</a></li><li><a href="#test-it">How to test your own resume</a></li><li><a href="#rewrites">Four rewrites</a></li></ol></div></div>
+<div class="toc"><div class="toc-in"><h4>On this page</h4><ol><li><a href="#s1">Sample one — first office job</a></li><li><a href="#s2">Sample two — mid-career</a></li><li><a href="#s3">Sample three — senior, and in colour</a></li><li><a href="#what-ats-does">What an ATS actually does</a></li><li><a href="#what-breaks">Six things that break parsing</a></li><li><a href="#test-it">How to test your own resume</a></li><li><a href="#rewrites">Four rewrites</a></li></ol></div></div>
 
 <div class="body">
 <div class="slab" id="s1"><b>Sample One</b><span>Entry level · Two years</span><i></i></div><p class="intro">Two years of work, one page, and no padding. Notice that nothing is described as "assisted with" — every line has an outcome attached, even at this level.</p>
@@ -285,18 +443,7 @@
   <div class="two"><div><h4>Education</h4><div class="job"><div class="job-t" style="font-size:17px">MBA — Human Resources</div><div class="cv-ct">IBA Karachi · 2019</div></div><div class="job"><div class="job-t" style="font-size:17px">BBA</div><div class="cv-ct">University of Karachi · 2017</div></div></div><div><h4>Certification</h4><div class="job"><div class="job-t" style="font-size:17px">CHRP Certified</div><div class="cv-ct">HR Certification Institute · 2023</div></div><div class="job"><div class="job-t" style="font-size:17px">Labour Law for Managers</div><div class="cv-ct">PIM · 2022</div></div></div></div>
   <h4>Skills</h4><div class="sk"><span>Recruitment &amp; Selection</span><span>Payroll Administration</span><span>HRIS Implementation</span><span>Employee Relations</span><span>Pakistan Labour Law</span><span>Onboarding Design</span><span>Performance Reviews</span><span>Grievance Handling</span></div>
   
-</div></div><div class="why"><h5>Why this one works</h5><ul><li><b>"Earlier" is one line.</b> Two assistant roles from 2018 to 2019 became a single row. They prove the timeline is unbroken without spending eight lines saying nothing new.</li><li><b>The profile names the company size.</b> "400-person manufacturer" tells a reader instantly whether this experience is the right scale for their own organisation.</li><li><b>Two of the four bullets are projects, not duties.</b> The HRIS migration and the screening rebuild. Duties prove attendance; projects prove judgement.</li><li><b>Labour law is listed as a skill.</b> For an HR role in Pakistan this is the single most searched term in the tracker, and most candidates leave it out entirely.</li></ul></div><div class="slab" id="s3"><b>Sample Three</b><span>Eleven years · Operations manager</span><i></i></div><p class="intro">Eleven years, still one page. At this level the reader wants scope in the first four lines — how many people, how much budget, how many sites — and then proof it moved.</p>
-<div class="paper"><div class="cv">
-  <div class="cv-name">Imran Sheikh</div>
-  <div class="cv-role">Operations Manager</div>
-  <div class="cv-rule"></div>
-  <div class="cv-ct">imran.sheikh@email.com &nbsp;·&nbsp; +92 333 6612 907 &nbsp;·&nbsp; Lahore, Pakistan &nbsp;·&nbsp; linkedin.com/in/imransheikh</div>
-  <h4>Profile</h4><div class="lead">Operations manager running three distribution centres, 68 staff and an annual operating budget of PKR 240M. Lifted on-time dispatch from 82% to 96% in two years and removed PKR 31M of annual cost without a single redundancy.</div>
-  <h4>Experience</h4><div class="job"><div class="job-top"><div class="job-t">Operations Manager, <span class="job-c">Northline Logistics</span></div><div class="job-d">Apr 2021 — Present</div></div><ul><li>Run three distribution centres with 68 staff and a PKR 240M annual operating budget</li><li>Raised on-time dispatch from 82% to 96% by redesigning the pick-and-pack sequence</li><li>Removed PKR 31M in annual cost through route consolidation, with no redundancies</li><li>Rebuilt the shift roster, cutting overtime spend 34% while holding output flat</li></ul></div><div class="job"><div class="job-top"><div class="job-t">Assistant Operations Manager, <span class="job-c">Northline Logistics</span></div><div class="job-d">Jun 2018 — Mar 2021</div></div><ul><li>Managed a single 26-staff distribution centre handling 1,400 outbound orders daily</li><li>Introduced a daily stock count that cut inventory variance from 3.8% to 0.9%</li></ul></div><div class="job"><div class="job-top"><div class="job-t">Earlier, <span class="job-c">Warehouse supervisory roles, 2014 — 2018</span></div><div class="job-d">2014 — 2018</div></div></div>
-  <div class="two"><div><h4>Education</h4><div class="job"><div class="job-t" style="font-size:17px">MBA — Operations</div><div class="cv-ct">LUMS · 2018</div></div><div class="job"><div class="job-t" style="font-size:17px">B.Sc Industrial Engineering</div><div class="cv-ct">UET Lahore · 2013</div></div></div><div><h4>Certification</h4><div class="job"><div class="job-t" style="font-size:17px">Lean Six Sigma Green Belt</div><div class="cv-ct">ASQ · 2022</div></div><div class="job"><div class="job-t" style="font-size:17px">Certified Supply Chain Professional</div><div class="cv-ct">ISCEA · 2020</div></div></div></div>
-  <h4>Skills</h4><div class="sk"><span>Distribution Operations</span><span>P&amp;L Ownership</span><span>Team Leadership (68)</span><span>Route Planning</span><span>Lean / Six Sigma</span><span>Inventory Control</span><span>Vendor Negotiation</span><span>SAP MM</span><span>KPI Reporting</span></div>
-  
-</div></div><div class="why"><h5>Why this one works</h5><ul><li><b>Scope arrives in line one.</b> Three centres, 68 staff, PKR 240M. A hiring director decides in four seconds whether you are the right size, and this answers all three questions at once.</li><li><b>"With no redundancies" is deliberate.</b> Cost cutting reads as ruthless unless you say otherwise. One clause turns a saving into a demonstration of judgement.</li><li><b>Every figure has a direction.</b> 82 to 96. 3.8 to 0.9. A single number can be luck; a before and after is a result you caused.</li><li><b>Team size is in the skills list.</b> "Team Leadership (68)" is searchable and specific where <span class="bad">"leadership"</span> alone is filler.</li></ul></div>
+</div></div><div class="why"><h5>Why this one works</h5><ul><li><b>"Earlier" is one line.</b> Two assistant roles from 2018 to 2019 became a single row. They prove the timeline is unbroken without spending eight lines saying nothing new.</li><li><b>The profile names the company size.</b> "400-person manufacturer" tells a reader instantly whether this experience is the right scale for their own organisation.</li><li><b>Two of the four bullets are projects, not duties.</b> The HRIS migration and the screening rebuild. Duties prove attendance; projects prove judgement.</li><li><b>Labour law is listed as a skill.</b> For an HR role in Pakistan this is the single most searched term in the tracker, and most candidates leave it out entirely.</li></ul></div><div class="slab" id="s3"><b>Sample Three</b><span>Eleven years · Operations · Manila</span><i></i></div><p class="intro">The same parsing rules, wearing colour. A band across the top, a scope strip, and one clean column beneath &mdash; nothing here confuses a parser, because the software reads text and never sees the ink. Eleven years, still one page.</p><div class="paper band" style="--ac:#0b5c7a"><div class="bd-top"><div class="bd-nm">Elena Ramos</div><div class="bd-rl">Operations Manager</div><div class="bd-ct">elena.ramos@email.com &nbsp;·&nbsp; +63 917 442 8810 &nbsp;·&nbsp; Manila, Philippines &nbsp;·&nbsp; linkedin.com/in/elenaramos</div></div><div class="bd-strip"><div><b>11 yrs</b><span>Experience</span></div><div><b>4</b><span>Sites run</span></div><div><b>USD 6M</b><span>Budget</span></div><div><b>62</b><span>Team</span></div></div><div class="bd-body"><h4>Profile</h4><div class="lead">Operations manager with eleven years in third-party logistics. Runs four sites and a team of 62 on a USD 6M budget, and took order accuracy from 96.2% to 99.4% while cutting overtime by a third.</div><h4>Experience</h4><div class="job"><div class="job-top"><div class="job-t">Operations Manager, <span class="job-c">DHL Supply Chain</span></div><div class="job-d">2021 — PRESENT</div></div><ul><li>Run four distribution sites, 62 staff and a USD 6M operating budget</li><li>Raised order accuracy from 96.2% to 99.4% by rebuilding the pick-verify step</li><li>Cut overtime spend 34% in one year without reducing throughput</li><li>Brought a new 8,000 m&sup2; site live in 11 weeks, two weeks ahead of plan</li></ul></div><div class="job"><div class="job-top"><div class="job-t">Assistant Operations Manager, <span class="job-c">2GO Group</span></div><div class="job-d">2017 — 2021</div></div><ul><li>Managed inbound and putaway for a site handling 14,000 cases a day</li><li>Reduced dock-to-stock time from 9 hours to 5 by re-sequencing receiving</li></ul></div><div class="job"><div class="job-top"><div class="job-t">Shift Supervisor, <span class="job-c">LBC Express</span></div><div class="job-d">2014 — 2017</div></div><ul><li>Supervised 18 staff across the night shift</li><li>Cut mis-sorts 40% by introducing a two-scan check at the sorter</li></ul></div><h4>Education</h4><div class="job"><div class="job-t" style="font-size:17px">BS Industrial Engineering</div><div class="cv-ct">University of the Philippines &nbsp;·&nbsp; 2014</div></div><h4>Skills</h4><div class="sk"><span>Warehouse Operations</span><span>P&amp;L Ownership</span><span>WMS (Manhattan)</span><span>Lean / 5S</span><span>Capacity Planning</span><span>Vendor Management</span><span>Team Leadership</span><span>SAP EWM</span></div></div></div><div class="why"><h5>Why this one works</h5><ul><li><b>Colour and parsing are not in conflict.</b> An applicant tracking system extracts text; it never sees the ink. This page is as machine-readable as a plain one and considerably harder to forget.</li><li><b>One column under the band.</b> The colour lives in the header, where nothing needs parsing. Below it the reading order is a single unambiguous line, which is what the software wants.</li><li><b>The scope strip answers the first question.</b> Eleven years, four sites, USD 6M, 62 people. A senior reader wants the size of the job before the detail.</li><li><b>Every role carries a number.</b> 96.2% to 99.4%. Overtime down 34%. Nine hours to five. Mis-sorts down 40%. Eleven years compressed into four figures a reader remembers.</li></ul></div>
 <div class="prose"><h2 id="what-ats-does">What an ATS <em>actually</em> does</h2><p>Almost everything written about applicant tracking systems is wrong. They are not artificial intelligence, they do not score your personality, and in most companies they do not reject you automatically. What they do is simpler and more dangerous: they read your file and try to split it into fields — name, email, phone, employer, job title, start date, end date, school, degree.</p><p>That is called parsing. When it works, a recruiter searching for "payroll" and "Karachi" finds you. When it fails, your job history lands in the wrong boxes or lands nowhere, and you are simply absent from every search the recruiter runs. Nobody rejected you. You were never there.</p><p>So the goal is not to please a robot. It is to be findable by the human who comes after it.</p><h2 id="what-breaks">Six things that <em>break</em> it</h2><ul><li><b>Tables.</b> A two-column table looks tidy and parses as scrambled word order.</li><li><b>Text boxes.</b> Many parsers do not read inside them at all — your name can vanish.</li><li><b>Headers and footers.</b> Contact details placed there are frequently skipped entirely.</li><li><b>Icons instead of labels.</b> A little envelope picture is not the word "Email".</li><li><b>Photos.</b> Fine for Gulf applications, useless to the parser, and a distraction elsewhere.</li><li><b>Creative date formats.</b> Write "Jan 2022 — Present". Not "'22-now", not a timeline graphic.</li></ul><p>Every sample on this page avoids all six. That is the entire reason they look plain. The restraint is the feature, not a shortage of design.</p><h2 id="test-it">How to <em>test</em> your own in one minute</h2><p>You do not need special software. Open your resume, select everything, copy it, and paste it into a plain Notepad file.</p><p>Read what comes out. If your job titles and dates are in a sensible order and nothing is missing, a parser will manage. If your name is gone, the columns are interleaved, or your employers are separated from their dates — that is exactly what the tracker stores about you.</p><p>Do this before every application where you have changed the layout. It takes a minute and it is the only ATS test that matters.</p><h2 id="rewrites">Four rewrites that <em>change everything</em></h2><div class="pair"><div class="pbox no"><h6>Weak</h6><p>Responsible for managing daily operations of the warehouse facility.</p></div><div class="pbox yes"><h6>Strong</h6><p>Ran a 26-staff distribution centre handling 1,400 outbound orders daily.</p></div></div><p>Responsibility is a job description. What you did with it is a resume.</p><div class="pair"><div class="pbox no"><h6>Weak</h6><p>Helped improve efficiency and reduce costs across the department.</p></div><div class="pbox yes"><h6>Strong</h6><p>Removed PKR 31M in annual cost through route consolidation, with no redundancies.</p></div></div><p>"Helped improve" could mean anything from leading the project to attending the meeting. Say which, and say by how much.</p><div class="pair"><div class="pbox no"><h6>Weak</h6><p>Hard-working team player with excellent communication skills.</p></div><div class="pbox yes"><h6>Strong</h6><p>HR generalist with six years across recruitment, payroll and employee relations for a 400-person manufacturer.</p></div></div><p>Nobody has ever been hired for claiming to be hard-working. The second version tells a reader what you are and at what scale, in one line.</p><div class="pair"><div class="pbox no"><h6>Weak</h6><p>Skills: MS Office, Communication, Teamwork, Leadership</p></div><div class="pbox yes"><h6>Strong</h6><p>Skills: Payroll Administration, HRIS Implementation, Pakistan Labour Law, Grievance Handling</p></div></div><p>The first list is what everyone writes, so it distinguishes nobody. The second is made of the exact words a recruiter types into the search box.</p></div>
 
 <div class="close">
