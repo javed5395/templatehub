@@ -4496,8 +4496,29 @@ document.addEventListener('keydown',e=>{
         const sub   = t.subCategory ? pretty(t.subCategory) : '';
         const catTxt= label + (sub ? ' · ' + sub : '');
         const n     = t.slideCount || (t.slides ? t.slides.length : 0) || 0;
-        const files = (t.fileTypes && t.fileTypes.length) ? t.fileTypes.join(', ')
-                    : (catKey === 'webkit' ? 'HTML, CSS, JS' : 'PPTX, PDF');
+        /* ── FILE LIST (13 Aug 2026) ──────────────────────────────────────
+           This used to be a raw t.fileTypes.join(', '), which on a web kit
+           printed ".PNG, .PPTX, .PDF, .VIDEO, .PDF, .PDF, .PDF" — the main PDF
+           plus one entry per report document, with nothing to tell them apart.
+           A buyer reading four identical ".PDF" entries assumes the page is
+           broken.
+
+           Collapse repeats and say how many: ".PNG, .PPTX, .PDF x4, .VIDEO".
+           The names of those PDFs are shown separately under Documentation. */
+        const files = (function(){
+          const raw = (t.fileTypes && t.fileTypes.length) ? t.fileTypes : null;
+          if (!raw) return (catKey === 'webkit' ? 'HTML, CSS, JS' : 'PPTX, PDF');
+          const seen = [];
+          const n    = {};
+          raw.forEach(function(x){
+            const k = String(x || '').trim().toUpperCase();
+            if (!k) return;
+            if (!(k in n)) { n[k] = 0; seen.push(k); }
+            n[k]++;
+          });
+          return seen.map(function(k){ return n[k] > 1 ? (k + ' ×' + n[k]) : k; })
+                     .join(', ');
+        })();
         const price = parseFloat(t.price);
         const personal   = (price>0) ? '$' + Math.round(price) : 'Free';
         const commercial = (price>0) ? commercialPrice('$'+price) : 'Free';
@@ -4517,8 +4538,23 @@ document.addEventListener('keydown',e=>{
         if(productEl.metaType)productEl.metaType.textContent= t.docType ? pretty(t.docType) : label;
         if(stackLabel)        stackLabel.textContent        = (catKey === 'webkit') ? 'Stack' : 'Files';
         if(productEl.metaStack)productEl.metaStack.textContent = files;
-        if(productEl.metaDoc) productEl.metaDoc.textContent = (catKey === 'media') ? 'Three Reports'
-                                                            : (n ? n + ' ' + unit + (n===1?'':'s') : 'Included');
+        /* ── DOCUMENTATION (13 Aug 2026) ──────────────────────────────────
+           Was printing the page count ("16 pages") under a label that says
+           Documentation, which told the buyer nothing about the documents.
+           When the kit carries includedDocs (names written by the upload form
+           from 13 Aug) list them properly, so the buyer reads
+           "Creative Exploration Report · Design Intelligence Report ·
+            Design Engineering Report" instead of guessing what four PDFs are.
+           Older kits have no includedDocs, so they keep the previous text. */
+        if(productEl.metaDoc){
+          const docs = Array.isArray(t.includedDocs)
+                     ? t.includedDocs.filter(function(d){ return d && String(d).trim(); })
+                     : [];
+          productEl.metaDoc.textContent =
+              docs.length            ? docs.join(' · ')
+            : (catKey === 'media')   ? 'Three Reports'
+            : (n ? n + ' ' + unit + (n===1?'':'s') : 'Included');
+        }
         if(productEl.pPrice)  productEl.pPrice.textContent  = personal;
         if(productEl.cPrice)  productEl.cPrice.textContent  = commercial;
 
