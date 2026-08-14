@@ -406,7 +406,62 @@
     body.light .etsy-learn-more { color: #1a5fa8; }
     body.light .etsy-learn-more:hover { color: #7c3aed; }
     body.light .etsy-delivery-heading { color: #1a1a2e; }
-    </style>
+    
+/* ── Download button, unstuck from the navbar (14 Aug 2026) ───────────────
+   It used to be `position:fixed; top:12px; right:80px` — floating ON TOP of
+   the navbar. Signed out there was room; signed in the navbar grows (Upload,
+   Earnings, bell, cart) and this button sat over them, blocking clicks.
+   It now floats at the BOTTOM right, clear of the bar at every width, and
+   stays reachable however far the page is scrolled. */
+#nbDlBtn{
+  position:fixed!important; top:auto!important; bottom:26px!important;
+  right:26px!important; left:auto!important; z-index:9998!important;
+  padding:12px 24px!important; border-radius:999px!important;
+  font-size:14px!important; font-weight:700!important;
+  box-shadow:0 8px 26px rgba(75,107,255,.34)!important;
+}
+#nbDlBtn:hover{ transform:translateY(-2px); }
+@media (max-width:640px){
+  #nbDlBtn{ bottom:18px!important; right:18px!important;
+            padding:11px 20px!important; font-size:13px!important; }
+}
+
+/* ── Design Description card (14 Aug 2026) ───────────────────────────────
+   This was one grey line buried in the Item details accordion:
+   "Design Description: Download Design Brief". Nobody saw it, so a document
+   given away free did no work at all. It is now a card in the empty space
+   under the thumbnails, in the cream style used across the career section.
+   Free, no sign-in, opens in a new tab — exactly as the old link behaved. */
+.brief-card{
+  display:block; margin:18px 0 0; padding:22px 24px 20px;
+  background:#f2eee5; border:1px solid #d9d4c7;
+  text-decoration:none; position:relative;
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.brief-card::before{ content:""; position:absolute; inset:10px;
+  border:1px solid rgba(0,0,0,.09); pointer-events:none; }
+.brief-card:hover{ transform:translateY(-4px); box-shadow:0 14px 34px rgba(0,0,0,.22); }
+.brief-card__eyebrow{
+  font-family:'Consolas','SFMono-Regular',Menlo,monospace;
+  font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:#b8442a; padding-bottom:6px; border-bottom:1.5px solid #b8442a;
+  display:inline-block; width:max-content; margin-bottom:14px;
+}
+.brief-card__title{ font-family:Georgia,'Times New Roman',serif; font-weight:400;
+  font-size:22px; line-height:1.22; color:#1a1a2e; margin:0 0 8px; }
+.brief-card__title em{ color:#b8442a; font-style:italic; }
+.brief-card__text{ font-family:'Poppins','Inter',sans-serif; font-size:13px;
+  line-height:1.55; color:#46414d; margin:0; }
+.brief-card__foot{
+  margin-top:16px; padding-top:14px; border-top:1px solid #e2dccd;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  font-family:'Consolas','SFMono-Regular',Menlo,monospace;
+  font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:#1a1a2e;
+}
+.brief-card__cta{ display:inline-flex; align-items:center; gap:7px; color:#b8442a; }
+.brief-card__cta svg{ width:13px; height:13px; }
+</style>
 </head>
 <body class="has-download">
 
@@ -524,6 +579,20 @@ document.addEventListener('click',function(e){
     </div>
     <div class="thumbnails" id="thumbRow1"></div>
     <div class="thumb-row2" id="thumbRow2"></div>
+    <!-- Free design brief. Hidden until loadDesign() confirms this kit has one. -->
+    <a class="brief-card" id="briefCard" href="#" target="_blank" rel="noopener" style="display:none;">
+      <span class="brief-card__eyebrow">Design Description</span>
+      <div class="brief-card__title">Read the <em>design brief</em> before you buy.</div>
+      <p class="brief-card__text">A full write-up of this template — what it is built for, how the
+        layout is put together, the fonts and colours used, and how to adapt it to your own brand.</p>
+      <div class="brief-card__foot">
+        <span>PDF &middot; Free &middot; No sign-in</span>
+        <span class="brief-card__cta">Open the brief
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+               stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+        </span>
+      </div>
+    </a>
   </div>
 
   <div class="info-panel">
@@ -923,11 +992,20 @@ function loadDesign(d) {
   }
 
   // Supporting document link
-  var docRowEl  = document.getElementById('designDocRow');
-  var docLinkEl = document.getElementById('designDocLink');
-  if (docRowEl && docLinkEl) {
-    if (d.designDocUrl) { docLinkEl.href = d.designDocUrl; docRowEl.style.display = 'flex'; }
-    else { docRowEl.style.display = 'none'; }
+  // The brief now lives in the card under the thumbnails, not in the
+  // accordion line — that line was invisible in practice. The old row stays
+  // in the markup but permanently hidden, so anything else reading it does
+  // not break; there is simply never two links to the same document.
+  var briefCardEl = document.getElementById('briefCard');
+  var docRowEl    = document.getElementById('designDocRow');
+  if (docRowEl) docRowEl.style.display = 'none';
+  if (briefCardEl) {
+    if (k.designDocUrl) {
+      briefCardEl.href = k.designDocUrl;
+      briefCardEl.style.display = 'block';
+    } else {
+      briefCardEl.style.display = 'none';
+    }
   }
 
   // Sparkle line — summary tagline (editable apps shown in the row above, not repeated here)

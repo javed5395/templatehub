@@ -1216,6 +1216,25 @@ function toggleLearnMore(btn){
 .font-item:hover,.font-item.active{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2);}
 .font-reset-row{margin-top:10px;display:flex;justify-content:flex-end;}
 .font-reset{font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;}
+
+/* ── Download button, unstuck from the navbar (14 Aug 2026) ───────────────
+   It used to be `position:fixed; top:12px; right:80px` — floating ON TOP of
+   the navbar. Signed out there was room; signed in the navbar grows (Upload,
+   Earnings, bell, cart) and this button sat over them, blocking clicks.
+   It now floats at the BOTTOM right, clear of the bar at every width, and
+   stays reachable however far the page is scrolled. */
+#nbDlBtn{
+  position:fixed!important; top:auto!important; bottom:26px!important;
+  right:26px!important; left:auto!important; z-index:9998!important;
+  padding:12px 24px!important; border-radius:999px!important;
+  font-size:14px!important; font-weight:700!important;
+  box-shadow:0 8px 26px rgba(75,107,255,.34)!important;
+}
+#nbDlBtn:hover{ transform:translateY(-2px); }
+@media (max-width:640px){
+  #nbDlBtn{ bottom:18px!important; right:18px!important;
+            padding:11px 20px!important; font-size:13px!important; }
+}
 </style>
 
 <div id="lbOverlay">
