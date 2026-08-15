@@ -1827,17 +1827,17 @@ animateRing();</pre>
       <div class="product-grid">
         <!-- Related WebKits: to auto-fill with the latest 3 live WebKits once uploaded.
              Blank "Loading Soon" placeholders until then. -->
-        <article class="product-card product-card--sm product-card--soon reveal" data-related-slot="1">
+        <article class="product-card product-card--sm product-card--soon reveal" data-live="1" data-related-slot="1">
           <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
           <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Loading Soon</h3></div></div>
         </article>
-        <article class="product-card product-card--sm product-card--soon reveal reveal-delay-1" data-related-slot="2">
+        <article class="product-card product-card--sm product-card--soon reveal reveal-delay-1" data-live="1" data-related-slot="2">
           <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
           <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Loading Soon</h3></div></div>
         </article>
-        <article class="product-card product-card--sm product-card--soon reveal reveal-delay-2" data-related-slot="3">
+        <article class="product-card product-card--sm product-card--soon reveal reveal-delay-2" data-live="1" data-related-slot="3">
           <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
           <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Loading Soon</h3></div></div>
@@ -3788,11 +3788,12 @@ document.addEventListener('keydown',e=>{
     Array.prototype.forEach.call(slots, function(slot,i){
       var t = kits[i];
       if(!t){
-        slot.classList.add('product-card--soon'); slot.onclick=null;
+        slot.classList.add('product-card--soon'); slot.onclick=null; slot.setAttribute('data-live','1');
         slot.innerHTML = '<div class="product-card__image" style="background:#e7e1d5"></div><div class="product-card__overlay"></div><div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Loading Soon</h3></div></div>';
         return;
       }
       slot.classList.remove('product-card--soon');
+      slot.setAttribute('data-live','1');
       slot.setAttribute('data-cursor-label','Explore');
       var name=t.name||'Untitled', img=t.coverImage||(t.slides&&t.slides[0])||'', price=parseFloat(t.price);
       var priceHtml=(price>0)?'<div class="product-card__price">$'+Math.round(price)+'</div>':'';
