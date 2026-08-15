@@ -315,6 +315,26 @@ function slideIRFromCanvas(json, origIR, S) {
       }
     } else if (o.type === 'path' && orig) {
       elements.push(Object.assign({}, orig, common));
+    } else if (o.type === 'path' && o.path && o.path.length) {
+      /* PATH WITH NO MATCHED ORIGINAL (after re-render / master-stamp): rebuild
+         the curve from the fabric path. Without this it fell through to the
+         generic branch and exported as a plain RECTANGLE — circles turned into
+         straight lines on download on some slides. Mirrors the Brain's version. */
+      var _po = o.pathOffset || { x: (o.width || 0) / 2, y: (o.height || 0) / 2 };
+      var _offX = _po.x - (o.width || 0) / 2, _offY = _po.y - (o.height || 0) / 2;
+      var _pcmds = [];
+      o.path.forEach(function (seg) {
+        var op = seg[0];
+        if (op === 'M' || op === 'L') _pcmds.push([op, seg[1] - _offX, seg[2] - _offY]);
+        else if (op === 'C') _pcmds.push(['C', seg[1] - _offX, seg[2] - _offY, seg[3] - _offX, seg[4] - _offY, seg[5] - _offX, seg[6] - _offY]);
+        else if (op === 'Q') _pcmds.push(['Q', seg[1] - _offX, seg[2] - _offY, seg[3] - _offX, seg[4] - _offY]);
+        else if (op === 'z' || op === 'Z') _pcmds.push(['Z']);
+      });
+      var _pStroke = (typeof o.stroke === 'string' && o.stroke) ? { color: o.stroke, w: Math.max(6350, Math.round((o.strokeWidth || 1) * S)) } : null;
+      elements.push(Object.assign({ id: 'edit-draw-' + Math.random().toString(36).slice(2, 8), origin: 'slide', type: 'shape',
+        geom: { custom: { pathCmds: _pcmds, pathW: Math.max(1, o.width || 1), pathH: Math.max(1, o.height || 1) } },
+        fill: (typeof o.fill === 'string' && o.fill) ? { type: 'solid', color: o.fill } : { type: 'none' },
+        stroke: _pStroke }, common));
     } else if (o.type === 'line') {
       /* matched lines keep their FULL original IR (dash, arrowheads,
          connector type, sites) — rebuilding from fabric was flattening
