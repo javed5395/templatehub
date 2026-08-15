@@ -1653,7 +1653,7 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
   <section class="product-detail__hero">
     <div class="container">
       <div class="product-detail__inner">
-        <div class="product-detail__media reveal" id="productMedia" style="background:#e7e1d5">
+        <div class="product-detail__media reveal" id="productMedia" style="background-color:#e7e1d5">
           <div class="product-detail__media-badge" id="productBadge"></div>
         </div>
         <div class="product-detail__info reveal reveal-delay-1">
@@ -1736,7 +1736,7 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
     </div>
   </section>
 
-  <section class="section section--tight">
+  <section class="section section--tight" id="ldsDocPreview" style="display:none">
     <div class="container">
       <div class="section-header reveal">
         <div class="section-header__meta">
@@ -3834,15 +3834,19 @@ document.addEventListener('keydown',e=>{
     if(!srcEl) return;
     var esc=function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
     if(!t){ srcEl.innerHTML='<li>&mdash;</li>'; if(dTier) dTier.style.display='none'; return; }
-    var files=(typeof window.ldsFileList==='function')?window.ldsFileList(t,catKey,' · '):((t.fileTypes&&t.fileTypes.length)?t.fileTypes.join(' · '):'');
+    var isCode=(catKey==='webkit'||catKey==='keynote');
+    var files= isCode ? 'HTML · CSS · JS' : ((typeof window.ldsFileList==='function')?window.ldsFileList(t,catKey,' · '):((t.fileTypes&&t.fileTypes.length)?t.fileTypes.join(' · '):''));
     var n=t.slideCount||(t.slides?t.slides.length:0)||0;
     var li=[];
     if(files) li.push('<li>'+esc(files)+'</li>');
     if(catKey==='webkit'){
       li.push('<li>'+(n?('1 HTML page with '+n+' interconnected sections'):'Single HTML page')+'</li>');
       li.push('<li>Responsive &amp; accessible, no build step</li>');
+    } else if(catKey==='keynote'){
+      li.push('<li>'+(n?(n+' interactive slides'):'Interactive slides')+'</li>');
+      li.push('<li>Responsive &amp; accessible, no build step</li>');
     } else {
-      var unit=(catKey==='deck'||catKey==='keynote')?'slide':'page';
+      var unit=(catKey==='deck')?'slide':'page';
       if(n) li.push('<li>'+n+' '+unit+(n===1?'':'s')+'</li>');
     }
     srcEl.innerHTML=li.join('')||'<li>&mdash;</li>';
@@ -4497,6 +4501,7 @@ document.addEventListener('keydown',e=>{
           const dBox = document.getElementById('ldsDeployBox');
           const dLnk = document.getElementById('ldsDeployLink');
           if (dBox) dBox.style.display = (catKey === 'webkit') ? '' : 'none';
+          var _dp=document.getElementById('ldsDocPreview'); if(_dp) _dp.style.display=(catKey==='webkit'||catKey==='keynote')?'':'none';
           if (dLnk) dLnk.href = 'deployment/quote.html?kit='
                               + encodeURIComponent(t.__docId || '')
                               + '&name=' + encodeURIComponent(name);
