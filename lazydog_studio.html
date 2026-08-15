@@ -206,13 +206,19 @@ body::before{
 /* ============== CHROME ============== */
 .chrome{
   position:fixed;
-  top:52px;left:0;right:0;
+  top:40px;left:24px;right:24px;
   z-index:100;
-  padding:22px 40px;
+  padding:10px 14px 10px 12px;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  pointer-events:none;
+  pointer-events:auto;
+  background:rgba(248,245,238,0.45);
+  -webkit-backdrop-filter:blur(22px) saturate(140%);
+  backdrop-filter:blur(22px) saturate(140%);
+  border:1px solid rgba(255,255,255,0.55);
+  border-radius:100px;
+  box-shadow:0 12px 34px rgba(30,26,22,0.14), inset 0 1px 0 rgba(255,255,255,0.55);
 }
 .chrome > *{pointer-events:auto}
 .brand{
@@ -227,6 +233,7 @@ body::before{
 }
 .brand em{font-style:italic;color:var(--oxblood);font-weight:300}
 .brand__sub{
+  display:none;
   font-family:var(--font-mono);
   font-size:9px;
   letter-spacing:0.3em;
@@ -280,10 +287,10 @@ body::before{
   font-size:11px;
   letter-spacing:0.2em;
   text-transform:uppercase;
-  color:var(--ink-2);
+  color:var(--ink);
   transition:all .3s;
-  padding:8px 16px;
-  border:1px solid var(--hairline-strong);
+  padding:8px 14px;
+  border:1px solid transparent;
   border-radius:100px;
 }
 .nav-link:hover{color:var(--oxblood);border-color:var(--oxblood)}
@@ -292,8 +299,6 @@ body::before{
    scroll, so content ran underneath the brand, the nav pills and the cart. The
    controls now carry their own frosted backing instead of the whole bar getting
    an opaque strip, which would have killed the floating look. */
-.chrome__nav .nav-link,
-.chrome .brand,
 .chrome .cart-btn,
 .chrome .menu-btn{
   background:rgba(242,238,229,0.82);
@@ -670,12 +675,13 @@ body::before{
 .hero__top{
   display:flex;gap:40px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(242,238,229,0.7);margin-bottom:60px;opacity:0;animation:fadeUp 1s var(--ease-out) 1.4s forwards;
 }
+.hero__top{display:none}
 .hero__top span{display:flex;align-items:center;gap:8px}
 .hero__top .dot{width:5px;height:5px;background:var(--oxblood-3);border-radius:50%}
 .hero__title{
-  font-family:var(--font-display);font-size:clamp(64px,13vw,200px);font-weight:300;line-height:0.88;letter-spacing:-0.035em;color:var(--bone);margin-bottom:32px;
+  font-family:var(--font-display);font-size:clamp(56px,11vw,168px);font-weight:300;line-height:1.04;letter-spacing:-0.035em;color:var(--bone);margin-bottom:32px;
 }
-.hero__title span{display:block;overflow:hidden}
+.hero__title span{display:block;overflow:hidden;padding-bottom:0.12em}
 .hero__title span > i{font-style:inherit;display:inline-block;transform:translateY(110%);animation:heroTitle 1.4s var(--ease-out) forwards}
 .hero__title span:nth-child(1) > i{animation-delay:0.6s}
 .hero__title span:nth-child(2) > i{animation-delay:0.8s}
@@ -1283,7 +1289,6 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
       <a href="#" class="nav-link" data-page="about">Studio <span class="nav-dropdown__chevron">▾</span></a>
       <div class="nav-dropdown__panel">
         <a href="#" class="nav-dropdown__link" data-page="about">About</a>
-        <a href="#" class="nav-dropdown__link" data-page="journal">Journal</a>
         <a href="#" class="nav-dropdown__link" data-page="testimonials">Voices</a>
       </div>
     </div>
@@ -1381,7 +1386,7 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
 <div class="bottom-bar">
   <div class="page-indicator">
     <span class="page-indicator__current" id="currentPageNum">01</span>
-    <span>/ 15</span>
+    <span>/ 14</span>
     <span class="page-indicator__line" id="progressLine"></span>
     <span id="currentPageName">Home</span>
   </div>
@@ -1416,13 +1421,12 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
       <li class="menu-item" data-page="industries"><span class="menu-item__num">06</span>Industries</li>
       <li class="menu-item" data-page="services"><span class="menu-item__num">07</span>Services</li>
       <li class="menu-item" data-page="custom"><span class="menu-item__num">08</span>Custom <em>Design</em></li>
-      <li class="menu-item" data-page="journal"><span class="menu-item__num">09</span>Studio Journal</li>
-      <li class="menu-item" data-page="about"><span class="menu-item__num">10</span>About</li>
-      <li class="menu-item" data-page="testimonials"><span class="menu-item__num">11</span>Testimonials</li>
-      <li class="menu-item" data-page="pricing"><span class="menu-item__num">12</span>Pricing & <em>Licensing</em></li>
-      <li class="menu-item" data-page="faq"><span class="menu-item__num">13</span>FAQ</li>
-      <li class="menu-item" data-page="contact"><span class="menu-item__num">14</span>Contact</li>
-      <li class="menu-item" data-page="legal"><span class="menu-item__num">15</span>Legal &amp; <em>Policies</em></li>
+      <li class="menu-item" data-page="about"><span class="menu-item__num">09</span>About</li>
+      <li class="menu-item" data-page="testimonials"><span class="menu-item__num">10</span>Testimonials</li>
+      <li class="menu-item" data-page="pricing"><span class="menu-item__num">11</span>Pricing & <em>Licensing</em></li>
+      <li class="menu-item" data-page="faq"><span class="menu-item__num">12</span>FAQ</li>
+      <li class="menu-item" data-page="contact"><span class="menu-item__num">13</span>Contact</li>
+      <li class="menu-item" data-page="legal"><span class="menu-item__num">14</span>Legal &amp; <em>Policies</em></li>
     </ul>
     <aside class="menu-aside">
       <div>
@@ -1443,8 +1447,8 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
         </div>
       </div>
       <div class="menu-aside__feature">
-        <div class="menu-aside__feature-label">Currently Featured</div>
-        <div class="menu-aside__feature-title">The <em>Meridian</em> WebKit — A flagship architectural digital experience.</div>
+        <div class="menu-aside__feature-label">The Studio</div>
+        <div class="menu-aside__feature-title">A curated atelier of <em>digital</em> design artifacts.</div>
       </div>
     </aside>
   </div>
@@ -1489,59 +1493,25 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
         <h2 class="section-header__title">Artifacts of <em>distinction</em></h2>
       </div>
       <div class="product-grid">
-        <article class="product-card product-card--lg reveal" data-page="product" data-cursor-label="Explore">
-          <div class="product-card__image" style="background-image:url('https://picsum.photos/seed/lazydog-p-meridian/900/1100.jpg')"></div>
+        <article class="product-card product-card--lg reveal product-card--soon" data-cursor-label="Coming Soon" data-distinction-slot="1">
+          <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
-          <div class="product-card__badge">Flagship</div>
-          <div class="product-card__num">LDS-001</div>
-          <div class="product-card__content">
-            <div class="product-card__main">
-              <span class="product-card__cat">WebKit · Architecture</span>
-              <h3 class="product-card__name">The <em>Meridian</em></h3>
-              <div class="product-card__meta"><span>1 Page</span><span>HTML/CSS/JS</span><span>Docs Included</span></div>
-            </div>
-            <div class="product-card__price">—</div>
-          </div>
+          <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Coming Soon</h3></div></div>
         </article>
-        <article class="product-card product-card--md reveal reveal-delay-1" data-page="product" data-cursor-label="Explore">
-          <div class="product-card__image" style="background-image:url('https://picsum.photos/seed/lazydog-p-atelier/700/900.jpg')"></div>
+        <article class="product-card product-card--md reveal reveal-delay-1 product-card--soon" data-cursor-label="Coming Soon" data-distinction-slot="2">
+          <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
-          <div class="product-card__num">LDS-002</div>
-          <div class="product-card__content">
-            <div class="product-card__main">
-              <span class="product-card__cat">UI System · SaaS</span>
-              <h3 class="product-card__name">Atelier <em>OS</em></h3>
-              <div class="product-card__meta"><span>Figma</span><span>React</span></div>
-            </div>
-            <div class="product-card__price">$179</div>
-          </div>
+          <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Coming Soon</h3></div></div>
         </article>
-        <article class="product-card product-card--sm reveal" data-page="product" data-cursor-label="Explore">
-          <div class="product-card__image" style="background-image:url('https://picsum.photos/seed/lazydog-p-quill/600/800.jpg')"></div>
+        <article class="product-card product-card--sm reveal product-card--soon" data-cursor-label="Coming Soon" data-distinction-slot="3">
+          <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
-          <div class="product-card__num">LDS-003</div>
-          <div class="product-card__content">
-            <div class="product-card__main">
-              <span class="product-card__cat">Pitch Deck</span>
-              <h3 class="product-card__name">Quill</h3>
-              <div class="product-card__meta"><span>Keynote</span><span>PPT</span></div>
-            </div>
-            <div class="product-card__price">$89</div>
-          </div>
+          <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Coming Soon</h3></div></div>
         </article>
-        <article class="product-card product-card--wide reveal reveal-delay-1" data-page="product" data-cursor-label="Explore">
-          <div class="product-card__image" style="background-image:url('https://picsum.photos/seed/lazydog-p-noir/1200/750.jpg')"></div>
+        <article class="product-card product-card--wide reveal reveal-delay-1 product-card--soon" data-cursor-label="Coming Soon" data-distinction-slot="4">
+          <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
-          <div class="product-card__badge">New</div>
-          <div class="product-card__num">LDS-004</div>
-          <div class="product-card__content">
-            <div class="product-card__main">
-              <span class="product-card__cat">WebKit · Fashion</span>
-              <h3 class="product-card__name">Maison <em>Noir</em></h3>
-              <div class="product-card__meta"><span>12 Pages</span><span>Shopify Ready</span><span>Docs Included</span></div>
-            </div>
-            <div class="product-card__price">$219</div>
-          </div>
+          <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Coming Soon</h3></div></div>
         </article>
       </div>
     </div>
@@ -1592,13 +1562,6 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
           <p class="category-card__desc">Press kits, brand press folios, and media resources — designed to make your studio look as good in print as it does on screen.</p>
           <div class="category-card__arrow">Browse Media Kits →</div>
         </div>
-        <div class="category-card category-card--placeholder" data-cat="social" data-cursor-label="Coming Soon">
-          <div class="category-card__num">06</div>
-          <h3 class="category-card__title">New <em>Template</em></h3>
-          <div class="category-card__count">Coming Soon</div>
-          <p class="category-card__desc"></p>
-          <div class="category-card__arrow"></div>
-        </div>
       </div>
     </div>
   </section>
@@ -1630,37 +1593,6 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <div class="section-header reveal">
-        <div class="section-header__meta">
-          <span class="section-header__num">09 — Studio Journal</span>
-          <p class="section-header__desc">Essays, field notes, and conversations on design, craft, and the business of digital artifacts.</p>
-        </div>
-        <h2 class="section-header__title">Coming <em>dispatches</em></h2>
-      </div>
-      <div class="journal-grid">
-        <article class="journal-card reveal" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/lazydog-j-01/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Essay · Coming Soon</span><span>July 2026</span></div>
-          <h3 class="journal-card__title">Why we build for <em>niches, not everyone</em></h3>
-          <p class="journal-card__excerpt">The case for making fewer things, better — and how targeting a specific audience produces work that outlasts the trends.</p>
-        </article>
-        <article class="journal-card reveal reveal-delay-1" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/lazydog-j-02/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Process · Coming Soon</span><span>August 2026</span></div>
-          <h3 class="journal-card__title">Building a template from <em>zero to sale</em></h3>
-          <p class="journal-card__excerpt">A transparent walkthrough of how we research, design, document, and publish a LazyDog artifact — from blank canvas to live listing.</p>
-        </article>
-        <article class="journal-card reveal reveal-delay-2" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/lazydog-j-03/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Conversation · Coming Soon</span><span>September 2026</span></div>
-          <h3 class="journal-card__title">Pricing digital work without <em>underselling yourself</em></h3>
-          <p class="journal-card__excerpt">How to think about pricing your creative work — and why most designers leave money on the table by copying the wrong competitors.</p>
-        </article>
-      </div>
-    </div>
-  </section>
 </section>
 
 <!-- ============== PAGE: LAZYDOG COLLECTION ============== -->
@@ -1707,7 +1639,6 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
           <button class="filter-btn" data-filter="deck">Pitch Deck Templates<span class="filter-btn__count">0</span></button>
           <button class="filter-btn" data-filter="resume">Resume / CV Templates<span class="filter-btn__count">49</span></button>
           <button class="filter-btn" data-filter="media">Media Kit Templates<span class="filter-btn__count">0</span></button>
-          <button class="filter-btn" data-filter="social">New Template<span class="filter-btn__count">0</span></button>
         </div>
       </div>
 
@@ -1722,18 +1653,18 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
   <section class="product-detail__hero">
     <div class="container">
       <div class="product-detail__inner">
-        <div class="product-detail__media reveal" id="productMedia" style="background-image:url('https://picsum.photos/seed/pd-meridian/900/1100.jpg')">
-          <div class="product-detail__media-badge" id="productBadge">LDS-001 · Flagship</div>
+        <div class="product-detail__media reveal" id="productMedia" style="background:#e7e1d5">
+          <div class="product-detail__media-badge" id="productBadge"></div>
         </div>
         <div class="product-detail__info reveal reveal-delay-1">
-          <span class="product-detail__cat" id="productCatLine">LDS-001 · WebKit · Architecture</span>
-          <h1 class="product-detail__title" id="productTitle">The <em>Meridian</em> WebKit</h1>
-          <p class="product-detail__desc" id="productDesc">An immersive digital architectural experience for an internationally renowned architecture studio. Fourteen beautifully interconnected pages, each composed like a spread in a high-end design monograph. Includes complete documentation, design dossier, and engineering report.</p>
+          <span class="product-detail__cat" id="productCatLine"></span>
+          <h1 class="product-detail__title" id="productTitle">Select a <em>product</em></h1>
+          <p class="product-detail__desc" id="productDesc">Choose a kit from the Store to see its files, details and pricing here.</p>
           <div class="product-detail__meta">
-            <div class="product-detail__meta-item"><span class="product-detail__meta-label">Category</span><span class="product-detail__meta-value" id="productMetaCat">WebKit · Architecture</span></div>
-            <div class="product-detail__meta-item"><span class="product-detail__meta-label">Type</span><span class="product-detail__meta-value" id="productMetaType">Multi-page Site</span></div>
-            <div class="product-detail__meta-item"><span class="product-detail__meta-label">Stack</span><span class="product-detail__meta-value" id="productMetaStack">HTML / CSS / JS</span></div>
-            <div class="product-detail__meta-item"><span class="product-detail__meta-label">Documentation</span><span class="product-detail__meta-value" id="productMetaDoc">Full Dossier</span></div>
+            <div class="product-detail__meta-item"><span class="product-detail__meta-label">Category</span><span class="product-detail__meta-value" id="productMetaCat">—</span></div>
+            <div class="product-detail__meta-item"><span class="product-detail__meta-label">Type</span><span class="product-detail__meta-value" id="productMetaType">—</span></div>
+            <div class="product-detail__meta-item"><span class="product-detail__meta-label">Stack</span><span class="product-detail__meta-value" id="productMetaStack">—</span></div>
+            <div class="product-detail__meta-item"><span class="product-detail__meta-label">Documentation</span><span class="product-detail__meta-value" id="productMetaDoc">—</span></div>
           </div>
           <div class="product-detail__price">
             <div>
@@ -1752,7 +1683,7 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
             <!-- Buttons kept; they are re-labelled and re-wired to the live kit
                  by ldsOpenPackage(). Default state sends the visitor to the
                  Store instead of a product that does not exist. -->
-            <button class="btn-primary" id="productAddPersonalBtn" data-cursor-label="Store" onclick="navigateTo('marketplace')"><i class="fa-solid fa-bag-shopping"></i> Choose a Product</button>
+            <button class="btn-primary" id="productAddPersonalBtn" data-cursor-label="Store" onclick="navigateTo('marketplace')"><i class="fa-solid fa-bag-shopping"></i> Browse the Store</button>
             <button class="btn-primary" id="productAddCommercialBtn" data-cursor-label="Store" onclick="navigateTo('marketplace')" style="display:none"><i class="fa-solid fa-bag-shopping"></i> Buy Commercial</button>
             <button class="btn-secondary" id="productLivePreviewBtn" data-cursor-label="Preview"><i class="fa-solid fa-eye"></i> Live Preview</button>
           </div>
@@ -1788,8 +1719,8 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
       <div class="product-features reveal" id="productFeatures">
         <div class="feature">
           <div class="feature__icon"><i class="fa-solid fa-layer-group"></i></div>
-          <h3 class="feature__title"><em>1</em> Page</h3>
-          <p class="feature__desc">Home, Studio, Philosophy, Portfolio, Residential, Commercial, Interiors, Sustainable, Process, Awards, Journal, Careers, Contact, and 404 — each interconnected.</p>
+          <h3 class="feature__title"><em>1</em> HTML Page</h3>
+          <p class="feature__desc">Fourteen interconnected sections within a single HTML page: Home, Studio, Philosophy, Portfolio, Residential, Commercial, Interiors, Sustainable, Process, Awards, Journal, Careers, Contact, and 404.</p>
         </div>
         <div class="feature">
           <div class="feature__icon"><i class="fa-solid fa-file-lines"></i></div>
@@ -1857,27 +1788,16 @@ animateRing();</pre>
         <div class="tier">
           <div class="tier__label">Included</div>
           <div class="tier__name">Source <em>Files</em></div>
-          <div class="tier__desc">Everything you need to deploy, adapt, and extend the WebKit.</div>
-          <ul class="tier__features">
-            <li>1 HTML page, fully interconnected</li>
-            <li>Inline CSS (~1,400 lines, commented)</li>
-            <li>Google Fonts & Font Awesome integration</li>
-            <li>Responsive breakpoints (1024px, 640px)</li>
-            <li>Accessibility: ARIA, keyboard nav, reduced-motion</li>
+          <div class="tier__desc">Everything needed to open, adapt, and extend the kit.</div>
+          <ul class="tier__features" id="incSource">
+            <li>&mdash;</li>
           </ul>
         </div>
-        <div class="tier tier--featured">
+        <div class="tier tier--featured" id="incDossierTier" style="display:none">
           <div class="tier__label">Included</div>
           <div class="tier__name">Design <em>Dossier</em></div>
-          <div class="tier__desc">Full documentation of every design decision, for your team and your clients.</div>
-          <ul class="tier__features">
-            <li>Design Intelligence Report</li>
-            <li>Engineering Report</li>
-            <li>Creative Exploration (3 directions)</li>
-            <li>Component Reusability Guide</li>
-            <li>Design DNA & Forbidden Patterns</li>
-            <li>Future Expansion Recommendations</li>
-          </ul>
+          <div class="tier__desc">Documentation included with this kit.</div>
+          <ul class="tier__features" id="incDossier"></ul>
         </div>
         <div class="tier">
           <div class="tier__label">Included</div>
@@ -1905,23 +1825,22 @@ animateRing();</pre>
         <h2 class="section-header__title">You may also <em>like</em></h2>
       </div>
       <div class="product-grid">
-        <article class="product-card product-card--sm reveal" data-kit="cortex" data-cursor-label="Explore">
-          <div class="product-card__image" style="background-image:url('https://picsum.photos/seed/mp-04/600/800.jpg')"></div>
+        <!-- Related WebKits: to auto-fill with the latest 3 live WebKits once uploaded.
+             Blank "Loading Soon" placeholders until then. -->
+        <article class="product-card product-card--sm product-card--soon reveal" data-related-slot="1">
+          <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
-          <div class="product-card__num">LDS-004</div>
-          <div class="product-card__content"><div class="product-card__main"><span class="product-card__cat">WebKit</span><h3 class="product-card__name">Cortex</h3></div><div class="product-card__price">$149</div></div>
+          <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Loading Soon</h3></div></div>
         </article>
-        <article class="product-card product-card--sm reveal reveal-delay-1" data-kit="healthcare2" data-cursor-label="Explore">
-          <div class="product-card__image" style="background-image:url('https://picsum.photos/seed/mp-09/600/800.jpg')"></div>
+        <article class="product-card product-card--sm product-card--soon reveal reveal-delay-1" data-related-slot="2">
+          <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
-          <div class="product-card__num">LDS-009</div>
-          <div class="product-card__content"><div class="product-card__main"><span class="product-card__cat">WebKit</span><h3 class="product-card__name">Healthcare <em>V2</em></h3></div><div class="product-card__price">$199</div></div>
+          <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Loading Soon</h3></div></div>
         </article>
-        <article class="product-card product-card--sm reveal reveal-delay-2" data-kit="launchflow" data-cursor-label="Explore">
-          <div class="product-card__image" style="background-image:url('https://picsum.photos/seed/mp-11/600/800.jpg')"></div>
+        <article class="product-card product-card--sm product-card--soon reveal reveal-delay-2" data-related-slot="3">
+          <div class="product-card__image" style="background:#e7e1d5"></div>
           <div class="product-card__overlay"></div>
-          <div class="product-card__num">LDS-011</div>
-          <div class="product-card__content"><div class="product-card__main"><span class="product-card__cat">WebKit</span><h3 class="product-card__name">Launchflow</h3></div><div class="product-card__price">$119</div></div>
+          <div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Loading Soon</h3></div></div>
         </article>
       </div>
     </div>
@@ -1939,8 +1858,8 @@ animateRing();</pre>
   <section class="section" style="padding-top:180px">
     <div class="container">
       <span class="eyebrow reveal">02 — Categories</span>
-      <h1 class="section-header__title reveal reveal-delay-1" style="margin-top:32px">Six <em>disciplines</em>, one catalogue.</h1>
-      <p class="lead reveal reveal-delay-2" style="max-width:60ch;margin-top:32px">Every artifact in our collection belongs to one of six categories — each curated with the same standard of craft, each maintained with the same attention to detail.</p>
+      <h1 class="section-header__title reveal reveal-delay-1" style="margin-top:32px">Five <em>disciplines</em>, one catalogue.</h1>
+      <p class="lead reveal reveal-delay-2" style="max-width:60ch;margin-top:32px">Every artifact in our collection belongs to one of five categories — each curated with the same standard of craft, each maintained with the same attention to detail.</p>
     </div>
   </section>
   <section class="section section--tight">
@@ -1980,13 +1899,6 @@ animateRing();</pre>
           <div class="category-card__count">Coming Soon</div>
           <p class="category-card__desc">Press kits, brand press folios, and media resources — designed to make your studio look as good in print as it does on screen.</p>
           <div class="category-card__arrow">Browse Media Kits →</div>
-        </div>
-        <div class="category-card category-card--placeholder" data-cat="social" data-cursor-label="Coming Soon">
-          <div class="category-card__num">06</div>
-          <h3 class="category-card__title">New <em>Template</em></h3>
-          <div class="category-card__count">Coming Soon</div>
-          <p class="category-card__desc"></p>
-          <div class="category-card__arrow"></div>
         </div>
       </div>
     </div>
@@ -2194,95 +2106,13 @@ animateRing();</pre>
   </section>
 </section>
 
-<!-- ============== PAGE: STUDIO JOURNAL ============== -->
-<section class="page" id="page-journal" data-name="Studio Journal" data-num="09">
-  <section class="journal-hero">
-    <div class="container">
-      <span class="eyebrow reveal">09 — Studio Journal</span>
-      <h1 class="journal-hero__title reveal reveal-delay-1">Dispatches from the <em>atelier</em>.</h1>
-      <p class="lead reveal reveal-delay-2" style="max-width:60ch">Essays, process notes, and conversations on design, craft, and the business of selling digital artifacts. We write to think — slowly, in the way good design is made.</p>
-    </div>
-  </section>
-  <section class="section section--tight">
-    <div class="container">
-      <article class="journal-featured reveal" data-cursor-label="Coming Soon">
-        <div class="journal-featured__image" style="background-image:url('https://picsum.photos/seed/journal-feat/900/700.jpg');opacity:0.5;filter:grayscale(1)"></div>
-        <div class="journal-featured__content">
-          <span class="journal-featured__cat">Essay · Coming Soon — July 2026</span>
-          <h2 class="journal-featured__title">Why we build for <em>niches, not everyone</em></h2>
-          <p class="journal-featured__excerpt">The case for making fewer things, better — and how targeting a specific audience produces work that outlasts the trends. Our first dispatch from the LazyDog atelier, coming July 2026.</p>
-          <div class="journal-featured__meta">
-            <span>The LazyDog Collective</span>
-            <span>July 2026</span>
-            <span>Coming Soon</span>
-          </div>
-        </div>
-      </article>
-    </div>
-  </section>
-  <section class="section">
-    <div class="container">
-      <div class="section-header reveal">
-        <div class="section-header__meta">
-          <span class="section-header__num">09.1 — Recent Entries</span>
-        </div>
-        <h2 class="section-header__title">Upcoming <em>dispatches</em></h2>
-      </div>
-      <div class="journal-grid">
-        <article class="journal-card reveal" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/journal-01/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Essay · Coming Soon</span><span>July 2026</span></div>
-          <h3 class="journal-card__title">Why we build for <em>niches, not everyone</em></h3>
-          <p class="journal-card__excerpt">The case for making fewer things, better — and how targeting a specific audience produces work that outlasts the trends.</p>
-        </article>
-        <article class="journal-card reveal reveal-delay-1" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/journal-02/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Process · Coming Soon</span><span>August 2026</span></div>
-          <h3 class="journal-card__title">Building a template from <em>zero to sale</em></h3>
-          <p class="journal-card__excerpt">A transparent walkthrough of how we research, design, document, and publish a LazyDog artifact — from blank canvas to live listing.</p>
-        </article>
-        <article class="journal-card reveal reveal-delay-2" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/journal-03/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Conversation · Coming Soon</span><span>September 2026</span></div>
-          <h3 class="journal-card__title">Pricing digital work without <em>underselling yourself</em></h3>
-          <p class="journal-card__excerpt">How to think about pricing your creative work — and why most designers leave money on the table by copying the wrong competitors.</p>
-        </article>
-        <article class="journal-card reveal" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/journal-04/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Field Notes · Coming Soon</span><span>October 2026</span></div>
-          <h3 class="journal-card__title">What makes a template <em>actually usable</em></h3>
-          <p class="journal-card__excerpt">The difference between a beautiful template and one that clients can actually hand off — and how we think about documentation, components, and flexibility.</p>
-        </article>
-        <article class="journal-card reveal reveal-delay-1" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/journal-05/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Research · Coming Soon</span><span>November 2026</span></div>
-          <h3 class="journal-card__title">The platforms worth <em>selling on in 2026</em></h3>
-          <p class="journal-card__excerpt">A breakdown of Etsy, Creative Market, Gumroad, and direct sales — fees, audiences, and where premium design work actually converts.</p>
-        </article>
-        <article class="journal-card reveal reveal-delay-2" data-cursor-label="Coming Soon">
-          <div class="journal-card__image" style="background-image:url('https://picsum.photos/seed/journal-06/600/750.jpg');opacity:0.5;filter:grayscale(1)"></div>
-          <div class="journal-card__meta"><span>Essay · Coming Soon</span><span>December 2026</span></div>
-          <h3 class="journal-card__title">On building a brand before <em>you have customers</em></h3>
-          <p class="journal-card__excerpt">How we approached identity, tone, and positioning for LazyDog Studios before a single artifact was sold — and why it mattered.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--tight">
-    <div class="container">
-      <div class="reveal" style="padding-top:8px"><a href="#" data-page="marketplace" data-cursor-label="Go" style="display:inline-block;font-family:var(--font-mono);font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--oxblood);padding-bottom:8px;margin-right:32px">Browse the Store →</a></div>
-    </div>
-  </section>
-</section>
-
 <!-- ============== PAGE: ABOUT ============== -->
-<section class="page" id="page-about" data-name="About" data-num="10">
+<section class="page" id="page-about" data-name="About" data-num="09">
   <section class="about-hero">
     <div class="container">
       <div class="about-hero__inner">
         <div>
-          <span class="eyebrow reveal">10 — About LazyDog Studios</span>
+          <span class="eyebrow reveal">09 — About LazyDog Studios</span>
           <h1 class="about-hero__title reveal reveal-delay-1">An independent <em>studio</em>, a growing catalogue.</h1>
         </div>
         <div class="about-hero__text reveal reveal-delay-2">
@@ -2325,10 +2155,10 @@ animateRing();</pre>
 </section>
 
 <!-- ============== PAGE: TESTIMONIALS ============== -->
-<section class="page" id="page-testimonials" data-name="Testimonials" data-num="11">
+<section class="page" id="page-testimonials" data-name="Testimonials" data-num="10">
   <section class="section" style="padding-top:180px">
     <div class="container">
-      <span class="eyebrow reveal">11 — Testimonials</span>
+      <span class="eyebrow reveal">10 — Testimonials</span>
       <h1 class="section-header__title reveal reveal-delay-1" style="margin-top:32px">What buyers <em>say</em>.</h1>
       <p class="lead reveal reveal-delay-2" style="max-width:60ch;margin-top:32px">We're a new studio, so we're just getting started. Verified customer reviews will appear here as buyers share their experience.</p>
     </div>
@@ -2349,10 +2179,10 @@ animateRing();</pre>
 </section>
 
 <!-- ============== PAGE: PRICING & LICENSING ============== -->
-<section class="page" id="page-pricing" data-name="Pricing & Licensing" data-num="12">
+<section class="page" id="page-pricing" data-name="Pricing & Licensing" data-num="11">
   <section class="pricing-hero">
     <div class="container">
-      <span class="eyebrow reveal">12 — Pricing & Licensing</span>
+      <span class="eyebrow reveal">11 — Pricing & Licensing</span>
       <h1 class="pricing-hero__title reveal reveal-delay-1">Honest <em>pricing</em>, simple licenses.</h1>
       <p class="pricing-hero__lead reveal reveal-delay-2">We believe in transparent pricing and licenses you can actually understand. No subscriptions. No per-seat fees. No royalties. Buy once, use forever.</p>
     </div>
@@ -2430,10 +2260,10 @@ animateRing();</pre>
 </section>
 
 <!-- ============== PAGE: FAQ ============== -->
-<section class="page" id="page-faq" data-name="FAQ" data-num="13">
+<section class="page" id="page-faq" data-name="FAQ" data-num="12">
   <section class="section" style="padding-top:180px">
     <div class="container container--narrow">
-      <span class="eyebrow reveal">13 — Frequently Asked Questions</span>
+      <span class="eyebrow reveal">12 — Frequently Asked Questions</span>
       <h1 class="section-header__title reveal reveal-delay-1" style="margin-top:32px">Questions, <em>answered</em>.</h1>
       <p class="lead reveal reveal-delay-2" style="max-width:60ch;margin-top:32px;margin-bottom:60px">Everything you need to know about LazyDogTemplates — templates, downloads, licensing, and more. If your question isn't here, <a href="#" data-page="contact" style="color:var(--oxblood);border-bottom:1px solid var(--oxblood)">write to us</a>.</p>
       <div class="faq-list reveal">
@@ -2483,10 +2313,10 @@ animateRing();</pre>
 </section>
 
 <!-- ============== PAGE: CONTACT ============== -->
-<section class="page" id="page-contact" data-name="Contact" data-num="14">
+<section class="page" id="page-contact" data-name="Contact" data-num="13">
   <section class="section" style="padding-top:180px">
     <div class="container">
-      <span class="eyebrow reveal">14 — Contact</span>
+      <span class="eyebrow reveal">13 — Contact</span>
       <h1 class="section-header__title reveal reveal-delay-1" style="margin-top:32px">Begin a <em>conversation</em>.</h1>
       <p class="lead reveal reveal-delay-2" style="max-width:60ch;margin-top:32px">Whether you're considering a purchase, a custom commission, or just want to say hello — we'd be glad to hear from you. We respond to every message personally, within two business days.</p>
     </div>
@@ -2567,10 +2397,10 @@ animateRing();</pre>
 </section>
 
 <!-- ============== PAGE: LEGAL & POLICIES ============== -->
-<section class="page" id="page-legal" data-name="Legal & Policies" data-num="15">
+<section class="page" id="page-legal" data-name="Legal & Policies" data-num="14">
   <section class="section" style="padding-top:180px">
     <div class="container container--narrow">
-      <span class="eyebrow reveal">15 — Legal &amp; Policies</span>
+      <span class="eyebrow reveal">14 — Legal &amp; Policies</span>
       <h1 class="section-header__title reveal reveal-delay-1" style="margin-top:32px">Legal &amp; <em>Policies</em>.</h1>
       <p class="lead reveal reveal-delay-2" style="max-width:60ch;margin-top:32px;margin-bottom:60px">Please read these policies carefully before using LazyDogTemplates. Last updated: June 2026.</p>
 
@@ -2909,7 +2739,6 @@ animateRing();</pre>
         <div class="footer__col-title">Studio</div>
         <ul>
           <li><a href="#" data-page="about">About</a></li>
-          <li><a href="#" data-page="journal">Journal</a></li>
           <li><a href="#" data-page="testimonials">Testimonials</a></li>
           <li><a href="#" data-page="services">Services</a></li>
           <li><a href="#" data-page="custom">Custom Design</a></li>
@@ -2931,10 +2760,9 @@ animateRing();</pre>
           <li><a href="#" data-page="legal">Legal</a></li>
         </ul>
       </div>
-    </div>
-    <div class="footer__giant" style="font-size:clamp(28px,5.5vw,84px);margin-top:40px;margin-bottom:0">LazyDog <em>Studios</em></div>
-    <div class="footer__bottom">
+      <div class="footer__bottom" style="grid-column:1 / -1;padding-top:48px">
       <div>© 2026 LazyDog Studios · Operated by LazyDogTemplates · All Rights Reserved</div>
+    </div>
     </div>
   </div>
 </footer>
@@ -3297,7 +3125,7 @@ function navigateTo(pageId){
   const name=target.dataset.name;
   pageNum.textContent=num;
   pageName.textContent=name;
-  progressLine.style.setProperty('--progress',(parseInt(num)/15*100)+'%');
+  progressLine.style.setProperty('--progress',(parseInt(num)/14*100)+'%');
 
   sideItems.forEach(s=>{
     s.classList.toggle('is-active',s.dataset.page===pageId);
@@ -3951,6 +3779,80 @@ document.addEventListener('keydown',e=>{
     });
   });
 
+  // Auto-fill "You may also like" with the latest live WebKits; empty slots stay "Loading Soon".
+  window.ldsRenderRelated = function(){
+    var slots = document.querySelectorAll('#page-product [data-related-slot]');
+    if(!slots.length) return;
+    var esc = function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');};
+    var kits = ((window.LDS_LIVE && window.LDS_LIVE.webkit) || []).slice(0,3);
+    Array.prototype.forEach.call(slots, function(slot,i){
+      var t = kits[i];
+      if(!t){
+        slot.classList.add('product-card--soon'); slot.onclick=null;
+        slot.innerHTML = '<div class="product-card__image" style="background:#e7e1d5"></div><div class="product-card__overlay"></div><div class="product-card__content"><div class="product-card__main"><h3 class="product-card__name">Loading Soon</h3></div></div>';
+        return;
+      }
+      slot.classList.remove('product-card--soon');
+      slot.setAttribute('data-cursor-label','Explore');
+      var name=t.name||'Untitled', img=t.coverImage||(t.slides&&t.slides[0])||'', price=parseFloat(t.price);
+      var priceHtml=(price>0)?'<div class="product-card__price">$'+Math.round(price)+'</div>':'';
+      slot.innerHTML='<div class="product-card__image" style="background-image:url(\''+esc(img)+'\')"></div><div class="product-card__overlay"></div><div class="product-card__content"><div class="product-card__main"><span class="product-card__cat">WebKit</span><h3 class="product-card__name">'+esc(name)+'</h3></div>'+priceHtml+'</div>';
+      slot.onclick=function(){ if(typeof window.ldsOpenCollectionKit==='function') window.ldsOpenCollectionKit(t,'webkit'); };
+    });
+  };
+  setTimeout(function(){ try{ window.ldsRenderRelated(); }catch(e){} }, 800);
+  setTimeout(function(){ try{ window.ldsRenderRelated(); }catch(e){} }, 2000);
+
+  // Auto-fill "Artifacts of Distinction" with live WebKits; empty slots keep their placeholder.
+  window.ldsRenderDistinction = function(){
+    var slots = document.querySelectorAll('#page-home [data-distinction-slot]');
+    if(!slots.length) return;
+    var esc = function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');};
+    var kits = ((window.LDS_LIVE && window.LDS_LIVE.webkit) || []).slice(0,4);
+    Array.prototype.forEach.call(slots, function(slot,i){
+      if(typeof slot._orig==='undefined') slot._orig = slot.innerHTML;   // remember the placeholder once
+      var t = kits[i];
+      if(!t){ slot.innerHTML = slot._orig; slot.onclick=null; slot.setAttribute('data-cursor-label','Coming Soon'); return; }
+      var name=t.name||'Untitled', img=t.coverImage||(t.slides&&t.slides[0])||'', price=parseFloat(t.price);
+      var cat='WebKit'+(t.subCategory?(' · '+String(t.subCategory).replace(/[_-]+/g,' ')):'');
+      var priceHtml=(price>0)?'<div class="product-card__price">$'+Math.round(price)+'</div>':'';
+      var badge=(i===0)?'<div class="product-card__badge">Flagship</div>':'';
+      var seg=[]; var files=(typeof window.ldsFileList==='function')?window.ldsFileList(t,'webkit',' · '):((t.fileTypes&&t.fileTypes.length)?t.fileTypes.join(' · '):''); if(files) seg.push(files); var pn=t.slideCount||(t.slides?t.slides.length:0)||0; if(pn) seg.push(pn+' Page'+(pn===1?'':'s')); var metaHtml=seg.length?'<div class="product-card__meta">'+seg.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>':'';
+      slot.innerHTML='<div class="product-card__image" style="background-image:url(\''+esc(img)+'\')"></div><div class="product-card__overlay"></div>'+badge+'<div class="product-card__content"><div class="product-card__main"><span class="product-card__cat">'+esc(cat)+'</span><h3 class="product-card__name">'+esc(name)+'</h3>'+metaHtml+'</div>'+priceHtml+'</div>';
+      slot.setAttribute('data-cursor-label','Explore');
+      slot.onclick=function(){ if(typeof window.ldsOpenCollectionKit==='function') window.ldsOpenCollectionKit(t,'webkit'); };
+    });
+  };
+  setTimeout(function(){ try{ window.ldsRenderDistinction(); }catch(e){} }, 800);
+  setTimeout(function(){ try{ window.ldsRenderDistinction(); }catch(e){} }, 2000);
+
+  // 05.2 "What's Included" — built from the real kit: files + actual count + real docs.
+  window.ldsFillIncluded = function(t, catKey){
+    var srcEl=document.getElementById('incSource');
+    var dTier=document.getElementById('incDossierTier');
+    var dEl=document.getElementById('incDossier');
+    if(!srcEl) return;
+    var esc=function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+    if(!t){ srcEl.innerHTML='<li>&mdash;</li>'; if(dTier) dTier.style.display='none'; return; }
+    var files=(typeof window.ldsFileList==='function')?window.ldsFileList(t,catKey,' · '):((t.fileTypes&&t.fileTypes.length)?t.fileTypes.join(' · '):'');
+    var n=t.slideCount||(t.slides?t.slides.length:0)||0;
+    var li=[];
+    if(files) li.push('<li>'+esc(files)+'</li>');
+    if(catKey==='webkit'){
+      li.push('<li>'+(n?('1 HTML page with '+n+' interconnected sections'):'Single HTML page')+'</li>');
+      li.push('<li>Responsive &amp; accessible, no build step</li>');
+    } else {
+      var unit=(catKey==='deck'||catKey==='keynote')?'slide':'page';
+      if(n) li.push('<li>'+n+' '+unit+(n===1?'':'s')+'</li>');
+    }
+    srcEl.innerHTML=li.join('')||'<li>&mdash;</li>';
+    var docs=Array.isArray(t.includedDocs)?t.includedDocs.filter(function(d){return d&&String(d).trim();}):[];
+    if(dTier&&dEl){
+      if(docs.length){ dEl.innerHTML=docs.map(function(d){return '<li>'+esc(d)+'</li>';}).join(''); dTier.style.display=''; }
+      else dTier.style.display='none';
+    }
+  };
+
   // ── URL ROUTING ──────────────────────────────────────────────────────
   // Every page used to live at the same URL, so the browser Back button left
   // the site and no page could be linked, bookmarked or indexed. Each page
@@ -4514,6 +4416,7 @@ document.addEventListener('keydown',e=>{
         if(productEl.features)   productEl.features.classList.remove('product-features--files');
         ldsPkg = null;   /* stock product = nothing to hand out */
         ldsProductGallery = null;
+        if(window.ldsFillIncluded) window.ldsFillIncluded(null);
       }
       // A stock flagship product must never inherit a live kit's dossier.
       ['openProduct','openKeynoteProduct'].forEach(fn=>{
@@ -4650,6 +4553,7 @@ document.addEventListener('keydown',e=>{
         ldsProductGallery = { items: galleryFor(t), meta:{title:name, meta:label} };
 
         const slideTxt = n ? n + ' ' + unit + (n===1?'':'s') : 'every ' + unit;
+        if(window.ldsFillIncluded) window.ldsFillIncluded(t, catKey);
 
         /* 11 Aug 2026 — Media kits and pitch decks no longer describe three
            abstract "reports". They now list what actually ships: the Design
@@ -4940,15 +4844,10 @@ document.addEventListener('keydown',e=>{
 
         setCategoryCountLabel(catKey, docs.length +
           ((catKey === 'resume' && window.LDS_CAREER_SETS) ? window.LDS_CAREER_SETS.length : 0));
-        if(typeof renderCareerCards==='function') renderCareerCards();
-        if(typeof renderCareerCards==='function') renderCareerCards();
-        if(typeof renderCareerCards==='function') renderCareerCards();
-        if(typeof renderCareerCards==='function') renderCareerCards();
-        if(typeof renderCareerCards==='function') renderCareerCards();
-        if(typeof renderCareerCards==='function') renderCareerCards();
-        if(typeof renderCareerCards==='function') renderCareerCards();
-        if(typeof renderCareerCards==='function') renderCareerCards();
-        if(typeof renderCareerCards==='function') renderCareerCards();
+        /* Résumé card total is set above as (live docs + 49 career). Career
+           cards persist across renders, so we must NOT re-run renderCareerCards
+           here — it would reset the card to career-only (49) and hide live
+           résumé uploads. The single load-time render remains the source. */
         if(typeof updateFilterCounts==='function') updateFilterCounts();
         ldsSyncLiveTotals();
 
@@ -4970,6 +4869,8 @@ document.addEventListener('keydown',e=>{
         const spreadsEl=document.getElementById('collectionSpreads');
         if(!(spreadsEl && spreadsEl.querySelector('[data-live-spread]'))
            && typeof renderCollectionSpreads==='function') renderCollectionSpreads();
+        if(typeof window.ldsRenderRelated==='function') window.ldsRenderRelated();
+        if(typeof window.ldsRenderDistinction==='function') window.ldsRenderDistinction();
       }
 
       /* 29 Jul 2026 — one source of truth for "how many products do we have".
@@ -4983,7 +4884,7 @@ document.addEventListener('keydown',e=>{
         const grid = document.getElementById('marketplaceGrid');
         if(!grid) return;
         const n = grid.querySelectorAll('.product-card[data-live="1"]').length;
-        if(!n) return;                       // never overwrite a real number with 0
+        // empty catalogue must read the real 0, not hold a stale number (per spec)
         const headline = document.getElementById('ldsCatalogueCount');
         if(headline) headline.textContent = n;
         document.querySelectorAll('[data-live-total]').forEach(el=>{
