@@ -303,19 +303,6 @@
     ));
     body.appendChild(sepd());
     body.appendChild(group('Drawing',
-      big({ ic: 'shapes', label: 'Shapes', pop: function (pop) {
-        pop.appendChild(popGrid([
-          { matIcon: 'crop_square', label: 'Rectangle', cmd: 'insertShape', arg: 'rect' },
-          { matIcon: 'rounded_corner', label: 'Rounded', cmd: 'insertShape', arg: 'rounded' },
-          { matIcon: 'circle', label: 'Ellipse', cmd: 'insertShape', arg: 'circle' },
-          { matIcon: 'change_history', label: 'Triangle', cmd: 'insertShape', arg: 'triangle' },
-          { matIcon: 'square', label: 'Diamond', cmd: 'insertShape', arg: 'diamond' },
-          { matIcon: 'hexagon', label: 'Hexagon', cmd: 'insertShape', arg: 'hexagon' },
-          { matIcon: 'east', label: 'Arrow', cmd: 'insertShape', arg: 'arrow' },
-          { matIcon: 'star_outline', label: 'Star', cmd: 'insertShape', arg: 'star' },
-          { matIcon: 'horizontal_rule', label: 'Line', cmd: 'insertLine' }
-        ], 3));
-      } }),
       big({ ic: 'arrange', label: 'Arrange', pop: function (pop) {
         pop.appendChild(popRow({ matIcon: 'flip_to_front', label: 'Bring to front', cmd: 'front' }));
         pop.appendChild(popRow({ matIcon: 'flip_to_back', label: 'Send to back', cmd: 'back' }));
@@ -381,17 +368,7 @@
       big({ ic: 'image', label: 'Pictures', onClick: function () { file.click(); } })
     ));
     body.appendChild(sepd());
-    body.appendChild(group('Illustrations',
-      big({ ic: 'shapes', label: 'Shapes', pop: function (pop) {
-        pop.appendChild(popGrid([
-          { matIcon: 'crop_square', label: 'Rectangle', cmd: 'insertShape', arg: 'rect' },
-          { matIcon: 'circle', label: 'Ellipse', cmd: 'insertShape', arg: 'circle' },
-          { matIcon: 'change_history', label: 'Triangle', cmd: 'insertShape', arg: 'triangle' },
-          { matIcon: 'hexagon', label: 'Hexagon', cmd: 'insertShape', arg: 'hexagon' },
-          { matIcon: 'east', label: 'Arrow', cmd: 'insertShape', arg: 'arrow' },
-          { matIcon: 'star_outline', label: 'Star', cmd: 'insertShape', arg: 'star' }
-        ], 3));
-      } }),
+    body.appendChild(group('Chart',
       big({ ic: 'chart', label: 'Chart', pop: function (pop) {
         pop.appendChild(el('div', 'rb-pop-head', 'Chart types — live, data-editable'));
         var cg = el('div', 'rb-chart-grid');
