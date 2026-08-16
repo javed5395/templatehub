@@ -64,7 +64,12 @@ window.ldImportPptxFile = async function (file) {
     if (!deckIR || !deckIR.slides) throw new Error('The reply was not a deck');
     if (window.ldParseHeartbeat) window.ldParseHeartbeat(true, 'Building slides…');
     window._deckIR = deckIR;
-    await window.loadDeckIRIntoEditor(deckIR);
+    /* time-box the build: if an asset hangs, reject after 60s so the catch +
+       finally below always run and clear the "Building slides…" pill */
+    await Promise.race([
+      window.loadDeckIRIntoEditor(deckIR),
+      new Promise(function (_r, rej) { setTimeout(function () { rej(new Error('Slide build timed out — please try again')); }, 60000); })
+    ]);
     var totalEls = deckIR.slides.reduce(function (a, s) { return a + (s.elements || []).length; }, 0);
     if (deckIR.report && deckIR.report.length) {
       showToast('Imported ' + deckIR.slides.length + ' slides / ' + totalEls + ' elements. Notes: '

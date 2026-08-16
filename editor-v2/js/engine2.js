@@ -567,6 +567,9 @@ window.loadDeckIRIntoEditor = async function (deckIR) {
   renderPageThumbs();
   Editor._emit('slides', Editor.query('slides'));
   showToast('Design loaded ✓');
+  /* self-heal: a deck has landed, so clear any leftover "Building slides…"
+     heartbeat pill (e.g. one orphaned by an earlier import that hung) */
+  if (window.ldParseHeartbeat) window.ldParseHeartbeat(false);
 };
 
 window.ldCompose = async function (sentence) {
