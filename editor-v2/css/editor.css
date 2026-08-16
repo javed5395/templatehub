@@ -767,3 +767,8 @@ body[data-theme="light"] #ribbon-slot .rb-onebar{ border-bottom:1px solid var(--
 body:not([data-theme="light"]) :is(.sb-card,.sb-text,.sb-tpl-card,.sb-chart-card,.sb-shape-card,.sb-icon-cell,.film-thumb,.sb-primary){
   transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease,transform .16s ease;
 }
+
+/* ═══ blue Download button ═══ */
+#ribbon-slot .rb-dl{ background:linear-gradient(180deg,#2E90FA,#1570EF); border:1px solid rgba(255,255,255,.16); color:#fff; box-shadow:0 8px 20px -8px rgba(46,144,250,.9), inset 0 1px 0 rgba(255,255,255,.28); }
+#ribbon-slot .rb-dl:hover{ background:linear-gradient(180deg,#3a99fb,#1f78f0); }
+#ribbon-slot .rb-dl .rb-act-ico{ color:#fff; }

@@ -259,7 +259,7 @@ function rehydrateFrames() {}
     'background','pageSize','zoom','zoomFit','fitWidth',
     'toggleRuler','toggleGrid','toggleGuides',
     'presentFromStart','presentFromCurrent',
-    'exportPptx','saveProject','newDesign',
+    'exportPptx','exportPdf','exportPng','saveProject','newDesign',
     'insertTable','insertIcon','insertWordArt','insertVideo','insertAudio','addComment',
     'drawPen','drawHighlighter','drawEraser','drawClear',
     'setTransition','setAnimation','accessibilityCheck',

@@ -1090,10 +1090,67 @@ Editor._register({
     try { await ov.requestFullscreen(); } catch (e) {}
     show(idx);
   }
+  function ldLoadScript(src) {
+    return new Promise(function (res, rej) {
+      if (document.querySelector('script[data-ld-src="' + src + '"]')) return res();
+      var el = document.createElement('script'); el.src = src; el.setAttribute('data-ld-src', src);
+      el.onload = function () { res(); }; el.onerror = function () { rej(new Error('load failed: ' + src)); };
+      document.head.appendChild(el);
+    });
+  }
+  async function slidePng(i) {
+    var page = state.pages[i];
+    var W = (fc._baseWidth || 1920), H = (fc._baseHeight || 1080);
+    if (i === state.currentPage) { captureCurrentPage(); }
+    var sc = new fabric.StaticCanvas(null, { width: W, height: H });
+    sc._baseWidth = W; sc._baseHeight = H;
+    if (page.canvasJSON) {
+      await new Promise(function (res) { sc.loadFromJSON(page.canvasJSON, function () { sc.renderAll(); res(); }); });
+    } else if (page.ir && typeof renderSlideIR === 'function') {
+      await renderSlideIR(page.ir, window._deckIR, sc); sc.renderAll();
+    }
+    var url = sc.toDataURL({ format: 'png' });
+    try { sc.dispose(); } catch (e) {}
+    return url;
+  }
+  function ldSaveDataUrl(url, name) {
+    var a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  async function exportPngFile() {
+    var i = state.currentPage || 0;
+    showToast('Rendering PNG…');
+    var url = await slidePng(i);
+    ldSaveDataUrl(url, 'slide-' + (i + 1) + '.png');
+    showToast('Saved slide ' + (i + 1) + ' as PNG');
+  }
+  async function exportPdfFile() {
+    showToast('Building PDF…');
+    await ldLoadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if (!JsPDF) { showToast('PDF engine did not load — check your connection'); return; }
+    var W = (fc._baseWidth || 1920), H = (fc._baseHeight || 1080);
+    var orient = W >= H ? 'l' : 'p';
+    var pdf = new JsPDF({ orientation: orient, unit: 'px', format: [W, H] });
+    for (var i = 0; i < state.pages.length; i++) {
+      var url = await slideImage(i);
+      if (i > 0) pdf.addPage([W, H], orient);
+      pdf.addImage(url, 'JPEG', 0, 0, W, H);
+    }
+    pdf.save('presentation.pdf');
+    showToast('Saved ' + state.pages.length + ' slide(s) as PDF');
+  }
+  function ldBusyWrap(kind, fn) {
+    if (window.ldBusy) window.ldBusy('download', true);
+    return Promise.resolve().then(fn).catch(function (e) { console.error('[export]', kind, e); showToast(kind + ' export failed'); })
+      .finally(function () { if (window.ldBusy) window.ldBusy('download', false); });
+  }
   Editor._register({
     presentFromStart: function () { present(false); },
     presentFromCurrent: function () { present(true); },
-    exportPptx: function () { if (window.ldBusy) window.ldBusy('download', true); Promise.resolve(exportPptxFileV2()).finally(function () { if (window.ldBusy) window.ldBusy('download', false); }); }
+    exportPptx: function () { ldBusyWrap('PPTX', exportPptxFileV2); },
+    exportPdf: function () { ldBusyWrap('PDF', exportPdfFile); },
+    exportPng: function () { ldBusyWrap('PNG', exportPngFile); }
   });
 })();
 

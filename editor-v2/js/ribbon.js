@@ -821,11 +821,7 @@
     setTimeout(function () { t.remove(); }, 2600);
   }
 
-  /* ── topbar: brand · file · saved · actions (matches the pic) ── */
-  var brand = el('div', 'rb-brand');
-  brand.appendChild(el('div', 'rb-mark', 'LD'));
-  brand.appendChild(el('span', 'rb-brand-name', 'LazyDog Studio'));
-  topbar.appendChild(brand);
+  /* ── brand removed per request — tabs now start at the far left ── */
 
   var flexNode = el('div', 'rb-flex');
   topbar.appendChild(flexNode);
@@ -857,6 +853,17 @@
   });
   topbar.appendChild(themeTog);
 
+  /* ── File menu (New design / Save) — moved out of the account menu ── */
+  var fileB = el('button', 'rb-tico'); fileB.type = 'button'; fileB.title = 'File';
+  fileB.appendChild(mat('description'));
+  fileB.addEventListener('click', function () {
+    showPop(fileB, function (pop) {
+      pop.appendChild(popRow({ matIcon: 'note_add', label: 'New design', cmd: 'newDesign' }));
+      pop.appendChild(popRow({ matIcon: 'save', label: 'Save', cmd: 'saveProject' }));
+    });
+  });
+  topbar.appendChild(fileB);
+
   /* Upload button (replaces Present — Present now lives beside the zoom bar) */
   var upFile = el('input'); upFile.type = 'file'; upFile.accept = 'image/*'; upFile.className = 'rb-file';
   upFile.addEventListener('change', function () {
@@ -879,6 +886,19 @@
     });
   });
   topbar.appendChild(uploadB);
+
+  /* ── blue Download button — real PPTX / PDF / PNG export ── */
+  var dlB = el('button', 'rb-action rb-dl'); dlB.type = 'button'; dlB.title = 'Download';
+  dlB.appendChild(mat('download', 'rb-act-ico'));
+  dlB.appendChild(document.createTextNode('Download'));
+  dlB.addEventListener('click', function () {
+    showPop(dlB, function (pop) {
+      pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint', hint: '.pptx', onClick: function () { run('exportPptx'); } }));
+      pop.appendChild(popRow({ matIcon: 'picture_as_pdf', label: 'PDF document', hint: '.pdf', onClick: function () { run('exportPdf'); } }));
+      pop.appendChild(popRow({ matIcon: 'image', label: 'Image — current slide', hint: '.png', onClick: function () { run('exportPng'); } }));
+    });
+  });
+  topbar.appendChild(dlB);
 
   /* ── LIVE account avatar — real sign-in/out (shared with the main site) ── */
   var avatarB = el('button', 'rb-avatar'); avatarB.type = 'button'; avatarB.title = 'Account';
@@ -907,16 +927,9 @@
         who.appendChild(lw);
         pop.appendChild(who);
         pop.appendChild(el('div', 'rb-pop-div'));
+        pop.appendChild(popRow({ matIcon: 'logout', label: 'Sign out', onClick: function () { run('signOut'); } }));
       } else {
         pop.appendChild(popRow({ matIcon: 'login', label: 'Sign in', hint: 'Google — same account as LazyDog Studio', onClick: function () { run('signIn'); } }));
-        pop.appendChild(el('div', 'rb-pop-div'));
-      }
-      pop.appendChild(popRow({ matIcon: 'note_add', label: 'New design', cmd: 'newDesign' }));
-      pop.appendChild(popRow({ matIcon: 'save', label: 'Save', cmd: 'saveProject' }));
-      pop.appendChild(popRow({ matIcon: 'download', label: 'Download', hint: '.pptx', onClick: function () { run('exportPptx'); } }));
-      if (u) {
-        pop.appendChild(el('div', 'rb-pop-div'));
-        pop.appendChild(popRow({ matIcon: 'logout', label: 'Sign out', onClick: function () { run('signOut'); } }));
       }
     });
   });
