@@ -222,6 +222,9 @@
   function sepd() { return el('div', 'rb-sep'); }
 
   function tabHome() {
+    /* HOME-REBUILT-TO-MATCH-MOCKUP — 8 groups: Clipboard, Slides, Font,
+       Paragraph, Insert, Arrange, Editing, Selection. Every button uses a
+       real Editor.run command (see core.js COMMANDS). Nothing removed. */
     var fontCombo = wire(el('button', 'rb-combo rb-combo-font'), { id: 'fontCombo', tip: 'Font', textOnly: true, pop: fontPopover });
     fontCombo.appendChild(el('span', 'rb-combo-val', 'DM Sans'));
     fontCombo.appendChild(mat('arrow_drop_down', 'rb-caret-s'));
@@ -229,36 +232,110 @@
     sizeCombo.appendChild(el('span', 'rb-combo-val', '18'));
     sizeCombo.appendChild(mat('arrow_drop_down', 'rb-caret-s'));
 
+    function newSlidePop(pop) {
+      pop.appendChild(el('div', 'rb-pop-head', 'Office theme'));
+      var g = el('div', 'rb-layout-grid');
+      (ask('slideLayouts') || []).forEach(function (L) {
+        var b = el('button', 'rb-layout-card'); b.type = 'button'; b.title = L.name;
+        var art = el('span', 'rb-layout-art'); art.innerHTML = L.svg;
+        b.appendChild(art); b.appendChild(el('span', 'rb-layout-lab', L.name));
+        b.addEventListener('click', function () { run('addSlideLayout', L.id); });
+        g.appendChild(b);
+      });
+      pop.appendChild(g);
+      pop.appendChild(el('div', 'rb-pop-div'));
+      pop.appendChild(popRow({ matIcon: 'content_copy', label: 'Duplicate selected slide', cmd: 'duplicateSlide' }));
+      pop.appendChild(popRow({ matIcon: 'format_list_bulleted', label: 'Slides from outline…', cmd: 'slidesOutline' }));
+    }
+    function textBoxPop(pop) {
+      pop.appendChild(popRow({ matIcon: 'title', label: 'Heading', hint: 'Big title text', cmd: 'insertText', arg: 'heading' }));
+      pop.appendChild(popRow({ matIcon: 'text_fields', label: 'Subheading', hint: 'Section label', cmd: 'insertText', arg: 'subheading' }));
+      pop.appendChild(popRow({ matIcon: 'notes', label: 'Body text', hint: 'Paragraph copy', cmd: 'insertText', arg: 'body' }));
+    }
+    function shapesPop(pop) {
+      pop.style.width = '298px'; pop.style.maxHeight = '430px'; pop.style.overflowY = 'auto';
+      (ask('shapeGroups') || []).forEach(function (grp) {
+        pop.appendChild(el('div', 'rb-pop-head', grp.name));
+        var g = el('div'); g.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:2px 10px 8px';
+        grp.items.forEach(function (it) {
+          var b = el('button'); b.type = 'button'; b.title = it.name;
+          b.style.cssText = 'display:grid;place-items:center;height:42px;border-radius:8px;border:1px solid var(--line-2);background:var(--bg-inset);cursor:pointer;padding:6px;color:var(--text-1);transition:all .15s ease';
+          b.onmouseenter = function () { b.style.borderColor = 'var(--accent-line)'; };
+          b.onmouseleave = function () { b.style.borderColor = 'var(--line-2)'; };
+          var art = el('span'); art.style.cssText = 'display:block;line-height:0;width:100%;height:100%';
+          art.innerHTML = it.svg;
+          var sv = art.querySelector('svg');
+          if (sv) {
+            sv.style.width = '100%'; sv.style.height = '100%';
+            sv.querySelectorAll('*').forEach(function (n) {
+              if (n.getAttribute && n.getAttribute('fill')) n.setAttribute('fill', 'currentColor');
+              if (n.getAttribute && n.getAttribute('stroke')) n.setAttribute('stroke', 'currentColor');
+            });
+          }
+          b.appendChild(art);
+          b.addEventListener('click', function () { closePop(); run(it.cmd, it.arg); setTimeout(sync, 0); });
+          g.appendChild(b);
+        });
+        pop.appendChild(g);
+      });
+    }
+    function arrangePop(pop) {
+      pop.appendChild(popRow({ matIcon: 'flip_to_front', label: 'Bring to front', cmd: 'front' }));
+      pop.appendChild(popRow({ matIcon: 'flip_to_back', label: 'Send to back', cmd: 'back' }));
+      pop.appendChild(popRow({ matIcon: 'arrow_upward', label: 'Bring forward', cmd: 'forward' }));
+      pop.appendChild(popRow({ matIcon: 'arrow_downward', label: 'Send backward', cmd: 'backward' }));
+      pop.appendChild(el('div', 'rb-pop-div'));
+      pop.appendChild(popRow({ matIcon: 'rotate_right', label: 'Rotate 90°', cmd: 'rotate', arg: 90 }));
+      pop.appendChild(popRow({ matIcon: 'flip', label: 'Flip horizontal', cmd: 'flipH' }));
+      pop.appendChild(popRow({ matIcon: 'flip', label: 'Flip vertical', cmd: 'flipV' }));
+    }
+    function alignPop(pop) {
+      pop.appendChild(popRow({ matIcon: 'align_horizontal_left', label: 'Align left', cmd: 'alignSlide', arg: 'left' }));
+      pop.appendChild(popRow({ matIcon: 'align_horizontal_center', label: 'Align centre', cmd: 'alignSlide', arg: 'centerH' }));
+      pop.appendChild(popRow({ matIcon: 'align_horizontal_right', label: 'Align right', cmd: 'alignSlide', arg: 'right' }));
+      pop.appendChild(el('div', 'rb-pop-div'));
+      pop.appendChild(popRow({ matIcon: 'align_vertical_top', label: 'Align top', cmd: 'alignSlide', arg: 'top' }));
+      pop.appendChild(popRow({ matIcon: 'align_vertical_center', label: 'Align middle', cmd: 'alignSlide', arg: 'centerV' }));
+      pop.appendChild(popRow({ matIcon: 'align_vertical_bottom', label: 'Align bottom', cmd: 'alignSlide', arg: 'bottom' }));
+      pop.appendChild(el('div', 'rb-pop-div'));
+      pop.appendChild(popRow({ matIcon: 'horizontal_distribute', label: 'Distribute horizontally', cmd: 'distribute', arg: 'h' }));
+      pop.appendChild(popRow({ matIcon: 'vertical_distribute', label: 'Distribute vertically', cmd: 'distribute', arg: 'v' }));
+    }
+    function groupPop(pop) {
+      pop.appendChild(popRow({ matIcon: 'join_full', label: 'Group', cmd: 'group' }));
+      pop.appendChild(popRow({ matIcon: 'join_inner', label: 'Ungroup', cmd: 'ungroup' }));
+    }
+    function moreFontPop(pop) {
+      pop.appendChild(popRow({ matIcon: 'format_clear', label: 'Clear formatting', cmd: 'clearFormat' }));
+    }
+    function selectionPop(pop) {
+      pop.appendChild(popRow({ matIcon: 'lock_open', label: 'Unlock all', cmd: 'unlockAll' }));
+      pop.appendChild(popRow({ matIcon: 'lock', label: 'Lock selected', cmd: 'lock' }));
+    }
+
+    var imgFile = el('input'); imgFile.type = 'file'; imgFile.accept = 'image/*'; imgFile.className = 'rb-file';
+    imgFile.addEventListener('change', function () {
+      var f = imgFile.files && imgFile.files[0]; if (!f) return;
+      var r = new FileReader(); r.onload = function () { run('insertImage', r.result); }; r.readAsDataURL(f); imgFile.value = '';
+    });
+
     var body = el('div', 'rb-body-inner');
+    body.appendChild(imgFile);
+
     body.appendChild(group('Clipboard',
       big({ ic: 'paste', label: 'Paste', cmd: 'paste' }),
       col(
         small({ ic: 'cut', label: 'Cut', cmd: 'cut' }),
         small({ ic: 'copy', label: 'Copy', cmd: 'copy' }),
-        small({ ic: 'painter', label: 'Format painter', cmd: 'formatPainter' })
+        small({ ic: 'painter', label: 'Format', cmd: 'formatPainter' })
       )
     ));
     body.appendChild(sepd());
     body.appendChild(group('Slides',
-      big({ ic: 'new-slide', label: 'New\nSlide', pop: function (pop) {
-        pop.appendChild(el('div', 'rb-pop-head', 'Office theme'));
-        var g = el('div', 'rb-layout-grid');
-        (ask('slideLayouts') || []).forEach(function (L) {
-          var b = el('button', 'rb-layout-card'); b.type = 'button'; b.title = L.name;
-          var art = el('span', 'rb-layout-art'); art.innerHTML = L.svg;
-          b.appendChild(art);
-          b.appendChild(el('span', 'rb-layout-lab', L.name));
-          b.addEventListener('click', function () { run('addSlideLayout', L.id); });
-          g.appendChild(b);
-        });
-        pop.appendChild(g);
-        pop.appendChild(el('div', 'rb-pop-div'));
-        pop.appendChild(popRow({ matIcon: 'content_copy', label: 'Duplicate selected slide', cmd: 'duplicateSlide' }));
-        pop.appendChild(popRow({ matIcon: 'format_list_bulleted', label: 'Slides from outline…', cmd: 'slidesOutline' }));
-      } }),
       col(
-        small({ ic: 'dup-slide', label: 'Duplicate slide', cmd: 'duplicateSlide' }),
-        small({ ic: 'delete', label: 'Delete slide', cmd: 'deleteSlide' })
+        small({ ic: 'new-slide', label: 'New Slide', pop: newSlidePop }),
+        small({ ic: 'dup-slide', label: 'Duplicate', cmd: 'duplicateSlide' }),
+        small({ ic: 'delete', label: 'Delete', cmd: 'deleteSlide' })
       )
     ));
     body.appendChild(sepd());
@@ -266,8 +343,7 @@
       col(
         row(fontCombo, sizeCombo,
           small({ matIcon: 'text_increase', tip: 'Grow font', cmd: 'fontStep', arg: 1, textOnly: true }),
-          small({ matIcon: 'text_decrease', tip: 'Shrink font', cmd: 'fontStep', arg: -1, textOnly: true }),
-          small({ matIcon: 'format_clear', tip: 'Clear formatting', cmd: 'clearFormat', textOnly: true })
+          small({ matIcon: 'text_decrease', tip: 'Shrink font', cmd: 'fontStep', arg: -1, textOnly: true })
         ),
         row(
           small({ matIcon: 'format_bold', tip: 'Bold', cmd: 'bold', press: 'bold', textOnly: true }),
@@ -275,9 +351,10 @@
           small({ matIcon: 'format_underlined', tip: 'Underline', cmd: 'underline', press: 'underline', textOnly: true }),
           small({ matIcon: 'strikethrough_s', tip: 'Strikethrough', cmd: 'strike', press: 'strike', textOnly: true }),
           small({ ic: 'text-colour', tip: 'Font colour', textOnly: true, pop: swatchPopover('textColour', TEXT_COLOURS) }),
-          small({ ic: 'highlight', tip: 'Text highlight', textOnly: true, pop: swatchPopover('highlight', HIGHLIGHTS, function () {
+          small({ ic: 'highlight', tip: 'Highlight', textOnly: true, pop: swatchPopover('highlight', HIGHLIGHTS, function () {
             return popRow({ matIcon: 'format_color_reset', label: 'No highlight', onClick: function () { run('highlight', null); } });
-          }) })
+          }) }),
+          small({ matIcon: 'more_horiz', tip: 'More text options', textOnly: true, pop: moreFontPop })
         )
       )
     ));
@@ -286,44 +363,47 @@
       col(
         row(
           small({ ic: 'bullets', tip: 'Bullets', cmd: 'bullets', press: 'bullets', textOnly: true }),
-          small({ ic: 'numbering', tip: 'Numbering', cmd: 'numbering', press: 'numbering', textOnly: true }),
-          small({ matIcon: 'format_line_spacing', tip: 'Line spacing', textOnly: true, pop: function (pop) {
-            [1.0, 1.15, 1.5, 2.0].forEach(function (v) {
-              pop.appendChild(popRow({ matIcon: 'format_line_spacing', label: v.toFixed(2), cmd: 'lineSpacing', arg: v }));
-            });
-          } })
+          small({ ic: 'numbering', tip: 'Numbering', cmd: 'numbering', press: 'numbering', textOnly: true })
         ),
         row(
           small({ matIcon: 'format_align_left', tip: 'Align left', cmd: 'align', arg: 'left', press: 'align-left', textOnly: true }),
           small({ matIcon: 'format_align_center', tip: 'Centre', cmd: 'align', arg: 'center', press: 'align-center', textOnly: true }),
           small({ matIcon: 'format_align_right', tip: 'Align right', cmd: 'align', arg: 'right', press: 'align-right', textOnly: true }),
-          small({ matIcon: 'format_align_justify', tip: 'Justify', cmd: 'align', arg: 'justify', press: 'align-justify', textOnly: true })
+          small({ matIcon: 'format_align_justify', tip: 'Justify', cmd: 'align', arg: 'justify', press: 'align-justify', textOnly: true }),
+          small({ matIcon: 'format_line_spacing', tip: 'Line spacing', textOnly: true, pop: function (pop) {
+            [1.0, 1.15, 1.5, 2.0].forEach(function (v) { pop.appendChild(popRow({ matIcon: 'format_line_spacing', label: v.toFixed(2), cmd: 'lineSpacing', arg: v })); });
+          } })
         )
       )
     ));
     body.appendChild(sepd());
-    body.appendChild(group('Drawing',
-      big({ ic: 'arrange', label: 'Arrange', pop: function (pop) {
-        pop.appendChild(popRow({ matIcon: 'flip_to_front', label: 'Bring to front', cmd: 'front' }));
-        pop.appendChild(popRow({ matIcon: 'flip_to_back', label: 'Send to back', cmd: 'back' }));
-        pop.appendChild(popRow({ matIcon: 'arrow_upward', label: 'Bring forward', cmd: 'forward' }));
-        pop.appendChild(popRow({ matIcon: 'arrow_downward', label: 'Send backward', cmd: 'backward' }));
-        pop.appendChild(el('div', 'rb-pop-div'));
-        pop.appendChild(popRow({ matIcon: 'join_full', label: 'Group', cmd: 'group' }));
-        pop.appendChild(popRow({ matIcon: 'join_inner', label: 'Ungroup', cmd: 'ungroup' }));
-        pop.appendChild(el('div', 'rb-pop-div'));
-        pop.appendChild(popRow({ matIcon: 'rotate_right', label: 'Rotate 90°', cmd: 'rotate', arg: 90 }));
-        pop.appendChild(popRow({ matIcon: 'flip', label: 'Flip horizontal', cmd: 'flipH' }));
-        pop.appendChild(popRow({ matIcon: 'flip', label: 'Flip vertical', cmd: 'flipV' }));
-      } })
+    body.appendChild(group('Insert',
+      col(
+        small({ ic: 'textbox', label: 'Text Box', pop: textBoxPop }),
+        small({ ic: 'image', label: 'Images', pop: function (pop) {
+          pop.appendChild(popRow({ matIcon: 'upload', label: 'Upload from device', hint: 'Photo from your computer', onClick: function () { imgFile.click(); } }));
+        } })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Arrange',
+      col(
+        small({ ic: 'arrange', label: 'Arrange', pop: arrangePop }),
+        small({ matIcon: 'align_horizontal_center', label: 'Align', pop: alignPop }),
+        small({ matIcon: 'join_full', label: 'Group', pop: groupPop })
+      )
     ));
     body.appendChild(sepd());
     body.appendChild(group('Editing',
       col(
         small({ ic: 'find', label: 'Find', cmd: 'find' }),
-        small({ matIcon: 'select_all', label: 'Select all', cmd: 'selectAll' }),
-        small({ matIcon: 'lock_open', label: 'Unlock all', cmd: 'unlockAll' })
+        small({ matIcon: 'find_replace', label: 'Replace', cmd: 'find' }),
+        small({ matIcon: 'select_all', label: 'Select All', cmd: 'selectAll' })
       )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Selection',
+      big({ matIcon: 'lock_open', label: 'Unlock\nAll', pop: selectionPop })
     ));
     return body;
   }
@@ -366,23 +446,6 @@
     body.appendChild(sepd());
     body.appendChild(group('Images',
       big({ ic: 'image', label: 'Pictures', onClick: function () { file.click(); } })
-    ));
-    body.appendChild(sepd());
-    body.appendChild(group('Chart',
-      big({ ic: 'chart', label: 'Chart', pop: function (pop) {
-        pop.appendChild(el('div', 'rb-pop-head', 'Chart types — live, data-editable'));
-        var cg = el('div', 'rb-chart-grid');
-        (ask('chartTypes') || []).forEach(function (c) {
-          var b = el('button', 'rb-chart-card'); b.type = 'button'; b.title = c.name;
-          var pv = el('span', 'rb-chart-prev');
-          if (c.thumb) pv.style.backgroundImage = "url('" + c.thumb + "')";
-          b.appendChild(pv);
-          b.appendChild(el('span', 'rb-chart-lab', c.name));
-          b.addEventListener('click', function () { run('insertChart', c.id); });
-          cg.appendChild(b);
-        });
-        pop.appendChild(cg);
-      } })
     ));
     body.appendChild(sepd());
     body.appendChild(group('Text',
@@ -657,6 +720,78 @@
     return body;
   }
 
+  /* ── contextual FORMAT tab (PPT Shape-Format style) ──────────────── */
+  function fmtAlignPop(pop) {
+    pop.appendChild(popRow({ matIcon: 'align_horizontal_left', label: 'Align left', cmd: 'alignSlide', arg: 'left' }));
+    pop.appendChild(popRow({ matIcon: 'align_horizontal_center', label: 'Align centre', cmd: 'alignSlide', arg: 'centerH' }));
+    pop.appendChild(popRow({ matIcon: 'align_horizontal_right', label: 'Align right', cmd: 'alignSlide', arg: 'right' }));
+    pop.appendChild(el('div', 'rb-pop-div'));
+    pop.appendChild(popRow({ matIcon: 'align_vertical_top', label: 'Align top', cmd: 'alignSlide', arg: 'top' }));
+    pop.appendChild(popRow({ matIcon: 'align_vertical_center', label: 'Align middle', cmd: 'alignSlide', arg: 'centerV' }));
+    pop.appendChild(popRow({ matIcon: 'align_vertical_bottom', label: 'Align bottom', cmd: 'alignSlide', arg: 'bottom' }));
+    pop.appendChild(el('div', 'rb-pop-div'));
+    pop.appendChild(popRow({ matIcon: 'horizontal_distribute', label: 'Distribute horizontally', cmd: 'distribute', arg: 'h' }));
+    pop.appendChild(popRow({ matIcon: 'vertical_distribute', label: 'Distribute vertically', cmd: 'distribute', arg: 'v' }));
+  }
+  function tabFormat() {
+    var body = el('div', 'rb-body-inner');
+    body.appendChild(group('Shape Styles',
+      big({ matIcon: 'format_color_fill', label: 'Shape\nFill', pop: swatchPopover('shapeFill', TEXT_COLOURS) }),
+      big({ matIcon: 'border_color', label: 'Outline', pop: swatchPopover('shapeOutline', TEXT_COLOURS, function () {
+        return popRow({ matIcon: 'format_color_reset', label: 'No outline', onClick: function () { run('shapeOutline', null); } });
+      }) }),
+      col(
+        small({ matIcon: 'line_weight', label: 'Weight', pop: function (pop) {
+          [1, 2, 4, 6, 8, 12].forEach(function (w) { pop.appendChild(popRow({ matIcon: 'horizontal_rule', label: w + ' px', cmd: 'shapeOutlineW', arg: w })); });
+        } }),
+        small({ matIcon: 'opacity', label: 'Transparency', pop: function (pop) {
+          [100, 80, 60, 40, 20].forEach(function (p) { pop.appendChild(popRow({ matIcon: 'opacity', label: (100 - p) + '%', cmd: 'shapeOpacity', arg: p / 100 })); });
+        } })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Text',
+      big({ ic: 'wordart', label: 'WordArt\nStyles', pop: function (pop) {
+        pop.appendChild(el('div', 'rb-pop-head', 'WordArt styles'));
+        var g = el('div', 'rb-wa-grid');
+        (ask('wordArtStyles') || []).forEach(function (st) {
+          var b = el('button', 'rb-wa-item'); b.type = 'button'; b.title = st.name;
+          var a = el('span', 'rb-wa-A', 'A'); a.style.cssText = st.css;
+          b.appendChild(a);
+          b.addEventListener('click', function () { run('insertWordArt', st.i); });
+          g.appendChild(b);
+        });
+        pop.appendChild(g);
+      } })
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Arrange',
+      col(
+        small({ matIcon: 'flip_to_front', label: 'Bring Forward', cmd: 'forward' }),
+        small({ matIcon: 'flip_to_back', label: 'Send Backward', cmd: 'backward' }),
+        small({ matIcon: 'align_horizontal_center', label: 'Align', pop: fmtAlignPop })
+      ),
+      col(
+        small({ matIcon: 'join_full', label: 'Group', cmd: 'group' }),
+        small({ matIcon: 'join_inner', label: 'Ungroup', cmd: 'ungroup' }),
+        small({ matIcon: 'rotate_right', label: 'Rotate', pop: function (pop) {
+          pop.appendChild(popRow({ matIcon: 'rotate_right', label: 'Rotate 90°', cmd: 'rotate', arg: 90 }));
+          pop.appendChild(popRow({ matIcon: 'flip', label: 'Flip horizontal', cmd: 'flipH' }));
+          pop.appendChild(popRow({ matIcon: 'flip', label: 'Flip vertical', cmd: 'flipV' }));
+        } })
+      )
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Size & lock',
+      col(
+        small({ matIcon: 'flip_to_front', label: 'Bring to Front', cmd: 'front' }),
+        small({ matIcon: 'flip_to_back', label: 'Send to Back', cmd: 'back' }),
+        small({ matIcon: 'lock', label: 'Lock', cmd: 'lock' })
+      )
+    ));
+    return body;
+  }
+
   /* ── tab strip + shell ───────────────────────────────────────────── */
   var TABS = [
     { id: 'home', name: 'Home', build: tabHome },
@@ -668,18 +803,134 @@
     { id: 'slideshow', name: 'Slide Show', build: tabSlideShow },
     { id: 'review', name: 'Review', build: tabReview },
     { id: 'view', name: 'View', build: tabView },
+    { id: 'format', name: 'Format', build: tabFormat, ctx: true },
     { id: 'help', name: 'Help', build: tabHelp }
   ];
   var active = 'home';
   var rb = el('div', 'rb');
-  var topRow = el('div', 'rb-top');
+  /* SINGLE top row: brand + file + tabs + actions all in one strip
+     (the old separate brand row was removed to free vertical space) */
+  var topbar = el('div', 'rb-tabs rb-onebar');
+  var tabstrip = topbar;
   var bodyHost = el('div', 'rb-body');
-  rb.appendChild(topRow); rb.appendChild(bodyHost);
+  rb.appendChild(topbar); rb.appendChild(bodyHost);
 
+  function upNote(msg) {
+    var host = document.getElementById('toast-host'); if (!host) return;
+    var t = el('div', 'toast', msg); host.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2600);
+  }
+
+  /* ── topbar: brand · file · saved · actions (matches the pic) ── */
+  var brand = el('div', 'rb-brand');
+  brand.appendChild(el('div', 'rb-mark', 'LD'));
+  brand.appendChild(el('span', 'rb-brand-name', 'LazyDog Studio'));
+  topbar.appendChild(brand);
+
+  var flexNode = el('div', 'rb-flex');
+  topbar.appendChild(flexNode);
+
+  var undoB = el('button', 'rb-tico'); undoB.type = 'button'; undoB.title = 'Undo (Ctrl+Z)';
+  undoB.appendChild(svg('undo', 'rb-svg rb-svg-sm'));
+  undoB.addEventListener('click', function () { run('undo'); setTimeout(sync, 0); });
+  var redoB = el('button', 'rb-tico'); redoB.type = 'button'; redoB.title = 'Redo (Ctrl+Y)';
+  redoB.appendChild(svg('redo', 'rb-svg rb-svg-sm'));
+  redoB.addEventListener('click', function () { run('redo'); setTimeout(sync, 0); });
+  topbar.appendChild(undoB); topbar.appendChild(redoB);
+
+  /* day / night toggle (remembers the choice; default = dark) */
+  var themeTog = el('button', 'rb-theme-tog'); themeTog.type = 'button'; themeTog.title = 'Day / night';
+  themeTog.appendChild(mat('light_mode', 'rb-tog-sun'));
+  themeTog.appendChild(mat('dark_mode', 'rb-tog-moon'));
+  themeTog.appendChild(el('span', 'rb-tog-knob'));
+  function applyTheme(t) {
+    if (t === 'light') document.body.setAttribute('data-theme', 'light');
+    else document.body.removeAttribute('data-theme');
+  }
+  var savedTheme = 'dark';
+  try { if (localStorage.getItem('lds-editor-theme') === 'light') savedTheme = 'light'; } catch (e) {}
+  applyTheme(savedTheme);
+  themeTog.addEventListener('click', function () {
+    var next = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    applyTheme(next);
+    try { localStorage.setItem('lds-editor-theme', next); } catch (e) {}
+  });
+  topbar.appendChild(themeTog);
+
+  /* Upload button (replaces Present — Present now lives beside the zoom bar) */
+  var upFile = el('input'); upFile.type = 'file'; upFile.accept = 'image/*'; upFile.className = 'rb-file';
+  upFile.addEventListener('change', function () {
+    var f = upFile.files && upFile.files[0]; if (!f) return;
+    var r = new FileReader(); r.onload = function () { run('insertImage', r.result); }; r.readAsDataURL(f); upFile.value = '';
+  });
+  topbar.appendChild(upFile);
+  var uploadB = el('button', 'rb-action'); uploadB.type = 'button'; uploadB.title = 'Upload';
+  uploadB.appendChild(mat('upload', 'rb-act-ico'));
+  uploadB.appendChild(document.createTextNode('Upload'));
+  uploadB.addEventListener('click', function () {
+    showPop(uploadB, function (pop) {
+      pop.classList.add('rb-pop-file');
+      pop.appendChild(popRow({ matIcon: 'image', label: 'Image', hint: 'Photo from your device', onClick: function () { upFile.click(); } }));
+      pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint (.pptx)', hint: 'Import a deck', onClick: function () { run('importPptx'); } }));
+      pop.appendChild(el('div', 'rb-pop-div'));
+      pop.appendChild(popRow({ matIcon: 'auto_fix_high', label: 'Dissolve PDF / Image', hint: 'Turn a flat file into an editable design', onClick: function () { run('dissolve'); } }));
+      pop.appendChild(el('div', 'rb-pop-div'));
+      pop.appendChild(popRow({ matIcon: 'cloud_upload', label: 'Publish as template', hint: 'Admin only', onClick: function () { run('publishTemplate'); } }));
+    });
+  });
+  topbar.appendChild(uploadB);
+
+  /* ── LIVE account avatar — real sign-in/out (shared with the main site) ── */
+  var avatarB = el('button', 'rb-avatar'); avatarB.type = 'button'; avatarB.title = 'Account';
+  function paintUser() {
+    var u = ask('user');
+    avatarB.innerHTML = '';
+    if (u && u.photo) {
+      var im = el('img'); im.src = u.photo; im.alt = '';
+      im.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover';
+      avatarB.appendChild(im);
+    } else {
+      avatarB.textContent = u ? String(u.name || u.email || 'U').trim().slice(0, 2).toUpperCase() : 'LD';
+    }
+    avatarB.title = u ? (u.email || 'Account') : 'Sign in';
+    avatarB.classList.toggle('is-signed', !!u);
+  }
+  avatarB.addEventListener('click', function () {
+    showPop(avatarB, function (pop) {
+      var u = ask('user');
+      if (u) {
+        var who = el('div', 'rb-pop-row');
+        who.style.cursor = 'default';
+        who.appendChild(mat('account_circle', 'rb-svg-sm-mat'));
+        var lw = el('span', 'rb-pop-lab', u.name || u.email || 'Signed in');
+        if (u.name && u.email) lw.appendChild(el('span', 'rb-pop-hint', u.email));
+        who.appendChild(lw);
+        pop.appendChild(who);
+        pop.appendChild(el('div', 'rb-pop-div'));
+      } else {
+        pop.appendChild(popRow({ matIcon: 'login', label: 'Sign in', hint: 'Google — same account as LazyDog Studio', onClick: function () { run('signIn'); } }));
+        pop.appendChild(el('div', 'rb-pop-div'));
+      }
+      pop.appendChild(popRow({ matIcon: 'note_add', label: 'New design', cmd: 'newDesign' }));
+      pop.appendChild(popRow({ matIcon: 'save', label: 'Save', cmd: 'saveProject' }));
+      pop.appendChild(popRow({ matIcon: 'download', label: 'Download', hint: '.pptx', onClick: function () { run('exportPptx'); } }));
+      if (u) {
+        pop.appendChild(el('div', 'rb-pop-div'));
+        pop.appendChild(popRow({ matIcon: 'logout', label: 'Sign out', onClick: function () { run('signOut'); } }));
+      }
+    });
+  });
+  listen('user', function () { paintUser(); });
+  paintUser();
+  topbar.appendChild(avatarB);
+
+  /* ── tab strip (Help now lives in the topbar ? menu) ── */
   var tabBtns = {};
   TABS.forEach(function (t) {
-    var b = el('button', 'rb-tab' + (t.id === active ? ' is-active' : ''), t.name);
+    if (t.id === 'help') return;
+    var b = el('button', 'rb-tab' + (t.id === active ? ' is-active' : '') + (t.ctx ? ' rb-tab-ctx' : ''), t.name);
     b.type = 'button';
+    if (t.ctx) b.style.display = 'none';
     b.addEventListener('click', function () {
       closePop();
       active = t.id;
@@ -687,77 +938,12 @@
       paintBody();
     });
     tabBtns[t.id] = b;
-    topRow.appendChild(b);
+    tabstrip.insertBefore(b, flexNode);
   });
 
-  topRow.appendChild(el('div', 'rb-flex'));
-
-  var undoB = el('button', 'rb-q'); undoB.type = 'button'; undoB.title = 'Undo (Ctrl+Z)';
-  undoB.appendChild(svg('undo', 'rb-svg rb-svg-sm'));
-  undoB.addEventListener('click', function () { run('undo'); setTimeout(sync, 0); });
-  var redoB = el('button', 'rb-q'); redoB.type = 'button'; redoB.title = 'Redo (Ctrl+Y)';
-  redoB.appendChild(svg('redo', 'rb-svg rb-svg-sm'));
-  redoB.addEventListener('click', function () { run('redo'); setTimeout(sync, 0); });
-  topRow.appendChild(undoB); topRow.appendChild(redoB);
-
-  var newB = el('button', 'rb-q'); newB.type = 'button'; newB.title = 'New design';
-  newB.appendChild(svg('new-file', 'rb-svg rb-svg-sm'));
-  newB.addEventListener('click', function () { run('newDesign'); });
-  var saveB = el('button', 'rb-q'); saveB.type = 'button'; saveB.title = 'Save project';
-  saveB.appendChild(svg('save', 'rb-svg rb-svg-sm'));
-  saveB.addEventListener('click', function () { run('saveProject'); });
-  topRow.appendChild(newB); topRow.appendChild(saveB);
-
-  /* hidden picker for the Image option — reuses the engine's existing
-     insertImage command, so this stays pure UI (no engine wiring here) */
-  var upFile = el('input'); upFile.type = 'file'; upFile.accept = 'image/*'; upFile.className = 'rb-file';
-  upFile.addEventListener('change', function () {
-    var f = upFile.files && upFile.files[0];
-    if (!f) return;
-    var r = new FileReader();
-    r.onload = function () { run('insertImage', r.result); };
-    r.readAsDataURL(f);
-    upFile.value = '';
-  });
-  /* UI-only note for options still owned by the engine (Fable wires these) */
-  function upNote(msg) {
-    var host = document.getElementById('toast-host');
-    if (!host) return;
-    var t = el('div', 'toast', msg);
-    host.appendChild(t);
-    setTimeout(function () { t.remove(); }, 2600);
-  }
-  var uploadB = el('button', 'rb-action'); uploadB.type = 'button'; uploadB.title = 'Upload';
-  uploadB.appendChild(mat('upload', 'rb-act-ico'));
-  uploadB.appendChild(document.createTextNode('Upload'));
-  uploadB.appendChild(mat('arrow_drop_down', 'rb-caret-s'));
-  uploadB.addEventListener('click', function () {
-    showPop(uploadB, function (pop) {
-      pop.appendChild(popRow({ matIcon: 'image', label: 'Image', hint: 'Photo from your device', onClick: function () { upFile.click(); } }));
-      pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint (.pptx)', hint: 'Import a deck', onClick: function () { run('importPptx'); } }));
-      pop.appendChild(el('div', 'rb-pop-div'));
-      pop.appendChild(popRow({ matIcon: 'auto_fix_high', label: 'Dissolve PDF / Image', hint: 'Turn a flat file into an editable design', onClick: function () { run('dissolve'); } }));
-      pop.appendChild(el('div', 'rb-pop-div'));
-      pop.appendChild(popRow({ matIcon: 'cloud_upload', label: 'Publish as template', hint: 'Admin only — puts this deck in the free Templates panel', onClick: function () { run('publishTemplate'); } }));
-    });
-  });
-  var dlB = el('button', 'rb-action is-primary'); dlB.type = 'button';
-  dlB.appendChild(mat('download', 'rb-act-ico'));
-  dlB.appendChild(document.createTextNode('Download'));
-  dlB.addEventListener('click', function () { run('exportPptx'); });
-  topRow.appendChild(upFile); topRow.appendChild(uploadB); topRow.appendChild(dlB);
-
-  /* cloud activity: spin the Upload/Download button while work runs */
+  /* cloud activity → toast (the Saved chip was removed from the bar) */
   if (window.Editor) Editor.on('busy', function (p) {
-    var btn = p.kind === 'download' ? dlB : uploadB;
-    var ico = btn.querySelector('.rb-act-ico');
-    if (p.on) {
-      if (ico && btn._ldIco == null) { btn._ldIco = ico.textContent; ico.textContent = 'autorenew'; }
-      btn.classList.add('is-busy');
-    } else {
-      if (ico && btn._ldIco != null) { ico.textContent = btn._ldIco; btn._ldIco = null; }
-      btn.classList.remove('is-busy');
-    }
+    if (p.on) upNote(p.kind === 'download' ? 'Preparing…' : 'Importing…');
   });
 
   function paintBody() {
@@ -775,6 +961,18 @@
   function sync() {
     var sel = ask('selection');
     var isText = !!(sel && sel.kind === 'text');
+    /* contextual Format tab — appears when an object is selected (PPT-style) */
+    if (tabBtns.format) {
+      var show = !!sel;
+      tabBtns.format.style.display = show ? '' : 'none';
+      if (!show && active === 'format') {
+        active = 'home';
+        Object.keys(tabBtns).forEach(function (k) { tabBtns[k].classList.toggle('is-active', k === active); });
+        reg.textOnly = []; reg.press = {}; reg.named = {};
+        bodyHost.innerHTML = '';
+        bodyHost.appendChild(TABS.filter(function (x) { return x.id === 'home'; })[0].build());
+      }
+    }
     reg.textOnly.forEach(function (n) { n.classList.toggle('is-dim', !isText); });
     var ts = isText ? (ask('textState') || {}) : {};
     setPress('bold', ts.bold); setPress('italic', ts.italic);

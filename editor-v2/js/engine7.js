@@ -461,28 +461,41 @@ Editor._register({
 
   /* live table: every cell is its OWN editable text — dblclick any cell to
      type; select-drag across cells to move the table together */
-  insertTable: function () {
-    var rows = 3, cols = 3, cw = 150, x0 = 160, y0 = 140;
+  insertTable: function (opt) {
+    /* proper table: each cell = padded rectangle + its own editable text.
+       Sized for the slide (canvas coords are large), roomy rows like Canva. */
+    var rows = (opt && +opt.rows) || 3, cols = (opt && +opt.cols) || 3;
+    var W = fc.getWidth() / fc.getZoom();
+    var tableW = Math.min(W * 0.62, cols * 340);
+    var cw = Math.round(tableW / cols);
+    var rh = Math.round(Math.max(84, cw * 0.32));
+    var x0 = Math.round((W - cw * cols) / 2), y0 = 160;
+    var fs = Math.round(rh * 0.30);
     var tid = 'tbl' + Date.now();
     var made = [];
-    /* contiguous rows (11 Aug): a Textbox's background only covers its text
-       height, so a fixed 46px row pitch left white gaps between rows — the
-       "broken" table. Measure one cell's natural height and stack by that. */
-    var probe = new fabric.Textbox('Hg', { width: cw, fontSize: 17, fontFamily: 'DM Sans' });
-    var rh = Math.ceil(probe.height);
-    for (var r = 0; r < rows; r++) {
-      for (var c = 0; c < cols; c++) {
-        var cell = new fabric.Textbox(r === 0 ? 'Header' : 'Cell', {
-          left: x0 + c * cw, top: y0 + r * rh,
-          width: cw,
-          fontSize: 17, fontFamily: 'DM Sans',
-          fill: r === 0 ? '#FFFFFF' : '#1F2430',
-          backgroundColor: r === 0 ? '#7C3AED' : (r % 2 ? '#F4F1FB' : '#FFFFFF'),
-          tableId: tid
-        });
-        made.push(cell);
-        fc.add(cell);
-      }
+    var r, c;
+    /* cell backgrounds first (they sit behind the text) */
+    for (r = 0; r < rows; r++) for (c = 0; c < cols; c++) {
+      var bg = new fabric.Rect({
+        left: x0 + c * cw, top: y0 + r * rh, width: cw, height: rh,
+        fill: r === 0 ? '#7C3AED' : (r % 2 ? '#F7F4FD' : '#FFFFFF'),
+        stroke: '#D9C9F9', strokeWidth: 1.5,
+        tableId: tid, layerName: 'Table cell'
+      });
+      made.push(bg); fc.add(bg);
+    }
+    /* editable text, vertically centred with padding */
+    for (r = 0; r < rows; r++) for (c = 0; c < cols; c++) {
+      var tx = new fabric.Textbox(r === 0 ? 'Header' : 'Cell', {
+        left: x0 + c * cw + Math.round(cw * 0.07),
+        width: cw - Math.round(cw * 0.14),
+        fontSize: fs, fontFamily: 'DM Sans',
+        fontWeight: r === 0 ? '600' : 'normal',
+        fill: r === 0 ? '#FFFFFF' : '#1F2430',
+        tableId: tid, layerName: 'Table text'
+      });
+      tx.set('top', y0 + r * rh + Math.round((rh - tx.height) / 2));
+      made.push(tx); fc.add(tx);
     }
     var sel = new fabric.ActiveSelection(made, { canvas: fc });
     fc.setActiveObject(sel);

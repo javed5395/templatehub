@@ -197,6 +197,23 @@
     b.addEventListener('click', function () { run(cmd, arg); });
     return b;
   }
+  /* ── 3D object library (gradient-shaded SVGs → real canvas objects) ── */
+  function g3(id, a, b2) { return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b2 + '"/></linearGradient>'; }
+  var OBJ3D = [
+    { name: 'Cube', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('c1', '#A78BFA', '#7C3AED') + g3('c2', '#7C3AED', '#5B21B6') + g3('c3', '#C4B5FD', '#A78BFA') + '</defs><polygon points="50,8 88,28 50,48 12,28" fill="url(#c3)"/><polygon points="12,28 50,48 50,92 12,72" fill="url(#c1)"/><polygon points="88,28 50,48 50,92 88,72" fill="url(#c2)"/></svg>' },
+    { name: 'Sphere', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="s1" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stop-color="#93C5FD"/><stop offset="0.55" stop-color="#3B82F6"/><stop offset="1" stop-color="#1E3A8A"/></radialGradient></defs><circle cx="50" cy="50" r="42" fill="url(#s1)"/><ellipse cx="38" cy="32" rx="14" ry="9" fill="#FFFFFF" opacity="0.35"/></svg>' },
+    { name: 'Cylinder', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('cy1', '#34D399', '#059669') + '</defs><path d="M20 24 v52 a30 12 0 0 0 60 0 v-52" fill="url(#cy1)"/><ellipse cx="50" cy="24" rx="30" ry="12" fill="#6EE7B7"/></svg>' },
+    { name: 'Pyramid', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('p1', '#FBBF24', '#D97706') + g3('p2', '#D97706', '#92400E') + '</defs><polygon points="50,10 82,80 50,92" fill="url(#p2)"/><polygon points="50,10 18,80 50,92" fill="url(#p1)"/></svg>' },
+    { name: 'Cone', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('cn1', '#F472B6', '#DB2777') + '</defs><path d="M50 8 L82 78 a32 12 0 0 1 -64 0 Z" fill="url(#cn1)"/><ellipse cx="50" cy="78" rx="32" ry="12" fill="#F9A8D4"/></svg>' },
+    { name: 'Ring', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('r1', '#22D3EE', '#0E7490') + '</defs><path d="M50 12 a38 30 0 1 0 0 60 a38 30 0 1 0 0 -60 Z M50 30 a20 14 0 1 1 0 28 a20 14 0 1 1 0 -28 Z" fill="url(#r1)" fill-rule="evenodd"/></svg>' },
+    { name: 'Box', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('b1', '#FB923C', '#EA580C') + g3('b2', '#EA580C', '#9A3412') + g3('b3', '#FDBA74', '#FB923C') + '</defs><polygon points="50,14 90,32 50,50 10,32" fill="url(#b3)"/><polygon points="10,32 50,50 50,90 10,72" fill="url(#b1)"/><polygon points="90,32 50,50 50,90 90,72" fill="url(#b2)"/><polygon points="30,23 70,41 70,50 30,32" fill="#FFEDD5" opacity="0.5"/></svg>' },
+    { name: 'Coin stack', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('m1', '#FCD34D', '#D97706') + '</defs><g><ellipse cx="50" cy="80" rx="32" ry="11" fill="url(#m1)"/><ellipse cx="50" cy="68" rx="32" ry="11" fill="url(#m1)"/><ellipse cx="50" cy="56" rx="32" ry="11" fill="url(#m1)"/><ellipse cx="50" cy="44" rx="32" ry="11" fill="#FDE68A"/></g></svg>' },
+    { name: '3D bars', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('h1', '#818CF8', '#4F46E5') + g3('h2', '#A78BFA', '#7C3AED') + g3('h3', '#F472B6', '#DB2777') + '</defs><g><polygon points="14,60 26,54 26,88 14,94" fill="url(#h1)"/><polygon points="26,54 34,58 34,92 26,88" fill="#3730A3"/><polygon points="42,42 54,36 54,88 42,94" fill="url(#h2)"/><polygon points="54,36 62,40 62,92 54,88" fill="#5B21B6"/><polygon points="70,24 82,18 82,88 70,94" fill="url(#h3)"/><polygon points="82,18 90,22 90,92 82,88" fill="#9D174D"/></g></svg>' },
+    { name: '3D arrow', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('a1', '#4ADE80', '#16A34A') + '</defs><polygon points="10,42 55,42 55,26 92,52 55,78 55,62 10,62" fill="url(#a1)"/><polygon points="10,62 55,62 55,78 92,52 88,58 55,86 55,70 10,70" fill="#166534" opacity="0.85"/></svg>' },
+    { name: 'Prism', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('pr1', '#5EEAD4', '#0D9488') + g3('pr2', '#0D9488', '#134E4A') + '</defs><polygon points="26,30 74,30 92,74 8,74" fill="url(#pr1)"/><polygon points="26,30 8,74 8,80 26,36" fill="url(#pr2)"/><polygon points="26,30 74,30 74,36 26,36" fill="#99F6E4" opacity="0.6"/></svg>' },
+    { name: 'Diamond', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('d1', '#E9D5FF', '#A855F7') + g3('d2', '#A855F7', '#6B21A8') + '</defs><polygon points="30,20 70,20 88,42 50,90 12,42" fill="url(#d1)"/><polygon points="50,90 12,42 34,42" fill="url(#d2)" opacity="0.8"/><polygon points="50,90 88,42 66,42" fill="url(#d2)" opacity="0.6"/><polygon points="30,20 34,42 12,42" fill="#C084FC"/><polygon points="70,20 88,42 66,42" fill="#C084FC"/></svg>' }
+  ];
+
   var _elCat = null;   /* open Elements category, null = tiles home */
   function panelElements(p) {
     var A = window.RBAssets || {};
@@ -213,6 +230,7 @@
       { id: 'grids',   label: 'Grids',    ic: 'grid_view',        grad: 'linear-gradient(135deg,#0F172A,#475569)' },
       { id: 'tables',  label: 'Tables',   ic: 'table_chart',      grad: 'linear-gradient(135deg,#EA580C,#FDE047)' },
       { id: 'wordart', label: 'WordArt',  ic: 'format_color_text',grad: 'linear-gradient(135deg,#22D3EE,#7C3AED)' },
+      { id: 'objects3d', label: '3D Objects', ic: 'deployed_code', grad: 'linear-gradient(135deg,#4F46E5,#DB2777)' },
       { id: 'mockups', label: 'Mockups',  ic: 'devices',          grad: 'linear-gradient(135deg,#12A5A0,#059669)' },
       { id: 'graphics', label: 'Graphics', ic: 'interests',        grad: 'linear-gradient(135deg,#F97316,#DB2777)' },
       { id: 'anims',   label: 'Animations', ic: 'animation',       grad: 'linear-gradient(135deg,#8B3DFF,#22D3EE)' }
@@ -231,6 +249,33 @@
       g.appendChild(b);
     });
     p.appendChild(g);
+
+    /* ── Custom elements — published by admin, visible to EVERYONE
+       (same Firebase road as "Publish as template") ── */
+    var mine = ask('customElements') || [];
+    if (mine.length) {
+      p.appendChild(subhead('Custom elements'));
+      var cg2 = el('div', 'sb-photo-grid');
+      mine.forEach(function (ce) {
+        var wrap = el('span', 'sb-custom-wrap');
+        var b2 = el('button', 'sb-photo'); b2.type = 'button'; b2.title = ce.name || 'Element';
+        if (ce.thumb) { b2.style.backgroundImage = 'url(' + ce.thumb + ')'; b2.style.backgroundSize = 'contain'; }
+        b2.addEventListener('click', function () { run('insertElement', ce.id); });
+        wrap.appendChild(b2);
+        var del2 = el('button', 'sb-tpl-del'); del2.type = 'button'; del2.title = 'Remove for everyone (admin)';
+        del2.appendChild(mat('close', 'sb-btn-i'));
+        del2.addEventListener('click', function (ev) { ev.stopPropagation(); run('deleteElement', ce.id); });
+        wrap.appendChild(del2);
+        cg2.appendChild(wrap);
+      });
+      p.appendChild(cg2);
+    }
+    var pubBtn = el('button', 'sb-primary'); pubBtn.type = 'button';
+    pubBtn.title = 'Select object(s) on the canvas, then publish — appears here for all visitors';
+    pubBtn.appendChild(mat('cloud_upload', 'sb-btn-i'));
+    pubBtn.appendChild(document.createTextNode('Publish selected as element (admin)'));
+    pubBtn.addEventListener('click', function () { run('publishElement'); });
+    p.appendChild(pubBtn);
   }
   function elCatHead(p, title) {
     var top = el('div', 'sb-tpl-dhead');
@@ -277,7 +322,39 @@
       return;
     }
     if (cat === 'mockups') {
-      elCatHead(p, 'Device mockups');
+      elCatHead(p, 'Mockups');
+      /* ── photo mockups: your design on a real product photo (shirt, cup, TV…) ── */
+      p.appendChild(subhead('Photo mockups — 3 steps'));
+      var mf = el('input'); mf.type = 'file'; mf.accept = 'image/*'; mf.style.display = 'none';
+      mf.addEventListener('change', function () {
+        var f = mf.files && mf.files[0]; if (!f) return;
+        var r = new FileReader();
+        r.onload = function () { run('insertImage', r.result); };
+        r.readAsDataURL(f);
+        mf.value = '';
+      });
+      p.appendChild(mf);
+      var s1 = el('button', 'sb-primary'); s1.type = 'button';
+      s1.appendChild(mat('add_photo_alternate', 'sb-btn-i'));
+      s1.appendChild(document.createTextNode('1 · Upload product photo'));
+      s1.title = 'A photo of a shirt, cup, TV, phone in hand — anything';
+      s1.addEventListener('click', function () { mf.click(); });
+      p.appendChild(s1);
+      var s2 = el('button', 'sb-primary'); s2.type = 'button';
+      s2.appendChild(mat('highlight_alt', 'sb-btn-i'));
+      s2.appendChild(document.createTextNode('2 · Mark the design area'));
+      s2.title = 'A dashed box appears — move and resize it over the print area';
+      s2.addEventListener('click', function () { run('mockupArea'); });
+      p.appendChild(s2);
+      var s3 = el('button', 'sb-primary'); s3.type = 'button';
+      s3.appendChild(mat('wallpaper', 'sb-btn-i'));
+      s3.appendChild(document.createTextNode('3 · Place design into area'));
+      s3.title = 'Pick the design image — it fills the dashed area exactly';
+      s3.addEventListener('click', function () { run('mockupFill'); });
+      p.appendChild(s3);
+      p.appendChild(subhead('Tip: admin can publish a finished mockup as a Custom element for everyone'));
+      /* ── vector device shells ── */
+      p.appendChild(subhead('Device shells'));
       var mg = el('div', 'sb-grid'); mg.style.gridTemplateColumns = 'repeat(2, 1fr)';
       var mi = 10;
       ['phone', 'tablet', 'laptop', 'monitor', 'watch'].forEach(function (k) {
@@ -414,10 +491,50 @@
     }
     if (cat === 'tables') {
       elCatHead(p, 'Tables');
-      p.appendChild(grid([
-        { matIcon: 'table_chart', label: 'Table', cmd: 'insertTable' },
-        { ic: 'comment-add', label: 'Comment', cmd: 'addComment' }
-      ], 2));
+      p.appendChild(subhead('Pick a size — cells are editable on the slide'));
+      var SIZES = [[2, 2], [2, 3], [3, 3], [3, 4], [4, 3], [4, 4], [5, 3], [5, 4], [6, 4]];
+      var tg = el('div', 'sb-grid'); tg.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      SIZES.forEach(function (s) {
+        var r = s[0], c = s[1];
+        var b = el('button', 'sb-shape-card'); b.type = 'button';
+        b.title = r + ' rows × ' + c + ' columns';
+        /* mini live preview of the table */
+        var W = 96, H = 64, cw2 = W / c, rh2 = H / r, cells = '';
+        for (var ri = 0; ri < r; ri++) for (var ci = 0; ci < c; ci++) {
+          cells += '<rect x="' + (ci * cw2 + 0.5) + '" y="' + (ri * rh2 + 0.5) + '" width="' + (cw2 - 1) + '" height="' + (rh2 - 1) +
+            '" rx="1.5" fill="' + (ri === 0 ? '#7C3AED' : (ri % 2 ? '#F4F1FB' : '#FFFFFF')) + '" stroke="#D9C9F9" stroke-width="0.7"/>';
+        }
+        var w = el('span', 'sb-shape-art');
+        w.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg">' + cells + '</svg>';
+        b.appendChild(w);
+        b.appendChild(el('span', 'sb-card-lab', r + ' × ' + c));
+        b.addEventListener('click', function () { run('insertTable', { rows: r, cols: c }); });
+        tg.appendChild(b);
+      });
+      p.appendChild(tg);
+      return;
+    }
+    if (cat === 'objects3d') {
+      elCatHead(p, '3D objects');
+      p.appendChild(subhead('Real 3D — Alt+drag on the slide to rotate'));
+      var KIND3 = { 'Cube': 'cube', 'Sphere': 'sphere', 'Cylinder': 'cylinder', 'Pyramid': 'pyramid',
+        'Cone': 'cone', 'Ring': 'ring', 'Box': 'box', 'Coin stack': 'coins',
+        '3D bars': 'bars', '3D arrow': 'knot', 'Prism': 'prism', 'Diamond': 'diamond' };
+      var COL3 = { 'Cube': '#7C3AED', 'Sphere': '#3B82F6', 'Cylinder': '#059669', 'Pyramid': '#D97706',
+        'Cone': '#DB2777', 'Ring': '#0E7490', 'Box': '#EA580C', 'Coin stack': '#F59E0B',
+        '3D bars': '#6D28D9', '3D arrow': '#16A34A', 'Prism': '#0D9488', 'Diamond': '#A855F7' };
+      var og = el('div', 'sb-grid'); og.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      OBJ3D.forEach(function (o3) {
+        var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = o3.name + ' — real 3D object';
+        var w3 = el('span', 'sb-shape-art'); w3.innerHTML = o3.svg;
+        b.appendChild(w3);
+        b.appendChild(el('span', 'sb-card-lab', o3.name));
+        b.addEventListener('click', function () {
+          run('insert3D', { kind: KIND3[o3.name] || 'cube', color: COL3[o3.name] || '#7C3AED', name: o3.name });
+        });
+        og.appendChild(b);
+      });
+      p.appendChild(og);
       return;
     }
     if (cat === 'wordart') {
@@ -668,11 +785,103 @@
     p.appendChild(lw);
   }
 
+  /* ── Backgrounds panel (Canva-style, everything applies live) ──── */
+  function gradUrl(a, b, dir) {
+    var c = document.createElement('canvas'); c.width = 1600; c.height = 900;
+    var x = c.getContext('2d');
+    var g = dir === 'v' ? x.createLinearGradient(0, 0, 0, 900)
+      : dir === 'r' ? x.createRadialGradient(800, 450, 60, 800, 450, 950)
+      : x.createLinearGradient(0, 0, 1600, 900);
+    g.addColorStop(0, a); g.addColorStop(1, b);
+    x.fillStyle = g; x.fillRect(0, 0, 1600, 900);
+    return c.toDataURL('image/jpeg', 0.92);
+  }
+  function svgBgUrl(inner, bg) {
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">' +
+      '<rect width="1600" height="900" fill="' + bg + '"/>' + inner + '</svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+  }
+  function panelBackground(p) {
+    p.appendChild(head('Backgrounds'));
+
+    p.appendChild(subhead('Colours'));
+    var COLS = ['#FFFFFF', '#F8F9FB', '#F1F5F9', '#0F172A', '#1F2430', '#111827',
+      '#7C3AED', '#A78BFA', '#F1EAFE', '#2563EB', '#93C5FD', '#DBEAFE',
+      '#16A34A', '#86EFAC', '#DCFCE7', '#F59E0B', '#FDE68A', '#FEF3C7',
+      '#DC2626', '#FCA5A5', '#DB2777', '#F9A8D4', '#0D9488', '#99F6E4'];
+    var cg = el('div'); cg.style.cssText = 'display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:6px';
+    COLS.forEach(function (c) {
+      var b = el('button'); b.type = 'button'; b.title = c;
+      b.style.cssText = 'aspect-ratio:1;border-radius:8px;border:1px solid rgba(15,23,42,.18);background:' + c + ';cursor:pointer';
+      b.addEventListener('click', function () { run('background', c); });
+      cg.appendChild(b);
+    });
+    p.appendChild(cg);
+
+    p.appendChild(subhead('Gradients'));
+    var GRADS = [
+      ['#7C3AED', '#DB2777'], ['#6C5CE7', '#00C2FF'], ['#2563EB', '#22D3EE'],
+      ['#0F172A', '#7C3AED'], ['#F59E0B', '#DC2626'], ['#F97316', '#DB2777'],
+      ['#16A34A', '#22D3EE'], ['#0D9488', '#84CC16'], ['#111827', '#374151'],
+      ['#FDE68A', '#F9A8D4'], ['#E0E7FF', '#FBCFE8'], ['#DBEAFE', '#DCFCE7'],
+      ['#1E3A8A', '#0EA5E9'], ['#4C1D95', '#DB2777'], ['#065F46', '#A3E635'],
+      ['#FFFFFF', '#DDD6FE'], ['#FFF7ED', '#FDBA74'], ['#F8FAFC', '#CBD5E1']
+    ];
+    var DIRS = ['d', 'v', 'r'];
+    var gg = el('div'); gg.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:6px';
+    GRADS.forEach(function (pr, i) {
+      var dir = DIRS[i % 3];
+      var b = el('button'); b.type = 'button'; b.title = 'Gradient';
+      b.style.cssText = 'aspect-ratio:16/10;border-radius:9px;border:1px solid rgba(15,23,42,.15);cursor:pointer;background:' +
+        (dir === 'r' ? 'radial-gradient(circle,' + pr[0] + ',' + pr[1] + ')'
+          : 'linear-gradient(' + (dir === 'v' ? '180deg' : '135deg') + ',' + pr[0] + ',' + pr[1] + ')');
+      b.addEventListener('click', function () { run('backgroundImage', gradUrl(pr[0], pr[1], dir)); });
+      gg.appendChild(b);
+    });
+    p.appendChild(gg);
+
+    p.appendChild(subhead('Patterns'));
+    function rep(fn, nx, ny) { var s = ''; for (var i = 0; i <= nx; i++) for (var j = 0; j <= ny; j++) s += fn(i * (1600 / nx), j * (900 / ny), i, j); return s; }
+    var PATS = [
+      { n: 'Dots', bg: '#F8F9FB', inner: rep(function (x, y) { return '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#CBD5E1"/>'; }, 20, 11) },
+      { n: 'Dots dark', bg: '#0F172A', inner: rep(function (x, y) { return '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#334155"/>'; }, 20, 11) },
+      { n: 'Grid', bg: '#FFFFFF', inner: rep(function (x, y, i, j) { return (j === 0 ? '<line x1="' + x + '" y1="0" x2="' + x + '" y2="900" stroke="#E2E8F0" stroke-width="2"/>' : '') + (i === 0 ? '<line x1="0" y1="' + y + '" x2="1600" y2="' + y + '" stroke="#E2E8F0" stroke-width="2"/>' : ''); }, 16, 9) },
+      { n: 'Stripes', bg: '#F5F3FF', inner: rep(function (x) { return '<rect x="' + x + '" y="0" width="50" height="900" fill="#EDE9FE" transform="skewX(-18)"/>'; }, 16, 1) },
+      { n: 'Waves', bg: '#EFF6FF', inner: rep(function (x, y, i, j) { return i === 0 ? '<path d="M0 ' + y + ' Q 200 ' + (y - 45) + ' 400 ' + y + ' T 800 ' + y + ' T 1200 ' + y + ' T 1600 ' + y + '" fill="none" stroke="#BFDBFE" stroke-width="5"/>' : ''; }, 1, 8) },
+      { n: 'Bubbles', bg: '#ECFEFF', inner: '<circle cx="250" cy="700" r="190" fill="#CFFAFE"/><circle cx="1350" cy="180" r="240" fill="#A5F3FC" opacity=".7"/><circle cx="900" cy="820" r="150" fill="#67E8F9" opacity=".45"/><circle cx="1500" cy="650" r="110" fill="#CFFAFE"/>' },
+      { n: 'Blobs', bg: '#FDF4FF', inner: '<ellipse cx="300" cy="200" rx="330" ry="240" fill="#F5D0FE" opacity=".8"/><ellipse cx="1300" cy="750" rx="380" ry="260" fill="#DDD6FE" opacity=".8"/><ellipse cx="1250" cy="150" rx="200" ry="160" fill="#FBCFE8" opacity=".7"/>' },
+      { n: 'Night sky', bg: '#0B1026', inner: rep(function (x, y, i, j) { return '<circle cx="' + ((x + j * 37) % 1600) + '" cy="' + ((y + i * 23) % 900) + '" r="' + (1.5 + (i + j) % 3) + '" fill="#E0E7FF" opacity=".8"/>'; }, 14, 8) },
+      { n: 'Confetti', bg: '#FFFBEB', inner: rep(function (x, y, i, j) { var cs = ['#F59E0B', '#DB2777', '#7C3AED', '#2563EB', '#16A34A']; return '<rect x="' + ((x + j * 53) % 1600) + '" y="' + ((y + i * 31) % 900) + '" width="14" height="7" rx="3" fill="' + cs[(i + j) % 5] + '" transform="rotate(' + ((i * j * 7) % 90) + ' ' + x + ' ' + y + ')"/>'; }, 12, 7) }
+    ];
+    var pg = el('div'); pg.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:6px';
+    PATS.forEach(function (pt) {
+      var url = svgBgUrl(pt.inner, pt.bg);
+      var b = el('button'); b.type = 'button'; b.title = pt.n;
+      b.style.cssText = 'aspect-ratio:16/10;border-radius:9px;border:1px solid rgba(15,23,42,.15);cursor:pointer;background:url(' + url.replace(/'/g, '%27') + ') center/cover';
+      b.addEventListener('click', function () { run('backgroundImage', url); });
+      pg.appendChild(b);
+    });
+    p.appendChild(pg);
+
+    p.appendChild(subhead('Photos'));
+    var IDS = [1015, 1016, 1018, 1020, 1024, 1025, 1035, 1036, 1039, 1043, 1050, 1057,
+      1060, 1069, 1074, 1080, 110, 119, 133, 152, 164, 167, 180, 193, 200, 212, 219, 227];
+    var fg2 = el('div', 'sb-photo-grid');
+    IDS.forEach(function (id) {
+      var b = el('button', 'sb-photo'); b.type = 'button'; b.title = 'Photo background';
+      b.style.backgroundImage = 'url(https://picsum.photos/id/' + id + '/220/130)';
+      b.addEventListener('click', function () { run('backgroundImage', 'https://picsum.photos/id/' + id + '/1600/900'); });
+      fg2.appendChild(b);
+    });
+    p.appendChild(fg2);
+  }
+
   /* ── rail definition ─────────────────────────────────────────────── */
   var RAIL = [
     { id: 'templates', label: 'Templates', ic: 'templates', build: panelTemplates },
     { id: 'elements', label: 'Elements', ic: 'elements', build: panelElements },
     { id: 'photos', label: 'Photos', ic: 'photos', build: panelPhotos },
+    { id: 'background', label: 'Bgrounds', ic: 'wallpaper', build: panelBackground },
     { id: 'layers', label: 'Layers', ic: 'layers-i', build: panelLayers },
     { id: 'brand', label: 'Brand', ic: 'brand-i', build: panelBrand },
     { id: 'effects', label: 'Effects', ic: 'effects-i', build: panelEffects },
@@ -719,6 +928,7 @@
 
   listen('selection', function () { if (open === 'layers' || open === 'effects') paint(); });
   listen('templates', function () { if (open === 'templates') paint(); });
+  listen('elements', function () { if (open === 'elements') paint(); });
   listen('datasets', function () { if (open === 'data') paint(); });
   listen('slides', function () { if (open === 'pages' || open === 'layers') paint(); });
 

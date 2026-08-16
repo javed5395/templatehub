@@ -771,15 +771,26 @@ Editor._register({
     var col = '#7C3AED';
     if (name && typeof name === 'object') { col = name.color || col; name = name.name; }
     var glyph = (typeof name === 'string' && name) ? name : 'star';
-    var t = new fabric.Text(glyph, {
-      left: 200, top: 160,
-      fontFamily: 'Material Symbols Outlined',
-      fontSize: 120, fill: col,
-      isIcon: true, iconName: glyph
-    });
-    fc.add(t).setActiveObject(t);
-    fc.renderAll(); saveState();
-    showToast('Icon added');
+    /* wait for the icon font BEFORE measuring — otherwise fabric measures the
+       ligature name ("rocket_launch") in a fallback font and the selection
+       box becomes a long rectangle instead of the icon's real square */
+    function make() {
+      try { if (fabric.util && fabric.util.clearFabricFontCache) fabric.util.clearFabricFontCache('Material Symbols Outlined'); } catch (e) {}
+      var t = new fabric.Text(glyph, {
+        left: 200, top: 160,
+        fontFamily: 'Material Symbols Outlined',
+        fontSize: 120, fill: col,
+        isIcon: true, iconName: glyph
+      });
+      if (typeof t.initDimensions === 'function') t.initDimensions();
+      t.setCoords();
+      fc.add(t).setActiveObject(t);
+      fc.renderAll(); saveState();
+      showToast('Icon added');
+    }
+    if (document.fonts && document.fonts.load) {
+      document.fonts.load('120px "Material Symbols Outlined"', glyph).then(make, make);
+    } else make();
   },
   insertTable: function () {
     var rows = 3, cols = 3, cw = 150, rh = 46;

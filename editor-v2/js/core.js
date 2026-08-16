@@ -20,7 +20,7 @@ function $$(sel, root) { return Array.from((root || document).querySelectorAll(s
 
 const state = {
   pages: [], notes: [], comments: [],
-  currentPage: 0, zoom: 62,
+  currentPage: 0, zoom: 59,
   activeTool: null, openDropdown: null,
   timerRunning: false, timerSeconds: 0, notesOpen: false,
   sidebarVisible: true, datasets: []
@@ -40,6 +40,7 @@ var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBod
   'chartType', 'chartDef', 'datasetId', 'tableId',
   'isSticker', 'stickerName', 'stickerAnim', 'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isIcon', 'iconName', 'iconWeight',
+  'is3D', 'threeKind', 'threeColor', 'rotX', 'rotY', 'isMockArea',
   'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isSticker', 'stickerName', 'stickerAnim',
   'layerName', 'visible', 'isBrandLogo',
@@ -165,6 +166,21 @@ function renderPageThumbs() {
     });
     t.appendChild(x);
     t.addEventListener('click', function () { if (i !== state.currentPage) switchPage(i); });
+    /* Canva-style drag to reorder slides */
+    t.draggable = true;
+    t.addEventListener('dragstart', function (ev) {
+      ev.dataTransfer.setData('text/plain', String(i));
+      ev.dataTransfer.effectAllowed = 'move';
+      t.style.opacity = '0.4';
+    });
+    t.addEventListener('dragend', function () { t.style.opacity = ''; });
+    t.addEventListener('dragover', function (ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; });
+    t.addEventListener('drop', function (ev) {
+      ev.preventDefault();
+      var from = parseInt(ev.dataTransfer.getData('text/plain'), 10);
+      if (isNaN(from) || from === i) return;
+      moveSlideTo(from, i);
+    });
     host.appendChild(t);
   });
   var add = document.createElement('button');
@@ -174,6 +190,19 @@ function renderPageThumbs() {
   host.appendChild(add);
   if (dom.pageInfo) dom.pageInfo.textContent = (state.currentPage + 1) + ' of ' + state.pages.length;
   Editor._emit('slides', Editor.query('slides'));
+}
+
+/* reorder slides (drag & drop in the filmstrip) */
+function moveSlideTo(from, to) {
+  if (from === to || !state.pages[from]) return;
+  captureCurrentPage();
+  var cur = state.pages[state.currentPage];
+  var p = state.pages.splice(from, 1)[0];
+  var n = state.notes.splice(from, 1)[0];
+  state.pages.splice(to, 0, p);
+  state.notes.splice(to, 0, n || '');
+  state.currentPage = state.pages.indexOf(cur);
+  renderPageThumbs();
 }
 
 /* frames restored from JSON keep their look (stage-1: silhouette only) */
@@ -245,7 +274,10 @@ function rehydrateFrames() {}
     'addSlideLayout','slidesOutline','outlineView','readingView','masterAdd','masterRemove','handoutMaster','notesMaster','colourMode','newWindow',
     'publishTemplate','deleteTemplate','templateThumbs','applyTemplateSlide',
     'insertShapePreset','insertLineKind','insertGrid','insertSticker','insertIllo','illoPalette',
-    'layerAction','ai'
+    'layerAction','ai',
+    'shapeFill','shapeOutline','shapeOutlineW','shapeOpacity','moveSlide','insert3D',
+    'publishElement','insertElement','deleteElement',
+    'mockupArea','mockupFill','signIn','signOut','backgroundImage'
   ];
   var impl = {};
 
@@ -271,6 +303,8 @@ function rehydrateFrames() {}
         case 'photos':    return impl.__qPhotos ? impl.__qPhotos() : [];
         case 'projects':  return [];
         case 'templates': return window._editorTemplates || [];
+        case 'customElements': return window._editorElements || [];
+        case 'user': return window._ldUser || null;
         case 'datasets':   return impl.__qDatasets ? impl.__qDatasets() : [];
         case 'chartTypes': return impl.__qChartTypes ? impl.__qChartTypes() : [];
         case 'dataSamples': return impl.__qSamples ? impl.__qSamples() : [];
@@ -543,6 +577,98 @@ function rehydrateFrames() {}
       });
       done(); toast('Distributed');
     },
+    /* ── photo mockups: mark a design area on a product photo, then fill it ── */
+    mockupArea: function () {
+      var a = new fabric.Rect({
+        left: 260, top: 200, width: 300, height: 380,
+        fill: 'rgba(124,58,237,0.10)', stroke: '#7C3AED',
+        strokeWidth: 2.5, strokeDashArray: [12, 8],
+        isMockArea: true, layerName: 'Design area'
+      });
+      fc.add(a).setActiveObject(a);
+      done();
+      toast('Move & resize the dashed area over your product photo, then press "Place design into area"');
+    },
+    mockupFill: function (dataUrl) {
+      var area = sel();
+      if (!area || !area.isMockArea) {
+        area = (fc.getObjects() || []).filter(function (o) { return o.isMockArea; }).pop();
+      }
+      if (!area) { toast('Add a design area first (dashed box), place it on the product'); return; }
+      function place(url) {
+        fabric.Image.fromURL(url, function (img) {
+          var aw = area.getScaledWidth(), ah = area.getScaledHeight();
+          var s = Math.max(aw / img.width, ah / img.height);
+          img.set({
+            left: area.left, top: area.top,
+            scaleX: s, scaleY: s,
+            angle: area.angle || 0,
+            clipPath: new fabric.Rect({ left: -((img.width * s - aw) / 2) / s - img.width / 2 + 0, top: -((img.height * s - ah) / 2) / s - img.height / 2 + 0, width: aw / s, height: ah / s, originX: 'left', originY: 'top' }),
+            layerName: 'Mockup design'
+          });
+          /* simpler exact fit: stretch design to the area (mockup style) */
+          img.set({ scaleX: aw / img.width, scaleY: ah / img.height, clipPath: null });
+          fc.remove(area);
+          fc.add(img).setActiveObject(img);
+          done();
+          toast('Design placed ✓ — your mockup is ready');
+        });
+      }
+      if (typeof dataUrl === 'string' && dataUrl) { place(dataUrl); return; }
+      var inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*';
+      inp.onchange = function () {
+        var f = inp.files && inp.files[0]; if (!f) return;
+        var r = new FileReader();
+        r.onload = function () { place(r.result); };
+        r.readAsDataURL(f);
+      };
+      inp.click();
+    },
+
+    /* Format-tab shape styling */
+    shapeFill: function (hex) {
+      var o = sel(); if (!o) return toast('Select something first');
+      var list = (o.type === 'activeSelection' || o.type === 'group') ? o._objects : [o];
+      list.forEach(function (x) { x.set('fill', hex); x.dirty = true; });
+      done();
+    },
+    shapeOutline: function (hex) {
+      var o = sel(); if (!o) return toast('Select something first');
+      var list = (o.type === 'activeSelection' || o.type === 'group') ? o._objects : [o];
+      list.forEach(function (x) {
+        if (hex == null) x.set('stroke', null);
+        else x.set({ stroke: hex, strokeWidth: Math.max(1, x.strokeWidth || 0) });
+        x.dirty = true;
+      });
+      done();
+    },
+    shapeOutlineW: function (w) {
+      var o = sel(); if (!o) return toast('Select something first');
+      var list = (o.type === 'activeSelection' || o.type === 'group') ? o._objects : [o];
+      list.forEach(function (x) { x.set({ strokeWidth: +w || 1, stroke: x.stroke || '#1F2430' }); x.dirty = true; });
+      done();
+    },
+    shapeOpacity: function (v) {
+      var o = sel(); if (!o) return toast('Select something first');
+      o.set('opacity', +v || 1);
+      done();
+    },
+    moveSlide: function (a) { if (a) moveSlideTo(a.from, a.to); },
+    /* real 3D-look objects (gradient SVGs) dropped onto the canvas */
+    insert3D: function (a) {
+      if (!a || !a.svg) return;
+      fabric.loadSVGFromString(a.svg, function (objs, opts) {
+        if (!objs || !objs.length) { toast('Could not load that object'); return; }
+        var g = fabric.util.groupSVGElements(objs, opts);
+        var sc = 240 / Math.max(g.width || 1, g.height || 1);
+        g.set({ left: 220, top: 140, scaleX: sc, scaleY: sc, layerName: a.name || '3D object' });
+        fc.add(g).setActiveObject(g);
+        fc.renderAll(); saveState();
+        emit('selection', Editor.query('selection'));
+        toast((a.name || '3D object') + ' added');
+      });
+    },
     flipH: function () { var o = sel(); if (!o) return toast('Select something first'); o.set('flipX', !o.flipX); done(); },
     flipV: function () { var o = sel(); if (!o) return toast('Select something first'); o.set('flipY', !o.flipY); done(); },
     rotate: function (deg) { var o = sel(); if (!o) return toast('Select something first'); o.rotate(((o.angle || 0) + (deg || 90)) % 360); o.setCoords(); done(); },
@@ -573,8 +699,23 @@ function rehydrateFrames() {}
     /* design / view */
     background: function (hex) {
       if (!hex) return;
-      fc.setBackgroundColor(hex, fc.renderAll.bind(fc));
-      saveState(); toast('Background applied');
+      fc.setBackgroundImage(null, function () {
+        fc.setBackgroundColor(hex, fc.renderAll.bind(fc));
+        saveState(); toast('Background applied');
+      });
+    },
+    /* full-bleed image / gradient / pattern / photo background (live) */
+    backgroundImage: function (url) {
+      if (!url) return;
+      fabric.Image.fromURL(url, function (img) {
+        if (!img || !img.width) { toast('Could not load that background'); return; }
+        var W = fc.getWidth() / fc.getZoom(), H = fc.getHeight() / fc.getZoom();
+        var s = Math.max(W / img.width, H / img.height);
+        img.set({ originX: 'left', originY: 'top', left: 0, top: 0, scaleX: s, scaleY: s });
+        fc.setBackgroundImage(img, function () {
+          fc.renderAll(); saveState(); toast('Background applied');
+        });
+      }, { crossOrigin: 'anonymous' });
     },
     pageSize: function (ratio) { applyAspect(ratio); },
     zoom: function (pct) { setZoom(pct); state.zoom = pct; emit('zoom', { pct: pct }); },
@@ -696,6 +837,16 @@ function rehydrateFrames() {}
       if (zi) zi.addEventListener('click', function () { Editor.run('zoom', Math.min(300, state.zoom + 10)); });
       if (zo) zo.addEventListener('click', function () { Editor.run('zoom', Math.max(10, state.zoom - 10)); });
 
+      /* slide-show button beside the zoom bar (Canva/PPT status-bar style) */
+      var fm = document.querySelector('.film-meta');
+      if (fm) {
+        var showB = document.createElement('button');
+        showB.type = 'button'; showB.className = 'film-present'; showB.title = 'Slide show (from beginning)';
+        showB.innerHTML = '<span class="material-icons-outlined">slideshow</span>';
+        showB.addEventListener('click', function () { Editor.run('presentFromStart'); });
+        fm.insertBefore(showB, fm.firstChild);
+      }
+
       /* keyboard */
       document.addEventListener('keydown', function (e) {
         var inInput = /INPUT|TEXTAREA/.test((e.target && e.target.tagName) || '');
@@ -721,10 +872,12 @@ function rehydrateFrames() {}
       fc.selectionColor = 'rgba(139,61,255,0.08)';
       fc.selectionBorderColor = '#8B3DFF';
       fc.selectionLineWidth = 1.5;
+      /* Ctrl+click (or Shift+click) adds objects to the selection → group them */
+      fc.selectionKey = ['ctrlKey', 'shiftKey'];
 
       loadPageIntoCanvas(0).then(function () {
         Editor.run ? null : null;
-        setZoom(60); state.zoom = 60; emit('zoom', { pct: 60 }); /* opus note #1 */
+        setZoom(59); state.zoom = 59; emit('zoom', { pct: 59 }); /* default 59% */
         renderPageThumbs();
         emit('ready');
         emit('history', Editor.query('history'));

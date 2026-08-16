@@ -312,13 +312,23 @@ window.LD_loadEditorTemplates = async function () {
     });
     var db = fsMod.getFirestore(app);
     var snap = await fsMod.getDocs(fsMod.query(fsMod.collection(db, 'editor_templates'), fsMod.orderBy('createdAt', 'desc')));
-    var out = [];
+    var out = [], els = [];
     snap.forEach(function (d) {
       var t = d.data();
+      if (t.kind === 'element') {
+        /* published ELEMENTS live in the same collection (kind:'element') so
+           the existing admin-write/public-read rules cover them */
+        els.push({ id: d.id, name: t.name, jsonUrl: t.jsonUrl, thumb: t.thumb || null });
+        return;
+      }
       out.push({ id: d.id, name: t.name, jsonUrl: t.jsonUrl, slideCount: t.slideCount, bg: t.bg });
     });
     window._editorTemplates = out;
-    if (window.Editor && Editor._emit) Editor._emit('templates', { count: out.length });
+    window._editorElements = els;
+    if (window.Editor && Editor._emit) {
+      Editor._emit('templates', { count: out.length });
+      Editor._emit('elements', { count: els.length });
+    }
     /* lazy thumbnails: fetch each deck once, render slide 1, re-emit */
     out.forEach(function (tpl) {
       if (!tpl.jsonUrl) return;
@@ -462,6 +472,118 @@ Editor._register({
     }
   },
 
+  /* ── PUBLISH SELECTED OBJECT(S) AS A PUBLIC ELEMENT (admin) ──
+     Same road as publishTemplate: Storage editor_templates/ + Firestore
+     editor_templates with kind:'element' → appears in everyone's
+     Elements panel under "Custom elements". */
+  publishElement: async function () {
+    try {
+      var o = fc && fc.getActiveObject();
+      if (!o) { showToast('Select the object(s) on the canvas first, then publish'); return; }
+      var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+      var authMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+      var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({
+        apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes',
+        authDomain: 'templatehub-16cd7.firebaseapp.com',
+        projectId: 'templatehub-16cd7',
+        storageBucket: 'templatehub-16cd7.firebasestorage.app'
+      });
+      var user = authMod.getAuth(app).currentUser;
+      if (!user || LD_ADMIN_EMAILS.indexOf(user.email) === -1) {
+        showToast('Publishing elements is for the LazyDog admin account — sign in as admin first', 5000);
+        return;
+      }
+      var name = prompt('Element name (shown in the Elements panel):', 'Element');
+      if (!name || !name.trim()) return;
+      /* serialize the selection (single object OR multi-selection) */
+      var objs = (o.type === 'activeSelection') ? o._objects : [o];
+      var data = { objects: objs.map(function (x) { return x.toJSON(FABRIC_JSON_PROPS); }) };
+      /* small PNG preview for the panel tile */
+      var thumb = null;
+      try { thumb = o.toDataURL({ format: 'png', multiplier: Math.min(1, 140 / Math.max(o.getScaledWidth(), o.getScaledHeight())) }); } catch (e) {}
+      var json = JSON.stringify(data);
+      showToast('Publishing element (' + Math.round(json.length / 1024) + ' KB)…');
+      var stMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
+      var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+      var storage = stMod.getStorage(app, 'gs://templatehub-16cd7.firebasestorage.app');
+      var id = 'el_' + Date.now();
+      var ref = stMod.ref(storage, 'editor_templates/' + id + '.json');
+      await stMod.uploadBytes(ref, new Blob([json], { type: 'application/json' }));
+      var jsonUrl = await stMod.getDownloadURL(ref);
+      await fsMod.setDoc(fsMod.doc(fsMod.getFirestore(app), 'editor_templates', id), {
+        kind: 'element',
+        name: name.trim(),
+        jsonUrl: jsonUrl,
+        thumb: thumb && thumb.length < 500000 ? thumb : null,
+        createdAt: fsMod.serverTimestamp()
+      });
+      showToast('“' + name.trim() + '” published ✓ — now in the Elements panel for everyone', 6000);
+      try { window.LD_loadEditorTemplates(); } catch (e) {}
+    } catch (e) {
+      console.error('publishElement', e);
+      showToast('Publish failed: ' + ((e && e.message) || e), 7000);
+    }
+  },
+
+  /* insert a published element onto the canvas (everyone) */
+  insertElement: async function (id) {
+    var ce = (window._editorElements || []).filter(function (t) { return t.id === id; })[0];
+    if (!ce) { showToast('Element not found'); return; }
+    try {
+      if (!ce._data) {
+        var r = await fetch(ce.jsonUrl);
+        if (!r.ok) throw new Error('fetch ' + r.status);
+        ce._data = await r.json();
+      }
+      fabric.util.enlivenObjects(ce._data.objects || [], function (objs) {
+        if (!objs || !objs.length) { showToast('Could not load that element'); return; }
+        var g = objs.length > 1 ? new fabric.Group(objs) : objs[0];
+        g.set({ left: 200, top: 140, layerName: ce.name || 'Element' });
+        g.setCoords();
+        fc.add(g).setActiveObject(g);
+        fc.renderAll(); saveState();
+        showToast((ce.name || 'Element') + ' added');
+      });
+    } catch (e) {
+      console.error('insertElement', e);
+      showToast('Could not insert element: ' + e.message);
+    }
+  },
+
+  /* remove a published element (admin) */
+  deleteElement: async function (id) {
+    if (!id) return;
+    try {
+      var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+      var authMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+      var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({
+        apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes',
+        authDomain: 'templatehub-16cd7.firebaseapp.com',
+        projectId: 'templatehub-16cd7',
+        storageBucket: 'templatehub-16cd7.firebasestorage.app'
+      });
+      var user = authMod.getAuth(app).currentUser;
+      if (!user || LD_ADMIN_EMAILS.indexOf(user.email) === -1) {
+        showToast('Removing elements is for the LazyDog admin account', 4500);
+        return;
+      }
+      var ce = (window._editorElements || []).filter(function (t) { return t.id === id; })[0];
+      if (!confirm('Remove "' + ((ce && ce.name) || id) + '" from the Elements panel for everyone?')) return;
+      var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+      await fsMod.deleteDoc(fsMod.doc(fsMod.getFirestore(app), 'editor_templates', id));
+      try {
+        var stMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
+        await stMod.deleteObject(stMod.ref(stMod.getStorage(app, 'gs://templatehub-16cd7.firebasestorage.app'), 'editor_templates/' + id + '.json'));
+      } catch (e2) {}
+      window._editorElements = (window._editorElements || []).filter(function (t) { return t.id !== id; });
+      if (window.Editor && Editor._emit) Editor._emit('elements', { count: window._editorElements.length });
+      showToast('Element removed ✓');
+    } catch (e) {
+      console.error('deleteElement', e);
+      showToast('Remove failed: ' + ((e && e.message) || e), 6000);
+    }
+  },
+
   /* remove a published template (admin) — deletes the Firestore record and
      the JSON in Storage; the panel refreshes for everyone on next load */
   deleteTemplate: async function (id) {
@@ -498,3 +620,53 @@ Editor._register({
     }
   }
 });
+
+/* ════ 5 · LIVE ACCOUNT — same Firebase auth as the main LazyDog site ════
+   Auth state is shared per-origin, so a user signed in on the main pages is
+   automatically signed in here too. The avatar in the top bar shows the
+   real user; Sign in / Sign out work from the editor itself. */
+(function () {
+  var FB_CONFIG = {
+    apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes',
+    authDomain: 'templatehub-16cd7.firebaseapp.com',
+    projectId: 'templatehub-16cd7',
+    storageBucket: 'templatehub-16cd7.firebasestorage.app'
+  };
+  async function fbAuth() {
+    var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+    var authMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+    var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(FB_CONFIG);
+    return { auth: authMod.getAuth(app), mod: authMod };
+  }
+  /* watch auth state from boot — picks up an existing main-site session */
+  setTimeout(async function () {
+    try {
+      var A = await fbAuth();
+      A.mod.onAuthStateChanged(A.auth, function (u) {
+        window._ldUser = u ? { email: u.email, name: u.displayName, photo: u.photoURL } : null;
+        if (window.Editor && Editor._emit) Editor._emit('user', window._ldUser);
+      });
+    } catch (e) { console.warn('auth watcher failed', e); }
+  }, 1200);
+
+  Editor._register({
+    signIn: async function () {
+      try {
+        var A = await fbAuth();
+        await A.mod.signInWithPopup(A.auth, new A.mod.GoogleAuthProvider());
+        showToast('Signed in ✓');
+      } catch (e) {
+        if (e && /popup-closed/.test(String(e.code))) return;
+        console.error('signIn', e);
+        showToast('Sign-in failed: ' + ((e && e.message) || e), 6000);
+      }
+    },
+    signOut: async function () {
+      try {
+        var A = await fbAuth();
+        await A.mod.signOut(A.auth);
+        showToast('Signed out');
+      } catch (e) { showToast('Sign-out failed: ' + ((e && e.message) || e), 5000); }
+    }
+  });
+})();

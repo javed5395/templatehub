@@ -505,3 +505,265 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 @keyframes ldpulse { 50% { transform: scale(1.09); } }
 @keyframes ldbounce { 50% { transform: translateY(-7px); } }
 @keyframes ldfloat { 50% { transform: translateY(-4px); } }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE 1 — DARK-GLASS RIBBON + DAY/NIGHT   (LazyDog redesign)
+   Scoped to #ribbon-slot only → sidebar / canvas / filmstrip untouched.
+   The day/night toggle sets <body data-theme="light|·">. Default = dark.
+   To revert the ribbon to its original look, delete this whole block.
+   ═══════════════════════════════════════════════════════════════════════ */
+#ribbon-slot{
+  --bg-chrome:#0E1117; --bg-inset:#1A2130;
+  --text-1:#EEF1F7; --text-2:#AEB7C7; --text-3:#6B7488;
+  --line-1:#1E2634; --line-2:#2A3342;
+  --accent:#8B7CF3; --accent-soft:rgba(108,92,231,.20); --accent-line:rgba(108,92,231,.55);
+  background:linear-gradient(180deg,#141A24,#0E1117);
+  border-bottom:1px solid var(--line-1);
+}
+body[data-theme="light"] #ribbon-slot{
+  --bg-chrome:#FFFFFF; --bg-inset:#F8F9FB;
+  --text-1:#1F2430; --text-2:#5B6472; --text-3:#9AA3B2;
+  --line-1:#E4E7EE; --line-2:#CBD2DE;
+  --accent:#7C3AED; --accent-soft:#F1EAFE; --accent-line:#D9C9F9;
+  background:#FFFFFF;
+}
+#ribbon-slot .rb-top,
+#ribbon-slot .rb-body{ background:transparent; }
+#ribbon-slot .rb-top{ border-bottom:1px solid var(--line-1); }
+
+#ribbon-slot .rb-tab{ border-radius:9px 9px 0 0; transition:background .16s ease,color .16s ease; }
+#ribbon-slot .rb-big{ border-radius:10px; }
+#ribbon-slot .rb-sm{ border-radius:8px; }
+#ribbon-slot .rb-q{ border-radius:9px; }
+#ribbon-slot .rb-action{ border-radius:10px; }
+#ribbon-slot .rb-combo{ border-radius:8px; }
+#ribbon-slot .rb-big,#ribbon-slot .rb-sm,#ribbon-slot .rb-q,
+#ribbon-slot .rb-action,#ribbon-slot .rb-combo{
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease;
+}
+
+#ribbon-slot .rb-svg-sm-mat,
+#ribbon-slot .rb-svg-mat{ color:var(--text-2); }
+
+#ribbon-slot .rb-tab:hover,
+#ribbon-slot .rb-big:hover,#ribbon-slot .rb-sm:hover,
+#ribbon-slot .rb-q:hover,#ribbon-slot .rb-action:hover,
+#ribbon-slot .rb-big.is-open,#ribbon-slot .rb-sm.is-open{ background:var(--bg-inset); }
+
+#ribbon-slot .rb-big.is-pressed,
+#ribbon-slot .rb-sm.is-pressed{
+  background:var(--accent-soft);
+  box-shadow:inset 0 0 0 1px var(--accent-line), 0 4px 14px -6px rgba(108,92,231,.55);
+  color:var(--text-1);
+}
+#ribbon-slot .rb-sm.is-pressed .rb-svg-sm-mat{ color:var(--accent); }
+#ribbon-slot .rb-tab.is-active{ color:var(--accent); }
+#ribbon-slot .rb-tab.is-active::after{ background:var(--accent); box-shadow:0 0 10px rgba(108,92,231,.7); }
+
+#ribbon-slot .rb-combo,
+#ribbon-slot .rb-action{ background:var(--bg-inset); border-color:var(--line-2); }
+#ribbon-slot .rb-combo:hover,
+#ribbon-slot .rb-action:hover{ border-color:var(--accent-line); }
+
+#ribbon-slot .rb-action.is-primary{
+  background:linear-gradient(135deg,#6C5CE7,#5A4BD6); border-color:transparent; color:#fff;
+  box-shadow:0 6px 16px -6px rgba(108,92,231,.7), inset 0 1px 0 rgba(255,255,255,.22);
+}
+#ribbon-slot .rb-action.is-primary:hover{ filter:brightness(1.06); }
+body[data-theme="light"] #ribbon-slot .rb-action.is-primary{ background:var(--accent); box-shadow:0 1px 2px rgba(124,58,237,0.3); }
+
+#ribbon-slot .rb-pop{
+  background:rgba(18,23,32,.95); border:1px solid var(--line-1);
+  box-shadow:0 20px 50px -18px rgba(0,0,0,.7);
+  -webkit-backdrop-filter:blur(22px) saturate(150%); backdrop-filter:blur(22px) saturate(150%);
+}
+body[data-theme="light"] #ribbon-slot .rb-pop{ background:#fff; box-shadow:var(--shadow-pop); -webkit-backdrop-filter:none; backdrop-filter:none; }
+#ribbon-slot .rb-layout-lab{ color:var(--text-2); }
+#ribbon-slot .rb-layout-card:hover{ background:var(--accent-soft); }
+
+/* ── day / night toggle switch (top row) ── */
+#ribbon-slot .rb-theme-tog{
+  position:relative; align-self:center; flex:0 0 auto; width:52px; height:26px; margin:0 4px 0 8px;
+  border-radius:999px; background:var(--bg-inset); border:1px solid var(--line-2);
+  transition:background .16s ease,border-color .16s ease;
+}
+#ribbon-slot .rb-theme-tog:hover{ border-color:var(--accent-line); }
+#ribbon-slot .rb-theme-tog .material-icons-outlined{ position:absolute; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; }
+#ribbon-slot .rb-tog-sun{ left:6px; color:var(--text-3); }
+#ribbon-slot .rb-tog-moon{ right:6px; color:var(--text-3); }
+#ribbon-slot .rb-tog-knob{
+  position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%;
+  background:linear-gradient(135deg,#A298FE,#6C5CE7);
+  box-shadow:0 2px 8px -2px rgba(108,92,231,.8), inset 0 1px 0 rgba(255,255,255,.4);
+  transform:translateX(26px); transition:transform .22s ease,background .22s ease;
+}
+body[data-theme="light"] #ribbon-slot .rb-tog-knob{
+  transform:translateX(0);
+  background:linear-gradient(135deg,#FFD16B,#F59E0B);
+  box-shadow:0 2px 8px -2px rgba(245,158,11,.7), inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+/* ═══ STAGE 2 — FLAT TOPBAR (LazyDog Studio pic) — scoped to #ribbon-slot ═══ */
+#ribbon-slot .rb-topbar{ display:flex; align-items:center; gap:10px; height:52px; padding:0 14px; border-bottom:1px solid var(--line-1); }
+#ribbon-slot .rb-brand{ display:flex; align-items:center; gap:9px; }
+#ribbon-slot .rb-mark{ width:30px; height:30px; border-radius:9px; display:grid; place-items:center; font-weight:700; font-size:12.5px; color:#fff; background:linear-gradient(135deg,#6C5CE7,#4b3fd0); box-shadow:0 5px 14px -5px rgba(108,92,231,.9), inset 0 1px 0 rgba(255,255,255,.25); }
+#ribbon-slot .rb-brand-name{ font-size:14.5px; font-weight:600; color:var(--text-1); }
+#ribbon-slot .rb-file-btn{ display:inline-flex; align-items:center; gap:4px; height:32px; padding:0 6px 0 11px; margin-left:4px; border-radius:8px; color:var(--text-1); font-size:13px; font-weight:500; transition:background .16s ease; }
+#ribbon-slot .rb-file-btn:hover{ background:var(--bg-inset); }
+#ribbon-slot .rb-saved{ display:inline-flex; align-items:center; gap:5px; margin-left:2px; color:var(--text-3); font-size:12px; }
+#ribbon-slot .rb-saved-i{ font-size:15px !important; }
+#ribbon-slot .rb-saved.is-busy .rb-saved-i{ animation:ldspin 1s linear infinite; }
+#ribbon-slot .rb-tico{ width:36px; height:36px; display:grid; place-items:center; border-radius:9px; color:var(--text-2); transition:background .16s ease,color .16s ease,transform .16s ease; }
+#ribbon-slot .rb-tico:hover{ color:var(--text-1); background:var(--bg-inset); }
+#ribbon-slot .rb-tico:active{ transform:scale(.95); }
+#ribbon-slot .rb-avatar{ width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-size:11.5px; font-weight:700; color:#0b0e14; background:conic-gradient(from 210deg,#00C2FF,#6C5CE7,#A298FE); border:2px solid rgba(255,255,255,.18); margin-left:2px; }
+#ribbon-slot .rb-tabs{ display:flex; align-items:flex-end; gap:2px; height:40px; padding:0 12px; border-bottom:1px solid var(--line-1); }
+#ribbon-slot .rb-tabs .rb-tab{ height:34px; display:flex; align-items:center; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE 3 — FULL DARK-GLASS SHELL (sidebar + drawer + canvas + filmstrip)
+   Matches the LazyDog reference mock. Pure CSS — no markup/JS changes.
+   Active only in dark mode; the existing day/night toggle restores the
+   original light shell. Delete this block to revert.
+   ═══════════════════════════════════════════════════════════════════════ */
+body:not([data-theme="light"]){
+  --bg-app:#151A23; --bg-chrome:#0E1117; --bg-inset:#1A2130;
+  --text-1:#EEF1F7; --text-2:#AEB7C7; --text-3:#6B7488;
+  --line-1:#1E2634; --line-2:#2A3342;
+  --accent:#8B7CF3; --accent-soft:rgba(108,92,231,.20); --accent-line:rgba(108,92,231,.55);
+  --shadow-pop:0 20px 50px -18px rgba(0,0,0,.7);
+}
+body:not([data-theme="light"]) .canvas-area{
+  background:radial-gradient(120% 90% at 50% 0%, #1B2230 0%, #151A23 60%);
+}
+body:not([data-theme="light"]) .canvas-holder{
+  box-shadow:0 0 0 1px rgba(139,124,243,.25), 0 18px 50px -12px rgba(0,0,0,.75), 0 0 40px -8px rgba(108,92,231,.25);
+  border-radius:4px;
+}
+
+/* sidebar rail — dark, purple gradient glow on active */
+body:not([data-theme="light"]) #sidebar-slot{ border-right-color:var(--line-1); }
+body:not([data-theme="light"]) .sb-rail-btn{ border-radius:10px; transition:background .16s ease,color .16s ease; }
+body:not([data-theme="light"]) .sb-rail-btn:hover{ background:rgba(255,255,255,.06); }
+body:not([data-theme="light"]) .sb-rail-btn.is-active{
+  background:linear-gradient(135deg,rgba(108,92,231,.85),rgba(90,75,214,.85));
+  box-shadow:0 6px 16px -6px rgba(108,92,231,.7), inset 0 1px 0 rgba(255,255,255,.18);
+}
+body:not([data-theme="light"]) .sb-rail-lab{ color:var(--text-2); font-weight:600; }
+body:not([data-theme="light"]) .sb-rail-btn.is-active .sb-rail-lab{ color:#fff; font-weight:700; }
+body:not([data-theme="light"]) .sb-rail-btn.is-active svg *[stroke]{ stroke:#fff; }
+body:not([data-theme="light"]) .sb-rail-btn.is-active svg *[fill]:not([fill="none"]){ fill:#fff; }
+
+/* drawer — dark glass asset panel */
+body:not([data-theme="light"]) .sb-drawer{
+  background:rgba(16,20,28,.92); border-left-color:var(--line-1);
+  -webkit-backdrop-filter:blur(18px) saturate(140%); backdrop-filter:blur(18px) saturate(140%);
+}
+body:not([data-theme="light"]) .sb-search input{ background:var(--bg-inset); border-color:var(--line-2); color:var(--text-1); }
+body:not([data-theme="light"]) .sb-search input:focus{ background:var(--bg-inset); border-color:var(--accent); }
+body:not([data-theme="light"]) .sb-search input::placeholder{ color:var(--text-3); }
+
+/* generic dark card surface for every white card/tile in the panels */
+body:not([data-theme="light"]) :is(.sb-card,.sb-text,.sb-tpl-card,.sb-chart-card,.sb-ds-card,.sb-ds-srcbtn,.sb-ds-act:not(:first-child),.sb-ds-sample,.sb-shape-card,.sb-wa-item,.sb-icon-cell,.sb-tpl-back,.sb-tpl-slide,.rb-wa-item,.rb-chart-card,.ctx-menu){
+  background:#161B25; border-color:var(--line-2);
+}
+body:not([data-theme="light"]) :is(.sb-card,.sb-text,.sb-tpl-card,.sb-chart-card,.sb-shape-card,.sb-wa-item,.sb-tpl-slide,.rb-wa-item,.rb-chart-card):hover{
+  border-color:var(--accent-line); box-shadow:0 6px 18px -6px rgba(108,92,231,.35);
+}
+body:not([data-theme="light"]) :is(.sb-card-lab,.sb-cat-lab,.sb-cat-title,.sb-tpl-meta b,.sb-tpl-dname,.sb-ds-top b,.sb-ds-smeta b,.sb-ds-srcbtn,.sb-ds-act,.rb-chart-lab,.rb-layout-lab,.sb-text-h,.ctx-item){ color:var(--text-1); }
+body:not([data-theme="light"]) :is(.sb-card-mi,.sb-icon-cell,.sb-text-s,.sb-text-b,.sb-tpl-meta span,.sb-tpl-dsub,.sb-chart-gname,.sb-ds-smeta span,.rb-pop-head,.ctx-shortcut){ color:var(--text-2); }
+body:not([data-theme="light"]) .sb-icon-cell:hover{ background:var(--accent-soft); border-color:var(--accent-line); color:var(--accent); }
+body:not([data-theme="light"]) :is(.sb-tpl-prev,.sb-tpl-sprev,.sb-tpl-dcover,.sb-chart-prev,.rb-chart-prev,.sb-photo){ background-color:#1A2130; border-color:var(--line-1); }
+body:not([data-theme="light"]) .sb-ds-tbl th{ border-bottom-color:var(--line-2); }
+body:not([data-theme="light"]) .sb-ds-tbl td{ color:var(--text-1); border-bottom-color:var(--line-1); }
+body:not([data-theme="light"]) .sb-ds-tag{ background:var(--accent-soft); color:var(--accent); }
+body:not([data-theme="light"]) .ctx-item:hover{ background:rgba(255,255,255,.07); color:#fff; }
+body:not([data-theme="light"]) .ctx-divider{ background:var(--line-1); }
+body:not([data-theme="light"]) .sb-layer-act:hover{ background:var(--bg-inset); color:var(--text-1); }
+body:not([data-theme="light"]) .sb-page-n{ background:var(--bg-inset); color:var(--text-2); }
+body:not([data-theme="light"]) .sb-primary{
+  background:linear-gradient(135deg,#6C5CE7,#5A4BD6);
+  box-shadow:0 6px 16px -6px rgba(108,92,231,.7), inset 0 1px 0 rgba(255,255,255,.22);
+}
+body:not([data-theme="light"]) .sb-primary:hover{ background:linear-gradient(135deg,#6C5CE7,#5A4BD6); filter:brightness(1.06); }
+
+/* filmstrip — dark, glowing active thumb */
+body:not([data-theme="light"]) .filmstrip{ border-top-color:var(--line-1); }
+body:not([data-theme="light"]) .film-thumb{ border-color:var(--line-2); background-color:#1A2130; }
+body:not([data-theme="light"]) .film-thumb.active{ border-color:var(--accent); box-shadow:0 0 14px -2px rgba(108,92,231,.6); }
+body:not([data-theme="light"]) .film-thumb .n{ background:rgba(14,17,23,.85); color:var(--text-2); }
+body:not([data-theme="light"]) .film-add{ border-color:var(--line-2); color:var(--text-2); }
+body:not([data-theme="light"]) .film-add:hover{ border-color:var(--accent); color:var(--accent); }
+
+/* ═══ STAGE 4 — FLOATING GLASS RIBBON ISLAND (matches reference mock) ═══ */
+body:not([data-theme="light"]) #ribbon-slot{
+  background:#0B0E14;                 /* page behind the island */
+  border-bottom:0;
+  padding:10px 14px 12px;
+}
+body:not([data-theme="light"]) #ribbon-slot .rb{
+  border-radius:16px;
+  background:linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.035));
+  border:1px solid rgba(255,255,255,.13);
+  box-shadow:0 14px 40px -14px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.10);
+  -webkit-backdrop-filter:blur(24px) saturate(150%); backdrop-filter:blur(24px) saturate(150%);
+  overflow:visible;
+}
+body:not([data-theme="light"]) #ribbon-slot .rb-top,
+body:not([data-theme="light"]) #ribbon-slot .rb-topbar,
+body:not([data-theme="light"]) #ribbon-slot .rb-tabs{
+  background:transparent; border-bottom:1px solid rgba(255,255,255,.09);
+}
+body:not([data-theme="light"]) #ribbon-slot .rb-body{ background:transparent; border-radius:0 0 16px 16px; }
+body:not([data-theme="light"]) #ribbon-slot .rb-body-inner{
+  margin:7px 9px 9px; padding:3px 6px 0;
+  border-radius:12px;
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+body:not([data-theme="light"]) #ribbon-slot .rb-sep{ background:rgba(255,255,255,.10); }
+body:not([data-theme="light"]) #ribbon-slot .rb-tab:hover,
+body:not([data-theme="light"]) #ribbon-slot .rb-big:hover,
+body:not([data-theme="light"]) #ribbon-slot .rb-sm:hover,
+body:not([data-theme="light"]) #ribbon-slot .rb-q:hover{ background:rgba(255,255,255,.09); }
+body:not([data-theme="light"]) #ribbon-slot .rb-combo,
+body:not([data-theme="light"]) #ribbon-slot .rb-action{
+  background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.14);
+}
+body:not([data-theme="light"]) #ribbon-slot .rb-group-lab{ color:rgba(255,255,255,.45); }
+/* tabs sit on the glass with the purple underline glow kept */
+body:not([data-theme="light"]) #ribbon-slot .rb-tab{ border-radius:8px; }
+
+/* ═══ STAGE 5 — SINGLE MERGED TOP BAR + Format tab + filmstrip present ═══ */
+#ribbon-slot .rb-onebar{
+  height:48px; align-items:center; gap:4px; padding:0 12px;
+  border-bottom:1px solid rgba(255,255,255,.09);
+}
+body[data-theme="light"] #ribbon-slot .rb-onebar{ border-bottom:1px solid var(--line-1); }
+#ribbon-slot .rb-onebar .rb-tab{ height:34px; display:flex; align-items:center; border-radius:8px; }
+#ribbon-slot .rb-onebar .rb-tab.is-active::after{ left:8px; right:8px; bottom:-7px; }
+#ribbon-slot .rb-onebar .rb-brand{ margin-right:8px; }
+#ribbon-slot .rb-onebar .rb-brand-name{ font-size:13.5px; }
+#ribbon-slot .rb-onebar .rb-file-btn{ margin-right:2px; }
+#ribbon-slot .rb-onebar .rb-saved{ margin-right:10px; }
+#ribbon-slot .rb-tab-ctx{ color:var(--accent); font-weight:600; }
+#ribbon-slot .rb-tab-ctx.is-active{ color:var(--accent); }
+
+.film-present{
+  display:grid; place-items:center; width:30px; height:30px; border-radius:7px;
+  color:var(--text-2); transition:background .16s ease,color .16s ease;
+}
+.film-present:hover{ background:var(--accent-soft); color:var(--accent); }
+.film-present .material-icons-outlined{ font-size:19px; }
+
+/* custom elements (admin) — thumbnail with hover ✕ */
+.sb-custom-wrap{ position:relative; display:block; }
+.sb-custom-wrap .sb-photo{ width:100%; background-color:var(--bg-inset); }
+.sb-custom-wrap .sb-tpl-del{ display:none; }
+.sb-custom-wrap:hover .sb-tpl-del{ display:grid; }
+
+/* smooth micro-interactions per spec (150–200ms) */
+body:not([data-theme="light"]) :is(.sb-card,.sb-text,.sb-tpl-card,.sb-chart-card,.sb-shape-card,.sb-icon-cell,.film-thumb,.sb-primary){
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease,transform .16s ease;
+}
