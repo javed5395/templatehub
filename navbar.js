@@ -96,7 +96,7 @@
 </div>
 <script type="module">
   import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
   const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig); // reuse existing app — duplicate-app crash fix (main.html)
   const auth = getAuth(app);
@@ -131,6 +131,12 @@
   // chat_brain.js, which this file injects further down. Defining it here too
   // created two different functions sharing one global name — see the note in
   // chat_brain.js. Do not redefine it here.
+  // Complete a full-page Google redirect sign-in (the popup fallback) and
+  // surface any error instead of failing silently. onAuthStateChanged below
+  // handles the success case automatically once the redirect result resolves.
+  getRedirectResult(auth).catch(function(e){
+    try { var el=document.getElementById('authError'); if(el && e) el.textContent='Google sign-in failed: '+((e&&e.code)||e); } catch(_){}
+  });
   onAuthStateChanged(auth, (user) => {
     const si=document.getElementById('signinBtn'), su=document.getElementById('signupBtn');
     const um=document.getElementById('nbUserMenu'), un=document.getElementById('nbUserName'), ua=document.getElementById('nbUserAvatar');
@@ -252,7 +258,28 @@
   window.doGoogleSignIn = async function() {
     var gp = new GoogleAuthProvider();
     gp.setCustomParameters({ prompt: 'select_account' });
-    try { await signInWithPopup(auth,gp); closeAuthModal(); } catch(e){ var err=document.getElementById('authError'); if(err)err.textContent='Google sign-in failed. Try again.'; }
+    try {
+      await signInWithPopup(auth,gp); closeAuthModal();
+    } catch(e){
+      /* 17 Aug 2026 — signInWithPopup can fail in modern Chromium because the
+         authDomain (templatehub-16cd7.firebaseapp.com) is a DIFFERENT origin than
+         the site, so COOP / third-party storage partitioning severs the popup's
+         window.opener and the login result never comes back. When that happens,
+         fall back to a full-page redirect (which does not rely on the popup
+         channel). Also surface the real error code instead of hiding it. */
+      var code = (e && e.code) || '';
+      var popupIssue = [
+        'auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request',
+        'auth/operation-not-supported-in-this-environment','auth/internal-error',
+        'auth/web-storage-unsupported','auth/network-request-failed',''
+      ].indexOf(code) !== -1;
+      if (popupIssue) {
+        try { await signInWithRedirect(auth, gp); }
+        catch(e2){ var er2=document.getElementById('authError'); if(er2) er2.textContent='Google sign-in failed: '+((e2&&e2.code)||e2); }
+      } else {
+        var err=document.getElementById('authError'); if(err) err.textContent='Google sign-in failed: '+code;
+      }
+    }
   };
   window.doForgotPassword = async function() {
     const email=document.getElementById('authEmail').value.trim(), err=document.getElementById('authError');
