@@ -97,7 +97,7 @@
 <script type="module">
   import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
+  const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"auth.lazydogtemplates.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig); // reuse existing app — duplicate-app crash fix (main.html)
   const auth = getAuth(app);
   // Hexa admin: fresh ID token for gated composer calls (null when logged out)
@@ -747,7 +747,7 @@
         const fs = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
         const _app = fa.getApps().length ? fa.getApp() : fa.initializeApp({
           apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-          authDomain:"templatehub-16cd7.firebaseapp.com",
+          authDomain:"auth.lazydogtemplates.com",
           projectId:"templatehub-16cd7",
           storageBucket:"templatehub-16cd7.firebasestorage.app",
           messagingSenderId:"143000893683",
