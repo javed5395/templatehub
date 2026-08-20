@@ -615,7 +615,42 @@ window.ldCompose = async function (sentence) {
   }
   var d = await r.json();
   await window.loadDeckIRIntoEditor(d.deck);
+  if (window.ldRefreshTokens) window.ldRefreshTokens();   /* 20 Aug 2026 — balance chip */
 };
+
+/* ═════════ token balance chip (20 Aug 2026, Fable — Javed's rules) ═════════
+   Normal editing is FREE; generation and AI fill spend tokens. This chip
+   shows the signed-in user their live balance (admin sees ∞). It refreshes
+   on sign-in and after every paid operation. Prices come from the server's
+   billing config — nothing is hard-coded here. */
+window.LD_TOKENS_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/token_balance';
+window.ldRefreshTokens = async function () {
+  var chip = document.getElementById('ld-token-chip');
+  if (!window.LD_AUTH_TOKEN) { if (chip) chip.style.display = 'none'; return; }
+  try {
+    var r = await fetch(window.LD_TOKENS_URL, { method: 'POST', headers: window.ldHeaders('application/json') });
+    if (!r.ok) return;
+    var d = await r.json();
+    if (!chip) {
+      chip = document.createElement('div');
+      chip.id = 'ld-token-chip';
+      chip.style.cssText = 'position:fixed;right:14px;bottom:64px;z-index:9000;' +
+        'background:#151623;border:1px solid #2c2e45;border-radius:999px;' +
+        'padding:6px 14px;font:600 12px "DM Sans",system-ui,sans-serif;color:#e8e9f2;' +
+        'box-shadow:0 6px 20px rgba(0,0,0,.4);pointer-events:none;';
+      document.body.appendChild(chip);
+    }
+    chip.style.display = '';
+    chip.textContent = d.admin ? '⚡ Unlimited (admin)'
+                               : '⚡ ' + Number(d.balance || 0).toLocaleString() + ' tokens';
+  } catch (e) { /* quietly — the chip is a convenience, never a blocker */ }
+};
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    window.ldRefreshTokens();
+    if (window.Editor && Editor.on) Editor.on('user', function () { window.ldRefreshTokens(); });
+  }, 2500);
+});
 
 /* ?compose= boot — same contract Hexa uses on the old editor */
 (function () {
