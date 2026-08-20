@@ -2820,10 +2820,23 @@ window.dissolveFlatFile = async function (file) {
     var fd = new FormData(); fd.append('file', file, file.name || 'upload');
     var headers = {};
     if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
+    /* 20 Aug 2026 (Fable) — decompose is PAID work now (Javed's rules:
+       PNG 25, PDF/page 20). Wait for the login token and send it; the
+       service checks the balance and debits only on success. */
+    if (window.ldWaitAuthToken) await window.ldWaitAuthToken(15000);
+    if (window.LD_AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
     var r = await fetch(base + '/dissolve', { method: 'POST', headers: headers, body: fd });
     if (!r.ok) {
-      var det = ''; try { det = (await r.text()).slice(0, 200); } catch (e2) {}
-      showToast('Dissolve failed (' + r.status + ')' + (det ? ' — ' + det : ''), 9000); return;
+      var det = '';
+      try {
+        var raw = await r.text();
+        try { det = (JSON.parse(raw) || {}).message || raw.slice(0, 200); }
+        catch (e3) { det = raw.slice(0, 200); }
+      } catch (e2) {}
+      if (r.status === 401) showToast(det || 'Sign in first to dissolve files 🔐', 8000);
+      else if (r.status === 402) showToast(det || 'Your token limit is over — subscribe to continue.', 9000);
+      else showToast('Dissolve failed (' + r.status + ')' + (det ? ' — ' + det : ''), 9000);
+      return;
     }
     var blob = await r.blob();
     var nm = (file.name || 'design').replace(/\.[^.]+$/, '') + '_EDITABLE.pptx';
@@ -2831,6 +2844,7 @@ window.dissolveFlatFile = async function (file) {
       { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
     var ok = await window.ldImportPptxFile(pptx);
     if (ok) showToast('Dissolved → editable ✓');
+    if (window.ldRefreshTokens) window.ldRefreshTokens();   /* balance chip */
   } catch (err) {
     showToast('Dissolve error: ' + ((err && err.message) || err));
   } finally {
