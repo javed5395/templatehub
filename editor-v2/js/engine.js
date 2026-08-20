@@ -3118,9 +3118,17 @@ Editor._register({
            uses THE SAME window — off to accounts.google.com and back — and
            getRedirectResult in the boot watcher completes it on return.
            window.lazydogDesktop exists only in the app (preload bridge). */
-        if (window.lazydogDesktop) {
-          showToast('Taking you to Google sign-in…', 4000);
-          await A.mod.signInWithRedirect(A.auth, new A.mod.GoogleAuthProvider());
+        if (window.lazydogDesktop && window.lazydogDesktop.googleLogin) {
+          /* 20 Aug 2026 (Fable) — Google refuses OAuth inside ANY embedded
+             window ("this browser or app may not be secure"), redirect and
+             popup alike. So the app signs in through the user's REAL browser:
+             main process opens app_login.html there, the page mints a custom
+             token via mint_app_token, and hands it back over loopback. */
+          showToast('Opening Google sign-in in your browser…', 6000);
+          var ct = await window.lazydogDesktop.googleLogin();
+          if (!ct) { showToast('Sign-in was cancelled or timed out', 5000); return; }
+          await A.mod.signInWithCustomToken(A.auth, ct);
+          showToast('Signed in ✓');
           return;
         }
         await A.mod.signInWithPopup(A.auth, new A.mod.GoogleAuthProvider());
