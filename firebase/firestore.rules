@@ -212,6 +212,28 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── billing_config (PUBLIC READ, 20 Aug 2026) ────────────────────────
+    // Holds the editor plans, their prices, token allowances, and the token
+    // cost of each automated action.
+    //
+    // WHY READ IS OPEN
+    //   The pricing page has to show these numbers to a visitor who is not
+    //   signed in — that is the whole point of a pricing page. The alternative
+    //   is typing the prices into the HTML, which guarantees that one day the
+    //   page and the checkout disagree about what something costs. Nothing in
+    //   here is secret: every value is published on the page and on the Whop
+    //   checkout the moment anyone looks.
+    //
+    // WHY WRITE IS CLOSED
+    //   These numbers decide what customers are charged and how many tokens
+    //   they receive. Only the admin_billing endpoint may change them, and it
+    //   runs with the Admin SDK, which ignores these rules entirely. So a
+    //   flat deny here is correct and does not block the legitimate path.
+    match /billing_config/{docId} {
+      allow read:  if true;
+      allow write: if false;
+    }
+
     // ── deployment_requests (WEB KIT DEPLOYMENT ENQUIRIES, 13 Aug 2026) ───
     // Someone wants us to build and host a web kit on their own domain. That
     // price is negotiated per client, so it never appears in the store — this
