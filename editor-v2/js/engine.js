@@ -1797,11 +1797,47 @@ function pageRefresh() { renderPageThumbs(); }
       (async function () {
       if (kind === 'deck') {
         if (state.pages.length > 1 && !confirm('This builds a NEW deck and replaces the ' + state.pages.length + ' slides open here.\n\nReplace everything?')) return;
-        var q0 = await window.ldPrompt('Describe the deck you want:', 'e.g. "a fintech pitch deck, dark blue, 8 slides"');
-        if (!q0 || !q0.trim()) return;
-        _aiRunning = true; busy(true, 'Designing in the cloud… up to a minute');
-        window.ldCompose(q0.trim()).then(function () { _aiRunning = false; })
+        /* 20 Aug 2026 (Fable, Javed's order) — the SAME form Hexa shows on the
+           site, right here in the editor. It builds the exact order sentence
+           the grammar reads; the free-text box on top still accepts anything. */
+        var f0 = await window.ldDesignForm({ title: 'Make a design' });
+        if (!f0 || !f0.sentence) return;
+        _aiRunning = true; busy(true, 'Designing in the cloud… a big deck can take a few minutes');
+        window.ldCompose(f0.sentence).then(function () { _aiRunning = false; })
           .catch(function (e) { _aiRunning = false; say('Compose failed: ' + e.message); });
+        return;
+      }
+      if (kind === 'preparePresentation') {
+        /* 20 Aug 2026 (Fable, Javed's order) — design + YOUR content, one flow:
+           Hexa composes the design, then the model cascade (Haiku fills →
+           Sonnet fixes → Opus reviews) rewrites every text region from the
+           content box. The key never leaves the cloud (ai_fill_http). */
+        if (state.pages.length > 1 && !confirm('This builds a NEW presentation and replaces the ' + state.pages.length + ' slides open here.\n\nReplace everything?')) return;
+        var fp = await window.ldDesignForm({ title: 'Create presentation', content: true });
+        if (!fp || !fp.sentence) return;
+        _aiRunning = true; busy(true, 'Designing in the cloud…');
+        (async function () {
+          try {
+            await window.ldCompose(fp.sentence);
+            if (fp.content && fp.content.trim()) {
+              busy(true, 'Filling your content — Hexa + the writers are on it…');
+              var deckIR = await buildEffectiveDeckIR();
+              var r = await fetch(window.LD_FILL_URL, {
+                method: 'POST', headers: window.ldHeaders('application/json'),
+                body: JSON.stringify({ design: deckIR, content: fp.content, qa: true })
+              });
+              if (!r.ok) {
+                var em = ''; try { em = ((await r.json()) || {}).error || ''; } catch (e2) {}
+                say('Design is ready, but filling failed: ' + (em || ('HTTP ' + r.status)), 8000);
+              } else {
+                var fd = await r.json();
+                await window.loadDeckIRIntoEditor(fd.deck || fd);
+                say('Presentation ready ✓');
+              }
+            }
+          } catch (e) { say('Create presentation failed: ' + e.message, 8000); }
+          _aiRunning = false;
+        })();
         return;
       }
       if (kind === 'slide') {
@@ -1844,6 +1880,133 @@ function pageRefresh() { renderPageThumbs(); }
     }
   });
 })();
+
+/* ═════════ ldDesignForm — Hexa's design form, inside the editor ═════════
+   (20 Aug 2026, Fable, Javed's order.) The same boxes the site's promptbox
+   shows, rendered as an editor modal. Every filled box becomes a phrase the
+   order grammar (orders.js) already reads — the free-text line rides on top.
+   opts.content:true adds the "Your content" textarea (Create presentation).
+   Resolves { sentence, content } or null on cancel. */
+window.LD_FILL_URL = 'https://ai-fill-http-irosbvpq7q-uc.a.run.app';
+window.ldDesignForm = function (opts) {
+  opts = opts || {};
+  return new Promise(function (resolve) {
+    var old = document.getElementById('ld-form-overlay');
+    if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'ld-form-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.62);z-index:99999;' +
+      'display:flex;align-items:center;justify-content:center;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:14px;' +
+      'padding:22px 24px;width:min(560px,94vw);max-height:88vh;overflow:auto;' +
+      'box-shadow:0 18px 50px rgba(0,0,0,.5);font-family:"DM Sans",system-ui,sans-serif;color:#e8e9f2;';
+    box.innerHTML = '<div style="font-size:16px;font-weight:700;margin-bottom:4px;">' +
+      (opts.title || 'Make a design') + '</div>' +
+      '<div style="font-size:12px;color:#a9abc4;margin-bottom:14px;">Describe it — or fill any boxes below for more precision. Empty boxes mean "you decide".</div>';
+
+    function field(label, el) {
+      var w = document.createElement('div');
+      var l = document.createElement('div');
+      l.textContent = label;
+      l.style.cssText = 'font-size:10px;font-weight:700;letter-spacing:.06em;color:#8b8ea8;text-transform:uppercase;margin:0 0 4px;';
+      w.appendChild(l); w.appendChild(el);
+      return w;
+    }
+    var inpCss = 'width:100%;box-sizing:border-box;background:#0e0f1a;color:#fff;border:1px solid #34365a;' +
+      'border-radius:8px;padding:8px 10px;font-size:13px;outline:none;';
+    function txt(ph) { var i = document.createElement('input'); i.type = 'text'; i.placeholder = ph || ''; i.style.cssText = inpCss; return i; }
+    function sel(values) {
+      var s = document.createElement('select'); s.style.cssText = inpCss;
+      ['Any'].concat(values).forEach(function (v) {
+        var o = document.createElement('option'); o.value = v === 'Any' ? '' : v; o.textContent = v; s.appendChild(o);
+      });
+      return s;
+    }
+
+    var fDesc = txt('e.g. a fintech pitch deck for investors');
+    fDesc.style.marginBottom = '12px';
+    box.appendChild(field('Describe your design', fDesc));
+
+    var grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;';
+    var fSlides   = txt('e.g. 15');
+    var fRatio    = sel(['16:9', '4:3']);
+    var fIndustry = txt('e.g. healthcare, fintech');
+    var fColour   = sel(['black', 'dark', 'navy', 'blue', 'white', 'green', 'red', 'purple', 'teal', 'gold']);
+    var fStyle    = sel(['minimal', 'modern', 'bold', 'elegant', 'corporate', 'playful', 'luxury']);
+    var fTone     = sel(['professional', 'friendly', 'formal', 'casual']);
+    var fFonts    = txt('e.g. Montserrat');
+    var fText     = sel(['low', 'medium', 'high']);
+    var fShapes   = sel(['low', 'medium', 'high']);
+    var fGraphs   = sel(['none', 'low', 'medium', 'high']);
+    var fSpace    = sel(['low', 'medium', 'high']);
+    var fMock     = txt('e.g. 5 or 20%');
+    var fPast     = txt('e.g. PD-044 or PD-044 background');
+    var fInsp     = txt('e.g. MK-010, or "the Aurora kit"');
+    [['Slides', fSlides], ['Aspect ratio', fRatio], ['Industry', fIndustry], ['Colour family', fColour],
+     ['Style', fStyle], ['Tone', fTone], ['Fonts', fFonts], ['Text', fText],
+     ['Shapes', fShapes], ['Graphs', fGraphs], ['Empty space', fSpace], ['Mock-up slides', fMock],
+     ['Past design', fPast], ['Inspired by', fInsp]
+    ].forEach(function (pair) { grid.appendChild(field(pair[0], pair[1])); });
+    box.appendChild(grid);
+
+    var fContent = null;
+    if (opts.content) {
+      fContent = document.createElement('textarea');
+      fContent.placeholder = 'Paste your content here — headings and text for the slides…';
+      fContent.style.cssText = inpCss + 'min-height:110px;resize:vertical;margin-top:12px;';
+      var cw = field('Your content (the slides are written from this)', fContent);
+      cw.style.marginTop = '12px';
+      box.appendChild(cw);
+    }
+
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;margin-top:16px;';
+    function btn(label, primary) {
+      var b = document.createElement('button');
+      b.textContent = label;
+      b.style.cssText = 'border:0;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;' +
+        (primary ? 'background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;' : 'background:#23243a;color:#c9cbe0;');
+      return b;
+    }
+    var cancel = btn('Cancel', false);
+    var ok = btn(opts.content ? 'Create presentation →' : 'Make my design →', true);
+    row.appendChild(cancel); row.appendChild(ok);
+    box.appendChild(row);
+    ov.appendChild(box); document.body.appendChild(ov);
+    setTimeout(function () { fDesc.focus(); }, 30);
+
+    function close(val) { ov.remove(); resolve(val); }
+    cancel.onclick = function () { close(null); };
+    ov.onmousedown = function (e) { if (e.target === ov) close(null); };
+    ok.onclick = function () {
+      /* every box becomes a phrase the order grammar reads */
+      var parts = [];
+      if (fDesc.value.trim())     parts.push(fDesc.value.trim());
+      var n = parseInt(String(fSlides.value).replace(/[^0-9]/g, ''), 10);
+      if (n)                      parts.push(n + ' slides');
+      if (fRatio.value)           parts.push(fRatio.value);
+      if (fIndustry.value.trim()) parts.push(fIndustry.value.trim());
+      if (fColour.value)          parts.push(fColour.value + ' background');
+      if (fStyle.value)           parts.push(fStyle.value + ' style');
+      if (fTone.value)            parts.push(fTone.value + ' tone');
+      if (fFonts.value.trim())    parts.push('in ' + fFonts.value.trim() + ' font');
+      if (fText.value)            parts.push(fText.value + ' text');
+      if (fShapes.value)          parts.push(fShapes.value + ' shapes');
+      if (fGraphs.value)          parts.push(fGraphs.value + ' graphs');
+      if (fSpace.value)           parts.push(fSpace.value + ' empty space');
+      var mk = fMock.value.trim();
+      if (mk) parts.push(/%/.test(mk) ? (mk.replace(/[^0-9]/g, '') + '% mockup slides')
+                                      : (mk.replace(/[^0-9]/g, '') + ' mockup slides'));
+      if (fPast.value.trim())     parts.push('use design ' + fPast.value.trim());
+      if (fInsp.value.trim())     parts.push('inspired by ' + fInsp.value.trim());
+      var sentence = parts.join(', ').trim();
+      if (!sentence) { fDesc.focus(); return; }
+      close({ sentence: sentence, content: fContent ? fContent.value : '' });
+    };
+  });
+};
 
 /* ═════════ ldPrompt — an ask box that works EVERYWHERE (20 Aug 2026, Fable)
    window.prompt() is unsupported in Electron (the desktop app), and even in

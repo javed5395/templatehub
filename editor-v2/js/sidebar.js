@@ -744,7 +744,11 @@
       { matIcon: 'auto_awesome_motion', label: 'Presentation', onClick: function () { run('ai', { kind: 'deck' }); } },
       { matIcon: 'note_add', label: 'One slide', onClick: function () { run('ai', { kind: 'slide' }); } },
       { matIcon: 'library_add', label: 'Add slides', onClick: function () { run('ai', { kind: 'addSlides' }); } },
-      { matIcon: 'dashboard_customize', label: 'Mock-ups', onClick: function () { run('ai', { kind: 'mockups' }); } }
+      { matIcon: 'dashboard_customize', label: 'Mock-ups', onClick: function () { run('ai', { kind: 'mockups' }); } },
+      /* 20 Aug 2026 (Fable, Javed's order) — design + YOUR content in one go:
+         the design form plus a content box; Hexa composes, the model cascade
+         fills. Pure UI — the engine owns the flow behind 'preparePresentation'. */
+      { matIcon: 'co_present', label: 'Create presentation', onClick: function () { run('ai', { kind: 'preparePresentation' }); } }
     ], 2));
     p.appendChild(subhead('Text'));
     p.appendChild(grid([
