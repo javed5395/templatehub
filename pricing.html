@@ -279,13 +279,54 @@ function card(key, best){
   </div>`;
 }
 
+/* The fourth card is not a plan and never comes from billing_config — there is
+   no price to read, because every deployment is quoted individually. It is
+   built by hand so that it can say so plainly instead of showing a number the
+   customer would then be argued out of. Shown in both monthly and yearly
+   views, because a quoted job has no billing period. */
+function customCard(){
+  return `
+  <div class="card">
+    <span class="badge badge--flex">Quoted per job</span>
+    <h2>Custom</h2>
+    <div class="card__sub">We build it and put it live for you</div>
+
+    <div class="price"><b>Let's talk</b></div>
+    <div class="price__note">No fixed price. Asking costs nothing.</div>
+
+    <div class="tokens">
+      <b>Done for you</b>
+      <span>you supply the content, we deliver the finished site</span>
+    </div>
+
+    <div class="lbl">What this covers</div>
+    <ul class="lst">
+      <li>Your text and images put into a kit</li>
+      <li>Colours, fonts and logo applied</li>
+      <li>Deployed live on your own domain</li>
+      <li>Working contact form and basic SEO</li>
+      <li>Extra pages and custom design work</li>
+    </ul>
+
+    <div class="lbl">How it works</div>
+    <ul class="lst">
+      <li class="cost">You tell us what you need <b>free</b></li>
+      <li class="cost">We send a fixed quote <b>free</b></li>
+      <li class="cost">Deposit, then we build <b>agreed</b></li>
+      <li class="cost">Preview link before it goes live <b>free</b></li>
+    </ul>
+
+    <a class="btn" href="deployment/quote.html">Request a quote</a>
+    <div class="fair">Scope and price agreed in writing<br/>before any work begins.</div>
+  </div>`;
+}
+
 function paint(){
   const keys = MODE === 'monthly'
     ? ['pro', 'studio', 'annualFlex']
     : ['proAnnual', 'studioAnnual', 'annualFlex'];
   const best = MODE === 'monthly' ? 'pro' : 'proAnnual';
-  $('grid').innerHTML = keys.map(k => card(k, k === best)).join('') ||
-    '<div class="err" style="grid-column:1/-1">No plans are published yet.</div>';
+  $('grid').innerHTML = (keys.map(k => card(k, k === best)).join('') || '') + customCard();
 
   /* Saving is calculated, not claimed. If the annual price ever stops being a
      saving the line simply disappears instead of lying. */
