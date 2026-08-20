@@ -3097,6 +3097,10 @@ Editor._register({
   setTimeout(async function () {
     try {
       var A = await fbAuth();
+      /* 20 Aug 2026 (Fable) — completes a desktop-app redirect sign-in: the
+         app comes back from accounts.google.com to this page, and this call
+         turns the returned credential into a session. No-op on the website. */
+      try { await A.mod.getRedirectResult(A.auth); } catch (e) {}
       A.mod.onAuthStateChanged(A.auth, function (u) {
         window._ldUser = u ? { email: u.email, name: u.displayName, photo: u.photoURL } : null;
         if (window.Editor && Editor._emit) Editor._emit('user', window._ldUser);
@@ -3108,6 +3112,17 @@ Editor._register({
     signIn: async function () {
       try {
         var A = await fbAuth();
+        /* 20 Aug 2026 (Fable) — INSIDE THE DESKTOP APP the popup flow is a
+           dead end: the account chooser opens, but the credential cannot post
+           back through window.opener, so "nothing happens". The redirect flow
+           uses THE SAME window — off to accounts.google.com and back — and
+           getRedirectResult in the boot watcher completes it on return.
+           window.lazydogDesktop exists only in the app (preload bridge). */
+        if (window.lazydogDesktop) {
+          showToast('Taking you to Google sign-in…', 4000);
+          await A.mod.signInWithRedirect(A.auth, new A.mod.GoogleAuthProvider());
+          return;
+        }
         await A.mod.signInWithPopup(A.auth, new A.mod.GoogleAuthProvider());
         showToast('Signed in ✓');
       } catch (e) {
