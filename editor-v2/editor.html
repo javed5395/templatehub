@@ -69,20 +69,20 @@
 <!-- ── toasts ── -->
 <div id="toast-host" aria-live="polite"></div>
 
+<script>
+/* 20 Aug 2026 (Fable) — offline editing: cache the editor shell so it opens
+   with no internet (website and desktop app alike). Cloud features stay
+   online-only. See sw.js for the rules. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
 <script src="js/core.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/assets.js"></script>
-<script src="js/engine2.js"></script>
-<script src="js/engine3.js"></script>
-<script src="js/engine4.js"></script>
-<script src="js/engine5.js"></script>
-<script src="js/engine6.js"></script>
-<script src="js/engine7.js"></script>\n<script src="js/engine8.js"></script>
-<script src="js/engine9.js"></script>
-<script src="js/engine10.js"></script>
-<script src="js/engine11.js"></script>
-<script src="js/engine12.js"></script>
-<script src="js/engine3d.js"></script>
+<script src="js/engine.js"></script>
 <script src="js/ribbon.js"></script>
 <script src="js/sidebar.js"></script>
 </body>

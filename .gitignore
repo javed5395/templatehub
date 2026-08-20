@@ -49,6 +49,18 @@ firebase/users.json
 firebase/functions/
 !firebase/functions/requirements.txt
 
+# Lazydog Engine (Cloud Run) source — PRIVATE. Deploys via gcloud from this
+# folder; git never needs it. server.py carries an Apps Script token and the
+# whole metadata pipeline logic. (20 Aug 2026 — meta_codec.py was already
+# ignored by name, but server.py and the rest of the folder were not.)
+editor-v2/engine/
+
+# Dissolve service (Cloud Run) source — PRIVATE, same rule as the engine.
+# Deploys via gcloud; git never needs it. Caught 20 Aug 2026 one commit before
+# it went public. Test decks/pdfs are just repo bloat — also kept out.
+editor-v2/dissolve/
+editor-v2/test_files/
+
 # Common local-only / sensitive files
 *.bak
 *.tmp
