@@ -55,7 +55,7 @@
            font-size:clamp(30px,5.2vw,52px);line-height:1.08;max-width:760px;margin:0 auto}
   .hero p{position:relative;margin:18px auto 0;max-width:560px;font-size:16px;color:#c9cede}
 
-  .wrap{max-width:1080px;margin:0 auto;padding:34px 22px 60px}
+  .wrap{max-width:1240px;margin:0 auto;padding:34px 22px 60px}
   .back{display:inline-block;color:var(--violet);text-decoration:none;font-family:'Poppins',sans-serif;
         font-size:13px;font-weight:600;margin-bottom:22px}
   .back:hover{text-decoration:underline}
@@ -65,52 +65,67 @@
   .toggle__btn{border:0;background:transparent;font-family:'Poppins',sans-serif;font-size:13.5px;font-weight:700;
                color:#6b6577;padding:9px 22px;border-radius:100px;cursor:pointer;transition:.15s}
   .toggle__btn.on{background:var(--navy);color:#fff}
-  .save{text-align:center;font-size:12.5px;color:var(--green);font-weight:600;
-        font-family:'Poppins',sans-serif;margin-bottom:26px;min-height:19px}
+  .saving{display:inline-block;background:#e8f5ea;color:#256b33;font-family:'Poppins',sans-serif;
+          font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:6px;margin-bottom:14px}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:18px;align-items:start}
+  /* Four across on one row — the site's journal-card look, not a generic
+     SaaS pricing table. Same bone panel, inset hairline, mono eyebrow,
+     Instrument Serif title and the site-name footer as blog.html. */
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:stretch}
+  @media(max-width:1040px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}}
 
-  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px 24px;display:flex;
-        flex-direction:column;height:100%}
-  .card--best{border:2px solid var(--gold);box-shadow:0 6px 26px rgba(212,175,55,.13)}
-  .badge{display:inline-block;align-self:flex-start;background:var(--gold);color:var(--navy);
-         font-family:'Poppins',sans-serif;font-size:10px;font-weight:800;letter-spacing:.14em;
-         text-transform:uppercase;padding:5px 11px;border-radius:5px;margin-bottom:12px}
-  .badge--flex{background:#eae6f7;color:#4b3a86}
-  .card h2{font-family:'Poppins',sans-serif;font-size:19px;font-weight:700;margin:0 0 3px}
-  .card__sub{font-size:13px;color:var(--muted);margin-bottom:16px;min-height:20px}
-  .price{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}
-  .price b{font-family:'Poppins',sans-serif;font-size:38px;font-weight:800;line-height:1}
-  .price span{font-size:14px;color:var(--muted);font-weight:600}
-  .price__note{font-size:12.5px;color:var(--muted);min-height:19px;margin-bottom:16px}
+  .card{position:relative;background:var(--bone);border:1px solid #d9d4c7;padding:26px 22px;
+        display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
+  .card::before{content:"";position:absolute;inset:11px;border:1px solid rgba(0,0,0,.09);pointer-events:none}
+  .card:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.13)}
+  .card--best{border-color:var(--gold);box-shadow:0 6px 24px rgba(212,175,55,.16)}
+  .card--best::before{border-color:rgba(212,175,55,.4)}
+  .card>*{position:relative}
 
-  .tokens{background:#faf7f0;border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:16px}
-  .tokens b{font-family:'Poppins',sans-serif;font-size:21px;font-weight:800;display:block;line-height:1.2}
-  .tokens span{font-size:12.5px;color:var(--muted)}
+  .badge{font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-size:9.5px;font-weight:700;
+         letter-spacing:.2em;text-transform:uppercase;color:var(--oxblood);
+         padding-bottom:5px;border-bottom:1.5px solid var(--oxblood);
+         display:inline-block;width:max-content;margin-bottom:13px}
+  .badge--flex{color:#4b3a86;border-bottom-color:#4b3a86}
+  .card h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:29px;line-height:1.1;
+           color:var(--ink);margin:0 0 4px}
+  .card__sub{font-size:12.5px;color:#46414d;line-height:1.5;margin-bottom:14px;min-height:38px}
+  .price{display:flex;align-items:baseline;gap:5px;margin-bottom:3px}
+  .price b{font-family:'Instrument Serif',serif;font-size:40px;font-weight:400;line-height:1;color:var(--ink)}
+  .price span{font-size:13px;color:var(--muted)}
+  .price__note{font-size:11.5px;color:var(--muted);min-height:17px;margin-bottom:10px;line-height:1.45}
+  .saving{display:inline-block;font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-size:10px;
+          font-weight:700;letter-spacing:.08em;color:#256b33;background:#e8f2e9;
+          padding:4px 9px;margin-bottom:12px}
 
-  .lst{list-style:none;margin:0 0 16px;padding:0}
-  .lst li{font-size:13.5px;color:#3d3a49;padding:5px 0 5px 22px;position:relative;line-height:1.55}
-  .lst li::before{content:"✓";position:absolute;left:0;top:5px;color:var(--green);font-weight:700}
-  .lst li.cost{padding-left:0;display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed #e8e2d4}
+  .tokens{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:14px}
+  .tokens b{font-family:'Instrument Serif',serif;font-size:23px;font-weight:400;display:block;line-height:1.2;color:var(--ink)}
+  .tokens span{font-size:11.5px;color:var(--muted);line-height:1.45;display:block;margin-top:2px}
+
+  .lst{list-style:none;margin:0 0 14px;padding:0}
+  .lst li{font-size:12.5px;color:#3d3a49;padding:4px 0 4px 17px;position:relative;line-height:1.5}
+  .lst li::before{content:"✓";position:absolute;left:0;top:4px;color:var(--green);font-weight:700;font-size:12px}
+  .lst li.cost{padding-left:0;display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted #ddd6c6}
   .lst li.cost::before{content:none}
-  .lst li.cost b{font-family:'Poppins',sans-serif;font-weight:700;white-space:nowrap;color:var(--ink)}
-  .lbl{font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:800;letter-spacing:.13em;
-       text-transform:uppercase;color:var(--muted);margin:4px 0 7px}
+  .lst li.cost b{font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-weight:700;
+                 white-space:nowrap;color:var(--ink)}
+  .lbl{font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-size:9.5px;font-weight:700;
+       letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:2px 0 6px}
 
-  .btn{display:block;text-align:center;text-decoration:none;font-family:'Poppins',sans-serif;font-size:14.5px;
-       font-weight:700;padding:13px;border-radius:10px;margin-top:auto;transition:.15s;
-       background:var(--navy);color:#fff}
+  .btn{display:block;text-align:center;text-decoration:none;font-family:'Poppins',sans-serif;font-size:13.5px;
+       font-weight:700;padding:12px;margin-top:auto;transition:.15s;background:var(--navy);color:#fff}
   .btn:hover{background:#161642}
   .btn--gold{background:var(--gold);color:var(--navy)}
   .btn--gold:hover{background:#c39f2f}
   .btn--off{background:#e8e3d7;color:#8a8496;cursor:not-allowed}
-  .fair{font-size:11.5px;color:var(--muted);text-align:center;margin-top:11px;line-height:1.5}
+  .fair{font-size:10.5px;color:var(--muted);text-align:center;margin-top:9px;line-height:1.45}
 
-  .free{background:#12102a;color:#fff;border-radius:16px;padding:26px 26px;margin:30px 0 0}
-  .free h3{font-family:'Poppins',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px}
-  .free p{font-size:14px;color:rgba(255,255,255,.66);margin:0}
-  .free ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding:0}
-  .free li{font-size:12.5px;background:rgba(255,255,255,.09);border-radius:100px;padding:6px 13px;color:#e6e2f0}
+  .foot{border-top:1px solid var(--line);margin-top:12px;padding-top:11px;
+        display:flex;align-items:center;justify-content:space-between}
+  .foot span{font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-size:9px;font-weight:700;
+             letter-spacing:.1em;color:var(--ink);text-transform:uppercase}
+  .foot img{width:30px;height:30px;border-radius:50%;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 
   .note{max-width:700px;margin:28px auto 0;font-size:13px;color:var(--muted);text-align:center;line-height:1.75}
   .note a{color:var(--violet);text-decoration:none}.note a:hover{text-decoration:underline}
@@ -138,24 +153,10 @@
       <button class="toggle__btn"    id="tabY" type="button">Yearly</button>
     </div>
   </div>
-  <div class="save" id="saveLine"></div>
+  <div style="height:22px"></div>
 
   <div class="grid" id="grid">
     <div class="err" style="grid-column:1/-1">Loading plans…</div>
-  </div>
-
-  <div class="free">
-    <h3>Free forever, on every plan and with no plan at all</h3>
-    <p>These never cost a token, and never will.</p>
-    <ul>
-      <li>Uploading your files</li>
-      <li>Downloading your work</li>
-      <li>Editing text and images</li>
-      <li>Colours, fonts and brand kit</li>
-      <li>Layers, transitions, animations</li>
-      <li>Exporting the finished deck</li>
-      <li>40 tokens when you sign up</li>
-    </ul>
   </div>
 
   <p class="note">
@@ -236,6 +237,23 @@ function card(key, best){
   const perDeck = (Number(c.composePerSlide||0) + Number(c.fillPerSlide||0)) * 10;
   const decks   = perDeck > 0 ? Math.floor(tk / perDeck) : 0;
 
+  /* Each annual card states ITS OWN saving. A single line above the grid could
+     only ever describe one plan, so a customer reading the Studio card saw a
+     figure calculated from Pro. Computed against the matching monthly plan, so
+     if a price changes the saving follows — and if annual ever stops being
+     cheaper the line simply disappears rather than claiming a saving. */
+  let saveLine = '';
+  if (p.billedAnnually) {
+    const monthlyKey = key === 'proAnnual' ? 'pro'
+                     : key === 'studioAnnual' ? 'studio' : '';
+    const m = (CFG.plans || {})[monthlyKey];
+    if (m && m.priceUsd) {
+      const save = (Number(m.priceUsd) * 12) - Number(p.priceUsd);
+      if (save > 0) saveLine =
+        `<div class="saving">Save $${n(Math.round(save))} a year vs $${n(m.priceUsd)}/month</div>`;
+    }
+  }
+
   return `
   <div class="card ${best ? 'card--best' : ''}">
     ${best ? '<span class="badge">Most popular</span>'
@@ -251,16 +269,18 @@ function card(key, best){
       oneTime      ? 'No renewal. Never charged again.'
       : p.billedAnnually ? 'Billed once a year, tokens arrive monthly'
       : 'Cancel any time'}</div>
+    ${saveLine}
 
     <div class="tokens">
       <b>${n(tk)} tokens</b>
       <span>${oneTime ? 'valid for one year' : 'every month'}${decks ? ` · about ${decks} full decks` : ''}</span>
     </div>
 
-    <div class="lbl">Always free</div>
+    <div class="lbl">Free on this plan</div>
     <ul class="lst">
       <li>Uploading and downloading</li>
       <li>All editing and exporting</li>
+      <li>40 tokens free when you sign up</li>
     </ul>
 
     <div class="lbl">What tokens are spent on</div>
@@ -275,7 +295,9 @@ function card(key, best){
       ? `<a class="btn ${best ? 'btn--gold' : ''}" href="${url}" target="_blank" rel="noopener">
            ${oneTime ? 'Buy once' : 'Subscribe'}</a>`
       : `<span class="btn btn--off">Coming soon</span>`}
-    <div class="fair">We use fair counting — you are charged for the work<br/>actually done, and nothing else.</div>
+    <div class="fair">We use fair counting — charged for work actually done.</div>
+    <div class="foot"><span>www.lazydogtemplates.com</span>
+      <img src="images/site_logo_round.png" alt="LazyDog Templates"/></div>
   </div>`;
 }
 
@@ -299,25 +321,25 @@ function customCard(){
       <span>you supply the content, we deliver the finished site</span>
     </div>
 
-    <div class="lbl">What this covers</div>
+    <div class="lbl">Free on this plan</div>
     <ul class="lst">
-      <li>Your text and images put into a kit</li>
-      <li>Colours, fonts and logo applied</li>
-      <li>Deployed live on your own domain</li>
-      <li>Working contact form and basic SEO</li>
-      <li>Extra pages and custom design work</li>
+      <li>Telling us what you need</li>
+      <li>A fixed written quote</li>
+      <li>Preview link before it goes live</li>
     </ul>
 
-    <div class="lbl">How it works</div>
+    <div class="lbl">What this covers</div>
     <ul class="lst">
-      <li class="cost">You tell us what you need <b>free</b></li>
-      <li class="cost">We send a fixed quote <b>free</b></li>
-      <li class="cost">Deposit, then we build <b>agreed</b></li>
-      <li class="cost">Preview link before it goes live <b>free</b></li>
+      <li class="cost">Your text and images placed <b>yes</b></li>
+      <li class="cost">Colours, fonts and logo applied <b>yes</b></li>
+      <li class="cost">Live on your own domain <b>yes</b></li>
+      <li class="cost">Contact form and basic SEO <b>yes</b></li>
     </ul>
 
     <a class="btn" href="deployment/quote.html">Request a quote</a>
-    <div class="fair">Scope and price agreed in writing<br/>before any work begins.</div>
+    <div class="fair">Scope and price agreed in writing first.</div>
+    <div class="foot"><span>www.lazydogtemplates.com</span>
+      <img src="images/site_logo_round.png" alt="LazyDog Templates"/></div>
   </div>`;
 }
 
@@ -327,16 +349,6 @@ function paint(){
     : ['proAnnual', 'studioAnnual', 'annualFlex'];
   const best = MODE === 'monthly' ? 'pro' : 'proAnnual';
   $('grid').innerHTML = (keys.map(k => card(k, k === best)).join('') || '') + customCard();
-
-  /* Saving is calculated, not claimed. If the annual price ever stops being a
-     saving the line simply disappears instead of lying. */
-  const pl = CFG.plans || {};
-  let msg = '';
-  if (MODE === 'yearly' && pl.pro && pl.proAnnual) {
-    const save = (Number(pl.pro.priceUsd) * 12) - Number(pl.proAnnual.priceUsd);
-    if (save > 0) msg = `Save $${n(Math.round(save))} a year on Pro`;
-  }
-  $('saveLine').textContent = msg;
 
   $('tabM').classList.toggle('on', MODE === 'monthly');
   $('tabY').classList.toggle('on', MODE === 'yearly');
