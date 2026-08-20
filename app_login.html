@@ -61,7 +61,8 @@
       const cred = await signInWithPopup(auth, new GoogleAuthProvider());
       msg.textContent = 'Connecting to the app…';
       const idTok = await cred.user.getIdToken();
-      const r = await fetch(MINT_URL, { headers: { Authorization: 'Bearer ' + idTok } });
+      /* POST, not GET — the functions' CORS policy only allows POST/OPTIONS */
+      const r = await fetch(MINT_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + idTok } });
       if (!r.ok) throw new Error('token service said ' + r.status);
       const d = await r.json();
       /* hand the custom token to the app over loopback — 127.0.0.1 only */
