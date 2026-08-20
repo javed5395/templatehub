@@ -2043,6 +2043,65 @@ window.ldDesignForm = function (opts) {
   });
 };
 
+/* ═════════ ldSignInModal — email/password + Google chooser (21 Aug 2026)
+   Fable, for the Microsoft Store blocker: reviewers (and plenty of real
+   customers) need a plain email sign-in. Resolves:
+     { mode:'email', email, pass } | { mode:'google' } | null (cancelled). */
+window.ldSignInModal = function () {
+  return new Promise(function (resolve) {
+    var old = document.getElementById('ld-signin-overlay');
+    if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'ld-signin-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.62);z-index:99999;' +
+      'display:flex;align-items:center;justify-content:center;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:14px;' +
+      'padding:26px 28px;width:min(360px,92vw);box-shadow:0 18px 50px rgba(0,0,0,.5);' +
+      'font-family:"DM Sans",system-ui,sans-serif;color:#e8e9f2;';
+    box.innerHTML = '<div style="font-size:17px;font-weight:700;margin-bottom:14px;">Sign in to LazyDog</div>';
+    var inpCss = 'width:100%;box-sizing:border-box;background:#0e0f1a;color:#fff;border:1px solid #34365a;' +
+      'border-radius:8px;padding:10px 12px;font-size:14px;outline:none;margin-bottom:10px;';
+    var em = document.createElement('input');
+    em.type = 'email'; em.placeholder = 'Email'; em.autocomplete = 'username'; em.style.cssText = inpCss;
+    var pw = document.createElement('input');
+    pw.type = 'password'; pw.placeholder = 'Password'; pw.autocomplete = 'current-password'; pw.style.cssText = inpCss;
+    var go = document.createElement('button');
+    go.textContent = 'Sign in';
+    go.style.cssText = 'width:100%;border:0;border-radius:8px;padding:11px 0;font-size:14px;font-weight:700;' +
+      'cursor:pointer;background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;';
+    var div = document.createElement('div');
+    div.textContent = 'or';
+    div.style.cssText = 'text-align:center;color:#8b8ea8;font-size:12px;margin:12px 0;';
+    var gg = document.createElement('button');
+    gg.textContent = 'Continue with Google';
+    gg.style.cssText = 'width:100%;border:1px solid #34365a;border-radius:8px;padding:10px 0;font-size:13px;' +
+      'font-weight:600;cursor:pointer;background:#0e0f1a;color:#e8e9f2;';
+    var err = document.createElement('div');
+    err.style.cssText = 'color:#f87171;font-size:12px;min-height:16px;margin-top:8px;';
+    box.appendChild(em); box.appendChild(pw); box.appendChild(go);
+    box.appendChild(div); box.appendChild(gg); box.appendChild(err);
+    ov.appendChild(box); document.body.appendChild(ov);
+    setTimeout(function () { em.focus(); }, 30);
+    function close(val) { ov.remove(); resolve(val); }
+    ov.onmousedown = function (e) { if (e.target === ov) close(null); };
+    function submit() {
+      var e1 = em.value.trim(), p1 = pw.value;
+      if (!e1 || !/@/.test(e1)) { err.textContent = 'Enter your email address.'; em.focus(); return; }
+      if (!p1) { err.textContent = 'Enter your password.'; pw.focus(); return; }
+      close({ mode: 'email', email: e1, pass: p1 });
+    }
+    go.onclick = submit;
+    gg.onclick = function () { close({ mode: 'google' }); };
+    [em, pw].forEach(function (i) {
+      i.onkeydown = function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); submit(); }
+        if (e.key === 'Escape') { e.preventDefault(); close(null); }
+      };
+    });
+  });
+};
+
 /* ═════════ ldPrompt — an ask box that works EVERYWHERE (20 Aug 2026, Fable)
    window.prompt() is unsupported in Electron (the desktop app), and even in
    browsers it is an ugly system dialog. This is a minimal in-page modal:
@@ -3324,18 +3383,25 @@ Editor._register({
     signIn: async function () {
       try {
         var A = await fbAuth();
+        /* 21 Aug 2026 (Fable) — EMAIL + PASSWORD alongside Google. The last
+           Microsoft Store blocker: a reviewer cannot pass Google's device-
+           verification on our test account from an unknown machine, so the
+           app must offer a plain email sign-in. The modal below asks which;
+           the Google paths underneath are unchanged. Also right on its own —
+           customers without a Google account were being turned away. */
+        var choice = await window.ldSignInModal();
+        if (!choice) return;
+        if (choice.mode === 'email') {
+          await A.mod.signInWithEmailAndPassword(A.auth, choice.email, choice.pass);
+          showToast('Signed in ✓');
+          return;
+        }
         /* 20 Aug 2026 (Fable) — INSIDE THE DESKTOP APP the popup flow is a
-           dead end: the account chooser opens, but the credential cannot post
-           back through window.opener, so "nothing happens". The redirect flow
-           uses THE SAME window — off to accounts.google.com and back — and
-           getRedirectResult in the boot watcher completes it on return.
-           window.lazydogDesktop exists only in the app (preload bridge). */
+           dead end. Google refuses OAuth inside ANY embedded window, so the
+           app signs in through the user's REAL browser: main process opens
+           app_login.html there, the page mints a custom token via
+           mint_app_token, and hands it back over loopback. */
         if (window.lazydogDesktop && window.lazydogDesktop.googleLogin) {
-          /* 20 Aug 2026 (Fable) — Google refuses OAuth inside ANY embedded
-             window ("this browser or app may not be secure"), redirect and
-             popup alike. So the app signs in through the user's REAL browser:
-             main process opens app_login.html there, the page mints a custom
-             token via mint_app_token, and hands it back over loopback. */
           showToast('Opening Google sign-in in your browser…', 6000);
           var ct = await window.lazydogDesktop.googleLogin();
           if (!ct) { showToast('Sign-in was cancelled or timed out', 5000); return; }
@@ -3348,7 +3414,10 @@ Editor._register({
       } catch (e) {
         if (e && /popup-closed/.test(String(e.code))) return;
         console.error('signIn', e);
-        showToast('Sign-in failed: ' + ((e && e.message) || e), 6000);
+        var m = String((e && e.code) || '');
+        showToast(/invalid-credential|wrong-password|user-not-found|invalid-email/.test(m)
+          ? 'Email or password is not right — try again 🔐'
+          : 'Sign-in failed: ' + ((e && e.message) || e), 6000);
       }
     },
     signOut: async function () {
