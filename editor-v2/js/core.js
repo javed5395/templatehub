@@ -283,7 +283,7 @@ function rehydrateFrames() {}
     'insertShapePreset','insertLineKind','insertGrid','insertSticker','insertIllo','illoPalette',
     'layerAction','ai',
     'shapeFill','shapeOutline','shapeOutlineW','shapeOpacity','moveSlide','insert3D',
-    'publishElement','insertElement','deleteElement','componentSave','componentDelete',
+    'publishElement','insertElement','deleteElement','componentSave','componentDelete','insertMockupLayout',
     'mockupArea','mockupFill','signIn','signOut','backgroundImage'
   ];
   var impl = {};
@@ -352,6 +352,7 @@ function rehydrateFrames() {}
         case 'stickers': return impl.__qStickers ? impl.__qStickers() : [];
         case 'illos': return impl.__qIllos ? impl.__qIllos() : { palettes: [], styles: [] };
         case 'components': return impl.__qComponents ? impl.__qComponents() : [];
+        case 'mockupLayouts': return impl.__qMockupLayouts ? impl.__qMockupLayouts() : [];
         default: return null;
       }
     },

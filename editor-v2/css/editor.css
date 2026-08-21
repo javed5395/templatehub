@@ -487,7 +487,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .sb-cat-title { font-size: 14px; color: #0F172A; flex: 1; margin-left: 8px; }
 .sb-shape-card { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #E2E8F0; border-radius: 9px; background: #fff; cursor: pointer; padding: 8px; }
 .sb-shape-card:hover { border-color: #8B3DFF; box-shadow: 0 3px 10px rgba(139,61,255,.16); }
-.sb-shape-art { display: block; width: 100%; }
+.sb-shape-art { display: block; width: 100%; color: var(--text-1); } /* 21 Aug 2026: previews use currentColor so they show on dark AND light */
 .sb-shape-art svg { display: block; width: 100%; height: auto; }
 .sb-wa-item { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #E2E8F0; border-radius: 9px; background: #fff; cursor: pointer; }
 .sb-wa-item:hover { border-color: #8B3DFF; }

@@ -231,7 +231,7 @@
       { id: 'tables',  label: 'Tables',   ic: 'table_chart',      grad: 'linear-gradient(135deg,#EA580C,#FDE047)' },
       { id: 'wordart', label: 'WordArt',  ic: 'format_color_text',grad: 'linear-gradient(135deg,#22D3EE,#7C3AED)' },
       { id: 'objects3d', label: '3D Objects', ic: 'deployed_code', grad: 'linear-gradient(135deg,#4F46E5,#DB2777)' },
-      { id: 'mockups', label: 'Mockups',  ic: 'devices',          grad: 'linear-gradient(135deg,#12A5A0,#059669)' },
+      { id: 'mockups', label: 'Mock-up slides',  ic: 'devices',          grad: 'linear-gradient(135deg,#12A5A0,#059669)' },
       { id: 'graphics', label: 'Graphics', ic: 'interests',        grad: 'linear-gradient(135deg,#F97316,#DB2777)' },
       { id: 'anims',   label: 'Animations', ic: 'animation',       grad: 'linear-gradient(135deg,#8B3DFF,#22D3EE)' }
     ];
@@ -322,45 +322,15 @@
       return;
     }
     if (cat === 'mockups') {
-      elCatHead(p, 'Mockups');
-      /* ── photo mockups: your design on a real product photo (shirt, cup, TV…) ── */
-      p.appendChild(subhead('Photo mockups — 3 steps'));
-      var mf = el('input'); mf.type = 'file'; mf.accept = 'image/*'; mf.style.display = 'none';
-      mf.addEventListener('change', function () {
-        var f = mf.files && mf.files[0]; if (!f) return;
-        var r = new FileReader();
-        r.onload = function () { run('insertImage', r.result); };
-        r.readAsDataURL(f);
-        mf.value = '';
-      });
-      p.appendChild(mf);
-      var s1 = el('button', 'sb-primary'); s1.type = 'button';
-      s1.appendChild(mat('add_photo_alternate', 'sb-btn-i'));
-      s1.appendChild(document.createTextNode('1 · Upload product photo'));
-      s1.title = 'A photo of a shirt, cup, TV, phone in hand — anything';
-      s1.addEventListener('click', function () { mf.click(); });
-      p.appendChild(s1);
-      var s2 = el('button', 'sb-primary'); s2.type = 'button';
-      s2.appendChild(mat('highlight_alt', 'sb-btn-i'));
-      s2.appendChild(document.createTextNode('2 · Mark the design area'));
-      s2.title = 'A dashed box appears — move and resize it over the print area';
-      s2.addEventListener('click', function () { run('mockupArea'); });
-      p.appendChild(s2);
-      var s3 = el('button', 'sb-primary'); s3.type = 'button';
-      s3.appendChild(mat('wallpaper', 'sb-btn-i'));
-      s3.appendChild(document.createTextNode('3 · Place design into area'));
-      s3.title = 'Pick the design image — it fills the dashed area exactly';
-      s3.addEventListener('click', function () { run('mockupFill'); });
-      p.appendChild(s3);
-      p.appendChild(subhead('Tip: admin can publish a finished mockup as a Custom element for everyone'));
-      /* ── vector device shells ── */
-      p.appendChild(subhead('Device shells'));
+      elCatHead(p, 'Mock-up slides');
+      p.appendChild(subhead('Ready layouts: photo frames, text areas and chart areas in different proportions. Click one to place it on this slide.'));
       var mg = el('div', 'sb-grid'); mg.style.gridTemplateColumns = 'repeat(2, 1fr)';
-      var mi = 10;
-      ['phone', 'tablet', 'laptop', 'monitor', 'watch'].forEach(function (k) {
-        if (!(A.FRAME_DEFS && A.FRAME_DEFS[k])) return;
-        var art = A.framePreviewSvg ? A.framePreviewSvg(k, 92, mi++) : '';
-        mg.appendChild(svgCard(art, A.FRAME_DEFS[k].label || k, 'insertFrame', k));
+      (ask('mockupLayouts') || []).forEach(function (L) {
+        var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = L.name;
+        var w = el('span', 'sb-shape-art'); w.innerHTML = L.svg;
+        b.appendChild(w); b.appendChild(el('span', 'sb-card-lab', L.name));
+        b.addEventListener('click', function () { run('insertMockupLayout', L.i); });
+        mg.appendChild(b);
       });
       p.appendChild(mg);
       return;

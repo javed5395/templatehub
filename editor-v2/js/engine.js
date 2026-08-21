@@ -169,15 +169,89 @@ function refreshFrame(grp) {
   fc && fc.requestRenderAll();
 }
 
-function dropImageIntoFrame(imgObj, grp) {
+/* 21 Aug 2026 (Fable) — THE FRAMES BUG. dropImageIntoFrame called
+   frameSrcToDataURL(), which did not exist anywhere — every drop threw a
+   ReferenceError and no photo ever went into a frame. Defined here: draw the
+   picture to a canvas and read it back; a cross-origin picture that taints
+   the canvas returns null and the async path below fetches it instead. */
+function frameSrcToDataURL(natural) {
+  try {
+    var c = document.createElement('canvas');
+    c.width = natural.naturalWidth || natural.width; c.height = natural.naturalHeight || natural.height;
+    c.getContext('2d').drawImage(natural, 0, 0);
+    return c.toDataURL('image/png');
+  } catch (e) { return null; }
+}
+async function frameSrcViaFetch(url) {
+  try {
+    var r = await fetch(url, { mode: 'cors' }); if (!r.ok) return null;
+    var b = await r.blob();
+    return await new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.onerror = function () { res(null); }; fr.readAsDataURL(b); });
+  } catch (e) { return null; }
+}
+/* a renderer-painted photo is a GROUP (pattern-filled path) or a group with
+   one image inside — unwrap to the real <img> wherever it hides */
+function frameImageOf(o) {
+  if (!o) return null;
+  if (o.type === 'image') return o._originalElement || o._element || null;
+  if (o._frameImg) return o._frameImg;
+  var kids = o._objects || [];
+  for (var i = 0; i < kids.length; i++) {
+    if (kids[i].type === 'image') return kids[i]._originalElement || kids[i]._element || null;
+    var f = kids[i].fill;
+    if (f && f.source && (f.source.naturalWidth || f.source.width)) return f.source;
+  }
+  return null;
+}
+async function dropImageIntoIRFrame(imgObj, frameGrp, el) {
+  var natural = frameImageOf(imgObj);
+  if (!natural) { showToast('Only photos can go into a frame'); return false; }
+  var iw = natural.naturalWidth || natural.width, ih = natural.naturalHeight || natural.height;
+  if (!iw || !ih) return false;
+  var src = frameSrcToDataURL(natural);
+  if (!src) { var u = natural.src || natural.currentSrc; src = u && !/^data:/.test(u) ? await frameSrcViaFetch(u) : null; }
+  if (!src) { showToast('That photo is on a server that refuses sharing — save it and upload it instead'); return false; }
   histLabel('Photo into frame');
-  var natural = imgObj._originalElement || imgObj._element;
-  if (!natural) return false;
+  var frameAR = Math.abs(el.w) / Math.max(1, Math.abs(el.h)), imgAR = iw / ih;
+  var fr = { l: 0, t: 0, r: 0, b: 0 };
+  if (imgAR > frameAR) { var ov = (1 - imgAR / frameAR) / 2; fr.l = ov; fr.r = ov; }
+  else if (imgAR < frameAR) { var ov2 = (1 - frameAR / imgAR) / 2; fr.t = ov2; fr.b = ov2; }
+  var prev = { src: el.src, frect: el.frect, format: el.format, crop: el.crop, tile: el.tile };
+  el.src = src; el.frect = fr; el.format = /^data:image\/jpeg/.test(src) ? 'jpeg' : 'png'; el.crop = null; el.tile = null;
+  var idx = fc.getObjects().indexOf(frameGrp);
+  var sx = (fc._baseWidth || fc.getWidth()) / (window._deckIR && window._deckIR.size ? window._deckIR.size.w : 12192000);
+  var sy = (fc._baseHeight || fc.getHeight()) / (window._deckIR && window._deckIR.size ? window._deckIR.size.h : 6858000);
+  try {
+    fc.remove(imgObj); fc.remove(frameGrp);
+    await renderImageElementIR(el, sx, sy, fc);
+  } catch (err) {
+    el.src = prev.src; el.frect = prev.frect; el.format = prev.format; el.crop = prev.crop; el.tile = prev.tile;
+    fc.add(frameGrp); fc.add(imgObj); fc.requestRenderAll();
+    showToast('Could not fit the photo — restored'); return false;
+  }
+  var objs = fc.getObjects(), added = objs[objs.length - 1];
+  if (added && idx >= 0) added.moveTo(idx);
+  fc.requestRenderAll(); saveState(); showToast('Photo fitted into frame ✓');
+  return true;
+}
+function dropImageIntoFrame(imgObj, grp, _srcOverride) {
+  histLabel('Photo into frame');
+  var natural = frameImageOf(imgObj);
+  if (!natural) { showToast('Only photos can go into a frame'); return false; }
   var iw = natural.naturalWidth || natural.width;
   var ih = natural.naturalHeight || natural.height;
   if (!iw || !ih) return false;
-  var src = frameSrcToDataURL(natural);
-  if (!src) { showToast('That image is cross-origin and cannot be framed'); return false; }
+  var src = _srcOverride || frameSrcToDataURL(natural);
+  if (!src) {
+    var url = natural.src || natural.currentSrc || (imgObj.getSrc && imgObj.getSrc()) || imgObj.src;
+    if (!url || /^data:/.test(url)) { showToast('That image could not be read'); return false; }
+    showToast('Fitting photo…');
+    frameSrcViaFetch(url).then(function (d) {
+      if (!d) { showToast('That photo is on a server that refuses sharing — save it and upload it instead'); return; }
+      var im = new Image(); im.onload = function () { imgObj._originalElement = im; dropImageIntoFrame(imgObj, grp, d); }; im.src = d;
+    });
+    return true;
+  }
 
   /* cover-fit → the same negative-inset fillRect math Canva writes */
   var frameAR = (grp.width * (grp.scaleX || 1)) / Math.max(1, grp.height * (grp.scaleY || 1));
@@ -717,7 +791,7 @@ async function exportPptxFileV2() {
     clearInterval(t);
     fc.on('object:modified', function (ev) {
       var o = ev.target;
-      if (!o || o.isFrame || o.type !== 'image') return;
+      if (!o || o.isFrame || !frameImageOf(o)) return;
       var act = (ev.transform && ev.transform.action) || ev.action;
       if (act && act !== 'drag') return;
       var pt = null;
@@ -728,6 +802,22 @@ async function exportPptxFileV2() {
         var b = frames[i].getBoundingRect(true, true);
         if (pt.x >= b.left && pt.x <= b.left + b.width && pt.y >= b.top && pt.y <= b.top + b.height) {
           dropImageIntoFrame(o, frames[i]);
+          return;
+        }
+      }
+      /* 21 Aug 2026 — DESIGN frames too (the Brain's rule): a photo frame that
+         came with a composed/imported design is a group with an irId whose IR
+         element is an image with custom geometry. Dropping a photo on it
+         re-fits the photo into that shape, exactly like the Brain does. */
+      var irSlide = (state.pages[state.currentPage] || {}).irOrig || (state.pages[state.currentPage] || {}).ir ||
+                    (window._deckIR && window._deckIR.slides && window._deckIR.slides[state.currentPage]) || null;
+      if (!irSlide || !irSlide.elements) return;
+      var byId = {}; irSlide.elements.forEach(function (e) { byId[e.id] = e; });
+      var cands = fc.getObjects().filter(function (g) { return g !== o && g.irId && byId[g.irId] && byId[g.irId].type === 'image' && byId[g.irId].geom && byId[g.irId].geom.custom; });
+      for (var j = cands.length - 1; j >= 0; j--) {
+        var bb = cands[j].getBoundingRect(true, true);
+        if (pt.x >= bb.left && pt.x <= bb.left + bb.width && pt.y >= bb.top && pt.y <= bb.top + bb.height) {
+          dropImageIntoIRFrame(o, cands[j], byId[cands[j].irId]);
           return;
         }
       }
@@ -855,6 +945,85 @@ Editor._register({
     refreshFrame(g);
     fc.renderAll(); saveState();
     showToast(def.label + ' frame added — drag a photo onto it');
+  }
+});
+
+/* ═════════ MOCK-UP SLIDES (21 Aug 2026, Javed's order) ═════════
+   A mock-up slide is a ready LAYOUT: photo frames to punch pictures into,
+   text areas, and a chart area — in different proportions. 15 of them.
+   Units are fractions of the slide; kinds: frame(shape), heading, body, chart. */
+var MOCKUP_LAYOUTS = [
+  { name: 'Title + hero photo',      items: [['heading',.06,.10,.40,.18],['body',.06,.32,.38,.30],['frame','landscape',.50,.10,.44,.80]] },
+  { name: 'Photo left, text right',  items: [['frame','portrait',.06,.10,.34,.80],['heading',.46,.14,.48,.16],['body',.46,.34,.48,.46]] },
+  { name: 'Three photo columns',     items: [['heading',.06,.08,.88,.14],['frame','portrait',.06,.26,.27,.64],['frame','portrait',.365,.26,.27,.64],['frame','portrait',.67,.26,.27,.64]] },
+  { name: 'Four square gallery',     items: [['heading',.06,.08,.40,.14],['frame','square',.50,.08,.20,.38],['frame','square',.74,.08,.20,.38],['frame','square',.50,.52,.20,.38],['frame','square',.74,.52,.20,.38],['body',.06,.26,.40,.50]] },
+  { name: 'Circle portraits (team)', items: [['heading',.06,.08,.88,.14],['frame','circle',.08,.30,.18,.32],['frame','circle',.30,.30,.18,.32],['frame','circle',.52,.30,.18,.32],['frame','circle',.74,.30,.18,.32],['body',.06,.68,.88,.22]] },
+  { name: 'Chart + commentary',      items: [['heading',.06,.08,.88,.14],['chart',.06,.26,.56,.64],['body',.66,.26,.28,.64]] },
+  { name: 'Two charts',              items: [['heading',.06,.08,.88,.14],['chart',.06,.26,.43,.64],['chart',.51,.26,.43,.64]] },
+  { name: 'Photo + chart + text',    items: [['frame','rounded',.06,.10,.30,.80],['chart',.40,.10,.54,.44],['body',.40,.58,.54,.32]] },
+  { name: 'Big statement',           items: [['heading',.08,.30,.84,.24],['body',.08,.58,.60,.20],['frame','circle',.74,.56,.18,.32]] },
+  { name: 'Hexagon features',        items: [['heading',.06,.08,.88,.14],['frame','hexagon',.06,.28,.20,.36],['body',.06,.66,.20,.26],['frame','hexagon',.29,.28,.20,.36],['body',.29,.66,.20,.26],['frame','hexagon',.52,.28,.20,.36],['body',.52,.66,.20,.26],['frame','hexagon',.75,.28,.20,.36],['body',.75,.66,.20,.26]] },
+  { name: 'Wide banner + 3 cards',   items: [['frame','landscape',.06,.08,.88,.36],['heading',.06,.48,.88,.12],['body',.06,.62,.27,.30],['body',.365,.62,.27,.30],['body',.67,.62,.27,.30]] },
+  { name: 'Diamond + text blocks',   items: [['frame','diamond',.06,.20,.32,.60],['heading',.44,.16,.50,.14],['body',.44,.34,.50,.22],['body',.44,.60,.50,.22]] },
+  { name: 'Phone mock-up + copy',    items: [['frame','phone',.08,.08,.24,.84],['heading',.40,.16,.54,.16],['body',.40,.36,.54,.40]] },
+  { name: 'Laptop mock-up',          items: [['heading',.06,.08,.88,.12],['frame','laptop',.14,.24,.72,.68]] },
+  { name: 'Arch + arch',             items: [['frame','arch',.06,.10,.26,.80],['frame','arch',.36,.10,.26,.80],['heading',.66,.14,.28,.20],['body',.66,.38,.28,.50]] }
+];
+function mockupPreviewSvg(L) {
+  var out = '<svg viewBox="0 0 160 90">';
+  out += '<rect x="0" y="0" width="160" height="90" rx="4" fill="currentColor" opacity=".08"/>';
+  L.items.forEach(function (it) {
+    var k = it[0], sh = k === 'frame' ? it[1] : null, o = k === 'frame' ? 2 : 1;
+    var x = it[o] * 160, y = it[o + 1] * 90, w = it[o + 2] * 160, h = it[o + 3] * 90;
+    if (k === 'frame') {
+      if (sh === 'circle') out += '<ellipse cx="' + (x + w / 2) + '" cy="' + (y + h / 2) + '" rx="' + w / 2 + '" ry="' + h / 2 + '" fill="#8B3DFF" opacity=".55"/>';
+      else if (sh === 'diamond') out += '<polygon points="' + (x + w / 2) + ',' + y + ' ' + (x + w) + ',' + (y + h / 2) + ' ' + (x + w / 2) + ',' + (y + h) + ' ' + x + ',' + (y + h / 2) + '" fill="#8B3DFF" opacity=".55"/>';
+      else if (sh === 'hexagon') out += '<polygon points="' + (x + w * .25) + ',' + y + ' ' + (x + w * .75) + ',' + y + ' ' + (x + w) + ',' + (y + h / 2) + ' ' + (x + w * .75) + ',' + (y + h) + ' ' + (x + w * .25) + ',' + (y + h) + ' ' + x + ',' + (y + h / 2) + '" fill="#8B3DFF" opacity=".55"/>';
+      else if (sh === 'arch') out += '<path d="M' + x + ' ' + (y + h) + ' V' + (y + w / 2) + ' A' + w / 2 + ' ' + w / 2 + ' 0 0 1 ' + (x + w) + ' ' + (y + w / 2) + ' V' + (y + h) + ' Z" fill="#8B3DFF" opacity=".55"/>';
+      else out += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + (sh === 'rounded' || sh === 'phone' ? 4 : 1) + '" fill="#8B3DFF" opacity=".55"/>';
+    } else if (k === 'heading') out += '<rect x="' + x + '" y="' + y + '" width="' + w * .8 + '" height="' + Math.min(h, 7) + '" rx="1.5" fill="currentColor" opacity=".7"/>';
+    else if (k === 'body') { for (var i = 0; i < 3; i++) out += '<rect x="' + x + '" y="' + (y + i * 5) + '" width="' + w * (i === 2 ? .6 : .95) + '" height="2.2" rx="1" fill="currentColor" opacity=".4"/>'; }
+    else if (k === 'chart') { out += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="#12A5A0" opacity=".18"/>'; for (var j = 0; j < 5; j++) { var bh = h * (0.3 + ((j * 37) % 60) / 100); out += '<rect x="' + (x + w * (0.08 + j * 0.18)) + '" y="' + (y + h - bh) + '" width="' + w * 0.12 + '" height="' + bh + '" fill="#12A5A0" opacity=".7"/>'; } }
+  });
+  return out + '</svg>';
+}
+function buildFrameAt(kind, left, top, w, h) {
+  var def = FRAME_DEFS[kind]; if (!def) return null;
+  var path = new fabric.Path(def.d, { fill: '#E9EAEE', isAperture: true });
+  var parts = [path];
+  (def.deco || []).forEach(function (d) { parts.push(new fabric.Path(d[0], { fill: d[1], evented: false })); });
+  var g = new fabric.Group(parts, { left: left, top: top, isFrame: true, frameKind: kind, framePath: def.d, framePathW: def.w, framePathH: def.h, frameLook: 'placeholder', frameFill: '#7C3AED' });
+  var sc = Math.min(w / def.w, h / def.h);
+  g.set({ scaleX: sc, scaleY: sc, left: left + (w - def.w * sc) / 2, top: top + (h - def.h * sc) / 2 });
+  return g;
+}
+Editor._register({
+  __qMockupLayouts: function () { return MOCKUP_LAYOUTS.map(function (L, i) { return { i: i, name: L.name, svg: mockupPreviewSvg(L) }; }); },
+  insertMockupLayout: function (i) {
+    var L = MOCKUP_LAYOUTS[i | 0]; if (!L) return;
+    var W = fc._baseWidth || 1920, H = fc._baseHeight || 1080;
+    var dark = false;
+    try { var bgc = fc.backgroundColor; if (typeof bgc === 'string' && /^#/.test(bgc)) { var n = parseInt(bgc.slice(1, 7), 16); dark = ((n >> 16 & 255) * .299 + (n >> 8 & 255) * .587 + (n & 255) * .114) < 128; } } catch (e) {}
+    var ink = dark ? '#FFFFFF' : '#0F172A', sub = dark ? '#CBD2DE' : '#475569';
+    histLabel('Mock-up slide');
+    var added = [];
+    L.items.forEach(function (it) {
+      var k = it[0], o = k === 'frame' ? 2 : 1;
+      var x = it[o] * W, y = it[o + 1] * H, w = it[o + 2] * W, h = it[o + 3] * H;
+      if (k === 'frame') { var g = buildFrameAt(it[1], x, y, w, h); if (g) { fc.add(g); refreshFrame(g); added.push(g); } }
+      else if (k === 'heading' || k === 'body') {
+        var t = new fabric.Textbox(k === 'heading' ? 'Your heading here' : 'Your text goes here — replace me with your own words.', {
+          left: x, top: y, width: w, fontFamily: 'DM Sans', fontSize: k === 'heading' ? Math.round(Math.min(88, h * 0.55)) : 30,
+          fontWeight: k === 'heading' ? '700' : '400', fill: k === 'heading' ? ink : sub, editable: true });
+        fc.add(t); added.push(t);
+      } else if (k === 'chart') {
+        var r = new fabric.Rect({ left: x, top: y, width: w, height: h, rx: 16, ry: 16, fill: 'rgba(18,165,160,0.10)', stroke: '#12A5A0', strokeWidth: 3, strokeDashArray: [14, 10], strokeUniform: true, isChartArea: true });
+        var lab = new fabric.Textbox('Chart area — Data panel → pick a chart, drop it here', { left: x + 24, top: y + h / 2 - 18, width: w - 48, fontSize: 26, fontFamily: 'DM Sans', fill: '#12A5A0', textAlign: 'center', editable: false, evented: false });
+        fc.add(r); fc.add(lab); added.push(r); added.push(lab);
+      }
+    });
+    fc.discardActiveObject(); fc.renderAll(); saveState();
+    showToast('Mock-up “' + L.name + '” placed — click a photo in Photos, or drag one onto a frame');
   }
 });
 
@@ -2321,14 +2490,20 @@ window.ldPrompt = function (message, placeholder, def, opts) {
       if (!dataUrl) return;
       if (photos.indexOf(dataUrl) === -1) photos.unshift(dataUrl);
       if (photos.length > 40) photos.pop();
+      var target = fc.getActiveObject();
+      if (!(target && target.isFrame)) {
+        /* no frame selected: fill the first EMPTY frame on the slide, Canva-style */
+        target = fc.getObjects().filter(function (g) { return g.isFrame && !g._frameImg && !g.frameSrc; })[0] || null;
+      }
       fabric.Image.fromURL(dataUrl, function (img) {
+        if (target) { fc.add(img); if (dropImageIntoFrame(img, target)) return; fc.remove(img); }
         var maxW = fc.getWidth() / fc.getZoom() * 0.5;
         if (img.width > maxW) img.scaleToWidth(maxW);
         img.set({ left: 160, top: 120 });
         fc.add(img).setActiveObject(img);
         fc.renderAll(); saveState();
         showToast('Image added — drag it onto a frame to fit it inside');
-      });
+      }, { crossOrigin: 'anonymous' });
     },
     __qPhotos: function () { return photos.slice(); }
   });
@@ -4967,14 +5142,14 @@ function shapePreview(item) {
     d = 'M' + pts.join(' L') + ' Z';
   }
   else if (item.id === 'arrow') d = 'M10 50 h100 v-30 l80 50 l-80 50 v-30 h-100 Z';
-  if (d) return '<svg viewBox="0 0 200 140"><path d="' + d + '" fill="#0F172A"/></svg>';
+  if (d) return '<svg viewBox="0 0 200 140"><path d="' + d + '" fill="currentColor"/></svg>';
   /* preset geometry — the same path the renderer draws */
   try {
     if (typeof PRESET_PATHS === 'object' && PRESET_PATHS[item.id]) {
-      return '<svg viewBox="-8 -8 216 156"><path d="' + PRESET_PATHS[item.id](200, 140) + '" fill="#0F172A"/></svg>';
+      return '<svg viewBox="-8 -8 216 156"><path d="' + PRESET_PATHS[item.id](200, 140) + '" fill="currentColor"/></svg>';
     }
   } catch (e) {}
-  return '<svg viewBox="0 0 200 140"><rect x="10" y="15" width="180" height="110" fill="#0F172A"/></svg>';
+  return '<svg viewBox="0 0 200 140"><rect x="10" y="15" width="180" height="110" fill="currentColor"/></svg>';
 }
 
 Editor._register({
