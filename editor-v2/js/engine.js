@@ -801,7 +801,21 @@ window.ldPlansModal = async function () {
       '<div style="font-size:11px;color:#8b8ea8;margin-top:14px;line-height:1.6;">Payments are processed by Whop in your browser — card details never reach LazyDog. A lapsed plan keeps its balance for ' + CFG.graceDays + ' days. Cancelling never takes back tokens you have paid for. Templates are sold separately.</div>';
     box.querySelector('#ld-plans-x').onclick = close;
     box.querySelectorAll('[data-mode]').forEach(function (b) { b.onclick = function () { mode = b.getAttribute('data-mode'); render(); }; });
-    box.querySelectorAll('a[target=_blank]').forEach(function (a) { a.addEventListener('click', function () { showToast('Opening checkout in your browser…'); }); });
+    box.querySelectorAll('a[target=_blank]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        /* belt and braces: the anchor opens it; if a popup blocker or the
+           desktop shell swallows that, open it ourselves, and if THAT is
+           blocked too, show the address so it can be copied. */
+        var url = a.getAttribute('href');
+        var w = null; try { w = window.open(url, '_blank', 'noopener'); } catch (err) {}
+        e.preventDefault();
+        if (w === null) {
+          var note = box.querySelector('#ld-plans-note') || (function () { var d = document.createElement('div'); d.id = 'ld-plans-note'; d.style.cssText = 'margin-top:10px;font-size:12px;color:#e8e9f2;'; box.appendChild(d); return d; })();
+          note.innerHTML = 'Your browser blocked the checkout window. Open this address: <input readonly value="' + url + '" style="width:100%;margin-top:4px;background:#0e0f1a;color:#fff;border:1px solid #34365a;border-radius:8px;padding:7px 9px;font-size:12px;">';
+          note.querySelector('input').select();
+        } else showToast('Opening checkout in your browser…');
+      });
+    });
   }
   function close() { ov.remove(); document.removeEventListener('keydown', onKey, true); }
   function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(); } }
@@ -2404,6 +2418,30 @@ function pageRefresh() { renderPageThumbs(); }
           .catch(function (e) { _aiRunning = false; say('Compose failed: ' + e.message); });
         return;
       }
+      if (kind === 'prepare') {
+        var pr = await window.ldPrepareModal();
+        if (!pr) return;
+        _aiRunning = true;
+        (async function () {
+          try {
+            if (pr.pptx) { busy(true, 'Opening your design…'); await window.ldImportPptxFile(pr.pptx); }
+            busy(true, 'Writing your slides — Hexa + the writers are on it…');
+            var deckIR = await buildEffectiveDeckIR();
+            var r = await fetch(window.LD_FILL_URL, { method: 'POST', headers: window.ldHeaders('application/json'), body: JSON.stringify({ design: deckIR, content: pr.content, qa: true }) });
+            if (!r.ok) {
+              var em = ''; try { em = ((await r.json()) || {}).message || ((await r.json()) || {}).error || ''; } catch (e2) {}
+              say('Could not prepare the deck: ' + (em || ('HTTP ' + r.status)), 8000);
+            } else {
+              var fd = await r.json();
+              await window.loadDeckIRIntoEditor(fd.deck || fd);
+              if (window.ldRefreshTokens) window.ldRefreshTokens();
+              say('Presentation ready ✓');
+            }
+          } catch (e) { say('Prepare failed: ' + e.message, 8000); }
+          _aiRunning = false;
+        })();
+        return;
+      }
       if (kind === 'preparePresentation') {
         /* 20 Aug 2026 (Fable, Javed's order) — design + YOUR content, one flow:
            Hexa composes the design, then the model cascade (Haiku fills →
@@ -2613,6 +2651,79 @@ window.ldDesignForm = function (opts) {
       if (!sentence) { fDesc.focus(); return; }
       close({ sentence: sentence, content: fContent ? fContent.value : '', size: F.aspectRatio ? F.aspectRatio.value : '' });
     };
+  });
+};
+
+/* ═════════ ldPrepareModal — "Prepare my presentation" (21 Aug 2026, Javed) ═════════
+   The same card Hexa shows on the site: paste your content or load a .txt /
+   .docx, pick the design (the deck open here, or drop a .pptx), and the
+   writers fill every slide from your content (ai_fill — costs fillPerSlide
+   tokens per slide). Resolves when done; never touches the design if the
+   fill fails. */
+window.ldPrepareModal = function () {
+  return new Promise(function (resolve) {
+    var old = document.getElementById('ld-prep-overlay'); if (old) old.remove();
+    var ov = document.createElement('div'); ov.id = 'ld-prep-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.62);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:"DM Sans",system-ui,sans-serif;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:14px;padding:22px 24px;width:min(720px,94vw);max-height:90vh;overflow:auto;box-shadow:0 18px 50px rgba(0,0,0,.5);color:#e8e9f2;';
+    var inp = 'width:100%;box-sizing:border-box;background:#0e0f1a;color:#fff;border:1px solid #34365a;border-radius:8px;padding:9px 10px;font-size:13px;outline:none;';
+    var drop = 'border:1.5px dashed #4a4d78;border-radius:10px;padding:18px 12px;text-align:center;font-size:12.5px;color:#a9abc4;cursor:pointer;background:#0e0f1a;';
+    var deckName = (window.LD_DESIGN_NO != null ? 'Design #' + window.LD_DESIGN_NO : (state.pages.length + ' slide' + (state.pages.length === 1 ? '' : 's') + ' open here'));
+    box.innerHTML = '<div style="font-size:16px;font-weight:700;">✨ Prepare my presentation</div>' +
+      '<div style="font-size:12px;color:#a9abc4;margin:4px 0 14px;">Paste or load your content, choose the design, and we write every slide from it.</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
+        '<div><div style="font-size:10px;font-weight:700;letter-spacing:.06em;color:#8b8ea8;text-transform:uppercase;margin-bottom:4px;">💬 Describe your content</div>' +
+          '<textarea id="ld-prep-content" placeholder="Paste your content here — headings and text for the slides…" style="' + inp + 'min-height:200px;resize:vertical;"></textarea></div>' +
+        '<div><div style="font-size:10px;font-weight:700;letter-spacing:.06em;color:#8b8ea8;text-transform:uppercase;margin-bottom:4px;">📄 Or load a file</div>' +
+          '<div id="ld-prep-file" style="' + drop + 'min-height:80px;display:flex;align-items:center;justify-content:center;">Click or drop a content file<br>(.txt, .md, .docx)</div>' +
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.06em;color:#8b8ea8;text-transform:uppercase;margin:14px 0 4px;">🎨 Your design</div>' +
+          '<label style="display:block;font-size:13px;margin:4px 0;"><input type="radio" name="ld-prep-src" value="open" checked> The design open in the editor (' + deckName + ')</label>' +
+          '<label style="display:block;font-size:13px;margin:4px 0;"><input type="radio" name="ld-prep-src" value="pptx"> A PowerPoint file I choose</label>' +
+          '<div id="ld-prep-pptx" style="' + drop + 'margin-top:6px;display:none;">Click or drop the deck (.pptx) you want filled</div>' +
+        '</div>' +
+      '</div>' +
+      '<div id="ld-prep-note" style="font-size:11.5px;color:#8b8ea8;margin-top:10px;min-height:14px;"></div>' +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">' +
+        '<button id="ld-prep-cancel" style="border:0;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;background:#23243a;color:#c9cbe0;">Cancel</button>' +
+        '<button id="ld-prep-go" style="border:0;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#f5b942,#e0843a);color:#1a1a2e;">Prepare my deck →</button>' +
+      '</div>';
+    ov.appendChild(box); document.body.appendChild(ov);
+    var ta = box.querySelector('#ld-prep-content'), note = box.querySelector('#ld-prep-note');
+    var pptxFile = null;
+    function close(v) { ov.remove(); resolve(v); }
+    box.querySelector('#ld-prep-cancel').onclick = function () { close(null); };
+    ov.onmousedown = function (e) { if (e.target === ov) close(null); };
+    box.querySelectorAll('input[name=ld-prep-src]').forEach(function (r) { r.onchange = function () { box.querySelector('#ld-prep-pptx').style.display = r.value === 'pptx' && r.checked ? '' : 'none'; }; });
+    async function readContentFile(f) {
+      if (!f) return;
+      if (/\.docx$/i.test(f.name)) {
+        try {
+          var zip = await JSZip.loadAsync(f); var xml = await zip.file('word/document.xml').async('string');
+          var paras = []; xml.replace(/<w:p[ >][\s\S]*?<\/w:p>/g, function (pp) { var t = (pp.match(/<w:t[^>]*>([^<]*)<\/w:t>/g) || []).map(function (x) { return x.replace(/<[^>]+>/g, ''); }).join(''); if (t.trim()) paras.push(t); return ''; });
+          ta.value = paras.join('\n');
+        } catch (e) { note.textContent = 'Could not read that .docx'; return; }
+      } else ta.value = await f.text();
+      note.textContent = 'Loaded ' + f.name + ' (' + ta.value.length.toLocaleString() + ' characters)';
+    }
+    function picker(accept, cb) { var i = document.createElement('input'); i.type = 'file'; i.accept = accept; i.onchange = function () { cb(i.files && i.files[0]); }; i.click(); }
+    var fz = box.querySelector('#ld-prep-file'), pz = box.querySelector('#ld-prep-pptx');
+    fz.onclick = function () { picker('.txt,.md,.docx,text/plain', readContentFile); };
+    pz.onclick = function () { picker('.pptx', function (f) { if (f) { pptxFile = f; pz.textContent = '✓ ' + f.name; } }); };
+    [fz, pz].forEach(function (z) {
+      z.ondragover = function (e) { e.preventDefault(); z.style.borderColor = '#7c5cff'; };
+      z.ondragleave = function () { z.style.borderColor = '#4a4d78'; };
+      z.ondrop = function (e) { e.preventDefault(); z.style.borderColor = '#4a4d78'; var f = e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return; if (z === fz) readContentFile(f); else { pptxFile = f; pz.textContent = '✓ ' + f.name; } };
+    });
+    box.querySelector('#ld-prep-go').onclick = function () {
+      var content = ta.value.trim();
+      if (!content) { note.textContent = 'Paste or load your content first.'; ta.focus(); return; }
+      var src = box.querySelector('input[name=ld-prep-src]:checked').value;
+      if (src === 'pptx' && !pptxFile) { note.textContent = 'Choose the .pptx you want filled.'; return; }
+      if (src === 'open' && state.pages.length === 1 && !(fc.getObjects() || []).length && !window._deckIR) { note.textContent = 'The editor is empty — open a design, or choose a PowerPoint file.'; return; }
+      close({ content: content, pptx: src === 'pptx' ? pptxFile : null });
+    };
+    setTimeout(function () { ta.focus(); }, 30);
   });
 };
 

@@ -718,6 +718,7 @@
       /* 20 Aug 2026 (Fable, Javed's order) — design + YOUR content in one go:
          the design form plus a content box; Hexa composes, the model cascade
          fills. Pure UI — the engine owns the flow behind 'preparePresentation'. */
+      { matIcon: 'auto_stories', label: 'Prepare my presentation', tip: 'Your content (paste or .txt/.docx) written into the design open here, or into a .pptx you choose', onClick: function () { run('ai', { kind: 'prepare' }); } },
       { matIcon: 'co_present', label: 'Design + my content', tip: 'Hexa designs the deck, then writes every slide from the content you paste', onClick: function () { run('ai', { kind: 'preparePresentation' }); } }
     ], 2));
     p.appendChild(subhead('Text — select a text box first'));
