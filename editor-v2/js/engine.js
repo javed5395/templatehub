@@ -2375,8 +2375,7 @@ function pageRefresh() { renderPageThumbs(); }
       if (!blob) { var r0 = await fetch(o.getSrc ? o.getSrc() : o.src); blob = await r0.blob(); }
       var fd = new FormData(); fd.append('file', blob, 'image.png');
       var headers = {};
-      if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
-      if (window.ldWaitAuthToken) await window.ldWaitAuthToken(15000);
+        if (window.ldWaitAuthToken) await window.ldWaitAuthToken(15000);
       if (window.LD_AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
       var r = await fetch(base + '/remove_bg', { method: 'POST', headers: headers, body: fd });
       if (!r.ok) {
@@ -3601,7 +3600,8 @@ window.ldBigUploadParse = async function (file) {
 
 /* ════ 2 · DISSOLVE SERVICE — PDF / image / pptx → fully editable deck ══ */
 window.LD_DISSOLVE_URL   = window.LD_DISSOLVE_URL   || 'https://lazydog-dissolve-143000893683.us-central1.run.app';
-window.LD_DISSOLVE_TOKEN = window.LD_DISSOLVE_TOKEN || 'ldg_424ad03e232f06ba77576faa9f2a3d1829c4d3ad754812a6';
+/* 21 Aug 2026 (Fable) — no shared secret in the browser any more: the dissolve
+   service accepts the user's Firebase sign-in (Authorization header) directly. */
 
 window.dissolveFlatFile = async function (file) {
   var base = String(window.LD_DISSOLVE_URL || '').replace(/\/$/, '');
@@ -3612,7 +3612,6 @@ window.dissolveFlatFile = async function (file) {
   try {
     var fd = new FormData(); fd.append('file', file, file.name || 'upload');
     var headers = {};
-    if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
     /* 20 Aug 2026 (Fable) — decompose is PAID work now (Javed's rules:
        PNG 25, PDF/page 20). Wait for the login token and send it; the
        service checks the balance and debits only on success. */
@@ -3685,7 +3684,6 @@ window.dissolveFlatFile = async function (file) {
     var blob = await (await fetch(el.src)).blob();
     var fd = new FormData(); fd.append('file', blob, 'chart.png');
     var headers = {};
-    if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
     var r = await fetch(base + '/crack_chart', { method: 'POST', headers: headers, body: fd });
     if (!r.ok) return null;
     return await r.json();
