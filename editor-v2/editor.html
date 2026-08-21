@@ -28,9 +28,16 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=block" rel="stylesheet">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/utif/3.1.0/UTIF.min.js"></script>
+<!-- 21 Aug 2026 (Fable) — the three libraries the editor cannot boot without
+     are SELF-HOSTED in vendor/ so an offline launch depends on files we ship,
+     not on a cross-origin cache that may be cold. The CDN copies are only a
+     fallback if a vendor file ever fails to load. -->
+<script src="vendor/fabric.min.js"></script>
+<script>window.fabric || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"><\/script>');</script>
+<script src="vendor/jszip.min.js"></script>
+<script>window.JSZip || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');</script>
+<script src="vendor/UTIF.min.js"></script>
+<script>window.UTIF || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/utif/3.1.0/UTIF.min.js"><\/script>');</script>
 <script src="../lazydog_renderer.js"></script>
 
 <link rel="stylesheet" href="css/editor.css">
@@ -59,9 +66,9 @@
     <span id="film-counter">1 of 1</span>
     <div class="film-zoom">
       <button id="zoom-out-btn" aria-label="Zoom out"><span class="material-icons-outlined">remove</span></button>
-      <input type="range" id="zoom-slider" min="10" max="300" value="59" aria-label="Zoom">
+      <input type="range" id="zoom-slider" min="10" max="300" value="100" aria-label="Zoom">
       <button id="zoom-in-btn" aria-label="Zoom in"><span class="material-icons-outlined">add</span></button>
-      <span id="zoom-label">62%</span>
+      <span id="zoom-label">100%</span>
     </div>
   </div>
 </footer>

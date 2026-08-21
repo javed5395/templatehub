@@ -280,13 +280,40 @@ function rehydrateFrames() {}
     'mockupArea','mockupFill','signIn','signOut','backgroundImage'
   ];
   var impl = {};
+  /* commands that need the LazyDog cloud — named for the offline toast */
+  var CLOUD_CMD_NAMES = {
+    ai: 'AI', fillFrames: 'AI fill', importPptx: 'import', dissolve: 'Dissolve',
+    templateUse: 'templates', applyTemplate: 'templates', applyTemplateSlide: 'templates',
+    publishTemplate: 'publishing', deleteTemplate: 'templates', templateThumbs: 'templates',
+    projectOpen: 'your cloud projects', dataUpload: 'uploads', dataConnect: 'data sources',
+    dataSheet: 'data sources', dataRefresh: 'data sources', publishElement: 'publishing',
+    insertElement: 'the Elements library', deleteElement: 'the Elements library',
+    signIn: 'sign in', componentInsert: 'components'
+  };
 
   window.Editor = {
     run: function (cmd, arg) {
       if (COMMANDS.indexOf(cmd) === -1) { toast('Unknown command: ' + cmd); return false; }
       if (typeof impl[cmd] !== 'function') { toast('Coming in the next wiring stage: ' + cmd); return false; }
+      /* offline: cloud commands are refused up front with a clear message
+         instead of failing somewhere inside a fetch */
+      if (CLOUD_CMD_NAMES[cmd] && typeof navigator !== 'undefined' && navigator.onLine === false) {
+        toast("You're offline — reconnect to use " + CLOUD_CMD_NAMES[cmd], 5000);
+        return false;
+      }
       try { return impl[cmd](arg); }
-      catch (e) { console.error('[core]', cmd, e); toast('Command failed: ' + cmd); return false; }
+      catch (e) {
+        console.error('[core]', cmd, e);
+        /* 21 Aug 2026 (Fable) — offline is a state, not a bug. A cloud
+           command failing with no connection says so instead of reading
+           as a broken build (Store reviewer note). */
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+          toast("You're offline — reconnect to use " + (CLOUD_CMD_NAMES[cmd] || 'this feature'), 5000);
+        } else {
+          toast('Command failed: ' + cmd);
+        }
+        return false;
+      }
     },
     query: function (key) {
       switch (key) {
@@ -875,9 +902,35 @@ function rehydrateFrames() {}
       /* Ctrl+click (or Shift+click) adds objects to the selection → group them */
       fc.selectionKey = ['ctrlKey', 'shiftKey'];
 
+      /* 21 Aug 2026 (Fable) — fit the slide to the window instead of the
+         old hard-coded 59%, and keep it fitted when the window is resized
+         (PowerPoint behaviour). A manual zoom by the user switches the
+         resize handler off until the next Fit Slide / new deck. */
+      function fitToWindow() {
+        var z = Math.round(calculateFitZoom());
+        if (!isFinite(z) || z <= 0) z = 100;
+        setZoom(z); state.zoom = z; emit('zoom', { pct: state.zoom });
+      }
+      state.autoFit = true;
+      var _rsT = null;
+      window.addEventListener('resize', function () {
+        if (!state.autoFit) return;
+        clearTimeout(_rsT);
+        _rsT = setTimeout(fitToWindow, 120);
+      });
+      if (slider) slider.addEventListener('input', function () { state.autoFit = false; });
+      if (zi) zi.addEventListener('click', function () { state.autoFit = false; });
+      if (zo) zo.addEventListener('click', function () { state.autoFit = false; });
+      var _origZoomFit = impl.zoomFit;
+      impl.zoomFit = function () { state.autoFit = true; return _origZoomFit ? _origZoomFit() : fitToWindow(); };
+      var _origZoom = impl.zoom;
+      impl.zoom = function (pct) { state.autoFit = false; return _origZoom ? _origZoom(pct) : undefined; };
+
       loadPageIntoCanvas(0).then(function () {
-        Editor.run ? null : null;
-        setZoom(59); state.zoom = 59; emit('zoom', { pct: 59 }); /* default 59% */
+        fitToWindow();
+        /* the sidebar/ribbon mount after us and change the canvas area —
+           re-fit once layout has settled */
+        setTimeout(function () { if (state.autoFit) fitToWindow(); }, 250);
         renderPageThumbs();
         emit('ready');
         emit('history', Editor.query('history'));

@@ -22,7 +22,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-var CACHE_SHELL = 'ld-editor-shell-v1';
+var CACHE_SHELL = 'ld-editor-shell-v2';   /* v2: 21 Aug 2026 — vendor/ libs added */
 var CACHE_ASSETS = 'ld-editor-assets-v1';
 
 var SHELL = [
@@ -35,6 +35,9 @@ var SHELL = [
   './js/ribbon.js',
   './js/sidebar.js',
   '../lazydog_renderer.js',
+  './vendor/fabric.min.js',
+  './vendor/jszip.min.js',
+  './vendor/UTIF.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/utif/3.1.0/UTIF.min.js'
