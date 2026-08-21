@@ -22,7 +22,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-var CACHE_SHELL = 'ld-editor-shell-v11';   /* v2: 21 Aug 2026 — vendor/ libs added */
+var CACHE_SHELL = 'ld-editor-shell-v12';   /* v2: 21 Aug 2026 — vendor/ libs added */
 var CACHE_ASSETS = 'ld-editor-assets-v1';
 
 var SHELL = [

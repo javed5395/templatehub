@@ -899,12 +899,6 @@
     });
   });
   topbar.appendChild(uploadB);
-  /* ── Plans / Upgrade — same place Canva puts it, opens the in-editor plans card ── */
-  var planB = el('button', 'rb-action rb-plans'); planB.type = 'button'; planB.title = 'Subscription plans and top-ups';
-  planB.appendChild(mat('workspace_premium', 'rb-act-ico'));
-  planB.appendChild(document.createTextNode('Upgrade'));
-  planB.addEventListener('click', function () { run('showPlans'); });
-  topbar.appendChild(planB);
 
   /* ── blue Download button — real PPTX / PDF / PNG export ── */
   var dlB = el('button', 'rb-action rb-dl'); dlB.type = 'button'; dlB.title = 'Download';
@@ -922,6 +916,12 @@
     });
   });
   topbar.appendChild(dlB);
+  /* ── Plans / Upgrade — same place Canva puts it, opens the in-editor plans card ── */
+  var planB = el('button', 'rb-action rb-plans'); planB.type = 'button'; planB.title = 'Subscription plans and top-ups';
+  planB.appendChild(mat('workspace_premium', 'rb-act-ico'));
+  planB.appendChild(document.createTextNode('Upgrade'));
+  planB.addEventListener('click', function () { run('showPlans'); });
+  topbar.appendChild(planB);
   /* ── Share — real links (view / edit-a-copy), personalised slug ── */
   var shB = el('button', 'rb-action rb-share'); shB.type = 'button'; shB.title = 'Share a link to this design';
   shB.appendChild(mat('ios_share', 'rb-act-ico'));

@@ -760,7 +760,7 @@ window.ldPlansModal = async function () {
   var ov = document.createElement('div'); ov.id = 'ld-plans-overlay';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.66);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:"DM Sans",system-ui,sans-serif;';
   var box = document.createElement('div');
-  box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:18px;width:min(960px,95vw);max-height:92vh;overflow:auto;padding:26px 28px;color:#e8e9f2;box-shadow:0 24px 70px rgba(0,0,0,.6);position:relative;';
+  box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:18px;width:min(1120px,96vw);max-height:92vh;overflow:auto;padding:26px 28px;color:#e8e9f2;box-shadow:0 24px 70px rgba(0,0,0,.6);position:relative;';
   var n = function (v) { return Number(v || 0).toLocaleString(); };
   var c = CFG.costs, perDeck = (Number(c.composePerSlide || 0) + Number(c.fillPerSlide || 0)) * 10;
   var mode = 'monthly';
@@ -770,12 +770,12 @@ window.ldPlansModal = async function () {
     var SUB = { pro: 'For steady, regular work', studio: 'For heavy use and teams', proAnnual: 'For steady, regular work', studioAnnual: 'For heavy use and teams', annualFlex: 'For work that comes in bursts' };
     box.innerHTML = '<button id="ld-plans-x" style="position:absolute;top:12px;right:14px;border:0;background:#23243a;color:#c9cbe0;border-radius:999px;width:32px;height:32px;font-size:18px;cursor:pointer;">×</button>' +
       '<div style="font-size:22px;font-weight:800;">Upgrade your plan</div>' +
-      '<div style="font-size:13px;color:#a9abc4;margin:4px 0 14px;">Editing is always free. Tokens pay for AI work — designing, writing, dissolving files. Unused tokens carry over at ' + CFG.carryForwardPct + '%.</div>' +
+      '<div style="font-size:13px;color:#a9abc4;margin:4px 0 14px;">Editing is always free. Tokens pay for AI work — designing, writing, dissolving files. ' + CFG.carryForwardPct + '% of unused tokens carry over when you renew or re-subscribe within ' + CFG.graceDays + ' days of a plan ending.</div>' +
       '<div style="display:inline-flex;background:#0e0f1a;border:1px solid #34365a;border-radius:999px;padding:3px;margin-bottom:16px;">' +
         '<button data-mode="monthly" style="border:0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;' + (mode === 'monthly' ? 'background:#7c5cff;color:#fff;' : 'background:transparent;color:#c9cbe0;') + '">Monthly</button>' +
         '<button data-mode="annual" style="border:0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;' + (mode === 'annual' ? 'background:#7c5cff;color:#fff;' : 'background:transparent;color:#c9cbe0;') + '">Annual · save ~16%</button>' +
       '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">' +
       keys.map(function (k, i) {
         var p = CFG.plans[k] || {}; var tk = Number(p.tokens || 0); var decks = perDeck ? Math.floor(tk / perDeck) : 0;
         var price = p.oneTime ? '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">once</span>' : p.billedAnnually ? '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">/year</span>' : '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">/month</span>';
@@ -786,13 +786,22 @@ window.ldPlansModal = async function () {
           '<div style="font-size:30px;font-weight:800;margin-top:6px;">' + price + '</div><div style="font-size:11.5px;color:#a9abc4;">' + note + '</div>' +
           '<div style="font-size:16px;font-weight:700;margin-top:8px;">' + n(tk) + ' tokens</div><div style="font-size:11.5px;color:#a9abc4;">about ' + decks + ' full 10-slide decks</div>' +
           '<div style="font-size:11px;color:#8b8ea8;margin-top:8px;line-height:1.7;">Design one slide <b style="float:right;color:#e8e9f2;">' + c.composePerSlide + '</b><br>Write one slide from your content <b style="float:right;color:#e8e9f2;">' + c.fillPerSlide + '</b><br>PDF page → slides <b style="float:right;color:#e8e9f2;">' + c.pdfDecomposePerPage + '</b><br>PNG → editable slide <b style="float:right;color:#e8e9f2;">' + c.pngDecompose + '</b></div>' +
-          '<button data-buy="' + k + '" style="margin-top:auto;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;">' + (p.oneTime ? 'Buy once' : 'Subscribe') + '</button>' +
+          '<a data-buy="' + k + '" href="' + checkoutFor(k) + '" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:auto;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;">' + (p.oneTime ? 'Buy once' : 'Subscribe') + '</a>' +
         '</div>';
-      }).join('') + '</div>' +
+      }).join('') +
+      /* 4th card — Custom / done-for-you, quoted per job (same as pricing.html) */
+      '<div style="background:#0e0f1a;border:1px solid #2c2e45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;">' +
+        '<div style="font-size:10px;letter-spacing:.1em;color:#12A5A0;font-weight:800;">QUOTED PER JOB</div>' +
+        '<div style="font-size:20px;font-weight:800;">Custom</div><div style="font-size:12px;color:#a9abc4;">We build it and put it live for you</div>' +
+        '<div style="font-size:30px;font-weight:800;margin-top:6px;">Let\'s talk</div><div style="font-size:11.5px;color:#a9abc4;">No fixed price. Asking costs nothing.</div>' +
+        '<div style="font-size:16px;font-weight:700;margin-top:8px;">Done for you</div><div style="font-size:11.5px;color:#a9abc4;">You supply the content, we deliver the finished site</div>' +
+        '<div style="font-size:11px;color:#8b8ea8;margin-top:8px;line-height:1.7;">Your text and images placed <b style="float:right;color:#e8e9f2;">yes</b><br>Colours, fonts and logo applied <b style="float:right;color:#e8e9f2;">yes</b><br>Live on your own domain <b style="float:right;color:#e8e9f2;">yes</b><br>Contact form and basic SEO <b style="float:right;color:#e8e9f2;">yes</b></div>' +
+        '<a href="https://www.lazydogtemplates.com/deployment/quote.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:auto;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:13px;cursor:pointer;background:#23243a;color:#fff;border:1px solid #34365a;">Request a quote</a>' +
+      '</div></div>' +
       '<div style="font-size:11px;color:#8b8ea8;margin-top:14px;line-height:1.6;">Payments are processed by Whop in your browser — card details never reach LazyDog. A lapsed plan keeps its balance for ' + CFG.graceDays + ' days. Cancelling never takes back tokens you have paid for. Templates are sold separately.</div>';
     box.querySelector('#ld-plans-x').onclick = close;
     box.querySelectorAll('[data-mode]').forEach(function (b) { b.onclick = function () { mode = b.getAttribute('data-mode'); render(); }; });
-    box.querySelectorAll('[data-buy]').forEach(function (b) { b.onclick = function () { window.open(checkoutFor(b.getAttribute('data-buy')), '_blank', 'noopener'); }; });
+    box.querySelectorAll('a[target=_blank]').forEach(function (a) { a.addEventListener('click', function () { showToast('Opening checkout in your browser…'); }); });
   }
   function close() { ov.remove(); document.removeEventListener('keydown', onKey, true); }
   function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(); } }
@@ -4965,6 +4974,31 @@ Editor._register({
     fc.add(t).setActiveObject(t); fc.renderAll(); saveState();
     showToast('Pasted text');
   }
+  function imgsFromHtml(html) {
+    var out = [];
+    try {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      doc.querySelectorAll('img').forEach(function (im) { var u = im.getAttribute('src') || im.getAttribute('data-src') || ''; if (u && out.indexOf(u) === -1) out.push(u); });
+      doc.querySelectorAll('svg').forEach(function (sv) { out.push('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(sv.outerHTML)))); });
+      doc.querySelectorAll('[style*="background-image"]').forEach(function (el) { var m = /url\(["']?([^"')]+)/.exec(el.getAttribute('style') || ''); if (m && out.indexOf(m[1]) === -1) out.push(m[1]); });
+    } catch (e) {}
+    return out;
+  }
+  async function placeRemote(src) {
+    if (/^data:/.test(src)) { placeImage(src); return true; }
+    var d = await (typeof frameSrcViaFetch === 'function' ? frameSrcViaFetch(src) : null);
+    if (d) { placeImage(d); return true; }
+    /* no CORS on that host: show it anyway (the composer fetches the URL
+       server-side at download time, so it still exports) */
+    return await new Promise(function (res) {
+      fabric.Image.fromURL(src, function (img) {
+        if (!img || !img.width) { res(false); return; }
+        var W = fc._baseWidth || 1920, H = fc._baseHeight || 1080, sc = Math.min(1, W * 0.6 / img.width, H * 0.7 / img.height);
+        img.set({ scaleX: sc, scaleY: sc, left: (W - img.width * sc) / 2, top: (H - img.height * sc) / 2, src: src });
+        fc.add(img).setActiveObject(img); fc.renderAll(); saveState(); showToast('Pasted picture'); res(true);
+      });
+    });
+  }
   async function pasteFromItems(items, files) {
     var html = '', text = '', imgFile = null, svgText = '';
     for (var i = 0; i < items.length; i++) {
@@ -4978,14 +5012,9 @@ Editor._register({
     if (imgFile) { var u = await fileToDataUrl(imgFile); if (u) { placeImage(u); return true; } }
     if (svgText || /^\s*<svg[\s>]/i.test(text)) { placeImage('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText || text)))); return true; }
     if (html) {
-      var m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-      if (m) {
-        var src = m[1];
-        if (/^data:image/.test(src)) { placeImage(src); return true; }
-        var d = await (typeof frameSrcViaFetch === 'function' ? frameSrcViaFetch(src) : null);
-        if (d) { placeImage(d); return true; }
-        placeImage(src); return true;
-      }
+      var srcs = imgsFromHtml(html), placed = 0;
+      for (var k = 0; k < srcs.length && k < 12; k++) { if (await placeRemote(srcs[k])) placed++; }
+      if (placed) return true;
       var tmp = document.createElement('div'); tmp.innerHTML = html; var t2 = (tmp.textContent || '').trim();
       if (t2) { placeText(t2); return true; }
     }
@@ -5000,10 +5029,13 @@ Editor._register({
     var ao = fc.getActiveObject && fc.getActiveObject();
     if (inField(e.target) || (ao && ao.isEditing)) return;
     var cd = e.clipboardData; if (!cd) return;
-    var hasExternal = (cd.files && cd.files.length) || Array.prototype.some.call(cd.items || [], function (it) { return it.kind === 'file' || it.type === 'text/html' || it.type === 'text/plain' || it.type === 'image/svg+xml'; });
+    var hasFile = (cd.files && cd.files.length) || Array.prototype.some.call(cd.items || [], function (it) { return it.kind === 'file'; });
+    var hasExternal = hasFile || Array.prototype.some.call(cd.items || [], function (it) { return it.type === 'text/html' || it.type === 'text/plain' || it.type === 'image/svg+xml'; });
     if (!hasExternal) return;
-    /* an object copied INSIDE the editor still pastes the editor's way */
-    if (typeof _clip !== 'undefined' && _clip && (!cd.files || !cd.files.length) && !Array.prototype.some.call(cd.items || [], function (it) { return it.kind === 'file'; }) && window.__ldInternalCopyAt && Date.now() - window.__ldInternalCopyAt < 120000) return;
+    /* an object copied INSIDE the editor leaves a marker on the system
+       clipboard (ctxCopy) — that marker means "paste the editor's way" */
+    var plain = ''; try { plain = cd.getData('text/plain') || ''; } catch (e2) {}
+    if (!hasFile && plain === 'ld-internal-clip' && typeof _clip !== 'undefined' && _clip) return;
     e.preventDefault();
     pasteFromItems(cd.items || [], cd.files || []);
   }, true);
@@ -5017,7 +5049,7 @@ Editor._register({
         var imgT = types.filter(function (t) { return /^image\//.test(t); })[0];
         if (imgT) { var b = await items[i].getType(imgT); var u = await fileToDataUrl(b); if (u) { placeImage(u); return; } }
         if (types.indexOf('text/html') > -1) { var h = await (await items[i].getType('text/html')).text(); if (await pasteFromItems([{ kind: 'string', type: 'text/html', getAsString: function (cb) { cb(h); } }], [])) return; }
-        if (types.indexOf('text/plain') > -1) { var tx = await (await items[i].getType('text/plain')).text(); if (tx.trim()) { placeText(tx); return; } }
+        if (types.indexOf('text/plain') > -1) { var tx = await (await items[i].getType('text/plain')).text(); if (tx.trim() === 'ld-internal-clip') { if (typeof ctxPaste === 'function' && _clip) ctxPaste(); return; } if (tx.trim()) { placeText(tx); return; } }
       }
       showToast('Nothing to paste');
     } catch (e) { showToast('Use Ctrl+V to paste from other apps'); }
