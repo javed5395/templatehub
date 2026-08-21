@@ -722,14 +722,12 @@ window.ldRefreshTokens = async function () {
     var lab = document.createElement('span');
     lab.textContent = d.admin ? '⚡ Unlimited (admin)' : '⚡ ' + Number(d.balance || 0).toLocaleString() + ' tokens';
     lab.title = 'Your token balance — editing is free, AI work spends tokens';
-    var up = document.createElement('button');
-    up.type = 'button';
-    up.textContent = d.admin ? 'Plans' : (d.plan && d.plan !== 'free' ? 'Manage plan' : 'Upgrade');
-    up.title = 'See subscription plans and top-ups (opens our website)';
-    up.style.cssText = 'border:0;border-radius:999px;padding:5px 12px;font:700 11.5px "DM Sans",system-ui,sans-serif;cursor:pointer;' +
-      'background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;';
-    up.addEventListener('click', function () { window.ldPlansModal(); });
-    chip.appendChild(lab); chip.appendChild(up);
+    /* 21 Aug 2026 (Javed) — the gradient "Plans / Upgrade" button that sat on
+       this chip is REMOVED. Only the balance shows now.
+       The plans modal itself is untouched and still reachable through
+       Editor.run('showPlans') — see ldPlansModal below — so putting a button
+       back later is one line, not a rebuild. */
+    chip.appendChild(lab);
   } catch (e) { /* quietly — the chip is a convenience, never a blocker */ }
 };
 window.addEventListener('load', function () {
