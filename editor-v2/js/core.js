@@ -105,6 +105,13 @@ function captureCurrentPage() {
   var page = state.pages[state.currentPage];
   if (!page) return;
   page.canvasJSON = fc.toJSON(FABRIC_JSON_PROPS);
+  /* 21 Aug 2026 (Fable) — THE MISSING-PICTURES BUG. page.ir was nulled here
+     and later handed to slideIRFromCanvas as the "original IR" — so it was
+     always null, no canvas object could be matched back to its element,
+     and every picture the renderer paints as a pattern-filled path group
+     (i.e. every photo in a composed or imported deck) was silently dropped
+     from the download. The original IR is kept on page.irOrig for export. */
+  if (page.ir && !page.irOrig) page.irOrig = page.ir;
   page.ir = null;
   try { page.thumb = fc.toDataURL({ format: 'jpeg', quality: 0.6, multiplier: 0.08 }); } catch (e) {}
 }

@@ -527,7 +527,7 @@ async function projSaveToFile() {
     name: name,
     slideCount: state.pages.length,
     pages: state.pages.map(function (p) {
-      return { id: p.id, ir: p.ir || null, canvasJSON: p.canvasJSON || null };
+      return { id: p.id, ir: p.ir || null, irOrig: p.irOrig || null, canvasJSON: p.canvasJSON || null };
     }),
     notes: (state.notes || []).slice(),
     comments: JSON.parse(JSON.stringify(state.comments || [])),
@@ -741,7 +741,7 @@ async function exportPptxFileV2() {
     captureCurrentPage();
     return {
       pages: state.pages.map(function (p) {
-        return { id: p.id, canvasJSON: p.canvasJSON, ir: p.ir, thumb: p.thumb, title: p.title || null, transition: p.transition || null };
+        return { id: p.id, canvasJSON: p.canvasJSON, ir: p.ir, irOrig: p.irOrig || null, thumb: p.thumb, title: p.title || null, transition: p.transition || null };
       }),
       notes: state.notes.slice(),
       deckIR: window._deckIR || null,

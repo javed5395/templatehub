@@ -3509,8 +3509,14 @@ async function buildEffectiveDeckIR() {
     try { masterEls = slideIRFromCanvas({ objects: window._ldMasters, background: null }, null, S).elements; }
     catch (e) { console.warn('master element export failed', e); }
   }
-  var slides = state.pages.map(function (page) {
-    if (page.canvasJSON) { try { return slideIRFromCanvas(page.canvasJSON, page.ir, S); } catch (e) { console.warn('edit-sync failed for a page, using imported IR', e); } }
+  var slides = state.pages.map(function (page, pi) {
+    /* 21 Aug 2026 — match edited canvases against the ORIGINAL slide IR
+       (page.irOrig, kept by captureCurrentPage); fall back to the deck IR
+       by index when the slide count is unchanged. Without an original, the
+       renderer's pattern-painted photos have nothing to map to and vanish. */
+    var origIR = page.irOrig || page.ir || null;
+    if (!origIR && window._deckIR && window._deckIR.slides && window._deckIR.slides.length === state.pages.length) origIR = window._deckIR.slides[pi] || null;
+    if (page.canvasJSON) { try { return slideIRFromCanvas(page.canvasJSON, origIR, S); } catch (e) { console.warn('edit-sync failed for a page, using imported IR', e); } }
     if (page.ir) {
       if (!masterEls.length) return page.ir;
       return Object.assign({}, page.ir, { elements: (page.ir.elements || []).concat(masterEls) });
