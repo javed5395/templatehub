@@ -1934,7 +1934,7 @@ window.ldDesignForm = function (opts) {
       'display:flex;align-items:center;justify-content:center;';
     var box = document.createElement('div');
     box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:14px;' +
-      'padding:22px 24px;width:min(560px,94vw);max-height:88vh;overflow:auto;' +
+      'padding:22px 24px;width:min(640px,94vw);max-height:90vh;overflow:auto;' +
       'box-shadow:0 18px 50px rgba(0,0,0,.5);font-family:"DM Sans",system-ui,sans-serif;color:#e8e9f2;';
     box.innerHTML = '<div style="font-size:16px;font-weight:700;margin-bottom:4px;">' +
       (opts.title || 'Make a design') + '</div>' +
@@ -1963,28 +1963,45 @@ window.ldDesignForm = function (opts) {
     fDesc.style.marginBottom = '12px';
     box.appendChild(field('Describe your design', fDesc));
 
+    /* 21 Aug 2026 (Fable, Javed's order) — THE SAME CARD AS THE SITE. Every
+       field, label, option list and the order wording come from the shared
+       design_form_data.js (generated from design_widget.js), so the editor
+       and Hexa's page can never drift apart again. */
+    var D = window.LD_DESIGN_DATA;
     var grid = document.createElement('div');
     grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;';
-    var fSlides   = txt('e.g. 15');
-    var fRatio    = sel(['16:9', '4:3']);
-    var fIndustry = txt('e.g. healthcare, fintech');
-    var fColour   = sel(['black', 'dark', 'navy', 'blue', 'white', 'green', 'red', 'purple', 'teal', 'gold']);
-    var fStyle    = sel(['minimal', 'modern', 'bold', 'elegant', 'corporate', 'playful', 'luxury']);
-    var fTone     = sel(['professional', 'friendly', 'formal', 'casual']);
-    var fFonts    = txt('e.g. Montserrat');
-    var fText     = sel(['low', 'medium', 'high']);
-    var fShapes   = sel(['low', 'medium', 'high']);
-    var fGraphs   = sel(['none', 'low', 'medium', 'high']);
-    var fSpace    = sel(['low', 'medium', 'high']);
-    var fMock     = txt('e.g. 5 or 20%');
-    var fPast     = txt('e.g. PD-044 or PD-044 background');
-    var fInsp     = txt('e.g. MK-010, or "the Aurora kit"');
-    [['Slides', fSlides], ['Aspect ratio', fRatio], ['Industry', fIndustry], ['Colour family', fColour],
-     ['Style', fStyle], ['Tone', fTone], ['Fonts', fFonts], ['Text', fText],
-     ['Shapes', fShapes], ['Graphs', fGraphs], ['Empty space', fSpace], ['Mock-up slides', fMock],
-     ['Past design', fPast], ['Inspired by', fInsp]
-    ].forEach(function (pair) { grid.appendChild(field(pair[0], pair[1])); });
+    var F = {};
+    function selFrom(pairs, noAny) {
+      var s = document.createElement('select'); s.style.cssText = inpCss;
+      var o0 = document.createElement('option'); o0.value = ''; o0.textContent = noAny ? 'None' : 'Any'; s.appendChild(o0);
+      pairs.forEach(function (p) { var o = document.createElement('option'); o.value = p[0]; o.textContent = p[1]; s.appendChild(o); });
+      return s;
+    }
+    D.FIELDS.forEach(function (f) {
+      var el;
+      if (f[2] === 'sel') el = selFrom(D[f[3]], !!f[4]);
+      else { el = txt(f[3]); if (f[2] === 'num') { el.type = 'number'; el.min = '1'; } }
+      F[f[0]] = el;
+      grid.appendChild(field(f[1], el));
+    });
+    /* Template type narrows Sub-Category to that type's own slice (same as the site) */
+    function applySlice() {
+      var keep = F.type.value;
+      var list = D.SUBCAT_BY_TYPE[F.contentType.value] || D.TYPE.map(function (p) { return p[0]; });
+      var lab = {}; D.TYPE.forEach(function (p) { lab[p[0]] = p[1]; });
+      F.type.innerHTML = '';
+      var o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'Any'; F.type.appendChild(o0);
+      list.forEach(function (v) { var o = document.createElement('option'); o.value = v; o.textContent = lab[v] || v; if (v === keep) o.selected = true; F.type.appendChild(o); });
+    }
+    F.contentType.addEventListener('change', applySlice);
     box.appendChild(grid);
+    /* live preview — exactly what Hexa is told */
+    var prev = document.createElement('div');
+    prev.style.cssText = 'font-size:11px;color:#8b8ea8;line-height:1.5;margin-top:10px;min-height:14px;';
+    box.appendChild(prev);
+    function sentenceNow() { return D.orderSentence(function (id) { return F[id] ? F[id].value : ''; }, fDesc.value); }
+    function refreshPreview() { var t = sentenceNow(); prev.textContent = t ? ('Your order: ' + t) : ''; }
+    box.addEventListener('input', refreshPreview); box.addEventListener('change', refreshPreview);
 
     var fContent = null;
     if (opts.content) {
@@ -2016,27 +2033,7 @@ window.ldDesignForm = function (opts) {
     cancel.onclick = function () { close(null); };
     ov.onmousedown = function (e) { if (e.target === ov) close(null); };
     ok.onclick = function () {
-      /* every box becomes a phrase the order grammar reads */
-      var parts = [];
-      if (fDesc.value.trim())     parts.push(fDesc.value.trim());
-      var n = parseInt(String(fSlides.value).replace(/[^0-9]/g, ''), 10);
-      if (n)                      parts.push(n + ' slides');
-      if (fRatio.value)           parts.push(fRatio.value);
-      if (fIndustry.value.trim()) parts.push(fIndustry.value.trim());
-      if (fColour.value)          parts.push(fColour.value + ' background');
-      if (fStyle.value)           parts.push(fStyle.value + ' style');
-      if (fTone.value)            parts.push(fTone.value + ' tone');
-      if (fFonts.value.trim())    parts.push('in ' + fFonts.value.trim() + ' font');
-      if (fText.value)            parts.push(fText.value + ' text');
-      if (fShapes.value)          parts.push(fShapes.value + ' shapes');
-      if (fGraphs.value)          parts.push(fGraphs.value + ' graphs');
-      if (fSpace.value)           parts.push(fSpace.value + ' empty space');
-      var mk = fMock.value.trim();
-      if (mk) parts.push(/%/.test(mk) ? (mk.replace(/[^0-9]/g, '') + '% mockup slides')
-                                      : (mk.replace(/[^0-9]/g, '') + ' mockup slides'));
-      if (fPast.value.trim())     parts.push('use design ' + fPast.value.trim());
-      if (fInsp.value.trim())     parts.push('inspired by ' + fInsp.value.trim());
-      var sentence = parts.join(', ').trim();
+      var sentence = sentenceNow();
       if (!sentence) { fDesc.focus(); return; }
       close({ sentence: sentence, content: fContent ? fContent.value : '' });
     };
