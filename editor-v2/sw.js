@@ -22,7 +22,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-var CACHE_SHELL = 'ld-editor-shell-v5';   /* v2: 21 Aug 2026 — vendor/ libs added */
+var CACHE_SHELL = 'ld-editor-shell-v6';   /* v2: 21 Aug 2026 — vendor/ libs added */
 var CACHE_ASSETS = 'ld-editor-assets-v1';
 
 var SHELL = [
@@ -39,6 +39,7 @@ var SHELL = [
   './vendor/fabric.min.js',
   './vendor/jszip.min.js',
   './vendor/UTIF.min.js',
+  './vendor/three.min.js',
   './vendor/fonts.css',
   './vendor/fonts/dm-sans-latin-wght-normal.woff2',
   './vendor/fonts/dm-sans-latin-ext-wght-normal.woff2',

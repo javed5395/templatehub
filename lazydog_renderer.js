@@ -681,7 +681,7 @@ function ldFontAuditPrompt(deckIR) {
              : here ? '<span style="color:#059669;">&#10003; found on this computer — "keep" displays the true font</span>'
                     : '<span style="color:#B45309;">&#10007; not in file or on this computer — preview uses free twin: ' + found[n] + '</span>') + '</div>';
         }).join('') + '</div>' +
-        '<button id="ld-fa-keep" style="display:block;width:100%;padding:10px 0;margin-bottom:8px;background:#F1F5F9;color:#0F172A;border-radius:8px;font-weight:600;font-size:13px;">Keep original fonts <span style="font-weight:400;color:#64748B;">(client file — exports unchanged)</span></button>' +
+        '<button id="ld-fa-keep" style="display:block;width:100%;padding:10px 0;margin-bottom:8px;background:#F1F5F9;color:#0F172A;border-radius:8px;font-weight:600;font-size:13px;">Keep original fonts <span style="font-weight:400;color:#64748B;">(exports unchanged)</span></button>' +
         '<button id="ld-fa-free" style="display:block;width:100%;padding:10px 0;background:var(--accent,#7C3AED);color:#fff;border-radius:8px;font-weight:600;font-size:13px;">Switch to free fonts <span style="font-weight:400;opacity:0.85;">(our kit — safe to distribute)</span></button></div>';
       document.body.appendChild(pop);
       /* 12 Aug: the 'Building slides… Xm' heartbeat kept counting BEHIND this
@@ -725,20 +725,27 @@ function ldFontAuditPrompt(deckIR) {
 
 function addText(type) {
   if (!fc) return;
+  /* 21 Aug 2026 — sizes are for the 1920-px slide (2 px per PowerPoint pt);
+     the box is a WRAPPING Textbox, not a one-line IText, so a paragraph
+     wraps instead of running off the slide; and it opens in edit mode with
+     the placeholder selected, so typing replaces it at once. */
+  var W = fc._baseWidth || 1920;
   var props = {
-    heading:    { text:'Add a heading',    fontSize:44, fontWeight:'700', fill:'#0F172A', upper:false },
-    subheading: { text:'Add a subheading', fontSize:28, fontWeight:'600', fill:'#0F172A', upper:false },
-    body:       { text:'Add body text',    fontSize:16, fontWeight:'400', fill:'#334155', upper:false },
-    caption:    { text:'Add a caption',    fontSize:12, fontWeight:'500', fill:'#64748B', upper:true  }
-  }[type] || { text:'Text', fontSize:16, fontWeight:'400', fill:'#0F172A', upper:false };
+    heading:    { text:'Add a heading',    fontSize:88, fontWeight:'700', fill:'#0F172A', upper:false, w: 0.70 },
+    subheading: { text:'Add a subheading', fontSize:56, fontWeight:'600', fill:'#0F172A', upper:false, w: 0.60 },
+    body:       { text:'Add body text',    fontSize:32, fontWeight:'400', fill:'#334155', upper:false, w: 0.50 },
+    caption:    { text:'Add a caption',    fontSize:24, fontWeight:'500', fill:'#64748B', upper:true,  w: 0.35 }
+  }[type] || { text:'Text', fontSize:32, fontWeight:'400', fill:'#0F172A', upper:false, w: 0.5 };
 
-  var t = new fabric.IText(props.upper ? props.text.toUpperCase() : props.text, {
-    left: 80, top: 80, fontFamily: 'DM Sans, sans-serif',
-    fontSize: props.fontSize, fontWeight: props.fontWeight, fill: props.fill, editable: true
+  var t = new fabric.Textbox(props.upper ? props.text.toUpperCase() : props.text, {
+    left: Math.round(W * 0.08), top: Math.round((fc._baseHeight || 1080) * 0.12), width: Math.round(W * props.w),
+    fontFamily: 'DM Sans', fontSize: props.fontSize, fontWeight: props.fontWeight, fill: props.fill,
+    editable: true, splitByGrapheme: false
   });
   fc.add(t).setActiveObject(t).renderAll();
   saveState();
-  showToast(`Added ${type} text to slide`);
+  try { t.enterEditing(); t.selectAll(); fc.renderAll(); } catch (e) {}
+  showToast('Type your ' + type + ' text');
 }
 
 function makeStarPoints(outerR, innerR) {

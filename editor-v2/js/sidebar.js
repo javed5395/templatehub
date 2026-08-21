@@ -458,7 +458,7 @@
       (ask('stickers') || []).forEach(function (grp) {
         if (grp.name !== 'Animated') return;
         found = true;
-        var g = el('div', 'sb-grid'); g.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        var g = el('div', 'sb-grid'); g.style.gridTemplateColumns = 'repeat(2, 1fr)';
         grp.items.forEach(function (it) {
           var b = el('button', 'sb-shape-card sb-anim-' + (it.anim || '')); b.type = 'button'; b.title = it.name + (it.anim ? ' · ' + it.anim : '');
           var w = el('span', 'sb-shape-art'); w.innerHTML = it.svg;
@@ -516,7 +516,7 @@
     }
     if (cat === 'objects3d') {
       elCatHead(p, '3D objects');
-      p.appendChild(subhead('Real 3D — Alt+drag on the slide to rotate'));
+      p.appendChild(subhead('3D objects — insert one, then hold Alt and drag it to rotate'));
       var KIND3 = { 'Cube': 'cube', 'Sphere': 'sphere', 'Cylinder': 'cylinder', 'Pyramid': 'pyramid',
         'Cone': 'cone', 'Ring': 'ring', 'Box': 'box', 'Coin stack': 'coins',
         '3D bars': 'bars', '3D arrow': 'knot', 'Prism': 'prism', 'Diamond': 'diamond' };
@@ -525,7 +525,7 @@
         '3D bars': '#6D28D9', '3D arrow': '#16A34A', 'Prism': '#0D9488', 'Diamond': '#A855F7' };
       var og = el('div', 'sb-grid'); og.style.gridTemplateColumns = 'repeat(2, 1fr)';
       OBJ3D.forEach(function (o3) {
-        var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = o3.name + ' — real 3D object';
+        var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = o3.name + ' — 3D object (Alt+drag to rotate)';
         var w3 = el('span', 'sb-shape-art'); w3.innerHTML = o3.svg;
         b.appendChild(w3);
         b.appendChild(el('span', 'sb-card-lab', o3.name));
@@ -764,10 +764,24 @@
   function panelComponents(p) {
     p.appendChild(head('Components'));
     var list = ask('components') || [];
+    p.appendChild(grid([{ matIcon: 'add_box', label: 'Save selection as component', tip: 'Select anything on the slide (or several things), then click', onClick: function () { run('componentSave'); } }], 1));
     if (!list.length) {
-      p.appendChild(emptyState('widgets', 'Reusable components',
-        'Cards, headers and layouts you insert again and again.'));
+      p.appendChild(emptyState('widgets', 'No components yet',
+        'Select something on the slide and click “Save selection as component” — or right-click it → Save as component.'));
+      return;
     }
+    var g = el('div', 'sb-grid'); g.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    list.forEach(function (c) {
+      var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = c.name + ' — click to insert, right-click to delete';
+      var w = el('span', 'sb-shape-art');
+      if (c.thumb) { var im = document.createElement('img'); im.src = c.thumb; im.style.cssText = 'max-width:100%;max-height:64px;object-fit:contain;'; w.appendChild(im); }
+      else w.appendChild(mat('widgets', 'sb-card-mi'));
+      b.appendChild(w); b.appendChild(el('span', 'sb-card-lab', c.name));
+      b.addEventListener('click', function () { run('componentInsert', c.id); });
+      b.addEventListener('contextmenu', function (e) { e.preventDefault(); run('componentDelete', c.id); });
+      g.appendChild(b);
+    });
+    p.appendChild(g);
   }
   function panelProjects(p) {
     p.appendChild(head('Projects'));

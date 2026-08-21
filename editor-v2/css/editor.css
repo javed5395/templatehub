@@ -85,10 +85,16 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 }
 
 /* view toggles (engine stage 1) */
-.canvas-area.show-grid .canvas-holder { background-image: linear-gradient(rgba(124,58,237,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.08) 1px, transparent 1px); background-size: 40px 40px; }
+/* 21 Aug 2026 — grid and ruler drawn OVER the canvas (the canvas is opaque, so a
+   background behind it was never visible) */
+.canvas-holder { position: relative; }
+.canvas-area.show-grid .canvas-holder::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 5; background-image: linear-gradient(rgba(124,58,237,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.22) 1px, transparent 1px); background-size: 40px 40px; }
 .canvas-area.show-guides .canvas-holder { position: relative; }
 .canvas-area.show-guides .canvas-holder::after { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(220,38,38,0.35) 0, rgba(220,38,38,0.35) 100%), linear-gradient(90deg, rgba(37,99,235,0.35) 0, rgba(37,99,235,0.35) 100%); background-size: 100% 1px, 1px 100%; background-position: 0 50%, 50% 0; background-repeat: no-repeat; }
-.canvas-area.show-ruler { box-shadow: inset 26px 26px 0 -25px var(--line-2); }
+.canvas-area.show-ruler { position: relative; }
+.canvas-area.show-ruler::before, .canvas-area.show-ruler::after { content: ''; position: absolute; pointer-events: none; z-index: 6; background-color: var(--bg-inset, #1b1c2b); }
+.canvas-area.show-ruler::before { left: 0; right: 0; top: 0; height: 18px; border-bottom: 1px solid var(--line-2); background-image: repeating-linear-gradient(90deg, var(--line-2) 0 1px, transparent 1px 10px), repeating-linear-gradient(90deg, var(--text-2, #999) 0 1px, transparent 1px 50px); background-size: 100% 6px, 100% 12px; background-position: 0 100%, 0 100%; background-repeat: repeat-x; }
+.canvas-area.show-ruler::after { top: 0; bottom: 0; left: 0; width: 18px; border-right: 1px solid var(--line-2); background-image: repeating-linear-gradient(180deg, var(--line-2) 0 1px, transparent 1px 10px), repeating-linear-gradient(180deg, var(--text-2, #999) 0 1px, transparent 1px 50px); background-size: 6px 100%, 12px 100%; background-position: 100% 0, 100% 0; background-repeat: repeat-y; }
 
 /* ── 4. Filmstrip ── */
 .filmstrip {

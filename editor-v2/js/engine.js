@@ -462,14 +462,14 @@ function projRefresh() {
 var _currentProjectId = null;
 
 /* Save (or update) the whole deck — every page, notes included. */
-function projSaveCurrent(asNew) {
+async function projSaveCurrent(asNew) {
   if (!fc) return;
   captureCurrentPage();
   if (typeof stickerFreeze === 'function') stickerFreeze();
 
   var existing = _projList.filter(function (p) { return p.id === _currentProjectId; })[0];
   var name = existing && !asNew ? existing.name
-    : prompt('Project name:', (existing && existing.name) || 'Untitled design');
+    : await window.ldPrompt('Project name:', '', (existing && existing.name) || 'Untitled design');
   if (!name) return;
 
   var thumb = '';
@@ -511,13 +511,13 @@ function projFileName(name) {
     || 'Untitled design';
 }
 
-function projSaveToFile() {
+async function projSaveToFile() {
   if (!fc) { showToast('Editor still loading'); return; }
   captureCurrentPage();
   if (typeof stickerFreeze === 'function') stickerFreeze();
 
   var existing = _projList.filter(function (p) { return p.id === _currentProjectId; })[0];
-  var name = prompt('Save a copy as:', (existing && existing.name) || 'Untitled design');
+  var name = await window.ldPrompt('Save a copy as:', '', (existing && existing.name) || 'Untitled design');
   if (!name) return;
 
   var doc = {
@@ -774,8 +774,8 @@ async function exportPptxFileV2() {
   refreshList();
 
   Editor._register({
-    saveProject: function () {
-      var name = prompt('Project name:', 'My design ' + new Date().toLocaleDateString());
+    saveProject: async function () {
+      var name = await window.ldPrompt('Project name:', '', 'My design ' + new Date().toLocaleDateString());
       if (!name) return;
       window.ldProjSaveV2(name.trim());
       setTimeout(refreshList, 400);
@@ -788,9 +788,9 @@ async function exportPptxFileV2() {
         showToast('Opened “' + p.name + '”');
       });
     },
-    newDesign: function () {
+    newDesign: async function () {
       if (state.pages.length > 1 || (fc.getObjects() || []).length) {
-        if (!confirm('Start a new design? Unsaved work on this one is kept in autosave.')) return;
+        if (!(await window.ldConfirm('Start a new design? Unsaved work on this one is kept in autosave.', 'New design'))) return;
       }
       window._deckIR = null; window.LD_DESIGN_NO = null;
       state.pages = [makeBlankPage(Date.now())];
@@ -804,6 +804,29 @@ async function exportPptxFileV2() {
     }
   });
 
+  /* 21 Aug 2026 — a reload must never lose the deck: offer the autosave
+     back on boot, and warn before leaving with work on the canvas */
+  setTimeout(function () {
+    projAll().then(function (list) {
+      var a = (list || []).filter(function (p) { return p && p.id === '__autosave__'; })[0];
+      if (!a || !a.deck || !a.deck.pages) return;
+      var fresh = (Date.now() - (a.ts || 0)) < 3 * 24 * 3600 * 1000;
+      var nonEmpty = a.deck.pages.length > 1 || (a.deck.pages[0] && ((a.deck.pages[0].canvasJSON && a.deck.pages[0].canvasJSON.objects && a.deck.pages[0].canvasJSON.objects.length) || a.deck.pages[0].ir));
+      var blankNow = state.pages.length === 1 && !(fc.getObjects() || []).length && !window._deckIR;
+      var q = ''; try { q = location.search; } catch (e) {}
+      if (!fresh || !nonEmpty || !blankNow || /compose=|project=/.test(q)) return;
+      window.ldConfirm('Restore your last design? (' + a.deck.pages.length + ' slide' + (a.deck.pages.length === 1 ? '' : 's') + ', autosaved ' + new Date(a.ts).toLocaleTimeString() + ')', 'Restore')
+        .then(function (yes) { if (yes) { restoreSnapshot(a.deck); showToast('Restored from autosave'); } });
+    }).catch(function () {});
+  }, 1800);
+  window.addEventListener('beforeunload', function (e) {
+    try {
+      if (state.pages.length > 1 || (fc.getObjects() || []).length) {
+        projSave({ id: '__autosave__', name: 'Autosave', isAutosave: true, ts: Date.now(), deck: deckSnapshot() });
+        e.preventDefault(); e.returnValue = '';
+      }
+    } catch (err) {}
+  });
   /* autosave every 25s */
   setInterval(function () {
     try {
@@ -1247,8 +1270,8 @@ Editor._register({
 
 /* ═════════ small utilities ═════════ */
 Editor._register({
-  find: function () {
-    var q = prompt('Find text:');
+  find: async function () {
+    var q = await window.ldPrompt('Find text:', 'word or phrase');
     if (!q) return;
     q = q.toLowerCase();
     for (var i = 0; i < state.pages.length; i++) {
@@ -1291,12 +1314,12 @@ Editor._register({
   },
   openHelp: function () { showToast('Help articles arrive with the final polish stage'); },
   showShortcuts: function () {
-    alert('Keyboard shortcuts\n\nCtrl+Z / Ctrl+Y — undo / redo\nCtrl+C / Ctrl+V — copy / paste\nCtrl+D — duplicate\nCtrl+A — select all\nDelete — remove selection\nEsc — deselect / stop drawing\nArrows in slide show — navigate');
+    window.ldAlert('Ctrl+Z / Ctrl+Y — undo / redo\nCtrl+C / Ctrl+V — copy / paste\nCtrl+D — duplicate\nCtrl+A — select all\nDelete — remove selection\nEsc — deselect / stop drawing\nArrows in slide show — navigate', 'Keyboard shortcuts');
   },
   sendFeedback: function () { window.open('https://www.lazydogtemplates.com/#contact', '_blank'); },
-  addComment: function () {
+  addComment: async function () {
     var o = fc.getActiveObject();
-    var text = prompt('Comment' + (o ? ' on the selected object' : ' on this slide') + ':');
+    var text = await window.ldPrompt('Comment' + (o ? ' on the selected object' : ' on this slide') + ':', 'your note', '', { multiline: true });
     if (!text || !text.trim()) return;
     state.comments.push({ id: 'cm' + Date.now(), page: state.currentPage, text: text.trim(), ts: Date.now() });
     showToast('Comment added (' + state.comments.length + ' total)');
@@ -1304,7 +1327,7 @@ Editor._register({
   showComments: function () {
     var list = state.comments.filter(function (c) { return c.page === state.currentPage; });
     if (!list.length) { showToast('No comments on this slide'); return; }
-    alert('Comments on slide ' + (state.currentPage + 1) + ':\n\n' + list.map(function (c) { return '• ' + c.text; }).join('\n'));
+    window.ldAlert(list.map(function (c) { return '• ' + c.text; }).join('\n'), 'Comments on slide ' + (state.currentPage + 1));
   }
 });
 
@@ -1826,7 +1849,7 @@ function pageRefresh() { renderPageThumbs(); }
     else {
       var lang = await window.ldPrompt('Translate into which language?', '', 'Urdu');   /* 20 Aug 2026 — prompt() dies in the desktop app */
       if (!lang) return;
-      prompt = 'Translate this into ' + lang + '. Keep it natural and slide-friendly. Reply with the translation only:\n\n' + src;
+      prompt = 'Translate this into ' + lang + '. Keep it natural and slide-friendly. Reply with the translation only. If "' + lang + '" is not a real language you can translate into, reply with exactly the single word ERR and nothing else:\n\n' + src;
     }
     say(kind === 'translate' ? 'Translating…' : kind === 'rewrite' ? 'Rewriting…' : 'Summarising…');
     try {
@@ -1839,6 +1862,9 @@ function pageRefresh() { renderPageThumbs(); }
       var t = d && (d.reply || d.text || d.message || d.answer);
       if (!t) throw new Error('empty reply');
       t = String(t).replace(/^ACTION:.*$/gm, '').trim();
+      /* 21 Aug 2026 — a conversational reply is NOT content. Refuse it. */
+      var chatter = /^ERR\b/.test(t) || /\b(I'm|I am|I can|I cannot|I don't|I do not|as an AI|not familiar|sorry|unfortunately|could you|please provide)\b/i.test(t.slice(0, 160)) || t.length > src.length * 3 + 80;
+      if (chatter) { say(kind === 'translate' ? 'Could not translate — check the language name and try again' : 'The AI did not return usable text — try again'); return; }
       o._aiBefore = o.text;
       /* 21 Aug 2026 — the renderer squeezes text to its box with scaleX /
          charSpacing; new words under the old squeeze came out mangled.
@@ -1900,7 +1926,7 @@ function pageRefresh() { renderPageThumbs(); }
          works everywhere); the flow is async but otherwise unchanged. */
       (async function () {
       if (kind === 'deck') {
-        if (state.pages.length > 1 && !confirm('This builds a NEW deck and replaces the ' + state.pages.length + ' slides open here.\n\nReplace everything?')) return;
+        if (state.pages.length > 1 && !(await window.ldConfirm('This builds a NEW deck and replaces the ' + state.pages.length + ' slides open here.\n\nReplace everything?', 'Replace'))) return;
         /* 20 Aug 2026 (Fable, Javed's order) — the SAME form Hexa shows on the
            site, right here in the editor. It builds the exact order sentence
            the grammar reads; the free-text box on top still accepts anything. */
@@ -1916,7 +1942,7 @@ function pageRefresh() { renderPageThumbs(); }
            Hexa composes the design, then the model cascade (Haiku fills →
            Sonnet fixes → Opus reviews) rewrites every text region from the
            content box. The key never leaves the cloud (ai_fill_http). */
-        if (state.pages.length > 1 && !confirm('This builds a NEW presentation and replaces the ' + state.pages.length + ' slides open here.\n\nReplace everything?')) return;
+        if (state.pages.length > 1 && !(await window.ldConfirm('This builds a NEW presentation and replaces the ' + state.pages.length + ' slides open here.\n\nReplace everything?', 'Replace'))) return;
         var fp = await window.ldDesignForm({ title: 'Create presentation', content: true });
         if (!fp || !fp.sentence) return;
         _aiRunning = true; busy(true, 'Designing in the cloud…');
@@ -2188,7 +2214,52 @@ window.ldSignInModal = function () {
    ldPrompt(message, placeholder, defaultValue) → Promise<string|null>.
    Enter/OK resolves the text, Escape/Cancel resolves null. Styled to match
    the editor's dark chrome, no dependencies. ═════════ */
-window.ldPrompt = function (message, placeholder, def) {
+/* 21 Aug 2026 — ldConfirm / ldAlert: in-page twins of confirm()/alert().
+   Native dialogs freeze the page for assistive tools and automation, and
+   prompt() does not exist in the desktop app at all. Nothing native is used
+   in the editor any more. */
+window.ldConfirm = function (message, okLabel) {
+  return new Promise(function (resolve) {
+    var old = document.getElementById('ld-confirm-overlay'); if (old) old.remove();
+    var ov = document.createElement('div'); ov.id = 'ld-confirm-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.62);z-index:99999;display:flex;align-items:center;justify-content:center;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:12px;padding:20px 22px;width:min(440px,90vw);box-shadow:0 18px 50px rgba(0,0,0,.5);font-family:"DM Sans",system-ui,sans-serif;color:#e8e9f2;';
+    var msg = document.createElement('div'); msg.style.cssText = 'font-size:14px;line-height:1.5;white-space:pre-line;'; msg.textContent = String(message || '');
+    var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;margin-top:16px;';
+    function btn(label, primary) { var b = document.createElement('button'); b.textContent = label; b.style.cssText = 'border:0;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;' + (primary ? 'background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;' : 'background:#23243a;color:#c9cbe0;'); return b; }
+    var cancel = btn('Cancel', false), ok = btn(okLabel || 'OK', true);
+    function close(v) { ov.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); }
+    function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(false); } if (e.key === 'Enter') { e.preventDefault(); close(true); } }
+    document.addEventListener('keydown', onKey, true);
+    cancel.onclick = function () { close(false); }; ok.onclick = function () { close(true); };
+    ov.onmousedown = function (e) { if (e.target === ov) close(false); };
+    row.appendChild(cancel); row.appendChild(ok); box.appendChild(msg); box.appendChild(row); ov.appendChild(box); document.body.appendChild(ov);
+    setTimeout(function () { ok.focus(); }, 30);
+  });
+};
+window.ldAlert = function (message, title) {
+  return new Promise(function (resolve) {
+    var old = document.getElementById('ld-alert-overlay'); if (old) old.remove();
+    var ov = document.createElement('div'); ov.id = 'ld-alert-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.62);z-index:99999;display:flex;align-items:center;justify-content:center;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:12px;padding:20px 22px;width:min(520px,92vw);max-height:80vh;overflow:auto;box-shadow:0 18px 50px rgba(0,0,0,.5);font-family:"DM Sans",system-ui,sans-serif;color:#e8e9f2;';
+    if (title) { var h = document.createElement('div'); h.style.cssText = 'font-size:15px;font-weight:700;margin-bottom:8px;'; h.textContent = title; box.appendChild(h); }
+    var msg = document.createElement('div'); msg.style.cssText = 'font-size:13.5px;line-height:1.55;white-space:pre-line;'; msg.textContent = String(message || ''); box.appendChild(msg);
+    var row = document.createElement('div'); row.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px;';
+    var ok = document.createElement('button'); ok.textContent = 'OK';
+    ok.style.cssText = 'border:0;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;';
+    function close() { ov.remove(); document.removeEventListener('keydown', onKey, true); resolve(); }
+    function onKey(e) { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); close(); } }
+    document.addEventListener('keydown', onKey, true);
+    ok.onclick = close; ov.onmousedown = function (e) { if (e.target === ov) close(); };
+    row.appendChild(ok); box.appendChild(row); ov.appendChild(box); document.body.appendChild(ov);
+    setTimeout(function () { ok.focus(); }, 30);
+  });
+};
+window.ldPrompt = function (message, placeholder, def, opts) {
+  opts = opts || {};
   return new Promise(function (resolve) {
     var old = document.getElementById('ld-prompt-overlay');
     if (old) old.remove();
@@ -2203,12 +2274,13 @@ window.ldPrompt = function (message, placeholder, def) {
     var msg = document.createElement('div');
     msg.style.cssText = 'font-size:14px;font-weight:600;margin-bottom:12px;white-space:pre-line;';
     msg.textContent = String(message || '');
-    var inp = document.createElement('input');
-    inp.type = 'text';
+    var inp = document.createElement(opts.multiline ? 'textarea' : 'input');
+    if (!opts.multiline) inp.type = 'text';
     inp.placeholder = String(placeholder || '');
     inp.value = def != null ? String(def) : '';
     inp.style.cssText = 'width:100%;box-sizing:border-box;background:#0e0f1a;color:#fff;' +
-      'border:1px solid #34365a;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;';
+      'border:1px solid #34365a;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;' +
+      (opts.multiline ? 'min-height:160px;resize:vertical;font-family:inherit;' : '');
     var row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;margin-top:14px;';
     function btn(label, primary) {
@@ -2225,7 +2297,7 @@ window.ldPrompt = function (message, placeholder, def) {
     cancel.onclick = function () { close(null); };
     ok.onclick = function () { close(inp.value); };
     inp.onkeydown = function (e) {
-      if (e.key === 'Enter') { e.preventDefault(); close(inp.value); }
+      if (e.key === 'Enter' && !opts.multiline) { e.preventDefault(); close(inp.value); }
       if (e.key === 'Escape') { e.preventDefault(); close(null); }
     };
     ov.onmousedown = function (e) { if (e.target === ov) close(null); };
@@ -2504,7 +2576,7 @@ Editor._register({
       times.push({ slide: idx + 1, secs: Math.round((Date.now() - lastSwitch) / 1000) });
       clearInterval(tick); off(); hud.remove();
       var total = Math.round((Date.now() - t0) / 1000);
-      alert('Rehearsal — total ' + Math.floor(total / 60) + ':' + ('0' + total % 60).slice(-2) + '\n\n'
+      window.ldAlert('Rehearsal — total ' + Math.floor(total / 60) + ':' + ('0' + total % 60).slice(-2) + '\n\n'
         + times.map(function (x) { return 'Slide ' + x.slide + ': ' + x.secs + 's'; }).join('\n'));
     });
   }
@@ -2572,8 +2644,8 @@ Editor._register({
         }
       });
     });
-    if (!issues.length) alert('Accessibility check ✓\n\nNo contrast, size or alt-text issues found across ' + state.pages.length + ' slide(s).');
-    else alert('Accessibility check — ' + issues.length + ' issue(s):\n\n' + issues.slice(0, 20).join('\n') + (issues.length > 20 ? '\n…and ' + (issues.length - 20) + ' more' : ''));
+    if (!issues.length) window.ldAlert('Accessibility check ✓\n\nNo contrast, size or alt-text issues found across ' + state.pages.length + ' slide(s).');
+    else window.ldAlert('Accessibility check — ' + issues.length + ' issue(s):\n\n' + issues.slice(0, 20).join('\n') + (issues.length > 20 ? '\n…and ' + (issues.length - 20) + ' more' : ''));
   },
   spellCheck: function () {
     /* browser-powered: all deck text in one spellchecked box; edits write back */
@@ -3240,7 +3312,7 @@ Editor._register({
         showToast('Publishing templates is for the LazyDog admin account — sign in as admin first', 5000);
         return;
       }
-      var name = prompt('Template name (shown in the Templates panel):',
+      var name = await window.ldPrompt('Template name (shown in the Templates panel):', '',
         'Template ' + new Date().toLocaleDateString());
       if (!name || !name.trim()) return;
       showToast('Building template…');
@@ -3299,7 +3371,7 @@ Editor._register({
         showToast('Publishing elements is for the LazyDog admin account — sign in as admin first', 5000);
         return;
       }
-      var name = prompt('Element name (shown in the Elements panel):', 'Element');
+      var name = await window.ldPrompt('Element name (shown in the Elements panel):', '', 'Element');
       if (!name || !name.trim()) return;
       /* serialize the selection (single object OR multi-selection) */
       var objs = (o.type === 'activeSelection') ? o._objects : [o];
@@ -3374,7 +3446,7 @@ Editor._register({
         return;
       }
       var ce = (window._editorElements || []).filter(function (t) { return t.id === id; })[0];
-      if (!confirm('Remove "' + ((ce && ce.name) || id) + '" from the Elements panel for everyone?')) return;
+      if (!(await window.ldConfirm('Remove "' + ((ce && ce.name) || id) + '" from the Elements panel for everyone?', 'Remove'))) return;
       var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
       await fsMod.deleteDoc(fsMod.doc(fsMod.getFirestore(app), 'editor_templates', id));
       try {
@@ -3409,7 +3481,7 @@ Editor._register({
         return;
       }
       var tpl = (window._editorTemplates || []).filter(function (t) { return t.id === id; })[0];
-      if (!confirm('Remove "' + ((tpl && tpl.name) || id) + '" from the Templates panel for everyone?')) return;
+      if (!(await window.ldConfirm('Remove "' + ((tpl && tpl.name) || id) + '" from the Templates panel for everyone?', 'Remove'))) return;
       var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
       await fsMod.deleteDoc(fsMod.doc(fsMod.getFirestore(app), 'editor_templates', id));
       /* best effort: the JSON file in Storage (new publishes use <id>.json) */
@@ -4049,8 +4121,8 @@ Editor._register({
     };
     inp.click();
   },
-  dataSheet: function () {
-    var url = prompt('Paste a Google Sheets “Publish to web” CSV link:\n\nFile → Share → Publish to web → Comma-separated values (.csv)');
+  dataSheet: async function () {
+    var url = await window.ldPrompt('Paste a Google Sheets “Publish to web” CSV link:\n\nFile → Share → Publish to web → Comma-separated values (.csv)', 'https://docs.google.com/…/pub?output=csv');
     if (!url) return;
     url = url.trim();
     if (!/^https?:\/\//i.test(url)) { showToast('That does not look like a link'); return; }
@@ -4247,8 +4319,8 @@ function slideNewWithLayout(id) {
 }
 
 /* text outline → slides: no-indent line = new slide title, indented = body */
-function slidesFromOutlineV2() {
-  var raw = prompt('Paste an outline.\n\nA line with no indent starts a new slide (its title).\nIndented lines become that slide’s text.');
+async function slidesFromOutlineV2() {
+  var raw = await window.ldPrompt('Paste an outline.\n\nA line with no indent starts a new slide (its title).\nIndented lines become that slide’s text.', 'Slide title\n    first point\n    second point', '', { multiline: true });
   if (!raw || !raw.trim()) return;
   var groups = [], cur = null;
   raw.split(/\r?\n/).forEach(function (line) {
@@ -4404,6 +4476,43 @@ Editor._register({
       decks always show life.
    ═══════════════════════════════════════════════════════════════════════ */
 
+/* ════ 0 · COMPONENTS (21 Aug 2026) — save any selection, insert it again ════
+   Kept in localStorage per browser/app (no server round-trip, works offline). */
+(function () {
+  var KEY = 'ld_components_v1';
+  function all() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+  function put(list) { try { localStorage.setItem(KEY, JSON.stringify(list.slice(0, 60))); } catch (e) { showToast('Could not save — storage is full'); } }
+  window.ldComponentSave = async function () {
+    var o = fc.getActiveObject();
+    if (!o) { showToast('Select something on the slide first'); return; }
+    var name = await window.ldPrompt('Component name:', 'e.g. Header card', 'Component ' + (all().length + 1));
+    if (!name || !name.trim()) return;
+    var objs = (o.type === 'activeSelection') ? o._objects : [o];
+    var data = { objects: objs.map(function (x) { return x.toJSON(FABRIC_JSON_PROPS); }) };
+    var thumb = null;
+    try { thumb = o.toDataURL({ format: 'png', multiplier: Math.min(1, 160 / Math.max(o.getScaledWidth(), o.getScaledHeight())) }); } catch (e) {}
+    var list = all(); list.unshift({ id: 'c' + Date.now(), name: name.trim(), thumb: thumb, data: data, ts: Date.now() }); put(list);
+    showToast('Saved “' + name.trim() + '” to Components ✓');
+    if (Editor._emit) Editor._emit('components');
+  };
+  Editor._register({
+    __qComponents: function () { return all().map(function (c) { return { id: c.id, name: c.name, thumb: c.thumb }; }); },
+    componentSave: function () { window.ldComponentSave(); },
+    componentDelete: function (id) { put(all().filter(function (c) { return c.id !== id; })); if (Editor._emit) Editor._emit('components'); },
+    componentInsert: function (id) {
+      var c = all().filter(function (x) { return x.id === id; })[0];
+      if (!c) { showToast('That component is gone'); return; }
+      fabric.util.enlivenObjects(c.data.objects, function (objs) {
+        if (!objs.length) return;
+        var g = objs.length === 1 ? objs[0] : new fabric.ActiveSelection(objs, { canvas: fc });
+        objs.forEach(function (ob) { ob.set({ left: (ob.left || 0) + 40, top: (ob.top || 0) + 40 }); delete ob.irId; fc.add(ob); });
+        if (objs.length > 1) { fc.setActiveObject(g); } else { fc.setActiveObject(objs[0]); }
+        fc.renderAll(); saveState(); showToast('Component inserted');
+      });
+    }
+  });
+})();
+
 /* ════ 1 · RIGHT-CLICK CONTEXT MENU ════ */
 (function () {
   var MENU_HTML =
@@ -4416,6 +4525,7 @@ Editor._register({
   + '<button class="ctx-item" data-ctx="lock"><span class="ctx-item-left"><span class="material-icons-outlined">lock</span>Lock</span></button>'
   + '<div class="ctx-divider"></div>'
   + '<button class="ctx-item" data-ctx="alttext"><span class="ctx-item-left"><span class="material-icons-outlined">accessible</span>Alternative text</span></button>'
+  + '<button class="ctx-item" data-ctx="savecomp"><span class="ctx-item-left"><span class="material-icons-outlined">widgets</span>Save as component</span></button>'
   + '<button class="ctx-item" data-ctx="setbg"><span class="ctx-item-left"><span class="material-icons-outlined">image</span>Set image as background</span></button>'
   + '<button class="ctx-item" data-ctx="applycolor"><span class="ctx-item-left"><span class="material-icons-outlined">palette</span>Apply colour to page</span></button>'
   + '<button class="ctx-item" data-ctx="trim"><span class="ctx-item-left"><span class="material-icons-outlined">content_cut</span>Trim to slide</span></button>'
@@ -4486,6 +4596,7 @@ Editor._register({
         case 'lock':       if (typeof ctxLock === 'function') ctxLock(); break;
         case 'alttext':    if (typeof ctxAltText === 'function') ctxAltText(); break;
         case 'setbg':      if (typeof ctxSetBg === 'function') ctxSetBg(); break;
+        case 'savecomp':   if (window.ldComponentSave) window.ldComponentSave(); break;
         case 'applycolor': if (typeof ctxApplyColor === 'function') ctxApplyColor(); break;
         case 'trim':       if (typeof ctxTrimToSlide === 'function') ctxTrimToSlide(); break;
         case 'master':     if (typeof ctxMasterAdd === 'function') ctxMasterAdd(); break;
@@ -5513,7 +5624,8 @@ Editor._register({
 (function () {
   'use strict';
 
-  var THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  var THREE_URL = 'vendor/three.min.js';   /* 21 Aug 2026 — self-hosted (offline + no CDN dependency) */
+  var THREE_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
   var _loading = null;
   function ensureThree() {
     if (window.THREE) return Promise.resolve(window.THREE);
@@ -5522,7 +5634,12 @@ Editor._register({
       var s = document.createElement('script');
       s.src = THREE_URL;
       s.onload = function () { res(window.THREE); };
-      s.onerror = function () { _loading = null; rej(new Error('three.js failed to load')); };
+      s.onerror = function () {
+        var s2 = document.createElement('script'); s2.src = THREE_CDN;
+        s2.onload = function () { res(window.THREE); };
+        s2.onerror = function () { _loading = null; rej(new Error('three.js failed to load')); };
+        document.head.appendChild(s2);
+      };
       document.head.appendChild(s);
     });
     return _loading;

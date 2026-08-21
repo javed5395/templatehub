@@ -276,7 +276,7 @@ function rehydrateFrames() {}
     'insertShapePreset','insertLineKind','insertGrid','insertSticker','insertIllo','illoPalette',
     'layerAction','ai',
     'shapeFill','shapeOutline','shapeOutlineW','shapeOpacity','moveSlide','insert3D',
-    'publishElement','insertElement','deleteElement',
+    'publishElement','insertElement','deleteElement','componentSave','componentDelete',
     'mockupArea','mockupFill','signIn','signOut','backgroundImage'
   ];
   var impl = {};
@@ -323,6 +323,7 @@ function rehydrateFrames() {}
         case 'slides':    return { count: state.pages.length || 1, current: state.currentPage || 0 };
         case 'zoom':      return state.zoom;
         case 'drawMode':  return impl.__qDrawMode ? impl.__qDrawMode() : null;
+        case 'transition': { var pg = state.pages[state.currentPage]; return (pg && pg.transition) || { type: 'none', ms: 500 }; }
         case 'history':   return impl.__qHistory ? impl.__qHistory() : { canUndo: false, canRedo: false };
         case 'view':      return impl.__qView ? impl.__qView() : { ruler: false, grid: false, guides: false };
         case 'pageSize':  return impl.__qPageSize ? impl.__qPageSize() : { ratio: '16:9' };
@@ -343,7 +344,7 @@ function rehydrateFrames() {}
         case 'icons': return impl.__qIcons ? impl.__qIcons() : [];
         case 'stickers': return impl.__qStickers ? impl.__qStickers() : [];
         case 'illos': return impl.__qIllos ? impl.__qIllos() : { palettes: [], styles: [] };
-        case 'components': return [];
+        case 'components': return impl.__qComponents ? impl.__qComponents() : [];
         default: return null;
       }
     },
@@ -517,7 +518,19 @@ function rehydrateFrames() {}
     },
     textColour: function (hex) { var o = needText(); if (!o || !hex) return; applyTextProps(o, { fill: hex }); done(); },
     highlight: function (hex) { var o = needText(); if (!o) return; o.set('textBackgroundColor', hex || ''); done(); },
-    align: function (side) { var o = needText(); if (!o) return; o.set('textAlign', side); done(); },
+    align: function (side) {
+      var o = needText(); if (!o) return;
+      /* 21 Aug 2026 — a box exactly as wide as its text cannot show alignment;
+         give it room (the slide width minus its left margin) so it does */
+      if (o.type !== 'textbox') {
+        var W = fc._baseWidth || 1920, lx = o.left || 0;
+        var j = o.toObject(FABRIC_JSON_PROPS); j.type = 'textbox'; j.width = Math.max(o.getScaledWidth() / (o.scaleX || 1), Math.min(W - lx - 40, W * 0.6)); j.scaleX = o.scaleX; j.scaleY = o.scaleY;
+        var idx = fc.getObjects().indexOf(o);
+        fabric.util.enlivenObjects([j], function (objs) { if (!objs[0]) return; fc.remove(o); fc.insertAt(objs[0], idx, false); objs[0].set('textAlign', side); fc.setActiveObject(objs[0]); done(); });
+        return;
+      }
+      o.set('textAlign', side); o.dirty = true; done();
+    },
     bullets: function () { listify('bullet'); },
     numbering: function () { listify('number'); },
     lineSpacing: function (v) { var o = needText(); if (!o) return; o.set('lineHeight', +v || 1.16); done(); },
@@ -683,7 +696,15 @@ function rehydrateFrames() {}
     shapeOutlineW: function (w) {
       var o = sel(); if (!o) return toast('Select something first');
       var list = (o.type === 'activeSelection' || o.type === 'group') ? o._objects : [o];
-      list.forEach(function (x) { x.set({ strokeWidth: +w || 1, stroke: x.stroke || '#1F2430' }); x.dirty = true; });
+      /* 21 Aug 2026 — strokeUniform: the outline is drawn AT the width asked
+         for, not multiplied by the object's scale (a 4x-scaled shape used to
+         grow a 4x-fat border and look "inflated"). Width capped at 40px. */
+      var sw = Math.max(0, Math.min(40, +w || 0));
+      list.forEach(function (x) {
+        if (sw === 0) { x.set({ strokeWidth: 0 }); }
+        else x.set({ strokeWidth: sw, stroke: x.stroke || '#1F2430', strokeUniform: true });
+        x.dirty = true; if (x.setCoords) x.setCoords();
+      });
       done();
     },
     shapeOpacity: function (v) {

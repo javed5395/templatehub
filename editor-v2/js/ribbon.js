@@ -1012,6 +1012,8 @@
     redoB.classList.toggle('is-dim', !h.canRedo);
     var v = ask('view') || {};
     setPress('view-ruler', v.ruler); setPress('view-grid', v.grid); setPress('view-guides', v.guides);
+    var tr = ask('transition') || {};
+    ['none','fade','slide','wipe','split','reveal','zoom'].forEach(function (k) { setPress('trans-' + k, (tr.type || 'none') === k); });
     var dm = ask('drawMode');
     setPress('draw-select', !dm); setPress('draw-pen', dm === 'pen'); setPress('draw-high', dm === 'high'); setPress('draw-erase', dm === 'erase');
     var ps = ask('pageSize') || {};
