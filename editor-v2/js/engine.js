@@ -708,15 +708,28 @@ window.ldRefreshTokens = async function () {
     if (!chip) {
       chip = document.createElement('div');
       chip.id = 'ld-token-chip';
-      chip.style.cssText = 'position:fixed;right:14px;bottom:64px;z-index:9000;' +
+      chip.style.cssText = 'position:fixed;right:14px;bottom:64px;z-index:9000;display:flex;align-items:center;gap:8px;' +
         'background:#151623;border:1px solid #2c2e45;border-radius:999px;' +
-        'padding:6px 14px;font:600 12px "DM Sans",system-ui,sans-serif;color:#e8e9f2;' +
-        'box-shadow:0 6px 20px rgba(0,0,0,.4);pointer-events:none;';
+        'padding:5px 6px 5px 14px;font:600 12px "DM Sans",system-ui,sans-serif;color:#e8e9f2;' +
+        'box-shadow:0 6px 20px rgba(0,0,0,.4);';
       document.body.appendChild(chip);
     }
     chip.style.display = '';
-    chip.textContent = d.admin ? '⚡ Unlimited (admin)'
-                               : '⚡ ' + Number(d.balance || 0).toLocaleString() + ' tokens';
+    /* 21 Aug 2026 (Javed) — SUBSCRIPTION IS ONE CLICK AWAY. The balance chip
+       carries a "Plans" button; plans are bought on the website (never inside
+       the app — Store rule), so it opens lazydogtemplates.com/pricing.html. */
+    chip.innerHTML = '';
+    var lab = document.createElement('span');
+    lab.textContent = d.admin ? '⚡ Unlimited (admin)' : '⚡ ' + Number(d.balance || 0).toLocaleString() + ' tokens';
+    lab.title = 'Your token balance — editing is free, AI work spends tokens';
+    var up = document.createElement('button');
+    up.type = 'button';
+    up.textContent = d.admin ? 'Plans' : (d.plan && d.plan !== 'free' ? 'Manage plan' : 'Upgrade');
+    up.title = 'See subscription plans and top-ups (opens our website)';
+    up.style.cssText = 'border:0;border-radius:999px;padding:5px 12px;font:700 11.5px "DM Sans",system-ui,sans-serif;cursor:pointer;' +
+      'background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;';
+    up.addEventListener('click', function () { window.open('https://www.lazydogtemplates.com/pricing.html', '_blank', 'noopener'); });
+    chip.appendChild(lab); chip.appendChild(up);
   } catch (e) { /* quietly — the chip is a convenience, never a blocker */ }
 };
 window.addEventListener('load', function () {
@@ -999,8 +1012,20 @@ function buildFrameAt(kind, left, top, w, h) {
 }
 Editor._register({
   __qMockupLayouts: function () { return MOCKUP_LAYOUTS.map(function (L, i) { return { i: i, name: L.name, svg: mockupPreviewSvg(L) }; }); },
-  insertMockupLayout: function (i) {
+  insertMockupLayout: async function (i) {
     var L = MOCKUP_LAYOUTS[i | 0]; if (!L) return;
+    /* a mock-up slide is a NEW slide, inserted right after the current one
+       (Javed, 21 Aug 2026). It inherits the deck's background colour. */
+    var _max = (typeof ldMaxSlides === 'function') ? ldMaxSlides() : 500;
+    if (state.pages.length >= _max) { showToast('Maximum ' + _max + ' slides'); return; }
+    var prevBg = (typeof fc.backgroundColor === 'string') ? fc.backgroundColor : '#FFFFFF';
+    captureCurrentPage();
+    var at = state.currentPage + 1;
+    var page = makeBlankPage(Date.now()); page.pendingBg = prevBg;
+    state.pages.splice(at, 0, page); state.notes.splice(at, 0, '');
+    state.currentPage = at;
+    await loadPageIntoCanvas(at);
+    fc.setBackgroundColor(prevBg, function () {});
     var W = fc._baseWidth || 1920, H = fc._baseHeight || 1080;
     var dark = false;
     try { var bgc = fc.backgroundColor; if (typeof bgc === 'string' && /^#/.test(bgc)) { var n = parseInt(bgc.slice(1, 7), 16); dark = ((n >> 16 & 255) * .299 + (n >> 8 & 255) * .587 + (n & 255) * .114) < 128; } } catch (e) {}
@@ -1023,7 +1048,9 @@ Editor._register({
       }
     });
     fc.discardActiveObject(); fc.renderAll(); saveState();
-    showToast('Mock-up “' + L.name + '” placed — click a photo in Photos, or drag one onto a frame');
+    try { renderPageThumbs(); } catch (e) {}
+    Editor._emit('slides', Editor.query('slides'));
+    showToast('Mock-up slide “' + L.name + '” added as slide ' + (at + 1) + ' — click a photo in Photos, or drag one onto a frame');
   }
 });
 
@@ -5118,13 +5145,13 @@ var _LEGACY_SHAPES = { rect: 1, rounded: 1, circle: 1, triangle: 1, diamond: 1, 
 function shapePreview(item) {
   /* line previews */
   if (item.line) {
-    var mid = '<line x1="10" y1="40" x2="190" y2="40" stroke="#0F172A" stroke-width="7"';
+    var mid = '<line x1="10" y1="40" x2="190" y2="40" stroke="currentColor" stroke-width="7"';
     if (item.line === 'dashed') mid += ' stroke-dasharray="22 14"';
     if (item.line === 'dotted') mid += ' stroke-dasharray="2 16" stroke-linecap="round"';
     mid += '/>';
     var heads = '';
-    if (item.line === 'arrow' || item.line === 'double') heads += '<path d="M168 22 L196 40 L168 58 Z" fill="#0F172A"/>';
-    if (item.line === 'double') heads += '<path d="M32 22 L4 40 L32 58 Z" fill="#0F172A"/>';
+    if (item.line === 'arrow' || item.line === 'double') heads += '<path d="M168 22 L196 40 L168 58 Z" fill="currentColor"/>';
+    if (item.line === 'double') heads += '<path d="M32 22 L4 40 L32 58 Z" fill="currentColor"/>';
     return '<svg viewBox="0 0 200 80">' + mid + heads + '</svg>';
   }
   /* legacy colourless silhouettes for the 8 original kinds */
