@@ -728,7 +728,7 @@ window.ldRefreshTokens = async function () {
     up.title = 'See subscription plans and top-ups (opens our website)';
     up.style.cssText = 'border:0;border-radius:999px;padding:5px 12px;font:700 11.5px "DM Sans",system-ui,sans-serif;cursor:pointer;' +
       'background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;';
-    up.addEventListener('click', function () { window.open('https://www.lazydogtemplates.com/pricing.html', '_blank', 'noopener'); });
+    up.addEventListener('click', function () { window.ldPlansModal(); });
     chip.appendChild(lab); chip.appendChild(up);
   } catch (e) { /* quietly — the chip is a convenience, never a blocker */ }
 };
@@ -738,6 +738,186 @@ window.addEventListener('load', function () {
     if (window.Editor && Editor.on) Editor.on('user', function () { window.ldRefreshTokens(); });
   }, 2500);
 });
+
+/* ═════════ PLANS MODAL (21 Aug 2026, Javed) — Canva-style, inside the editor ═════════
+   Live prices from billing_config/main (the same doc pricing.html reads), the
+   Subscribe buttons open Whop checkout in the browser (never in-app). */
+window.ldPlansModal = async function () {
+  var old = document.getElementById('ld-plans-overlay'); if (old) old.remove();
+  var FALLBACK = { costs: { composePerSlide: 5, fillPerSlide: 12, pngDecompose: 25, pdfDecomposePerPage: 20 },
+    plans: { pro: { priceUsd: 19, tokens: 1500 }, studio: { priceUsd: 39, tokens: 3750 },
+             proAnnual: { priceUsd: 192, tokens: 1500, billedAnnually: true }, studioAnnual: { priceUsd: 408, tokens: 3750, billedAnnually: true },
+             annualFlex: { priceUsd: 50, tokens: 6000, oneTime: true } }, carryForwardPct: 50, graceDays: 30, whopPlanMap: {} };
+  var CFG = FALLBACK;
+  try {
+    var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+    var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+    var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({ apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes', authDomain: 'templatehub-16cd7.firebaseapp.com', projectId: 'templatehub-16cd7', storageBucket: 'templatehub-16cd7.firebasestorage.app' });
+    var snap = await fsMod.getDoc(fsMod.doc(fsMod.getFirestore(app), 'billing_config', 'main'));
+    if (snap.exists()) { var d = snap.data() || {}; CFG = { costs: Object.assign({}, FALLBACK.costs, d.costs || {}), plans: Object.assign({}, FALLBACK.plans, d.plans || {}), carryForwardPct: d.carryForwardPct != null ? d.carryForwardPct : 50, graceDays: d.graceDays != null ? d.graceDays : 30, whopPlanMap: d.whopPlanMap || {} }; }
+  } catch (e) { /* fallback prices */ }
+  function checkoutFor(key) { var m = CFG.whopPlanMap || {}; for (var id in m) if (m[id] === key) return 'https://whop.com/checkout/' + id; return 'https://www.lazydogtemplates.com/pricing.html'; }
+  var ov = document.createElement('div'); ov.id = 'ld-plans-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.66);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:"DM Sans",system-ui,sans-serif;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:18px;width:min(960px,95vw);max-height:92vh;overflow:auto;padding:26px 28px;color:#e8e9f2;box-shadow:0 24px 70px rgba(0,0,0,.6);position:relative;';
+  var n = function (v) { return Number(v || 0).toLocaleString(); };
+  var c = CFG.costs, perDeck = (Number(c.composePerSlide || 0) + Number(c.fillPerSlide || 0)) * 10;
+  var mode = 'monthly';
+  function render() {
+    var keys = mode === 'monthly' ? ['pro', 'studio', 'annualFlex'] : ['proAnnual', 'studioAnnual', 'annualFlex'];
+    var LABEL = { pro: 'Pro', studio: 'Studio', proAnnual: 'Pro', studioAnnual: 'Studio', annualFlex: 'Flex' };
+    var SUB = { pro: 'For steady, regular work', studio: 'For heavy use and teams', proAnnual: 'For steady, regular work', studioAnnual: 'For heavy use and teams', annualFlex: 'For work that comes in bursts' };
+    box.innerHTML = '<button id="ld-plans-x" style="position:absolute;top:12px;right:14px;border:0;background:#23243a;color:#c9cbe0;border-radius:999px;width:32px;height:32px;font-size:18px;cursor:pointer;">×</button>' +
+      '<div style="font-size:22px;font-weight:800;">Upgrade your plan</div>' +
+      '<div style="font-size:13px;color:#a9abc4;margin:4px 0 14px;">Editing is always free. Tokens pay for AI work — designing, writing, dissolving files. Unused tokens carry over at ' + CFG.carryForwardPct + '%.</div>' +
+      '<div style="display:inline-flex;background:#0e0f1a;border:1px solid #34365a;border-radius:999px;padding:3px;margin-bottom:16px;">' +
+        '<button data-mode="monthly" style="border:0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;' + (mode === 'monthly' ? 'background:#7c5cff;color:#fff;' : 'background:transparent;color:#c9cbe0;') + '">Monthly</button>' +
+        '<button data-mode="annual" style="border:0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;' + (mode === 'annual' ? 'background:#7c5cff;color:#fff;' : 'background:transparent;color:#c9cbe0;') + '">Annual · save ~16%</button>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">' +
+      keys.map(function (k, i) {
+        var p = CFG.plans[k] || {}; var tk = Number(p.tokens || 0); var decks = perDeck ? Math.floor(tk / perDeck) : 0;
+        var price = p.oneTime ? '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">once</span>' : p.billedAnnually ? '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">/year</span>' : '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">/month</span>';
+        var note = p.oneTime ? 'Valid one year. Never charged again.' : p.billedAnnually ? (n(tk) + ' tokens every month, billed yearly') : 'Cancel any time';
+        return '<div style="background:#0e0f1a;border:1px solid ' + (i === 0 ? '#7c5cff' : '#2c2e45') + ';border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;">' +
+          (i === 0 ? '<div style="font-size:10px;letter-spacing:.1em;color:#e05fa9;font-weight:800;">MOST POPULAR</div>' : '<div style="height:12px;"></div>') +
+          '<div style="font-size:20px;font-weight:800;">' + LABEL[k] + '</div><div style="font-size:12px;color:#a9abc4;">' + SUB[k] + '</div>' +
+          '<div style="font-size:30px;font-weight:800;margin-top:6px;">' + price + '</div><div style="font-size:11.5px;color:#a9abc4;">' + note + '</div>' +
+          '<div style="font-size:16px;font-weight:700;margin-top:8px;">' + n(tk) + ' tokens</div><div style="font-size:11.5px;color:#a9abc4;">about ' + decks + ' full 10-slide decks</div>' +
+          '<div style="font-size:11px;color:#8b8ea8;margin-top:8px;line-height:1.7;">Design one slide <b style="float:right;color:#e8e9f2;">' + c.composePerSlide + '</b><br>Write one slide from your content <b style="float:right;color:#e8e9f2;">' + c.fillPerSlide + '</b><br>PDF page → slides <b style="float:right;color:#e8e9f2;">' + c.pdfDecomposePerPage + '</b><br>PNG → editable slide <b style="float:right;color:#e8e9f2;">' + c.pngDecompose + '</b></div>' +
+          '<button data-buy="' + k + '" style="margin-top:auto;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;">' + (p.oneTime ? 'Buy once' : 'Subscribe') + '</button>' +
+        '</div>';
+      }).join('') + '</div>' +
+      '<div style="font-size:11px;color:#8b8ea8;margin-top:14px;line-height:1.6;">Payments are processed by Whop in your browser — card details never reach LazyDog. A lapsed plan keeps its balance for ' + CFG.graceDays + ' days. Cancelling never takes back tokens you have paid for. Templates are sold separately.</div>';
+    box.querySelector('#ld-plans-x').onclick = close;
+    box.querySelectorAll('[data-mode]').forEach(function (b) { b.onclick = function () { mode = b.getAttribute('data-mode'); render(); }; });
+    box.querySelectorAll('[data-buy]').forEach(function (b) { b.onclick = function () { window.open(checkoutFor(b.getAttribute('data-buy')), '_blank', 'noopener'); }; });
+  }
+  function close() { ov.remove(); document.removeEventListener('keydown', onKey, true); }
+  function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(); } }
+  document.addEventListener('keydown', onKey, true);
+  ov.onmousedown = function (e) { if (e.target === ov) close(); };
+  render(); ov.appendChild(box); document.body.appendChild(ov);
+};
+Editor._register({ showPlans: function () { window.ldPlansModal(); } });
+
+/* ═════════ SHARE (21 Aug 2026, Javed) — real links, Canva-style ═════════
+   The deck is published as JSON to Storage under shares/{uid}/{slug}.json
+   (owner-only write, public read — see storage.rules) and the link opens
+   this editor with ?share=uid~slug. "Only you" = nothing published.
+   View link = read-only canvas with a "Make a copy" button; Edit link =
+   opens as an editable copy. "Personalise your link" = your own slug. */
+(function () {
+  var BUCKET = 'templatehub-16cd7.firebasestorage.app';
+  var SITE = 'https://www.lazydogtemplates.com/editor-v2/editor.html';
+  function slugify(x) { return String(x || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48); }
+  function shareState() { try { return JSON.parse(localStorage.getItem('ld_share_state') || '{}'); } catch (e) { return {}; } }
+  function putState(st) { try { localStorage.setItem('ld_share_state', JSON.stringify(st)); } catch (e) {} }
+  async function fb() {
+    var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+    var authMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js');
+    var stMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
+    var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({ apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes', authDomain: 'templatehub-16cd7.firebaseapp.com', projectId: 'templatehub-16cd7', storageBucket: BUCKET });
+    return { app: app, user: authMod.getAuth(app).currentUser, st: stMod };
+  }
+  function linkFor(uid, slug) { return SITE + '?share=' + encodeURIComponent(uid + '~' + slug); }
+  async function publish(mode, slug) {
+    var F = await fb();
+    if (!F.user) { showToast('Sign in first to share a link 🔐', 5000); return null; }
+    var deck = await buildEffectiveDeckIR();
+    var payload = { v: 1, mode: mode, name: slug, by: F.user.displayName || F.user.email || '', at: Date.now(), slides: state.pages.length, deck: deck, notes: (state.notes || []).slice() };
+    var json = JSON.stringify(payload);
+    if (json.length > 30 * 1024 * 1024) { showToast('This design is too big to share as a link (30 MB max) — download it instead', 7000); return null; }
+    var ref = F.st.ref(F.st.getStorage(F.app, 'gs://' + BUCKET), 'shares/' + F.user.uid + '/' + slug + '.json');
+    await F.st.uploadBytes(ref, new Blob([json], { type: 'application/json' }), { contentType: 'application/json', cacheControl: 'public,max-age=60' });
+    return linkFor(F.user.uid, slug);
+  }
+  async function unpublish(slug) {
+    try { var F = await fb(); if (!F.user) return; await F.st.deleteObject(F.st.ref(F.st.getStorage(F.app, 'gs://' + BUCKET), 'shares/' + F.user.uid + '/' + slug + '.json')); } catch (e) {}
+  }
+  window.ldShareModal = async function () {
+    var old = document.getElementById('ld-share-overlay'); if (old) old.remove();
+    var st = shareState();
+    var key = String(window.LD_DESIGN_NO || (state.pages[0] && state.pages[0].id) || 'design');
+    var cur = st[key] || { mode: 'private', slug: '' };
+    if (!cur.slug) cur.slug = 'design-' + Math.random().toString(36).slice(2, 8);
+    var ov = document.createElement('div'); ov.id = 'ld-share-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;font-family:"DM Sans",system-ui,sans-serif;';
+    var box = document.createElement('div');
+    box.style.cssText = 'position:absolute;top:52px;right:16px;width:340px;background:#151623;border:1px solid #2c2e45;border-radius:14px;padding:16px;color:#e8e9f2;box-shadow:0 18px 50px rgba(0,0,0,.55);';
+    function close() { ov.remove(); }
+    ov.onmousedown = function (e) { if (e.target === ov) close(); };
+    function render(busy, msg) {
+      var link = cur.mode === 'private' ? '' : linkFor(cur.uid || '', cur.slug);
+      box.innerHTML = '<div style="font-size:15px;font-weight:800;margin-bottom:10px;">Share this design</div>' +
+        '<label style="font-size:11px;color:#a9abc4;">Who can open the link</label>' +
+        '<select id="ld-sh-mode" style="width:100%;margin:4px 0 10px;background:#0e0f1a;color:#fff;border:1px solid #34365a;border-radius:8px;padding:8px 10px;font-size:13px;">' +
+          '<option value="private"' + (cur.mode === 'private' ? ' selected' : '') + '>🔒 Only you can access</option>' +
+          '<option value="view"' + (cur.mode === 'view' ? ' selected' : '') + '>👁 Anyone with the link can view</option>' +
+          '<option value="edit"' + (cur.mode === 'edit' ? ' selected' : '') + '>✏️ Anyone with the link can edit a copy</option>' +
+        '</select>' +
+        '<label style="font-size:11px;color:#a9abc4;">Personalise your link</label>' +
+        '<div style="display:flex;gap:6px;margin:4px 0 10px;"><span style="font-size:11px;color:#8b8ea8;align-self:center;white-space:nowrap;">…/editor.html?share=you~</span><input id="ld-sh-slug" value="' + cur.slug.replace(/"/g, '') + '" style="flex:1;min-width:0;background:#0e0f1a;color:#fff;border:1px solid #34365a;border-radius:8px;padding:7px 9px;font-size:13px;"></div>' +
+        '<input id="ld-sh-link" readonly value="' + (link || 'Turn on link sharing above') + '" style="width:100%;background:#0e0f1a;color:' + (link ? '#e8e9f2' : '#8b8ea8') + ';border:1px solid #34365a;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:10px;">' +
+        '<button id="ld-sh-copy" ' + (busy ? 'disabled' : '') + ' style="width:100%;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;opacity:' + (busy ? '.6' : '1') + ';">' + (busy ? 'Publishing…' : (cur.mode === 'private' ? 'Turn on sharing & copy link' : '🔗 Copy link')) + '</button>' +
+        '<div style="font-size:11px;color:#8b8ea8;margin-top:8px;min-height:14px;">' + (msg || (cur.mode === 'private' ? 'Nothing is published until you turn sharing on.' : 'Published — anyone with the link sees the latest copy you published. Re-copy after edits to update it.')) + '</div>';
+      box.querySelector('#ld-sh-mode').onchange = function (e) { cur.mode = e.target.value; if (cur.mode === 'private' && cur.uid) { unpublish(cur.slug); } st[key] = cur; putState(st); render(false); };
+      box.querySelector('#ld-sh-slug').onchange = function (e) { var ns = slugify(e.target.value) || cur.slug; if (ns !== cur.slug && cur.uid) unpublish(cur.slug); cur.slug = ns; st[key] = cur; putState(st); render(false); };
+      box.querySelector('#ld-sh-copy').onclick = async function () {
+        var mode = box.querySelector('#ld-sh-mode').value; cur.mode = mode === 'private' ? 'view' : mode;
+        cur.slug = slugify(box.querySelector('#ld-sh-slug').value) || cur.slug;
+        render(true);
+        try {
+          var url = await publish(cur.mode, cur.slug);
+          if (!url) { render(false, 'Could not publish.'); return; }
+          cur.uid = decodeURIComponent(url.split('share=')[1]).split('~')[0];
+          st[key] = cur; putState(st);
+          try { await navigator.clipboard.writeText(url); } catch (e) {}
+          render(false, '✓ Link copied. ' + (cur.mode === 'view' ? 'Viewers see a read-only deck.' : 'Anyone can open it and edit their own copy.'));
+          box.querySelector('#ld-sh-link').select();
+        } catch (e) { render(false, 'Publish failed: ' + (e && e.message || e)); }
+      };
+    }
+    render(false); ov.appendChild(box); document.body.appendChild(ov);
+  };
+  Editor._register({ share: function () { window.ldShareModal(); } });
+
+  /* ── opening a shared link ── */
+  var share = null; try { share = new URLSearchParams(location.search).get('share'); } catch (e) {}
+  if (share && share.indexOf('~') > 0) {
+    window.addEventListener('load', function () {
+      setTimeout(async function () {
+        var parts = share.split('~'), uid = parts[0], slug = parts.slice(1).join('~');
+        var url = 'https://firebasestorage.googleapis.com/v0/b/' + BUCKET + '/o/' + encodeURIComponent('shares/' + uid + '/' + slug + '.json') + '?alt=media';
+        showToast('Opening shared design…', 8000);
+        try {
+          var r = await fetch(url); if (!r.ok) throw new Error('This link has been turned off or does not exist');
+          var d = await r.json();
+          await window.loadDeckIRIntoEditor(d.deck);
+          if (d.notes) state.notes = d.notes;
+          if (d.mode === 'view') {
+            fc.getObjects().forEach(function (o) { o.selectable = false; o.evented = false; });
+            fc.selection = false; fc.discardActiveObject(); fc.renderAll();
+            window._ldViewOnly = true;
+            var bar = document.createElement('div');
+            bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:70px;z-index:9500;background:#151623;border:1px solid #2c2e45;border-radius:999px;padding:8px 10px 8px 16px;color:#e8e9f2;font:600 12.5px "DM Sans",system-ui,sans-serif;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.45);';
+            bar.innerHTML = '👁 View only — shared by ' + (d.by || 'a LazyDog user') + ' <button style="border:0;border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;">Make a copy to edit</button>';
+            bar.querySelector('button').onclick = function () {
+              window._ldViewOnly = false; fc.selection = true;
+              state.pages.forEach(function (p) { delete p.canvasJSON; });
+              loadPageIntoCanvas(state.currentPage).then(function () { fc.getObjects().forEach(function (o) { o.selectable = true; o.evented = true; }); fc.renderAll(); });
+              bar.remove(); showToast('This is your own copy now — edit freely');
+            };
+            document.body.appendChild(bar);
+            showToast('Shared design opened (view only)');
+          } else showToast('Shared design opened — this is your own editable copy');
+          try { history.replaceState(null, '', location.pathname); } catch (e) {}
+        } catch (e) { showToast(e.message || 'Could not open that link', 7000); }
+      }, 800);
+    });
+  }
+})();
 
 /* ?compose= boot — same contract Hexa uses on the old editor */
 (function () {
@@ -1450,6 +1630,84 @@ Editor._register({
     pdf.save('presentation.pdf');
     showToast('Saved ' + state.pages.length + ' slide(s) as PDF');
   }
+  /* 21 Aug 2026 (Javed) — every download type. PNG/JPG of one slide, PNG of
+     every slide (zip), SVG of the current slide (true vectors), and a video
+     of the deck (WebM, each slide held for its transition/4s). */
+  async function exportJpgFile() {
+    var i = state.currentPage || 0;
+    showToast('Rendering JPG…');
+    var url = await slideImage(i);
+    ldSaveDataUrl(url, 'slide-' + (i + 1) + '.jpg');
+    showToast('Saved slide ' + (i + 1) + ' as JPG');
+  }
+  async function exportAllPngZip() {
+    showToast('Rendering ' + state.pages.length + ' slides…', 8000);
+    var zip = new JSZip();
+    for (var i = 0; i < state.pages.length; i++) {
+      var url = await slidePng(i);
+      zip.file('slide-' + String(i + 1).padStart(2, '0') + '.png', url.split(',')[1], { base64: true });
+      if (i % 5 === 4) showToast('Rendered ' + (i + 1) + ' of ' + state.pages.length + '…', 4000);
+    }
+    var blob = await zip.generateAsync({ type: 'blob' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'slides-png.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    showToast('Saved ' + state.pages.length + ' slides as PNG (zip)');
+  }
+  async function exportSvgFile() {
+    var i = state.currentPage || 0;
+    captureCurrentPage();
+    var W = (fc._baseWidth || 1920), H = (fc._baseHeight || 1080);
+    var sc = new fabric.StaticCanvas(null, { width: W, height: H });
+    var page = state.pages[i];
+    if (page.canvasJSON) await new Promise(function (res) { sc.loadFromJSON(page.canvasJSON, function () { sc.renderAll(); res(); }); });
+    var svg = sc.toSVG({ width: W, height: H, viewBox: { x: 0, y: 0, width: W, height: H } });
+    try { sc.dispose(); } catch (e) {}
+    var blob = new Blob([svg], { type: 'image/svg+xml' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'slide-' + (i + 1) + '.svg';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    showToast('Saved slide ' + (i + 1) + ' as SVG');
+  }
+  async function exportVideoFile() {
+    if (!window.MediaRecorder) { showToast('Video export is not supported in this browser'); return; }
+    var W = (fc._baseWidth || 1920), H = (fc._baseHeight || 1080);
+    var scale = W > 1920 ? 1920 / W : 1;
+    var cw = Math.round(W * scale), ch = Math.round(H * scale);
+    showToast('Rendering video frames…', 8000);
+    var frames = [];
+    for (var i = 0; i < state.pages.length; i++) {
+      var im = new Image(); im.src = await slideImage(i);
+      await new Promise(function (r) { im.onload = r; im.onerror = r; });
+      frames.push(im);
+    }
+    var cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+    var ctx = cv.getContext('2d');
+    var stream = cv.captureStream(30);
+    var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].filter(function (m) { return MediaRecorder.isTypeSupported(m); })[0] || 'video/webm';
+    var rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
+    var chunks = []; rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+    var done = new Promise(function (res) { rec.onstop = res; });
+    rec.start(200);
+    var HOLD = 4000, FADE = 500;
+    var t0 = performance.now();
+    function drawAt(t) {
+      var per = HOLD + FADE, idx = Math.min(frames.length - 1, Math.floor(t / per)), k = t - idx * per;
+      ctx.drawImage(frames[idx], 0, 0, cw, ch);
+      if (k > HOLD && idx + 1 < frames.length) { ctx.globalAlpha = (k - HOLD) / FADE; ctx.drawImage(frames[idx + 1], 0, 0, cw, ch); ctx.globalAlpha = 1; }
+      return t < frames.length * per - FADE;
+    }
+    showToast('Recording ' + state.pages.length + ' slides (' + Math.round(state.pages.length * 4.5) + 's)…', 60000);
+    await new Promise(function (res) {
+      (function tick() { if (drawAt(performance.now() - t0)) requestAnimationFrame(tick); else res(); })();
+    });
+    rec.stop(); await done;
+    var blob = new Blob(chunks, { type: 'video/webm' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'presentation.webm';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    showToast('Saved video (.webm) — plays in any browser, PowerPoint and VLC');
+  }
   function ldBusyWrap(kind, fn) {
     if (window.ldBusy) window.ldBusy('download', true);
     return Promise.resolve().then(fn).catch(function (e) { console.error('[export]', kind, e); showToast(kind + ' export failed'); })
@@ -1460,7 +1718,11 @@ Editor._register({
     presentFromCurrent: function () { present(true); },
     exportPptx: function () { ldBusyWrap('PPTX', exportPptxFileV2); },
     exportPdf: function () { ldBusyWrap('PDF', exportPdfFile); },
-    exportPng: function () { ldBusyWrap('PNG', exportPngFile); }
+    exportPng: function () { ldBusyWrap('PNG', exportPngFile); },
+    exportJpg: function () { ldBusyWrap('JPG', exportJpgFile); },
+    exportPngAll: function () { ldBusyWrap('PNG', exportAllPngZip); },
+    exportSvg: function () { ldBusyWrap('SVG', exportSvgFile); },
+    exportVideo: function () { ldBusyWrap('Video', exportVideoFile); }
   });
 })();
 
@@ -4678,6 +4940,90 @@ Editor._register({
       decks always show life.
    ═══════════════════════════════════════════════════════════════════════ */
 
+/* ════ SYSTEM CLIPBOARD PASTE (21 Aug 2026, Javed) ════
+   Copy anything in Canva, a browser, PowerPoint or Explorer and Ctrl+V it on
+   the canvas: pictures land as pictures (SVG stays vector), text lands as a
+   text box. The editor's own copy/paste of objects is untouched — it runs
+   first, and this only steps in when there is nothing internal to paste. */
+(function () {
+  function fileToDataUrl(f) { return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.onerror = function () { res(null); }; fr.readAsDataURL(f); }); }
+  function inField(t) { return t && (/INPUT|TEXTAREA|SELECT/.test(t.tagName || '') || t.isContentEditable); }
+  function placeImage(url) {
+    fabric.Image.fromURL(url, function (img) {
+      if (!img || !img.width) { showToast('Could not read that picture'); return; }
+      var W = fc._baseWidth || 1920, H = fc._baseHeight || 1080;
+      var maxW = W * 0.6, maxH = H * 0.7;
+      var sc = Math.min(1, maxW / img.width, maxH / img.height);
+      img.set({ scaleX: sc, scaleY: sc, left: (W - img.width * sc) / 2, top: (H - img.height * sc) / 2 });
+      fc.add(img).setActiveObject(img); fc.renderAll(); saveState();
+      showToast('Pasted picture');
+    }, { crossOrigin: 'anonymous' });
+  }
+  function placeText(text) {
+    var W = fc._baseWidth || 1920;
+    var t = new fabric.Textbox(String(text).trim().slice(0, 4000), { left: W * 0.1, top: (fc._baseHeight || 1080) * 0.2, width: W * 0.5, fontFamily: 'DM Sans', fontSize: 32, fill: '#0F172A', editable: true });
+    fc.add(t).setActiveObject(t); fc.renderAll(); saveState();
+    showToast('Pasted text');
+  }
+  async function pasteFromItems(items, files) {
+    var html = '', text = '', imgFile = null, svgText = '';
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (it.kind === 'file' && /^image\//.test(it.type) && !imgFile) imgFile = it.getAsFile();
+      else if (it.type === 'text/html') html = await new Promise(function (r) { it.getAsString(r); });
+      else if (it.type === 'text/plain') text = await new Promise(function (r) { it.getAsString(r); });
+      else if (it.type === 'image/svg+xml') svgText = await new Promise(function (r) { it.getAsString(r); });
+    }
+    if (!imgFile && files && files.length && /^image\//.test(files[0].type)) imgFile = files[0];
+    if (imgFile) { var u = await fileToDataUrl(imgFile); if (u) { placeImage(u); return true; } }
+    if (svgText || /^\s*<svg[\s>]/i.test(text)) { placeImage('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText || text)))); return true; }
+    if (html) {
+      var m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (m) {
+        var src = m[1];
+        if (/^data:image/.test(src)) { placeImage(src); return true; }
+        var d = await (typeof frameSrcViaFetch === 'function' ? frameSrcViaFetch(src) : null);
+        if (d) { placeImage(d); return true; }
+        placeImage(src); return true;
+      }
+      var tmp = document.createElement('div'); tmp.innerHTML = html; var t2 = (tmp.textContent || '').trim();
+      if (t2) { placeText(t2); return true; }
+    }
+    if (text && text.trim()) {
+      if (/^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)(\?\S*)?$/i.test(text.trim())) { var d2 = await frameSrcViaFetch(text.trim()); placeImage(d2 || text.trim()); return true; }
+      placeText(text); return true;
+    }
+    return false;
+  }
+  document.addEventListener('paste', function (e) {
+    if (!window.fc) return;
+    var ao = fc.getActiveObject && fc.getActiveObject();
+    if (inField(e.target) || (ao && ao.isEditing)) return;
+    var cd = e.clipboardData; if (!cd) return;
+    var hasExternal = (cd.files && cd.files.length) || Array.prototype.some.call(cd.items || [], function (it) { return it.kind === 'file' || it.type === 'text/html' || it.type === 'text/plain' || it.type === 'image/svg+xml'; });
+    if (!hasExternal) return;
+    /* an object copied INSIDE the editor still pastes the editor's way */
+    if (typeof _clip !== 'undefined' && _clip && (!cd.files || !cd.files.length) && !Array.prototype.some.call(cd.items || [], function (it) { return it.kind === 'file'; }) && window.__ldInternalCopyAt && Date.now() - window.__ldInternalCopyAt < 120000) return;
+    e.preventDefault();
+    pasteFromItems(cd.items || [], cd.files || []);
+  }, true);
+  /* right-click → Paste with nothing internal: read the system clipboard */
+  window.ldPasteFromSystem = async function () {
+    if (!navigator.clipboard || !navigator.clipboard.read) { showToast('Use Ctrl+V to paste from other apps'); return; }
+    try {
+      var items = await navigator.clipboard.read();
+      for (var i = 0; i < items.length; i++) {
+        var types = items[i].types || [];
+        var imgT = types.filter(function (t) { return /^image\//.test(t); })[0];
+        if (imgT) { var b = await items[i].getType(imgT); var u = await fileToDataUrl(b); if (u) { placeImage(u); return; } }
+        if (types.indexOf('text/html') > -1) { var h = await (await items[i].getType('text/html')).text(); if (await pasteFromItems([{ kind: 'string', type: 'text/html', getAsString: function (cb) { cb(h); } }], [])) return; }
+        if (types.indexOf('text/plain') > -1) { var tx = await (await items[i].getType('text/plain')).text(); if (tx.trim()) { placeText(tx); return; } }
+      }
+      showToast('Nothing to paste');
+    } catch (e) { showToast('Use Ctrl+V to paste from other apps'); }
+  };
+})();
+
 /* ════ 0 · COMPONENTS (21 Aug 2026) — save any selection, insert it again ════
    Kept in localStorage per browser/app (no server round-trip, works offline). */
 (function () {
@@ -4791,7 +5137,7 @@ Editor._register({
       if (!item) return;
       switch (item.dataset.ctx) {
         case 'copy':       if (typeof ctxCopy === 'function') ctxCopy(); break;
-        case 'paste':      if (typeof ctxPaste === 'function') ctxPaste(); break;
+        case 'paste':      if (typeof _clip !== 'undefined' && _clip) ctxPaste(); else if (window.ldPasteFromSystem) window.ldPasteFromSystem(); break;
         case 'duplicate':  ctxDuplicateV2(); break;
         case 'delete':     ctxDeleteV2(); break;
         case 'align':      if (typeof ctxAlign === 'function') ctxAlign(); break;

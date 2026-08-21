@@ -398,9 +398,9 @@ function ctxTrimToSlide() {
   }, FABRIC_JSON_PROPS);
 }
 
-function ctxCopy()      { fc && fc.getActiveObject() && fc.getActiveObject().clone(function(c){ _clip=c; showToast('Copied'); }); }
+function ctxCopy()      { fc && fc.getActiveObject() && fc.getActiveObject().clone(function(c){ _clip=c; window.__ldInternalCopyAt = Date.now(); showToast('Copied'); }); }
 
-function ctxPaste()     { _clip && _clip.clone(function(c){ c.set({left:c.left+20,top:c.top+20}); fc.add(c).setActiveObject(c).renderAll(); saveState(); }); }
+function ctxPaste()     { if (!_clip && window.ldPasteFromSystem) { window.ldPasteFromSystem(); return; } _clip && _clip.clone(function(c){ c.set({left:c.left+20,top:c.top+20}); fc.add(c).setActiveObject(c).renderAll(); saveState(); }); }
 
 function ctxAlign()     { var o=fc&&fc.getActiveObject(); if(!o){showToast('Select an element first');return;} o.set({left:(fc.getWidth()/fc.getZoom()-o.getScaledWidth())/2, top:(fc.getHeight()/fc.getZoom()-o.getScaledHeight())/2}); fc.renderAll(); saveState(); showToast('Aligned to center'); }
 

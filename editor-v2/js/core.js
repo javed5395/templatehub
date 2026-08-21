@@ -266,7 +266,7 @@ function rehydrateFrames() {}
     'background','pageSize','zoom','zoomFit','fitWidth',
     'toggleRuler','toggleGrid','toggleGuides',
     'presentFromStart','presentFromCurrent',
-    'exportPptx','exportPdf','exportPng','saveProject','newDesign',
+    'exportPptx','exportPdf','exportPng','exportJpg','exportPngAll','exportSvg','exportVideo','showPlans','share','saveProject','newDesign',
     'insertTable','insertIcon','insertWordArt','insertVideo','insertAudio','addComment',
     'drawPen','drawHighlighter','drawEraser','drawClear','drawSelect',
     'setTransition','setAnimation','accessibilityCheck',
@@ -295,7 +295,7 @@ function rehydrateFrames() {}
     projectOpen: 'your cloud projects', dataUpload: 'uploads', dataConnect: 'data sources',
     dataSheet: 'data sources', dataRefresh: 'data sources', publishElement: 'publishing',
     insertElement: 'the Elements library', deleteElement: 'the Elements library',
-    signIn: 'sign in', componentInsert: 'components'
+    signIn: 'sign in', componentInsert: 'components', share: 'sharing', showPlans: 'plans'
   };
 
   window.Editor = {

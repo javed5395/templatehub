@@ -899,6 +899,12 @@
     });
   });
   topbar.appendChild(uploadB);
+  /* ── Plans / Upgrade — same place Canva puts it, opens the in-editor plans card ── */
+  var planB = el('button', 'rb-action rb-plans'); planB.type = 'button'; planB.title = 'Subscription plans and top-ups';
+  planB.appendChild(mat('workspace_premium', 'rb-act-ico'));
+  planB.appendChild(document.createTextNode('Upgrade'));
+  planB.addEventListener('click', function () { run('showPlans'); });
+  topbar.appendChild(planB);
 
   /* ── blue Download button — real PPTX / PDF / PNG export ── */
   var dlB = el('button', 'rb-action rb-dl'); dlB.type = 'button'; dlB.title = 'Download';
@@ -909,9 +915,19 @@
       pop.appendChild(popRow({ matIcon: 'slideshow', label: 'PowerPoint', hint: '.pptx', onClick: function () { run('exportPptx'); } }));
       pop.appendChild(popRow({ matIcon: 'picture_as_pdf', label: 'PDF document', hint: '.pdf', onClick: function () { run('exportPdf'); } }));
       pop.appendChild(popRow({ matIcon: 'image', label: 'Image — current slide', hint: '.png', onClick: function () { run('exportPng'); } }));
+      pop.appendChild(popRow({ matIcon: 'photo', label: 'Image — current slide', hint: '.jpg', onClick: function () { run('exportJpg'); } }));
+      pop.appendChild(popRow({ matIcon: 'collections', label: 'Images — all slides', hint: '.zip of .png', onClick: function () { run('exportPngAll'); } }));
+      pop.appendChild(popRow({ matIcon: 'polyline', label: 'Vector — current slide', hint: '.svg', onClick: function () { run('exportSvg'); } }));
+      pop.appendChild(popRow({ matIcon: 'movie', label: 'Video — all slides', hint: '.webm', onClick: function () { run('exportVideo'); } }));
     });
   });
   topbar.appendChild(dlB);
+  /* ── Share — real links (view / edit-a-copy), personalised slug ── */
+  var shB = el('button', 'rb-action rb-share'); shB.type = 'button'; shB.title = 'Share a link to this design';
+  shB.appendChild(mat('ios_share', 'rb-act-ico'));
+  shB.appendChild(document.createTextNode('Share'));
+  shB.addEventListener('click', function () { run('share'); });
+  topbar.appendChild(shB);
 
   /* ── LIVE account avatar — real sign-in/out (shared with the main site) ── */
   var avatarB = el('button', 'rb-avatar'); avatarB.type = 'button'; avatarB.title = 'Account';

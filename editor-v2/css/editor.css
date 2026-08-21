@@ -191,6 +191,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .rb-q { align-self: center; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; margin-right: 2px; transition: background 100ms ease, opacity 100ms ease; }
 .rb-q:hover { background: var(--bg-inset); }
 .rb-q.is-dim { opacity: 0.35; }
+.rb-plans { border-color: rgba(139,61,255,.45) !important; background: linear-gradient(135deg, rgba(124,92,255,.18), rgba(224,95,169,.18)) !important; }
 .rb-action { align-self: center; height: 31px; display: inline-flex; align-items: center; gap: 6px; padding: 0 13px; margin-left: 8px; border-radius: 7px; border: 1px solid var(--line-2); background: var(--bg-chrome); font-size: 12.5px; font-weight: 600; color: var(--text-1); transition: background 100ms ease, border-color 100ms ease; }
 .rb-action .rb-act-ico { font-size: 17px; }
 .rb-action:hover { background: var(--bg-inset); }
