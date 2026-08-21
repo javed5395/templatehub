@@ -665,7 +665,7 @@
     p.appendChild(sliderRow('Size', 'glow', 'blur', 0, 60, 1, 0));
     p.appendChild(subhead('Outline'));
     p.appendChild(sliderRow('Width', 'outline', 'w', 0, 8, 0.5, 0));
-    p.appendChild(subhead('Image'));
+    p.appendChild(subhead('Image — select a photo first'));
     p.appendChild(sliderRow('Blur', 'image', 'blur', 0, 50, 1, 0));
     p.appendChild(sliderRow('Brightness', 'image', 'brightness', -60, 60, 2, 0));
     var clr = el('button', 'sb-primary'); clr.type = 'button';
@@ -741,24 +741,24 @@
     p.appendChild(head('AI'));
     p.appendChild(subhead('Create'));
     p.appendChild(grid([
-      { matIcon: 'auto_awesome_motion', label: 'Presentation', onClick: function () { run('ai', { kind: 'deck' }); } },
-      { matIcon: 'note_add', label: 'One slide', onClick: function () { run('ai', { kind: 'slide' }); } },
-      { matIcon: 'library_add', label: 'Add slides', onClick: function () { run('ai', { kind: 'addSlides' }); } },
+      { matIcon: 'auto_awesome_motion', label: 'Make a design', tip: 'A brand-new design from the card — every box optional', onClick: function () { run('ai', { kind: 'deck' }); } },
+      { matIcon: 'note_add', label: 'One slide', tip: 'Adds one more slide in this deck\'s style', onClick: function () { run('ai', { kind: 'slide' }); } },
+      { matIcon: 'library_add', label: 'Add slides', tip: 'Adds several slides in this deck\'s style', onClick: function () { run('ai', { kind: 'addSlides' }); } },
       { matIcon: 'dashboard_customize', label: 'Mock-ups', onClick: function () { run('ai', { kind: 'mockups' }); } },
       /* 20 Aug 2026 (Fable, Javed's order) — design + YOUR content in one go:
          the design form plus a content box; Hexa composes, the model cascade
          fills. Pure UI — the engine owns the flow behind 'preparePresentation'. */
-      { matIcon: 'co_present', label: 'Create presentation', onClick: function () { run('ai', { kind: 'preparePresentation' }); } }
+      { matIcon: 'co_present', label: 'Design + my content', tip: 'Hexa designs the deck, then writes every slide from the content you paste', onClick: function () { run('ai', { kind: 'preparePresentation' }); } }
     ], 2));
-    p.appendChild(subhead('Text'));
+    p.appendChild(subhead('Text — select a text box first'));
     p.appendChild(grid([
-      { matIcon: 'edit_note', label: 'Rewrite', onClick: function () { run('ai', { kind: 'rewrite' }); } },
-      { matIcon: 'compress', label: 'Summarize', onClick: function () { run('ai', { kind: 'summarize' }); } },
-      { matIcon: 'translate', label: 'Translate', onClick: function () { run('ai', { kind: 'translate' }); } }
+      { matIcon: 'edit_note', label: 'Rewrite', tip: 'Select a text box, then: clearer, punchier wording, same meaning', onClick: function () { run('ai', { kind: 'rewrite' }); } },
+      { matIcon: 'compress', label: 'Summarize', tip: 'Select a text box, then: shortens it to one slide-friendly line', onClick: function () { run('ai', { kind: 'summarize' }); } },
+      { matIcon: 'translate', label: 'Translate', tip: 'Select a text box, then choose a language', onClick: function () { run('ai', { kind: 'translate' }); } }
     ], 3));
-    p.appendChild(subhead('Image'));
+    p.appendChild(subhead('Image — select a photo first'));
     p.appendChild(grid([
-      { matIcon: 'auto_fix_normal', label: 'Remove background', onClick: function () { run('ai', { kind: 'removeBg' }); } }
+      { matIcon: 'auto_fix_normal', label: 'Remove background', tip: 'Select a photo, then: cuts the background out (transparent PNG)', onClick: function () { run('ai', { kind: 'removeBg' }); } }
     ], 1));
   }
   function panelComponents(p) {

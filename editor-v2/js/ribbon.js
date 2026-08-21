@@ -478,6 +478,7 @@
   function tabDraw() {
     var body = el('div', 'rb-body-inner');
     body.appendChild(group('Drawing tools',
+      big({ matIcon: 'near_me', label: 'Select', cmd: 'drawSelect', press: 'draw-select' }),
       big({ ic: 'draw-pen', label: 'Pen', cmd: 'drawPen', press: 'draw-pen' }),
       big({ ic: 'draw-highlighter', label: 'Highlighter', cmd: 'drawHighlighter', press: 'draw-high' }),
       big({ ic: 'eraser', label: 'Eraser', cmd: 'drawEraser', press: 'draw-erase' })
@@ -540,12 +541,24 @@
     body.appendChild(sepd());
     body.appendChild(group('Customise',
       big({ ic: 'bg-to-all', label: 'Background', pop: swatchPopover('background', BACKGROUNDS) }),
-      big({ ic: 'page-size', label: 'Slide\nSize', pop: function (pop) {
-        pop.appendChild(popRow({ matIcon: 'crop_16_9', label: '16:9 Widescreen', cmd: 'pageSize', arg: '16:9' }));
-        pop.appendChild(popRow({ matIcon: 'crop_5_4', label: '4:3 Standard', cmd: 'pageSize', arg: '4:3' }));
-        pop.appendChild(popRow({ matIcon: 'description', label: 'A4 Landscape', cmd: 'pageSize', arg: 'a4' }));
-        pop.appendChild(popRow({ matIcon: 'crop_square', label: 'Square 1:1', cmd: 'pageSize', arg: '1:1' }));
-        pop.appendChild(popRow({ matIcon: 'crop_16_9', label: '16:10', cmd: 'pageSize', arg: '16:10' }));
+      big({ ic: 'page-size', label: 'Canvas\nSize', pop: function (pop) {
+        /* 21 Aug 2026 — the full standard list (same one the design card shows) */
+        var L = (window.LD_DESIGN_DATA && window.LD_DESIGN_DATA.SIZES) || [['16:9', '16:9 Widescreen', 1920, 1080]];
+        L.forEach(function (sz) {
+          var ic = sz[0] === 'custom' ? 'tune' : (!sz[2] ? 'crop_16_9' : sz[2] === sz[3] ? 'crop_square' : sz[2] > sz[3] ? 'crop_16_9' : 'crop_portrait');
+          if (sz[0] === 'custom') {
+            pop.appendChild(popRow({ matIcon: ic, label: sz[1], onClick: function () {
+              var ask = window.ldPrompt ? window.ldPrompt('Custom size — width x height in pixels', 'e.g. 1200x800') : Promise.resolve(prompt('Width x height in px (e.g. 1200x800)'));
+              Promise.resolve(ask).then(function (v) {
+                var m = /^\s*(\d{2,5})\s*[x×X*,]\s*(\d{2,5})\s*$/.exec(String(v || ''));
+                if (!m) { if (v && window.Editor) Editor._toast('Type it as width x height, e.g. 1200x800'); return; }
+                run('pageSize', m[1] + 'x' + m[2]);
+              });
+            } }));
+          } else {
+            pop.appendChild(popRow({ matIcon: ic, label: sz[1], cmd: 'pageSize', arg: sz[0] }));
+          }
+        });
       } }),
       big({ ic: 'theme-fonts', label: 'Theme\nFonts', cmd: 'themeFonts' })
     ));
@@ -999,6 +1012,8 @@
     redoB.classList.toggle('is-dim', !h.canRedo);
     var v = ask('view') || {};
     setPress('view-ruler', v.ruler); setPress('view-grid', v.grid); setPress('view-guides', v.guides);
+    var dm = ask('drawMode');
+    setPress('draw-select', !dm); setPress('draw-pen', dm === 'pen'); setPress('draw-high', dm === 'high'); setPress('draw-erase', dm === 'erase');
     var ps = ask('pageSize') || {};
     setPress('size-169', ps.ratio === '16:9'); setPress('size-43', ps.ratio === '4:3');
   }

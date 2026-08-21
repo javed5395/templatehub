@@ -995,13 +995,31 @@ Editor._register({
     if (fc.__v2DrawHooked) return;
     fc.__v2DrawHooked = true;
     fc.on('path:created', function (e) { if (e.path && draw.mode) { e.path._isDrawn = true; } });
+    /* strokes never leave the slide — points outside are clamped to its
+       edge, so nothing bleeds past the canvas in the exported file */
+    var origGetPointer = fc.getPointer.bind(fc);
+    fc.getPointer = function (e, ignoreZoom) {
+      var p = origGetPointer(e, ignoreZoom);
+      if (fc.isDrawingMode && p) {
+        var W = fc._baseWidth || 1920, H = fc._baseHeight || 1080;
+        p.x = Math.max(0, Math.min(W, p.x)); p.y = Math.max(0, Math.min(H, p.y));
+      }
+      return p;
+    };
     fc.on('mouse:down', function (opt) {
       if (draw.mode !== 'erase' || !opt.target) return;
       if (opt.target._isDrawn) { fc.remove(opt.target); fc.renderAll(); saveState(); }
     });
   }
+  function stopDrawing() {
+    draw.mode = null; fc.isDrawingMode = false; fc.defaultCursor = 'default';
+    if (fc.upperCanvasEl) fc.upperCanvasEl.style.cursor = 'default';
+    if (Editor._emit) Editor._emit('selection', Editor.query('selection'));
+  }
   function pen(highlight) {
     hooks();
+    /* pressing the active tool again switches back to the mouse (21 Aug 2026) */
+    if (draw.mode === (highlight ? 'high' : 'pen')) { stopDrawing(); showToast('Back to the mouse'); return; }
     draw.mode = highlight ? 'high' : 'pen';
     fc.isDrawingMode = true;
     fc.freeDrawingBrush = new fabric.PencilBrush(fc);
@@ -1009,17 +1027,20 @@ Editor._register({
     fc.freeDrawingBrush.color = highlight
       ? draw.colour + '55'
       : draw.colour;
-    showToast((highlight ? 'Highlighter' : 'Pen') + ' — press Esc to stop drawing');
+    showToast((highlight ? 'Highlighter' : 'Pen') + ' on — press Esc, or click Select, to go back to the mouse', 5000);
   }
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && draw.mode) { draw.mode = null; fc.isDrawingMode = false; }
+    if (e.key === 'Escape' && draw.mode) { stopDrawing(); showToast('Back to the mouse'); }
   });
   Editor._register({
+    drawSelect: function () { stopDrawing(); showToast('Select tool — back to the mouse'); },
+    __qDrawMode: function () { return draw.mode; },
     drawPen: function () { pen(false); },
     drawHighlighter: function () { pen(true); },
     drawEraser: function () {
-      hooks(); draw.mode = 'erase'; fc.isDrawingMode = false;
-      showToast('Eraser — click a stroke to remove it, Esc to stop');
+      hooks(); if (draw.mode === 'erase') { stopDrawing(); showToast('Back to the mouse'); return; }
+      draw.mode = 'erase'; fc.isDrawingMode = false;
+      showToast('Eraser — click a stroke to remove it. Esc or Select to stop');
     },
     drawClear: function () {
       var n = 0;
@@ -1784,12 +1805,19 @@ function pageRefresh() { renderPageThumbs(); }
 (function () {
   function busy(on, msg) { showToast(msg || (on ? 'Working…' : 'Done'), on ? 60000 : 1200); }
   function say(m) { showToast(m, 4000); }
+  /* the canvas size picked on the card is applied HERE, after the design
+     lands — so it is exact whatever the composer made of the ratio */
+  function applyChosenSize(key) {
+    if (!key || key === 'custom' || key === '16 9' || key === '16:9') return;
+    try { Editor.run('pageSize', key); } catch (e) {}
+  }
+  function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
   function styleClause() {
     return window.LD_DESIGN_NO != null ? ('use design ' + window.LD_DESIGN_NO + ' style, ') : '';
   }
   async function aiText(kind) {
     var o = fc.getActiveObject();
-    if (!o || !/text/.test(o.type || '')) { say('Select a text box first'); return; }
+    if (!o || !/text/.test(o.type || '')) { say('Click a text box on the slide first, then press ' + (kind === 'translate' ? 'Translate' : kind === 'rewrite' ? 'Rewrite' : 'Summarize')); return; }
     var src = (o.text || '').trim();
     if (!src) { say('That text box is empty'); return; }
     var prompt;
@@ -1812,18 +1840,59 @@ function pageRefresh() { renderPageThumbs(); }
       if (!t) throw new Error('empty reply');
       t = String(t).replace(/^ACTION:.*$/gm, '').trim();
       o._aiBefore = o.text;
-      o.set('text', t);
+      /* 21 Aug 2026 — the renderer squeezes text to its box with scaleX /
+         charSpacing; new words under the old squeeze came out mangled.
+         Undo the squeeze, keep the box width, let the height grow. */
+      var _sy = o.scaleY || 1;
+      o.set({ text: t, scaleX: _sy, charSpacing: 0 });
       if (o.initDimensions) o.initDimensions();
-      o.dirty = true; fc.renderAll(); saveState();
-      say('Done ✓');
+      o.setCoords(); o.dirty = true; fc.renderAll(); saveState();
+      say((kind === 'translate' ? 'Translated' : kind === 'rewrite' ? 'Rewritten' : 'Summarised') + ' ✓ — Ctrl+Z to undo');
     } catch (e) { say('AI text failed: ' + e.message); }
+  }
+  /* 21 Aug 2026 — Remove background: the selected photo goes to the dissolve
+     service (/remove_bg, rembg) and comes back as a transparent PNG. */
+  async function removeBackground() {
+    var o = fc.getActiveObject();
+    if (!o || o.type !== 'image') { say('Click a photo on the slide first, then press Remove background'); return; }
+    if (/^data:image\/svg/.test(o.src || '') || o.svgText) { say('That is a vector graphic — it has no background to remove'); return; }
+    var base = String(window.LD_DISSOLVE_URL || '').replace(/\/$/, '');
+    if (!base) { say('Background service not configured'); return; }
+    say('Removing background…');
+    try {
+      var el = o._originalElement || o._element;
+      var blob;
+      try {
+        var c = document.createElement('canvas'); c.width = el.naturalWidth || el.width; c.height = el.naturalHeight || el.height;
+        c.getContext('2d').drawImage(el, 0, 0);
+        blob = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
+      } catch (e) { blob = null; }
+      if (!blob) { var r0 = await fetch(o.getSrc ? o.getSrc() : o.src); blob = await r0.blob(); }
+      var fd = new FormData(); fd.append('file', blob, 'image.png');
+      var headers = {};
+      if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
+      if (window.ldWaitAuthToken) await window.ldWaitAuthToken(15000);
+      if (window.LD_AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
+      var r = await fetch(base + '/remove_bg', { method: 'POST', headers: headers, body: fd });
+      if (!r.ok) {
+        var det = ''; try { det = ((JSON.parse(await r.text()) || {}).message) || ''; } catch (e2) {}
+        say(det || ('Background removal failed (' + r.status + ')'), 8000); return;
+      }
+      var out = await r.blob();
+      var url = await new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(out); });
+      o.setSrc(url, function () {
+        o.src = url; delete o.irId; /* a new picture — export it as such */
+        fc.renderAll(); saveState(); say('Background removed ✓ — Ctrl+Z to undo');
+        if (window.ldRefreshTokens) window.ldRefreshTokens();
+      }, { crossOrigin: 'anonymous' });
+    } catch (e) { say('Background removal failed: ' + e.message, 6000); }
   }
   var _aiRunning = false;
   Editor._register({
     ai: function (a) {
       var kind = a && a.kind;
       if (['rewrite', 'summarize', 'translate'].indexOf(kind) > -1) { aiText(kind); return; }
-      if (kind === 'removeBg') { showToast('Remove background arrives with the media stage'); return; }
+      if (kind === 'removeBg') { removeBackground(); return; }
       if (_aiRunning) { say('Still working on the previous run — one at a time'); return; }
       /* 20 Aug 2026 (Fable) — window.prompt() does not exist in Electron, so
          every one of these buttons died with "Command failed: ai" inside the
@@ -1838,7 +1907,7 @@ function pageRefresh() { renderPageThumbs(); }
         var f0 = await window.ldDesignForm({ title: 'Make a design' });
         if (!f0 || !f0.sentence) return;
         _aiRunning = true; busy(true, 'Designing in the cloud… a big deck can take a few minutes');
-        window.ldCompose(f0.sentence).then(function () { _aiRunning = false; })
+        window.ldCompose(f0.sentence).then(function () { _aiRunning = false; applyChosenSize(f0.size); })
           .catch(function (e) { _aiRunning = false; say('Compose failed: ' + e.message); });
         return;
       }
@@ -1854,6 +1923,7 @@ function pageRefresh() { renderPageThumbs(); }
         (async function () {
           try {
             await window.ldCompose(fp.sentence);
+            applyChosenSize(fp.size);
             if (fp.content && fp.content.trim()) {
               busy(true, 'Filling your content — Hexa + the writers are on it…');
               var deckIR = await buildEffectiveDeckIR();
@@ -1876,12 +1946,11 @@ function pageRefresh() { renderPageThumbs(); }
         return;
       }
       if (kind === 'slide') {
-        var q = await window.ldPrompt('Describe the slide you want:', 'e.g. "a dark title slide with a bold headline"');
-        if (!q || !q.trim()) return;
+        /* 21 Aug 2026 (Javed) — no questions: one more slide in this deck's style */
         _aiRunning = true; busy(true, 'Designing one slide…');
-        window.ldComposeAppend(styleClause() + q.trim() + ', 5 slides', { keep: 1 })
+        window.ldComposeAppend(styleClause() + 'one more slide in this style, 3 slides', { keep: 1 })
           .then(function (n) { _aiRunning = false; if (n) say('Slide added ✓'); })
-          .catch(function () { _aiRunning = false; say('Could not add the slide'); });
+          .catch(function (e) { _aiRunning = false; say('Could not add the slide: ' + (e && e.message || e)); });
         return;
       }
       if (kind === 'addSlides') {
@@ -1894,10 +1963,15 @@ function pageRefresh() { renderPageThumbs(); }
           about = (await window.ldPrompt('This deck has no design number, so describe the look:', 'e.g. "dark navy corporate pitch deck"', '')) || '';
           if (!about.trim()) { say('Nothing to go on — cancelled'); return; }
         }
-        _aiRunning = true; busy(true, 'Adding ' + n + ' slides…');
-        window.ldComposeAppend(styleClause() + about.trim() + (about.trim() ? ', ' : '') + (n + 2) + ' slides', { keep: n })
-          .then(function (added) { _aiRunning = false; if (added) say(added + ' slide(s) added ✓'); })
-          .catch(function () { _aiRunning = false; say('Could not add the slides'); });
+        /* 21 Aug 2026 — plain words become the weights the grammar reads */
+        about = about.trim()
+          .replace(/\b(more |add |with |some )?(charts?|graphs?)\b/ig, 'high graphs')
+          .replace(/\b(more |add |with |some )?(pictures?|photos?|images?|mock-?ups?)\b/ig, 'high images')
+          .replace(/\b(more |add |with |some )?(text|words)\b/ig, 'high text');
+        _aiRunning = true; busy(true, 'Adding ' + plural(n, 'slide') + '…');
+        window.ldComposeAppend(styleClause() + about + (about ? ', ' : '') + (n + 2) + ' slides', { keep: n })
+          .then(function (added) { _aiRunning = false; if (added) say(plural(added, 'slide') + ' added ✓'); })
+          .catch(function (e) { _aiRunning = false; say('Could not add the slides: ' + (e && e.message || e)); });
         return;
       }
       if (kind === 'mockups') {
@@ -1905,9 +1979,9 @@ function pageRefresh() { renderPageThumbs(); }
         if (!hm) return;
         var m = Math.max(1, Math.min(20, parseInt(String(hm).replace(/[^0-9]/g, ''), 10) || 0));
         if (!m) { say('Give a number between 1 and 20'); return; }
-        _aiRunning = true; busy(true, 'Adding ' + m + ' mock-up slides…');
+        _aiRunning = true; busy(true, 'Adding ' + plural(m, 'mock-up slide') + '…');
         window.ldComposeAppend(styleClause() + (m + 2) + ' slides, ' + m + ' mockup slides', { onlyMockups: true, keep: m })
-          .then(function (added) { _aiRunning = false; if (added) say(added + ' mock-up slide(s) added ✓'); })
+          .then(function (added) { _aiRunning = false; if (added) say(plural(added, 'mock-up slide') + ' added ✓'); })
           .catch(function () { _aiRunning = false; say('Could not add the mock-ups'); });
         return;
       }
@@ -1994,6 +2068,15 @@ window.ldDesignForm = function (opts) {
       list.forEach(function (v) { var o = document.createElement('option'); o.value = v; o.textContent = lab[v] || v; if (v === keep) o.selected = true; F.type.appendChild(o); });
     }
     F.contentType.addEventListener('change', applySlice);
+    F.aspectRatio.addEventListener('change', function () {
+      if (F.aspectRatio.value !== 'custom') return;
+      window.ldPrompt('Custom size — width x height in pixels', 'e.g. 1200x800').then(function (v) {
+        var m = /^\s*(\d{2,5})\s*[x×X*,]\s*(\d{2,5})\s*$/.exec(String(v || ''));
+        if (!m) { F.aspectRatio.value = ''; return; }
+        var o = document.createElement('option'); o.value = m[1] + 'x' + m[2]; o.textContent = 'Custom ' + m[1] + ' x ' + m[2] + ' px';
+        F.aspectRatio.appendChild(o); F.aspectRatio.value = o.value; refreshPreview();
+      });
+    });
     box.appendChild(grid);
     /* live preview — exactly what Hexa is told */
     var prev = document.createElement('div');
@@ -2035,7 +2118,7 @@ window.ldDesignForm = function (opts) {
     ok.onclick = function () {
       var sentence = sentenceNow();
       if (!sentence) { fDesc.focus(); return; }
-      close({ sentence: sentence, content: fContent ? fContent.value : '' });
+      close({ sentence: sentence, content: fContent ? fContent.value : '', size: F.aspectRatio ? F.aspectRatio.value : '' });
     };
   });
 };

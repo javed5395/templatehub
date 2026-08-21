@@ -261,7 +261,7 @@ function rehydrateFrames() {}
     'presentFromStart','presentFromCurrent',
     'exportPptx','exportPdf','exportPng','saveProject','newDesign',
     'insertTable','insertIcon','insertWordArt','insertVideo','insertAudio','addComment',
-    'drawPen','drawHighlighter','drawEraser','drawClear',
+    'drawPen','drawHighlighter','drawEraser','drawClear','drawSelect',
     'setTransition','setAnimation','accessibilityCheck',
     'formatPainter','find','selectAll','deselect',
     'drawColour','drawSize','themeApply',
@@ -322,6 +322,7 @@ function rehydrateFrames() {}
         case 'fonts':     return impl.__qFonts ? impl.__qFonts() : ['DM Sans'];
         case 'slides':    return { count: state.pages.length || 1, current: state.currentPage || 0 };
         case 'zoom':      return state.zoom;
+        case 'drawMode':  return impl.__qDrawMode ? impl.__qDrawMode() : null;
         case 'history':   return impl.__qHistory ? impl.__qHistory() : { canUndo: false, canRedo: false };
         case 'view':      return impl.__qView ? impl.__qView() : { ruler: false, grid: false, guides: false };
         case 'pageSize':  return impl.__qPageSize ? impl.__qPageSize() : { ratio: '16:9' };
@@ -401,6 +402,11 @@ function rehydrateFrames() {}
     'a4': [10692130, 7560310], '1:1': [9144000, 9144000], '16:10': [12192000, 7620000]
   };
   var currentRatio = '16:9';
+  function sizeLabel(key) {
+    var L = (window.LD_DESIGN_DATA && window.LD_DESIGN_DATA.SIZES) || [];
+    for (var i = 0; i < L.length; i++) if (L[i][0] === key) return L[i][1];
+    return /^\d+x\d+$/.test(key) ? key.replace('x', ' x ') + ' px' : String(key).toUpperCase();
+  }
 
   function fitWidthNow() {
     if (!fc || !dom.canvasArea) return;
@@ -410,15 +416,19 @@ function rehydrateFrames() {}
     setZoom(Math.max(10, Math.min(300, (area - 80) / slideW * 100)));
   }
   function applyAspect(ratio) {
-    var emu = PAGE_SIZES[ratio];
+    /* 21 Aug 2026 — every standard canvas size (Instagram, TikTok, posters…)
+       plus "WxH" custom, from the shared LD_DESIGN_DATA.SIZES list */
+    var emu = PAGE_SIZES[ratio] || (window.LD_DESIGN_DATA && window.LD_DESIGN_DATA.sizeEmu(ratio));
     if (!emu) return;
     captureCurrentPage();
     setSlideAspect(emu[0], emu[1]);
     if (window._deckIR && window._deckIR.size) { window._deckIR.size.w = emu[0]; window._deckIR.size.h = emu[1]; }
     currentRatio = ratio;
     loadPageIntoCanvas(state.currentPage).then(function () {
-      fitWidthNow(); renderPageThumbs();
-      toast('Slide set to ' + ratio.toUpperCase());
+      var z = Math.round(calculateFitZoom()); if (!isFinite(z) || z <= 0) z = 100;
+      setZoom(z); state.zoom = z; state.autoFit = true; emit('zoom', { pct: state.zoom });
+      renderPageThumbs();
+      toast('Canvas set to ' + sizeLabel(ratio));
     });
   }
   function dupSlide() {
