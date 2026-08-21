@@ -1,0 +1,19 @@
+/* 21 Aug 2026 (Fable) — SELF-HOSTED fonts so the editor looks right offline.
+   Same families/classes Google Fonts declares (editor.html lines below this
+   file); Google stays linked as a fallback/upgrade and simply re-declares
+   the same names when online. Files from fontsource (OFL / Apache-2.0). */
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap;
+  src: url(fonts/dm-sans-latin-ext-wght-normal.woff2) format('woff2-variations');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap;
+  src: url(fonts/dm-sans-latin-wght-normal.woff2) format('woff2-variations'); }
+@font-face { font-family: 'Material Icons Outlined'; font-style: normal; font-weight: 400; font-display: block;
+  src: url(fonts/material-icons-outlined-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Material Symbols Outlined'; font-style: normal; font-weight: 100 700; font-display: block;
+  src: url(fonts/material-symbols-outlined-latin-wght-normal.woff2) format('woff2-variations'); }
+.material-icons-outlined, .material-symbols-outlined {
+  font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal;
+  text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr;
+  -webkit-font-feature-settings: 'liga'; font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+.material-icons-outlined { font-family: 'Material Icons Outlined'; }
+.material-symbols-outlined { font-family: 'Material Symbols Outlined'; }
