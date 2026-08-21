@@ -855,7 +855,7 @@ function doZoom(percent) {
 }
 
 function setZoom(value) {
-  state.zoom = Math.max(25, Math.min(200, Math.round(value)));
+  state.zoom = Math.max(10, Math.min(300, Math.round(value)));   /* 21 Aug 2026: matches the 10-300 slider and zoom command */
   dom.zoomSlider.value = state.zoom;
   dom.zoomValue.textContent = state.zoom + '%';
   doZoom(state.zoom);
