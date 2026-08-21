@@ -122,6 +122,17 @@
   .c.mk .c-ex{color:#b8bfd0;flex:none;margin-top:6px}
   .c.mk .mkb{margin-top:16px;background:#e03030;color:#fff;font-family:'Poppins',sans-serif;font-size:12px;
       font-weight:700;padding:10px 20px;border-radius:5px;position:relative}
+
+  /* ═══════════ FULL DIRECTORY (crawlable links for every category, not just the open tab) ═══════════ */
+  .dirmap{background:#07071a;padding:54px 30px 48px;border-top:1px solid rgba(255,255,255,.08)}
+  .dirmap-in{max-width:1240px;margin:0 auto}
+  .dirmap-h{font-family:'Instrument Serif',serif;font-weight:400;font-size:23px;color:#fff;margin:0 0 6px}
+  .dirmap-sub{color:#8a8496;font-size:13px;margin:0 0 30px}
+  .dirmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:30px 26px}
+  .dirmap-col h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+      color:#d4af37;margin:0 0 13px;font-weight:700}
+  .dirmap-col a{display:block;color:#b8bfd0;text-decoration:none;font-size:13px;line-height:1.9}
+  .dirmap-col a:hover{color:#fff;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -433,6 +444,96 @@ draw();
   }catch(e){ console.error('Career loader init failed:', e); }
 })();
 </script>
+
+<!-- ══ Static, always-in-the-HTML directory of every document sample — every card above
+     lives inside a JS tab panel that only paints on click, so a crawler that never
+     interacts with the tabs would only ever see the "Resumes" tab's links. This block
+     repeats every href from the DOCS data as plain <a> tags so all 49 sets are reachable
+     straight from this page's HTML, no click required. Visual tabs above are unchanged. ══ -->
+<section class="dirmap" aria-label="Full directory of career document samples">
+  <div class="dirmap-in">
+    <h2 class="dirmap-h">Browse every set, by type</h2>
+    <p class="dirmap-sub">All 49 sets, if you'd rather not click through the tabs above.</p>
+    <div class="dirmap-grid">
+      <div class="dirmap-col">
+        <h4>Resumes</h4>
+        <a href="career/clean-ats-resume-samples.html">Clean ATS Resume Samples</a>
+        <a href="career/minimal-pro-resume-samples.html">Minimal Pro Resume Samples</a>
+        <a href="career/healthcare-resume-samples.html">Healthcare Resume Samples</a>
+        <a href="career/developer-resume-samples.html">Technical / Developer Resume Samples</a>
+        <a href="career/two-column-resume-samples.html">Two-Column Resume Samples</a>
+        <a href="career/career-change-resume-samples.html">Career-Change Resume Samples</a>
+        <a href="career/creative-portfolio-resume-samples.html">Creative Sidebar Resume Samples</a>
+        <a href="career/first-resume-samples.html">Ultra Clean Resume Samples</a>
+        <a href="career/designer-resume-samples.html">Swiss Minimal Resume Samples</a>
+        <a href="career/executive-resume-samples.html">Executive Resume Samples</a>
+        <a href="career/senior-manager-resume-samples.html">Senior Manager Resume Samples</a>
+        <a href="career/director-resume-samples.html">Director-Level Resume Samples</a>
+        <a href="career/fresh-graduate-resume-samples.html">Fresh Graduate Resume Samples</a>
+        <a href="career/internship-resume-samples.html">Internship Resume Samples</a>
+        <a href="career/nurse-resume-samples.html">Nurse Resume Samples</a>
+        <a href="career/teacher-resume-samples.html">Teacher Resume Samples</a>
+        <a href="career/accountant-resume-samples.html">Accountant Resume Samples</a>
+        <a href="career/driver-technician-resume-samples.html">Driver &amp; Trade Resume Samples</a>
+      </div>
+      <div class="dirmap-col">
+        <h4>CVs</h4>
+        <a href="career/academic-cv-samples.html">Academic CV Samples</a>
+        <a href="career/research-cv-samples.html">Research CV Samples</a>
+        <a href="career/physician-cv-samples.html">Physician CV Samples</a>
+        <a href="career/nurse-cv-samples.html">Nurse CV Samples</a>
+        <a href="career/educator-cv-samples.html">Educator CV Samples</a>
+        <a href="career/lecturer-cv-samples.html">Lecturer CV Samples</a>
+        <a href="career/phd-candidate-cv-samples.html">PhD Candidate CV Samples</a>
+      </div>
+      <div class="dirmap-col">
+        <h4>Cover Letters</h4>
+        <a href="career/cover-letter-samples.html">Modern Cover Letter Samples</a>
+        <a href="career/short-cover-letter-samples.html">Short Cover Letter Samples</a>
+        <a href="career/formal-cover-letter-samples.html">Formal Cover Letter Samples</a>
+        <a href="career/executive-cover-letter-samples.html">Executive Cover Letter Samples</a>
+        <a href="career/application-letter-samples.html">Application Letter Samples</a>
+        <a href="career/speculative-cover-letter-samples.html">Speculative Cover Letter Samples</a>
+      </div>
+      <div class="dirmap-col">
+        <h4>Reference Pages</h4>
+        <a href="career/reference-page-samples.html">Reference Page Samples</a>
+        <a href="career/reference-request-samples.html">Reference Request Samples</a>
+        <a href="career/confidential-reference-samples.html">Confidential Reference Samples</a>
+      </div>
+      <div class="dirmap-col">
+        <h4>Resignation Letters</h4>
+        <a href="career/resignation-letter-samples.html">Resignation Letter Samples</a>
+        <a href="career/resignation-with-handover-samples.html">Resignation With Handover Samples</a>
+        <a href="career/immediate-resignation-samples.html">Immediate Resignation Samples</a>
+        <a href="career/experience-certificate-request-samples.html">Experience Certificate Request Samples</a>
+      </div>
+      <div class="dirmap-col">
+        <h4>Recommendation Letters</h4>
+        <a href="career/recommendation-letter-samples.html">Recommendation Letter Samples</a>
+        <a href="career/academic-recommendation-samples.html">Academic Recommendation Samples</a>
+        <a href="career/character-reference-samples.html">Character Reference Samples</a>
+      </div>
+      <div class="dirmap-col">
+        <h4>Thank You Letters</h4>
+        <a href="career/thank-you-email-samples.html">Post-Interview Thank You Samples</a>
+        <a href="career/networking-thank-you-samples.html">Networking Thank You Samples</a>
+      </div>
+      <div class="dirmap-col">
+        <h4>LinkedIn</h4>
+        <a href="career/linkedin-headline-samples.html">LinkedIn Headline Samples</a>
+        <a href="career/linkedin-about-samples.html">LinkedIn About Section Samples</a>
+        <a href="career/linkedin-banner-samples.html">LinkedIn Banner Samples</a>
+      </div>
+      <div class="dirmap-col">
+        <h4>Portfolio</h4>
+        <a href="career/designer-portfolio-samples.html">Designer Portfolio Samples</a>
+        <a href="career/ux-portfolio-samples.html">UI/UX Portfolio Samples</a>
+        <a href="career/freelancer-portfolio-samples.html">Freelancer Portfolio Samples</a>
+      </div>
+    </div>
+  </div>
+</section>
 
 <nav style="background:#07071a;padding:26px 30px;text-align:center;display:flex;gap:24px;
             justify-content:center;flex-wrap:wrap">
