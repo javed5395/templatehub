@@ -630,6 +630,12 @@ async function projSaveToFile() {
 window.loadDeckIRIntoEditor = async function (deckIR) {
   if (!deckIR || !deckIR.slides || !deckIR.slides.length) { showToast('Empty design received'); return; }
   window._deckIR = deckIR;
+  /* 22 Aug 2026 — a fresh AI-composed deck must start clean. window._ldMasters
+     ("stamp on all slides" elements) survived from the PREVIOUS design and was
+     being silently re-stamped onto every slide of the new one by
+     ldStampMasters() on first page-visit — this was the "keeps previous
+     design in back" bug. */
+  window._ldMasters = [];
   try {
     var n = deckIR._designNo != null ? deckIR._designNo
           : deckIR.designNo != null ? deckIR.designNo : null;
@@ -653,6 +659,19 @@ window.loadDeckIRIntoEditor = async function (deckIR) {
   /* self-heal: a deck has landed, so clear any leftover "Building slides…"
      heartbeat pill (e.g. one orphaned by an earlier import that hung) */
   if (window.ldParseHeartbeat) window.ldParseHeartbeat(false);
+  /* fill in thumbnails for every other slide so the filmstrip shows all
+     slides immediately, like Canva, instead of staying blank until clicked */
+  (async function fillAllThumbs() {
+    var startPage = state.currentPage;
+    for (var i = 1; i < state.pages.length; i++) {
+      try {
+        await loadPageIntoCanvas(i);
+        state.pages[i].thumb = fc.toDataURL({ format: 'jpeg', quality: 0.6, multiplier: 0.08 });
+        renderPageThumbs();
+      } catch (e) { /* one bad slide must not stop the rest */ }
+    }
+    try { await loadPageIntoCanvas(startPage); } catch (e) {}
+  })();
 };
 
 /* 20 Aug 2026 (Fable) — wait PROPERLY for the login token. The old loop gave
