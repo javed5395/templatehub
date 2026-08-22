@@ -64,7 +64,7 @@
             '<div class="fw-drop" id="fwDeckDrop">Drag the deck (.pptx) you want filled</div>' +
             '<input type="file" id="fwDeckInput" accept=".pptx" style="display:none"/>' +
             '<div class="fw-note" id="fwDeckNote"></div>' +
-            '<button class="fw-go" id="fwGo" disabled>Prepare my deck →</button>' +
+            '<button class="fw-go" id="fwGo" disabled>Prepare presentation →</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -295,7 +295,7 @@
             if (!pptxFileId && pptxUrl) { var mm = pptxUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/) || pptxUrl.match(/\/d\/([a-zA-Z0-9_-]+)/); pptxFileId = mm ? mm[1] : ''; }
           }
         } catch(e){}
-        if (!pptxFileId) { goBtn.disabled=false; goBtn.textContent='Prepare my deck →';
+        if (!pptxFileId) { goBtn.disabled=false; goBtn.textContent='Prepare presentation →';
           alert("Couldn't find this design's editable file. Try dropping the .pptx directly."); return; }
       }
 
@@ -316,12 +316,12 @@
       if (typeof window.hexaPrepare === 'function') {
         var _res = window.hexaPrepare(payload);
         if (_res && _res.ok === false) {   /* GATE 3 — Hexa refused the order */
-          goBtn.disabled=false; goBtn.textContent='Prepare my deck →';
+          goBtn.disabled=false; goBtn.textContent='Prepare presentation →';
           alert('Hexa: ' + (_res.reason || 'this order cannot be prepared as-is.'));
         }
         return;
       }
-      goBtn.disabled=false; goBtn.textContent='Prepare my deck →';
+      goBtn.disabled=false; goBtn.textContent='Prepare presentation →';
       alert("Hexa isn't loaded on this page, and only Hexa may command the editor. Please refresh the page (Hexa loads with the navbar) and try again.");
     });
     // Resolve admin status from Firebase auth (reuses the page's app).

@@ -2448,9 +2448,10 @@ function pageRefresh() { renderPageThumbs(); }
         (async function () {
           try {
             if (pr.pptx) { busy(true, 'Opening your design…'); await window.ldImportPptxFile(pr.pptx); }
+            else if (pr.composedDeck) { busy(true, 'Loading design…'); await window.loadDeckIRIntoEditor(pr.composedDeck); }
             busy(true, 'Writing your slides — Hexa + the writers are on it…');
             var deckIR = await buildEffectiveDeckIR();
-            var r = await fetch(window.LD_FILL_URL, { method: 'POST', headers: window.ldHeaders('application/json'), body: JSON.stringify({ design: deckIR, content: pr.content, qa: true }) });
+            var r = await fetch(window.LD_FILL_URL, { method: 'POST', headers: window.ldHeaders('application/json'), body: JSON.stringify({ design: deckIR, content: pr.content, qa: true, allowClone: pr.allowClone, expand: pr.expand }) });
             if (!r.ok) {
               var em = ''; try { em = ((await r.json()) || {}).message || ((await r.json()) || {}).error || ''; } catch (e2) {}
               say('Could not prepare the deck: ' + (em || ('HTTP ' + r.status)), 8000);
@@ -2702,6 +2703,8 @@ window.ldPrepareModal = function () {
           '<div id="ld-prep-file" style="' + drop + 'min-height:80px;display:flex;align-items:center;justify-content:center;">Click or drop a content file<br>(.txt, .md, .docx)</div>' +
           '<div style="font-size:10px;font-weight:700;letter-spacing:.06em;color:#8b8ea8;text-transform:uppercase;margin:14px 0 4px;">🎨 Your design</div>' +
           '<label style="display:block;font-size:13px;margin:4px 0;"><input type="radio" name="ld-prep-src" value="open" checked> The design open in the editor (' + deckName + ')</label>' +
+          '<label style="display:block;font-size:13px;margin:4px 0;"><input type="radio" name="ld-prep-src" value="designno"> A design number (e.g. PD-044)</label>' +
+          '<input id="ld-prep-designno" type="text" placeholder="PD-044" style="' + inp + 'margin:2px 0 6px;display:none;text-transform:uppercase;">' +
           '<label style="display:block;font-size:13px;margin:4px 0;"><input type="radio" name="ld-prep-src" value="pptx"> A PowerPoint file I choose</label>' +
           '<div id="ld-prep-pptx" style="' + drop + 'margin-top:6px;display:none;">Click or drop the deck (.pptx) you want filled</div>' +
         '</div>' +
@@ -2709,7 +2712,7 @@ window.ldPrepareModal = function () {
       '<div id="ld-prep-note" style="font-size:11.5px;color:#8b8ea8;margin-top:10px;min-height:14px;"></div>' +
       '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">' +
         '<button id="ld-prep-cancel" style="border:0;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;background:#23243a;color:#c9cbe0;">Cancel</button>' +
-        '<button id="ld-prep-go" style="border:0;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#f5b942,#e0843a);color:#1a1a2e;">Prepare my deck →</button>' +
+        '<button id="ld-prep-go" style="border:0;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#f5b942,#e0843a);color:#1a1a2e;">Prepare presentation →</button>' +
       '</div>';
     ov.appendChild(box); document.body.appendChild(ov);
     var ta = box.querySelector('#ld-prep-content'), note = box.querySelector('#ld-prep-note');
@@ -2717,7 +2720,10 @@ window.ldPrepareModal = function () {
     function close(v) { ov.remove(); resolve(v); }
     box.querySelector('#ld-prep-cancel').onclick = function () { close(null); };
     ov.onmousedown = function (e) { if (e.target === ov) close(null); };
-    box.querySelectorAll('input[name=ld-prep-src]').forEach(function (r) { r.onchange = function () { box.querySelector('#ld-prep-pptx').style.display = r.value === 'pptx' && r.checked ? '' : 'none'; }; });
+    box.querySelectorAll('input[name=ld-prep-src]').forEach(function (r) { r.onchange = function () {
+      box.querySelector('#ld-prep-pptx').style.display = r.value === 'pptx' && r.checked ? '' : 'none';
+      box.querySelector('#ld-prep-designno').style.display = r.value === 'designno' && r.checked ? '' : 'none';
+    }; });
     async function readContentFile(f) {
       if (!f) return;
       if (/\.docx$/i.test(f.name)) {
@@ -2738,13 +2744,68 @@ window.ldPrepareModal = function () {
       z.ondragleave = function () { z.style.borderColor = '#4a4d78'; };
       z.ondrop = function (e) { e.preventDefault(); z.style.borderColor = '#4a4d78'; var f = e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return; if (z === fz) readContentFile(f); else { pptxFile = f; pz.textContent = '✓ ' + f.name; } };
     });
-    box.querySelector('#ld-prep-go').onclick = function () {
+    var goBtn = box.querySelector('#ld-prep-go');
+    goBtn.onclick = async function () {
       var content = ta.value.trim();
       if (!content) { note.textContent = 'Paste or load your content first.'; ta.focus(); return; }
       var src = box.querySelector('input[name=ld-prep-src]:checked').value;
       if (src === 'pptx' && !pptxFile) { note.textContent = 'Choose the .pptx you want filled.'; return; }
       if (src === 'open' && state.pages.length === 1 && !(fc.getObjects() || []).length && !window._deckIR) { note.textContent = 'The editor is empty — open a design, or choose a PowerPoint file.'; return; }
-      close({ content: content, pptx: src === 'pptx' ? pptxFile : null });
+      var designCode = '';
+      if (src === 'designno') {
+        designCode = (box.querySelector('#ld-prep-designno').value || '').trim();
+        if (!designCode) { note.textContent = 'Type the design number (e.g. PD-044).'; return; }
+      }
+      /* 22 Aug 2026 (Javed's order) — resolve a typed design NUMBER to its own
+         real deck FIRST (free — /compose_ir with only the code in the
+         sentence pulls that exact design's own slides via resolveDesignRef's
+         refLayout path, no model tokens spent), so the mismatch check below
+         can compare against its true slide count before anything is filled. */
+      var composedDeck = null;
+      if (src === 'designno') {
+        note.textContent = 'Looking up design ' + designCode + '…';
+        goBtn.disabled = true;
+        try {
+          await window.ldWaitAuthToken(15000);
+          var rr = await fetch(window.LD_BACKEND + '/compose_ir', {
+            method: 'POST', headers: window.ldHeaders('application/json'),
+            body: JSON.stringify({ sentence: designCode })
+          });
+          if (!rr.ok) { note.textContent = 'Could not find design ' + designCode + '.'; goBtn.disabled = false; return; }
+          var rd = await rr.json();
+          if (!rd.deck || !rd.deck.slides || !rd.deck.slides.length) { note.textContent = 'Design ' + designCode + ' has no slides to fill.'; goBtn.disabled = false; return; }
+          composedDeck = rd.deck;
+        } catch (e) { note.textContent = 'Lookup failed: ' + e.message; goBtn.disabled = false; return; }
+        note.textContent = ''; goBtn.disabled = false;
+      }
+      /* 22 Aug 2026 (Javed's order) — content/slide-count MISMATCH check.
+         Roughly split content the same way the server does (blank-line /
+         "Slide N:" separated blocks) and compare against how many text-
+         bearing slides the target design actually has. If the content needs
+         more slides than the design has, ask BEFORE spending any tokens:
+         clone extra slides in this same design, or pick a bigger one. */
+      var sections = content.split(/\n\s*\n|(?=^\s*slide\s*\d+\s*[:.\-])/gim).map(function (s) { return s.trim(); }).filter(Boolean);
+      var targetSlideCount = src === 'open' ? state.pages.length : (src === 'designno' ? composedDeck.slides.length : null); /* pptx slide count known only after it's parsed server-side */
+      function proceed(allowClone, expand) {
+        close({ content: content, pptx: src === 'pptx' ? pptxFile : null, composedDeck: composedDeck, allowClone: !!allowClone, expand: expand || 0 });
+      }
+      if (targetSlideCount && sections.length > targetSlideCount) {
+        var extra = sections.length - targetSlideCount;
+        var mm = document.createElement('div');
+        mm.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.7);z-index:100000;display:flex;align-items:center;justify-content:center;';
+        mm.innerHTML = '<div style="background:#151623;border:1px solid #2c2e45;border-radius:14px;padding:22px 24px;width:min(440px,92vw);color:#e8e9f2;font-family:\'DM Sans\',system-ui,sans-serif;">' +
+          '<div style="font-size:15px;font-weight:700;margin-bottom:8px;">Design / content mismatch</div>' +
+          '<div style="font-size:13px;color:#c9cbe0;line-height:1.5;margin-bottom:16px;">This design has ' + targetSlideCount + ' slide' + (targetSlideCount === 1 ? '' : 's') + ' but your content splits into about ' + sections.length + '. Should I clone ' + extra + ' more slide' + (extra === 1 ? '' : 's') + ' in this same design to fit everything, or would you rather give a bigger design?</div>' +
+          '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+          '<button id="ld-mm-different" style="border:0;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;background:#23243a;color:#c9cbe0;">I\'ll give a bigger design</button>' +
+          '<button id="ld-mm-clone" style="border:0;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#f5b942,#e0843a);color:#1a1a2e;">Clone ' + extra + ' slide' + (extra === 1 ? '' : 's') + '</button>' +
+          '</div></div>';
+        document.body.appendChild(mm);
+        mm.querySelector('#ld-mm-different').onclick = function () { mm.remove(); note.textContent = 'Pick a different design number, upload a bigger .pptx, or open a bigger design first.'; };
+        mm.querySelector('#ld-mm-clone').onclick = function () { mm.remove(); proceed(true, extra); };
+        return;
+      }
+      proceed(false, 0);
     };
     setTimeout(function () { ta.focus(); }, 30);
   });
@@ -6515,4 +6576,98 @@ Editor._register({
       }
     } catch (e) { showToast('Project file error: ' + e.message, 6000); }
   });
+})();
+
+/* ═════════ STASHED-FILL BRIDGE (22 Aug 2026, Javed's order) ═════════
+   Bug found: the "Want us to fill this deck with YOUR content?" card
+   (fill_widget.js) saves the buyer's content+design into
+   localStorage['lazydog_fill_material'] (and, for a locally dropped .pptx,
+   the file itself into IndexedDB db 'lazydog' / store 'files' / key
+   'deck_pptx'), then sends the visitor to editor.html expecting the editor
+   to pick it up and run the fill. NOTHING in the editor ever read either of
+   those back — the editor opened clean and nothing happened, which is
+   exactly the "took me to editor but never prepared any deck" bug. This
+   block is that missing read, run once on load. */
+(function () {
+  function idbGetDeckBlob() {
+    return new Promise(function (resolve) {
+      if (typeof indexedDB === 'undefined') { resolve(null); return; }
+      try {
+        var req = indexedDB.open('lazydog', 1);
+        req.onupgradeneeded = function () { try { req.result.createObjectStore('files'); } catch (e) {} };
+        req.onsuccess = function () {
+          try {
+            var tx = req.result.transaction('files', 'readonly');
+            var g = tx.objectStore('files').get('deck_pptx');
+            g.onsuccess = function () { resolve(g.result || null); };
+            g.onerror = function () { resolve(null); };
+          } catch (e) { resolve(null); }
+        };
+        req.onerror = function () { resolve(null); };
+      } catch (e) { resolve(null); }
+    });
+  }
+
+  function waitForEditorReady() {
+    return new Promise(function (resolve) {
+      (function poll() {
+        if (typeof window.loadDeckIRIntoEditor === 'function' && typeof window.ldImportPptxFile === 'function' && typeof window.buildEffectiveDeckIR === 'function')
+          resolve();
+        else setTimeout(poll, 200);
+      })();
+    });
+  }
+
+  async function runStashedFill() {
+    var raw;
+    try { raw = localStorage.getItem('lazydog_fill_material'); } catch (e) { return; }
+    if (!raw) return;
+    try { localStorage.removeItem('lazydog_fill_material'); } catch (e) {}   /* consume once — never re-fires on a later visit */
+    var material;
+    try { material = JSON.parse(raw); } catch (e) { return; }
+    if (!material || !material.content || !material.mode || material.mode === 'content') return;   /* content-only has its own free flow on the card */
+
+    await waitForEditorReady();
+    try { busy(true, 'Opening your design…'); } catch (e) {}
+
+    try {
+      if (material.mode === 'file') {
+        var blob = await idbGetDeckBlob();
+        if (!blob) { showToast('Could not find the design file you dropped — please try again from the card.', 8000); return; }
+        await window.ldImportPptxFile(blob);
+      } else if (material.mode === 'site-design') {
+        if (!material.pptxUrl) { showToast('This design has no editable file on file — try a different one.', 8000); return; }
+        var fr = await fetch(material.pptxUrl);
+        if (!fr.ok) throw new Error('Could not fetch the design file (' + fr.status + ')');
+        var fblob = await fr.blob();
+        await window.ldImportPptxFile(fblob);
+      } else {
+        return;
+      }
+
+      busy(true, 'Writing your slides — Hexa + the writers are on it…');
+      var deckIR = await buildEffectiveDeckIR();
+      var r = await fetch(window.LD_FILL_URL, {
+        method: 'POST', headers: window.ldHeaders('application/json'),
+        body: JSON.stringify({ design: deckIR, content: material.content, brand: material.brand || '', qa: true,
+                                allowClone: !!material.allowClone, expand: material.extraSlides || 0 })
+      });
+      if (!r.ok) {
+        var errBody = {}; try { errBody = (await r.json()) || {}; } catch (e2) {}
+        showToast('Could not prepare the deck: ' + (errBody.message || errBody.error || ('HTTP ' + r.status)), 8000);
+        return;
+      }
+      var fd = await r.json();
+      await window.loadDeckIRIntoEditor(fd.deck || fd);
+      if (window.ldRefreshTokens) window.ldRefreshTokens();
+      showToast('Presentation ready ✓');
+    } catch (e) {
+      showToast('Prepare failed: ' + e.message, 8000);
+    } finally {
+      try { busy(false); } catch (e) {}
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', runStashedFill);
+  else runStashedFill();
 })();
