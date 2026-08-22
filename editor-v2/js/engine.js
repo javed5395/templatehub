@@ -707,6 +707,13 @@ window.ldCompose = async function (sentence) {
     return;
   }
   var d = await r.json();
+  /* 22 Aug 2026 — only skip the commercial-font gate when the "Make a
+     design" card actually had a Fonts value filled in (heading and/or
+     body) — the user already chose, so don't interrupt; adjust later by
+     hand if needed. If Fonts was left on "Any", the donor kit's own fonts
+     are unknown/unpicked, so the gate still asks as before. */
+  var _fo = d.order && d.order.fonts;
+  if (d.deck && _fo && (_fo.heading || _fo.body)) d.deck.__ldSkipFontGate = true;
   await window.loadDeckIRIntoEditor(d.deck);
   if (window.ldRefreshTokens) window.ldRefreshTokens();   /* 20 Aug 2026 — balance chip */
 };
@@ -5360,7 +5367,8 @@ Editor._register({
     var wrapped = async function (deck) {
       try {
         await ldRegisterEmbedded(deck);
-        if (typeof ldFontAuditPrompt === 'function') {
+        if (deck && deck.__ldSkipFontGate) { /* AI-composed — skip the gate */ }
+        else if (typeof ldFontAuditPrompt === 'function') {
           window.__ldFontGate = true;                       /* pause the build time-box while the human decides */
           try { await ldFontAuditPrompt(deck); } finally { window.__ldFontGate = false; }
         }
