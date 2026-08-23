@@ -40,7 +40,7 @@ var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBod
   'chartType', 'chartDef', 'datasetId', 'tableId',
   'isSticker', 'stickerName', 'stickerAnim', 'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isIcon', 'iconName', 'iconWeight',
-  'is3D', 'threeKind', 'threeColor', 'threeText', 'rotX', 'rotY', 'isMockArea',
+  'is3D', 'threeKind', 'threeColor', 'threeText', 'threeQuat', 'rotX', 'rotY', 'isMockArea',
   'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isSticker', 'stickerName', 'stickerAnim',
   'layerName', 'visible', 'isBrandLogo',

@@ -6784,7 +6784,7 @@ Editor._register({
     }
   }
 
-  function render3D(kind, colorHex, rx, ry, text) {
+  function render3D(kind, colorHex, rx, ry, text, quat) {
     var T = window.THREE;
     /* words are wide — give text a 2:1 frame so it isn't letterboxed tiny */
     var isText = kind === 'text';
@@ -6796,13 +6796,32 @@ Editor._register({
     var key = new T.DirectionalLight(0xffffff, 0.9); key.position.set(3, 4, 5); scene.add(key);
     var rim = new T.DirectionalLight(0x8b7cf3, 0.35); rim.position.set(-4, -2, -3); scene.add(rim);
     var m = mesh(kind, colorHex, text);
-    m.rotation.x = rx || 0;
-    m.rotation.y = ry || 0;
+    /* 23 Aug 2026 (Fable) — FREE trackball rotation. A quaternion (quat)
+       is the object's full 3D orientation; it never gimbal-locks, so the
+       object tumbles freely like PowerPoint's 3D models. Old saved objects
+       that only carry rotX/rotY still render via the Euler fallback. */
+    if (quat && quat.length === 4) m.quaternion.fromArray(quat);
+    else { m.rotation.x = rx || 0; m.rotation.y = ry || 0; }
     scene.add(m);
     var r = renderer();
     r.setSize(W, H);
     r.render(scene, cam);
     return r.domElement.toDataURL('image/png');
+  }
+  /* start-quaternion from the old pleasant Euler angle */
+  function quatFromEuler(rx, ry) {
+    var T = window.THREE;
+    return new T.Quaternion().setFromEuler(new T.Euler(rx || 0, ry || 0, 0)).toArray();
+  }
+  /* rotate an orientation by a mouse delta, relative to the SCREEN (premultiply
+     = world-space turn): drag right spins around the screen's up axis, drag
+     down spins around the screen's right axis — under the hand, like a ball. */
+  function quatDrag(prev, dx, dy) {
+    var T = window.THREE;
+    var q = new T.Quaternion().fromArray(prev);
+    var qy = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), dx * 0.012);
+    var qx = new T.Quaternion().setFromAxisAngle(new T.Vector3(1, 0, 0), dy * 0.012);
+    return qx.multiply(qy).multiply(q).toArray();
   }
 
   function toast(m) { if (window.Editor && Editor._toast) Editor._toast(m); }
@@ -6818,13 +6837,15 @@ Editor._register({
       pre.then(function () {
         var rx = a.kind === 'text' ? -0.12 : -0.35;   /* text: nearly face-on */
         var ry = a.kind === 'text' ?  0.22 :  0.65;
-        var url = render3D(a.kind, color, rx, ry, a.text);
+        var q0 = quatFromEuler(rx, ry);
+        var url = render3D(a.kind, color, rx, ry, a.text, q0);
         fabric.Image.fromURL(url, function (img) {
           img.scaleToWidth(a.kind === 'text' ? 420 : 240);
           img.set({
             left: 220, top: 130,
             is3D: true, threeKind: a.kind, threeColor: color,
             threeText: a.text || '',
+            threeQuat: q0,
             rotX: rx, rotY: ry,
             layerName: (a.kind === 'text' ? '3D text: ' + (a.text || '') : (a.name || '3D object'))
           });
@@ -6853,20 +6874,25 @@ Editor._register({
       fc.on('mouse:down', function (opt) {
         var o = opt && opt.target, e = opt && opt.e;
         if (!o || !o.is3D || !e || !e.altKey) return;
-        rot = { o: o, x: e.clientX, y: e.clientY, rx: o.rotX || 0, ry: o.rotY || 0 };
+        /* legacy objects saved before the trackball upgrade only have
+           rotX/rotY — convert once so they keep their pose, then tumble free */
+        var q0 = (o.threeQuat && o.threeQuat.length === 4)
+          ? o.threeQuat
+          : (window.THREE ? quatFromEuler(o.rotX, o.rotY) : null);
+        rot = { o: o, x: e.clientX, y: e.clientY, q: q0 };
         o.lockMovementX = true; o.lockMovementY = true;
       });
       fc.on('mouse:move', function (opt) {
-        if (!rot || !opt.e) return;
+        if (!rot || !opt.e || !window.THREE) return;
         var o = rot.o;
-        o.rotY = rot.ry + (opt.e.clientX - rot.x) * 0.012;
-        o.rotX = rot.rx + (opt.e.clientY - rot.y) * 0.012;
+        o.threeQuat = quatDrag(rot.q || quatFromEuler(o.rotX, o.rotY),
+                               opt.e.clientX - rot.x, opt.e.clientY - rot.y);
         if (pending) return;
         pending = true;
         requestAnimationFrame(function () {
           pending = false;
           if (!window.THREE) return;
-          var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText);
+          var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText, o.threeQuat);
           o.setSrc(url, function () { fc.renderAll(); });
         });
       });
