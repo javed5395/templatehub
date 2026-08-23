@@ -1229,15 +1229,26 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
     <a href="#" class="btn btn-ghost" id="hxSignUp" onclick="openAuth('signup');return false;">Sign up</a>
     <!-- Signed-in state: Google photo when there is one, first initial otherwise.
          Same behaviour as navbar.js on the store pages. -->
-    <div id="hxUserMenu" title="Click to sign out" onclick="if(window.doSignOut)window.doSignOut();"
-         style="display:none;align-items:center;gap:8px;cursor:pointer;">
-      <div id="hxUserAvatar"
+    <!-- 23 Aug 2026 — the avatar used to sign you straight out on click
+         (title="Click to sign out" + onclick=doSignOut). That was unique to
+         this page and surprised people. It now opens a small account menu,
+         exactly like navbar.js on the store pages; Sign Out lives inside it. -->
+    <div id="hxUserMenu"
+         style="display:none;align-items:center;gap:8px;position:relative;">
+      <div id="hxUserAvatar" title="Account" onclick="if(window.toggleHxUserDropdown)window.toggleHxUserDropdown();"
            style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-                  font-weight:700;font-size:13px;overflow:hidden;flex:none;color:#fff;
+                  font-weight:700;font-size:13px;overflow:hidden;flex:none;color:#fff;cursor:pointer;
                   background:linear-gradient(135deg,#7c5cff,#c86dd7);"></div>
-      <!-- 3 Aug 2026 — signed-in name removed here too (Javed), same reason as
-           the store pages: it ate the space the buttons needed. The avatar is
-           enough, and the write is guarded with if(nm) so nothing breaks. -->
+      <div id="hxUserDropdown"
+           style="display:none;position:absolute;top:40px;right:0;min-width:150px;
+                  background:#1a1830;border:1px solid rgba(255,255,255,0.12);border-radius:10px;
+                  box-shadow:0 10px 30px rgba(0,0,0,0.45);overflow:hidden;z-index:1000;">
+        <a href="my_designs.html"
+           style="display:block;padding:10px 14px;text-decoration:none;color:#eee;font-size:13px;">🎨 My Designs</a>
+        <button onclick="if(window.doSignOut)window.doSignOut();"
+           style="width:100%;text-align:left;padding:10px 14px;border:0;border-top:1px solid rgba(255,255,255,0.08);
+                  background:transparent;color:#ff8a80;font-size:13px;cursor:pointer;font-family:inherit;">Sign Out</button>
+      </div>
     </div>
     <!-- 3 Aug 2026 — one button called "Main" became two doors with their own
          names. "Main" told you nothing about where it went, and there was no
@@ -2547,7 +2558,16 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
     if(!email||!pass){err.textContent='Please enter email and password.';return;}
     try { await signInWithEmailAndPassword(auth,email,pass); closeAuthModal(); } catch(e){err.textContent='Invalid email or password.';}
   };
-  window.doSignOut = async function() { await signOut(auth); };
+  window.doSignOut = async function() { var dd=document.getElementById('hxUserDropdown'); if(dd)dd.style.display='none'; await signOut(auth); };
+  /* 23 Aug 2026 — account menu toggle (was: avatar signed out directly). */
+  window.toggleHxUserDropdown = function() {
+    var dd=document.getElementById('hxUserDropdown');
+    if(dd) dd.style.display = (dd.style.display==='block') ? 'none' : 'block';
+  };
+  document.addEventListener('click', function(e){
+    var m=document.getElementById('hxUserMenu'), dd=document.getElementById('hxUserDropdown');
+    if(dd && m && dd.style.display==='block' && !m.contains(e.target)) dd.style.display='none';
+  });
   /* 4 Aug 2026 — always show the Google account chooser. Same fix as navbar.js:
      without this Google reuses whichever account is already open and never asks. */
   window.doGoogleSignIn = async function() {
