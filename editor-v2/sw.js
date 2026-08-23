@@ -22,7 +22,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-var CACHE_SHELL = 'ld-editor-shell-v14';   /* v2: 21 Aug 2026 — vendor/ libs added */
+var CACHE_SHELL = 'ld-editor-shell-202608232113';   /* stamped by STAMP_EDITOR_VERSION.py on every ship */
 var CACHE_ASSETS = 'ld-editor-assets-v1';
 
 var SHELL = [
@@ -95,14 +95,18 @@ self.addEventListener('fetch', function (e) {
   /* the page itself — network first, cache fallback (offline open) */
   if (e.request.mode === 'navigate' || isShell(url)) {
     e.respondWith(
-      fetch(e.request).then(function (r) {
+      /* 24 Aug 2026 (Fable) — cache:'no-cache' forces a revalidation with
+         the server (ETag 304s are cheap), so the browser's OWN http cache can
+         never serve a stale shell file through the worker. */
+      fetch(e.request, { cache: 'no-cache' }).then(function (r) {
         if (r && r.ok) {
           var copy = r.clone();
           caches.open(CACHE_SHELL).then(function (c) { c.put(e.request, copy); });
         }
         return r;
       }).catch(function () {
-        return caches.match(e.request, { ignoreSearch: e.request.mode === 'navigate' })
+        /* offline fallback — ignoreSearch so a ?v= bump never breaks offline */
+        return caches.match(e.request, { ignoreSearch: true })
           .then(function (hit) {
             if (hit) return hit;
             if (e.request.mode === 'navigate') return caches.match('./editor.html');

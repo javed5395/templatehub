@@ -24,6 +24,10 @@
      ══════════════════════════════════════════════════════════════════════ -->
 
 <!-- 21 Aug 2026 (Fable) — self-hosted fonts FIRST (offline), Google links below stay as fallback -->
+<!-- 24 Aug 2026 (Fable) — CACHE BUSTING: every shell file carries ?v=<stamp>.
+     STAMP_EDITOR_VERSION.py rewrites the stamp on each ship (SHIP IT.bat runs
+     it), so a new deploy is a NEW URL: GitHub Pages' CDN and every browser
+     fetch it fresh immediately. No more Ctrl+F5 rituals after a deploy. -->
 <link rel="stylesheet" href="vendor/fonts.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
@@ -40,10 +44,10 @@
 <script>window.JSZip || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');</script>
 <script src="vendor/UTIF.min.js"></script>
 <script>window.UTIF || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/utif/3.1.0/UTIF.min.js"><\/script>');</script>
-<script src="../lazydog_renderer.js"></script>
-<script src="../design_form_data.js"></script>
+<script src="../lazydog_renderer.js?v=202608232113"></script>
+<script src="../design_form_data.js?v=202608232113"></script>
 
-<link rel="stylesheet" href="css/editor.css">
+<link rel="stylesheet" href="css/editor.css?v=202608232113">
 </head>
 <body>
 
@@ -89,11 +93,11 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<script src="js/core.js"></script>
-<script src="js/icons.js"></script>
-<script src="js/assets.js"></script>
-<script src="js/engine.js"></script>
-<script src="js/ribbon.js"></script>
-<script src="js/sidebar.js"></script>
+<script src="js/core.js?v=202608232113"></script>
+<script src="js/icons.js?v=202608232113"></script>
+<script src="js/assets.js?v=202608232113"></script>
+<script src="js/engine.js?v=202608232113"></script>
+<script src="js/ribbon.js?v=202608232113"></script>
+<script src="js/sidebar.js?v=202608232113"></script>
 </body>
 </html>
