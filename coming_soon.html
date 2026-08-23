@@ -585,150 +585,16 @@ function drawPaths5() {
 }
 
 /* ============================================================
-   SLIDE 06 — CONSTELLATION
+   SLIDE 06 / 07 canvases REMOVED (23 Aug 2026, Javed) — those slides
+   (Contributor Program / A Collective Intelligence) no longer exist,
+   so their canvas elements (#c6, #c7) are gone too. The old code here
+   called document.getElementById('c6').getContext(...) unconditionally,
+   which threw on a null element and silently stopped every script below
+   it from running — including the reveal-animation code that makes the
+   whole page visible. That's why the live page went blank after the
+   slides were removed. Deleting this dead code (and its call sites
+   below) fixes it.
    ============================================================ */
-const c6 = document.getElementById('c6');
-const ctx6 = c6.getContext('2d');
-let stars6 = [];
-let stars6Active = false;
-let stars6Time = 0;
-
-function initStars6() {
-  const rect = c6.parentElement.getBoundingClientRect();
-  c6.width = rect.width;
-  c6.height = rect.height;
-  stars6 = [];
-  for (let i = 0; i < 35; i++) {
-    stars6.push({
-      x: rand(c6.width * 0.4, c6.width * 0.98),
-      y: rand(c6.height * 0.05, c6.height * 0.95),
-      r: rand(1, 2.8),
-      twinkle: rand(0, Math.PI * 2),
-      speed: rand(0.01, 0.03)
-    });
-  }
-}
-
-function drawStars6() {
-  ctx6.clearRect(0, 0, c6.width, c6.height);
-  stars6Time++;
-  const showLines = stars6Time > 40;
-
-  if (showLines) {
-    for (let i = 0; i < stars6.length; i++) {
-      for (let j = i + 1; j < stars6.length; j++) {
-        const d = dist(stars6[i].x, stars6[i].y, stars6[j].x, stars6[j].y);
-        if (d < 110) {
-          const alpha = (1 - d / 110) * 0.12;
-          ctx6.beginPath();
-          ctx6.moveTo(stars6[i].x, stars6[i].y);
-          ctx6.lineTo(stars6[j].x, stars6[j].y);
-          ctx6.strokeStyle = 'rgba(74,111,165,' + alpha.toFixed(3) + ')';
-          ctx6.lineWidth = 0.5;
-          ctx6.stroke();
-        }
-      }
-    }
-  }
-
-  for (const s of stars6) {
-    s.twinkle += s.speed;
-    const alpha = 0.25 + Math.sin(s.twinkle) * 0.2;
-    ctx6.beginPath();
-    ctx6.arc(s.x, s.y, Math.max(0.3, s.r), 0, Math.PI * 2);
-    ctx6.fillStyle = 'rgba(200,196,190,' + Math.max(0.05, alpha).toFixed(3) + ')';
-    ctx6.fill();
-  }
-}
-
-/* ============================================================
-   SLIDE 07 — PARTICLES TO STRUCTURE
-   ============================================================ */
-const c7 = document.getElementById('c7');
-const ctx7 = c7.getContext('2d');
-let parts7 = [];
-let parts7Active = false;
-let parts7Time = 0;
-let targets7 = [];
-
-function initParts7() {
-  const rect = c7.parentElement.getBoundingClientRect();
-  c7.width = rect.width;
-  c7.height = rect.height;
-
-  // Define hexagon target positions
-  targets7 = [];
-  const cx = c7.width * 0.65;
-  const cy = c7.height * 0.5;
-  const r = Math.min(c7.width, c7.height) * 0.2;
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 2;
-    targets7.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
-  }
-  // Inner hexagon
-  const r2 = r * 0.5;
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 2 + Math.PI / 6;
-    targets7.push({ x: cx + Math.cos(angle) * r2, y: cy + Math.sin(angle) * r2 });
-  }
-  // Center
-  targets7.push({ x: cx, y: cy });
-
-  parts7 = [];
-  for (let i = 0; i < targets7.length; i++) {
-    parts7.push({
-      x: rand(0, c7.width),
-      y: rand(0, c7.height),
-      tx: targets7[i].x,
-      ty: targets7[i].y,
-      r: rand(1.5, 3),
-      arrived: false
-    });
-  }
-}
-
-function drawParts7() {
-  ctx7.clearRect(0, 0, c7.width, c7.height);
-  parts7Time++;
-
-  // Draw connections
-  for (let i = 0; i < parts7.length; i++) {
-    for (let j = i + 1; j < parts7.length; j++) {
-      const d = dist(parts7[i].x, parts7[i].y, parts7[j].x, parts7[j].y);
-      const targetD = dist(parts7[i].tx, parts7[i].ty, parts7[j].tx, parts7[j].ty);
-      if (targetD < Math.min(c7.width, c7.height) * 0.25) {
-        const alpha = Math.max(0, 0.12 - d * 0.0003);
-        if (alpha > 0.01) {
-          ctx7.beginPath();
-          ctx7.moveTo(parts7[i].x, parts7[i].y);
-          ctx7.lineTo(parts7[j].x, parts7[j].y);
-          ctx7.strokeStyle = 'rgba(196,149,106,' + alpha.toFixed(3) + ')';
-          ctx7.lineWidth = 0.5;
-          ctx7.stroke();
-        }
-      }
-    }
-  }
-
-  // Move and draw particles
-  for (const p of parts7) {
-    const speed = 0.015;
-    p.x = lerp(p.x, p.tx, speed);
-    p.y = lerp(p.y, p.ty, speed);
-
-    // Small vibration when near target
-    if (dist(p.x, p.y, p.tx, p.ty) < 2) {
-      p.x = p.tx + Math.sin(parts7Time * 0.03 + p.tx) * 1.5;
-      p.y = p.ty + Math.cos(parts7Time * 0.025 + p.ty) * 1.5;
-      p.arrived = true;
-    }
-
-    ctx7.beginPath();
-    ctx7.arc(p.x, p.y, Math.max(0.3, p.r), 0, Math.PI * 2);
-    ctx7.fillStyle = p.arrived ? 'rgba(196,149,106,0.55)' : 'rgba(200,196,190,0.3)';
-    ctx7.fill();
-  }
-}
 
 /* ============================================================
    INIT SLIDE CANVASES
@@ -736,8 +602,6 @@ function drawParts7() {
 function initSlideCanvases() {
   initNodes4();
   initPaths5();
-  initStars6();
-  initParts7();
 }
 
 /* ============================================================
@@ -749,8 +613,6 @@ function animate() {
   // Only animate the active slide's canvas
   if (activeSlide === 4) drawNodes4();
   if (activeSlide === 5) drawPaths5();
-  if (activeSlide === 6) drawStars6();
-  if (activeSlide === 7) drawParts7();
 
   requestAnimationFrame(animate);
 }
@@ -782,8 +644,6 @@ window.addEventListener('resize', () => {
     // Re-trigger active slide canvas time
     nodes4Time = 0;
     paths5Time = 0;
-    stars6Time = 0;
-    parts7Time = 0;
   }, 200);
 });
 
