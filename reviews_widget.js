@@ -13,7 +13,7 @@
 (function () {
   var _cfg = {
     apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-    authDomain: "templatehub-16cd7.firebaseapp.com",
+    authDomain: "auth.lazydogtemplates.com",
     projectId: "templatehub-16cd7",
     storageBucket: "templatehub-16cd7.firebasestorage.app",
     messagingSenderId: "143000893683",

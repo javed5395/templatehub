@@ -2363,7 +2363,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
       import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
     ]).then(function(m){
       var A=m[0],B=m[1];
-      var app=A.getApps().length?A.getApp():A.initializeApp({apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",authDomain:"templatehub-16cd7.firebaseapp.com",projectId:"templatehub-16cd7"});
+      var app=A.getApps().length?A.getApp():A.initializeApp({apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",authDomain:"auth.lazydogtemplates.com",projectId:"templatehub-16cd7"});
       _auth=B.getAuth(app);
       B.onAuthStateChanged(_auth,function(u){
         isAdmin=TEST_OPEN||!!(u&&ADMINS.indexOf(String(u.email||'').toLowerCase())>-1);
@@ -2531,7 +2531,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
 <script type="module">
   import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
+  const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"auth.lazydogtemplates.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const auth = getAuth(app);
   window.doSignUp = async function() {
@@ -2658,7 +2658,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
       await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
 
     const cfg = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-                  authDomain:"templatehub-16cd7.firebaseapp.com",
+                  authDomain:"auth.lazydogtemplates.com",
                   projectId:"templatehub-16cd7",
                   storageBucket:"templatehub-16cd7.firebasestorage.app",
                   messagingSenderId:"143000893683",

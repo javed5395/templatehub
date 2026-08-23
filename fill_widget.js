@@ -271,7 +271,7 @@
         try {
           var A = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
           var F = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
-          var app = A.getApps().length ? A.getApp() : A.initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" });
+          var app = A.getApps().length ? A.getApp() : A.initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"auth.lazydogtemplates.com", projectId:"templatehub-16cd7" });
           // 28 Jul 2026: reads `templates` ONLY. The old fallback also read
           // `kits`, which holds encoded_raw (every private metadata code) —
           // that collection is now closed to the browser. `templates` is the
@@ -332,7 +332,7 @@
         import('https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js')
       ]).then(function(m){
         var A=m[0], B=m[1];
-        var app = A.getApps().length ? A.getApp() : A.initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7" });
+        var app = A.getApps().length ? A.getApp() : A.initializeApp({ apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"auth.lazydogtemplates.com", projectId:"templatehub-16cd7" });
         B.onAuthStateChanged(B.getAuth(app), function(u){
           isAdmin = TEST_OPEN || !!(u && ADMINS.indexOf((((u&&u.email)||'')).toLowerCase())>-1);
           applyAdmin();

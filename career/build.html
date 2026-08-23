@@ -532,7 +532,7 @@ Promise.all([
   const A=m[0], B=m[1];
   const app = A.getApps().length ? A.getApp() : A.initializeApp({
     apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-    authDomain:"templatehub-16cd7.firebaseapp.com", projectId:"templatehub-16cd7"});
+    authDomain:"auth.lazydogtemplates.com", projectId:"templatehub-16cd7"});
   B.onAuthStateChanged(B.getAuth(app), u => {
     ownerAcct = !!(u && ADMINS.indexOf(String(u.email||'').toLowerCase()) > -1);
     checkPaid();

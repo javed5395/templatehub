@@ -398,7 +398,7 @@
           var A = m[0], F = m[1];
           var app = A.getApps().length ? A.getApp() : A.initializeApp({
             apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-            authDomain: "templatehub-16cd7.firebaseapp.com",
+            authDomain: "auth.lazydogtemplates.com",
             projectId: "templatehub-16cd7"
           });
           var db = F.getFirestore(app);
@@ -443,7 +443,7 @@
     var currentUser = null;
     var FREE_SLIDES = 8;   /* 3 Aug 2026 — 5 → 8 (Javed) */
     var FB_CONF = { apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-                    authDomain: "templatehub-16cd7.firebaseapp.com",
+                    authDomain: "auth.lazydogtemplates.com",
                     projectId: "templatehub-16cd7" };
     var goBtn = document.getElementById('dwGo'), note = document.getElementById('dwNote');
 

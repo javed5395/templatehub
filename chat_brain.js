@@ -965,7 +965,7 @@
     var F = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
     var app = A.getApps().length ? A.getApp() : A.initializeApp({
       apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-      authDomain: "templatehub-16cd7.firebaseapp.com",
+      authDomain: "auth.lazydogtemplates.com",
       projectId: "templatehub-16cd7" });
     var user = B.getAuth(app).currentUser;
     if (!user) return { ok: false, reply: '🔒 Sign in first and I will build it while you are away.' };
@@ -2025,7 +2025,7 @@
 
   var FB_CFG = {
     apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-    authDomain: "templatehub-16cd7.firebaseapp.com",
+    authDomain: "auth.lazydogtemplates.com",
     projectId: "templatehub-16cd7",
     storageBucket: "templatehub-16cd7.firebasestorage.app",
     messagingSenderId: "143000893683",
@@ -3150,7 +3150,7 @@
         var F = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
         var app = A.getApps().length ? A.getApp() : A.initializeApp({
           apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
-          authDomain: "templatehub-16cd7.firebaseapp.com",
+          authDomain: "auth.lazydogtemplates.com",
           projectId: "templatehub-16cd7"
         });
         var db = F.getFirestore(app);
