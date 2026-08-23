@@ -7060,9 +7060,51 @@ Editor._register({
     setTimeout(function () {
       if (!window.fc || !fc.on) return;
       var rot = null, pending = false;
+      /* ── FREE 3D MODE (23 Aug 2026, Fable) — the Pacdora feel ──────────
+         Double-click a 3D object: the selection box disappears and BARE
+         drag rotates it freely (no Alt needed). Click anywhere else, or
+         press Esc, to finish. Alt+drag still works anytime as a shortcut.
+         The flat 2D spinner handle is hidden on 3D objects — it only
+         confused: it turns the baked picture, not the 3D. */
+      var freeObj = null;
+      function enterFree(o) {
+        freeObj = o;
+        o._ldPrevBorders = o.hasBorders; o._ldPrevControls = o.hasControls;
+        o.hasBorders = false; o.hasControls = false;
+        o.lockMovementX = true; o.lockMovementY = true;
+        fc.defaultCursor = 'grab'; fc.hoverCursor = 'grab';
+        fc.renderAll();
+        toast('3D rotate — drag to spin freely; click outside or press Esc to finish');
+      }
+      function exitFree() {
+        if (!freeObj) return;
+        var o = freeObj; freeObj = null;
+        o.hasBorders = o._ldPrevBorders !== false;
+        o.hasControls = o._ldPrevControls !== false;
+        o.lockMovementX = false; o.lockMovementY = false;
+        fc.defaultCursor = 'default'; fc.hoverCursor = 'move';
+        fc.renderAll(); saveState();
+      }
+      fc.on('mouse:dblclick', function (opt) {
+        var o = opt && opt.target;
+        if (o && o.is3D) { if (freeObj && freeObj !== o) exitFree(); enterFree(o); }
+      });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') exitFree(); });
+      /* hide the 2D spinner stalk whenever a 3D object is selected */
+      function hideSpinner(opt) {
+        var sel = (opt && opt.selected) || [];
+        sel.forEach(function (o) {
+          if (o.is3D && o.setControlsVisibility) o.setControlsVisibility({ mtr: false });
+        });
+      }
+      fc.on('selection:created', hideSpinner);
+      fc.on('selection:updated', hideSpinner);
       fc.on('mouse:down', function (opt) {
         var o = opt && opt.target, e = opt && opt.e;
-        if (!o || !o.is3D || !e || !e.altKey) return;
+        /* clicking anything that isn't the free-mode object ends free mode */
+        if (freeObj && o !== freeObj) { exitFree(); }
+        var free = freeObj && o === freeObj;
+        if (!o || !o.is3D || !e || (!e.altKey && !free)) return;
         /* legacy objects saved before the trackball upgrade only have
            rotX/rotY — convert once so they keep their pose, then tumble free */
         var q0 = (o.threeQuat && o.threeQuat.length === 4)
@@ -7101,7 +7143,9 @@ Editor._register({
       function endRot() {
         if (!rot) return;
         var o = rot.o;
-        o.lockMovementX = false; o.lockMovementY = false;
+        /* stay locked while free 3D mode is on — dragging must keep rotating,
+           not start moving the object across the slide */
+        if (freeObj !== o) { o.lockMovementX = false; o.lockMovementY = false; }
         rot = null;
         saveState();
       }
