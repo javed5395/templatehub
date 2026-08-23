@@ -6712,7 +6712,146 @@ Editor._register({
     return sh;
   }
 
-  function mesh(kind, colorHex, text) {
+  /* ══ 3D MOCKUPS (23 Aug 2026, Fable — Pacdora step) ═════════════════════
+     Real-world objects — bottle, can, mug, poster frame, phone, laptop —
+     built PROCEDURALLY (no model files, works offline), each with a design
+     surface that wears the user's CURRENT SLIDE as its label/screen.
+     The label image travels with the object (threeTexData), so saved decks
+     reopen with their mockups intact and still rotatable. */
+  var _texCache = {};   /* dataURL -> THREE.Texture (loaded + ready) */
+  function warmTexture(dataURL) {
+    if (!dataURL) return Promise.resolve(null);
+    if (_texCache[dataURL]) return Promise.resolve(_texCache[dataURL]);
+    return new Promise(function (res) {
+      var img = new Image();
+      img.onload = function () {
+        var T = window.THREE;
+        var t = new T.Texture(img);
+        t.needsUpdate = true;
+        _texCache[dataURL] = t;
+        res(t);
+      };
+      img.onerror = function () { res(null); };
+      img.src = dataURL;
+    });
+  }
+  function labelMat(texData, fallbackColor) {
+    var T = window.THREE;
+    var t = texData && _texCache[texData];
+    return t
+      ? new T.MeshStandardMaterial({ map: t, roughness: 0.5, metalness: 0.05 })
+      : new T.MeshStandardMaterial({ color: fallbackColor || '#FFFFFF', roughness: 0.5, metalness: 0.05 });
+  }
+  function bodyMat(color, opts) {
+    var T = window.THREE;
+    return new T.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.35, metalness: 0.2 }, opts || {}));
+  }
+  function mockupMesh(kind, colorHex, texData) {
+    var T = window.THREE, g = new T.Group();
+    var label = labelMat(texData, '#F4F4F5');
+    if (kind === 'bottle') {
+      /* lathe body from a profile: base → shoulder → neck */
+      var pts = [];
+      [[0, 0], [0.62, 0], [0.72, 0.06], [0.75, 0.5], [0.75, 1.55], [0.7, 1.75],
+       [0.45, 2.0], [0.26, 2.15], [0.24, 2.45], [0.24, 2.6]].forEach(function (p) {
+        pts.push(new T.Vector2(p[0], p[1]));
+      });
+      g.add(new T.Mesh(new T.LatheGeometry(pts, 48), bodyMat(colorHex, { roughness: 0.25, metalness: 0.1 })));
+      var cap = new T.Mesh(new T.CylinderGeometry(0.27, 0.27, 0.3, 32), bodyMat('#26262B'));
+      cap.position.y = 2.72; g.add(cap);
+      /* the label: an open band around the body, wearing the slide */
+      var band = new T.Mesh(new T.CylinderGeometry(0.765, 0.765, 0.95, 48, 1, true), label);
+      band.position.y = 0.98; g.add(band);
+    } else if (kind === 'can') {
+      g.add(new T.Mesh(new T.CylinderGeometry(0.75, 0.75, 2.1, 48), bodyMat('#C9CCD1', { metalness: 0.7, roughness: 0.3 })));
+      var lid = new T.Mesh(new T.CylinderGeometry(0.72, 0.75, 0.06, 48), bodyMat('#9DA1A8', { metalness: 0.8, roughness: 0.25 }));
+      lid.position.y = 1.08; g.add(lid);
+      var wrap = new T.Mesh(new T.CylinderGeometry(0.755, 0.755, 1.85, 48, 1, true), label);
+      wrap.position.y = -0.05; g.add(wrap);
+    } else if (kind === 'mug') {
+      g.add(new T.Mesh(new T.CylinderGeometry(0.8, 0.74, 1.7, 48), bodyMat(colorHex, { roughness: 0.4 })));
+      var inner = new T.Mesh(new T.CylinderGeometry(0.72, 0.72, 0.06, 48), bodyMat('#1F1F23'));
+      inner.position.y = 0.83; g.add(inner);
+      var handle = new T.Mesh(new T.TorusGeometry(0.42, 0.09, 16, 32, Math.PI), bodyMat(colorHex, { roughness: 0.4 }));
+      handle.position.set(0.82, 0.05, 0); handle.rotation.z = -Math.PI / 2; g.add(handle);
+      var wrapM = new T.Mesh(new T.CylinderGeometry(0.805, 0.75, 1.15, 48, 1, true), label);
+      wrapM.position.y = 0.1; g.add(wrapM);
+    } else if (kind === 'frame') {
+      var fm = bodyMat(colorHex || '#3A2E22', { roughness: 0.5 });
+      var W2 = 2.4, H2 = 1.5, tk = 0.14, dp = 0.1;
+      [[0, H2 / 2, W2 + tk * 2, tk], [0, -H2 / 2, W2 + tk * 2, tk],
+       [-W2 / 2 - tk / 2, 0, tk, H2], [W2 / 2 + tk / 2, 0, tk, H2]].forEach(function (b) {
+        var bar = new T.Mesh(new T.BoxGeometry(b[2], b[3], dp), fm);
+        bar.position.set(b[0], b[1], 0); g.add(bar);
+      });
+      var art = new T.Mesh(new T.PlaneGeometry(W2, H2), label);
+      art.position.z = 0.02; g.add(art);
+      var back = new T.Mesh(new T.PlaneGeometry(W2, H2), bodyMat('#26262B'));
+      back.rotation.y = Math.PI; back.position.z = -0.02; g.add(back);
+    } else if (kind === 'phone') {
+      var bodyP = new T.Mesh(new T.BoxGeometry(1.05, 2.15, 0.09), bodyMat('#1B1B1F', { roughness: 0.3, metalness: 0.5 }));
+      g.add(bodyP);
+      var scr = new T.Mesh(new T.PlaneGeometry(0.95, 2.0), label);
+      scr.position.z = 0.047; g.add(scr);
+      var cam2 = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 0.02, 16), bodyMat('#0A0A0C'));
+      cam2.rotation.x = Math.PI / 2; cam2.position.set(0.32, 0.9, -0.05); g.add(cam2);
+    } else if (kind === 'laptop') {
+      var base = new T.Mesh(new T.BoxGeometry(2.5, 0.09, 1.65), bodyMat('#8B8F96', { metalness: 0.6, roughness: 0.35 }));
+      g.add(base);
+      var kb = new T.Mesh(new T.PlaneGeometry(2.2, 1.15), bodyMat('#3A3D42'));
+      kb.rotation.x = -Math.PI / 2; kb.position.set(0, 0.046, -0.05); g.add(kb);
+      var lid = new T.Group();
+      var lidBody = new T.Mesh(new T.BoxGeometry(2.5, 1.6, 0.07), bodyMat('#8B8F96', { metalness: 0.6, roughness: 0.35 }));
+      lidBody.position.y = 0.8; lid.add(lidBody);
+      var scr2 = new T.Mesh(new T.PlaneGeometry(2.3, 1.42), label);
+      scr2.position.set(0, 0.8, 0.036); lid.add(scr2);
+      lid.position.z = -0.8; lid.rotation.x = -0.28; g.add(lid);
+    }
+    return normalize(g, 2.3);
+  }
+  var MOCKUP_KINDS = { bottle: 1, can: 1, mug: 1, frame: 1, phone: 1, laptop: 1 };
+
+  /* ══ GLB DOOR (future real models) ══════════════════════════════════════
+     Artist-made .glb files dropped into vendor/models3d/ load through here —
+     kind 'glb:<file>' e.g. 'glb:sneaker'. Any mesh in the file named with
+     the prefix LD_LABEL wears the design texture. No files shipped yet;
+     the loader is vendored (vendor/GLTFLoader.js) and this door is open. */
+  var _glbCache = {};
+  function ensureGLTF() {
+    if (window.THREE && window.THREE.GLTFLoader) return Promise.resolve();
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = 'vendor/GLTFLoader.js';
+      s.onload = res; s.onerror = function () { rej(new Error('GLTFLoader failed')); };
+      document.head.appendChild(s);
+    });
+  }
+  function loadGLB(name) {
+    if (_glbCache[name]) return Promise.resolve(_glbCache[name]);
+    return ensureGLTF().then(function () {
+      return new Promise(function (res, rej) {
+        new window.THREE.GLTFLoader().load('vendor/models3d/' + name + '.glb',
+          function (gltf) { _glbCache[name] = gltf.scene; res(gltf.scene); },
+          undefined, rej);
+      });
+    });
+  }
+  function glbMesh(name, texData) {
+    var T = window.THREE;
+    var src = _glbCache[name];
+    if (!src) return new T.Mesh(new T.BoxGeometry(1.5, 1.5, 1.5), bodyMat('#7C3AED'));
+    var m = src.clone(true);
+    m.traverse(function (n) {
+      if (n.isMesh && /^LD_LABEL/i.test(n.name || '') && texData && _texCache[texData]) {
+        n.material = labelMat(texData);
+      }
+    });
+    return normalize(m, 2.3);
+  }
+
+  function mesh(kind, colorHex, text, texData) {
+    if (MOCKUP_KINDS[kind]) return mockupMesh(kind, colorHex, texData);
+    if (kind && kind.indexOf('glb:') === 0) return glbMesh(kind.slice(4), texData);
     var T = window.THREE;
     var mat = new T.MeshStandardMaterial({ color: colorHex, roughness: 0.35, metalness: 0.25 });
     var flat = new T.MeshStandardMaterial({ color: colorHex, roughness: 0.35, metalness: 0.25, flatShading: true });
@@ -6784,7 +6923,7 @@ Editor._register({
     }
   }
 
-  function render3D(kind, colorHex, rx, ry, text, quat) {
+  function render3D(kind, colorHex, rx, ry, text, quat, texData) {
     var T = window.THREE;
     /* words are wide — give text a 2:1 frame so it isn't letterboxed tiny */
     var isText = kind === 'text';
@@ -6795,7 +6934,7 @@ Editor._register({
     scene.add(new T.AmbientLight(0xffffff, 0.55));
     var key = new T.DirectionalLight(0xffffff, 0.9); key.position.set(3, 4, 5); scene.add(key);
     var rim = new T.DirectionalLight(0x8b7cf3, 0.35); rim.position.set(-4, -2, -3); scene.add(rim);
-    var m = mesh(kind, colorHex, text);
+    var m = mesh(kind, colorHex, text, texData);
     /* 23 Aug 2026 (Fable) — FREE trackball rotation. A quaternion (quat)
        is the object's full 3D orientation; it never gimbal-locks, so the
        object tumbles freely like PowerPoint's 3D models. Old saved objects
@@ -6813,15 +6952,27 @@ Editor._register({
     var T = window.THREE;
     return new T.Quaternion().setFromEuler(new T.Euler(rx || 0, ry || 0, 0)).toArray();
   }
-  /* rotate an orientation by a mouse delta, relative to the SCREEN (premultiply
-     = world-space turn): drag right spins around the screen's up axis, drag
-     down spins around the screen's right axis — under the hand, like a ball. */
-  function quatDrag(prev, dx, dy) {
+  /* ── TRUE ARCBALL (23 Aug 2026, Fable — the PowerPoint feel) ────────────
+     The object is a glass ball under the cursor. Each cursor position maps
+     to a point on that ball's surface; the rotation is the turn that carries
+     the grab-point to the current point. Drag through the middle → tumble;
+     drag around the RIM → the object ROLLS like clock hands. All three axes,
+     no gimbal, exactly the PPT 3D-model behaviour. */
+  function arcVec(px, py, cx, cy, R) {
     var T = window.THREE;
-    var q = new T.Quaternion().fromArray(prev);
-    var qy = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), dx * 0.012);
-    var qx = new T.Quaternion().setFromAxisAngle(new T.Vector3(1, 0, 0), dy * 0.012);
-    return qx.multiply(qy).multiply(q).toArray();
+    var x = (px - cx) / R, y = -(py - cy) / R;
+    var d2 = x * x + y * y;
+    if (d2 > 1) { var s = 1 / Math.sqrt(d2); return new T.Vector3(x * s, y * s, 0); }
+    return new T.Vector3(x, y, Math.sqrt(1 - d2));
+  }
+  function quatArcball(prev, x0, y0, x1, y1, cx, cy, R) {
+    var T = window.THREE;
+    var v0 = arcVec(x0, y0, cx, cy, R), v1 = arcVec(x1, y1, cx, cy, R);
+    var qd = new T.Quaternion().setFromUnitVectors(v0, v1);
+    /* double the arc angle — the classic arcball trick that makes one full
+       drag across the ball turn the object a full half-revolution */
+    qd.multiply(qd.clone());
+    return qd.multiply(new T.Quaternion().fromArray(prev)).toArray();
   }
 
   function toast(m) { if (window.Editor && Editor._toast) Editor._toast(m); }
@@ -6863,6 +7014,44 @@ Editor._register({
       if (!txt) return;
       if (txt.length > 24) { txt = txt.slice(0, 24); toast('3D text is limited to 24 characters'); }
       Editor.run('insert3D', { kind: 'text', text: txt, color: (a && a.color) || '#7C3AED', name: '3D text' });
+    },
+    /* 23 Aug 2026 (Fable) — 3D MOCKUP: photograph the CURRENT SLIDE and wear
+       it as the label/screen of a real-world object. The snapshot travels
+       with the object, so it survives save/reopen. */
+    insertMockup3D: function (a) {
+      if (!a || !MOCKUP_KINDS[a.kind]) return;
+      ensureThree().then(function () {
+        /* snapshot the current slide at label resolution (1024 wide) */
+        captureCurrentPage();
+        var page = state.pages[state.currentPage] || {};
+        var W = (fc._baseWidth || 1920), H = (fc._baseHeight || 1080);
+        var sc = new fabric.StaticCanvas(null, { width: W, height: H });
+        sc._baseWidth = W; sc._baseHeight = H;
+        var done = function () {
+          sc.renderAll();
+          var texData = sc.toDataURL({ format: 'jpeg', quality: 0.85, multiplier: 1024 / W });
+          try { sc.dispose(); } catch (e) {}
+          warmTexture(texData).then(function () {
+            var rx = -0.12, ry = 0.45;
+            var q0 = quatFromEuler(rx, ry);
+            var url = render3D(a.kind, a.color || '#12A5A0', rx, ry, null, q0, texData);
+            fabric.Image.fromURL(url, function (img) {
+              img.scaleToWidth(300);
+              img.set({
+                left: 220, top: 110,
+                is3D: true, threeKind: a.kind, threeColor: a.color || '#12A5A0',
+                threeTexData: texData, threeQuat: q0,
+                layerName: (a.name || 'Mockup') + ' (this slide as label)'
+              });
+              fc.add(img).setActiveObject(img);
+              fc.renderAll(); saveState();
+              toast((a.name || 'Mockup') + ' added wearing this slide — Alt+drag to rotate');
+            });
+          });
+        };
+        if (page.canvasJSON) sc.loadFromJSON(page.canvasJSON, done);
+        else done();
+      }).catch(function () { toast('3D engine could not load — check your connection'); });
     }
   });
 
@@ -6879,20 +7068,33 @@ Editor._register({
         var q0 = (o.threeQuat && o.threeQuat.length === 4)
           ? o.threeQuat
           : (window.THREE ? quatFromEuler(o.rotX, o.rotY) : null);
-        rot = { o: o, x: e.clientX, y: e.clientY, q: q0 };
+        /* a mockup reopened from a saved deck needs its label re-warmed */
+        if (o.threeTexData && !_texCache[o.threeTexData]) warmTexture(o.threeTexData);
+        /* arcball centre = the OBJECT's centre on screen; ball radius = the
+           object's visible size, so the rim (the roll zone) is its edge */
+        var cx = e.clientX, cy = e.clientY, R = 150;
+        try {
+          var br = o.getBoundingRect();
+          var el2 = fc.upperCanvasEl.getBoundingClientRect();
+          cx = el2.left + br.left + br.width / 2;
+          cy = el2.top + br.top + br.height / 2;
+          R = Math.max(80, Math.max(br.width, br.height) / 2);
+        } catch (err) {}
+        rot = { o: o, x: e.clientX, y: e.clientY, q: q0, cx: cx, cy: cy, R: R };
         o.lockMovementX = true; o.lockMovementY = true;
       });
       fc.on('mouse:move', function (opt) {
         if (!rot || !opt.e || !window.THREE) return;
         var o = rot.o;
-        o.threeQuat = quatDrag(rot.q || quatFromEuler(o.rotX, o.rotY),
-                               opt.e.clientX - rot.x, opt.e.clientY - rot.y);
+        o.threeQuat = quatArcball(rot.q || quatFromEuler(o.rotX, o.rotY),
+                                  rot.x, rot.y, opt.e.clientX, opt.e.clientY,
+                                  rot.cx, rot.cy, rot.R);
         if (pending) return;
         pending = true;
         requestAnimationFrame(function () {
           pending = false;
           if (!window.THREE) return;
-          var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText, o.threeQuat);
+          var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText, o.threeQuat, o.threeTexData);
           o.setSrc(url, function () { fc.renderAll(); });
         });
       });

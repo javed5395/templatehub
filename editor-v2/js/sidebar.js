@@ -521,6 +521,35 @@
         og.appendChild(b);
       });
       p.appendChild(og);
+      /* ── 23 Aug 2026 (Fable) — 3D MOCKUPS: this slide on a real object ── */
+      p.appendChild(subhead('3D mockups — your CURRENT slide becomes the label'));
+      var MOCKS = [
+        { kind: 'bottle', name: 'Bottle', color: '#12A5A0',
+          svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('mk1', '#5EEAD4', '#0D9488') + '</defs><rect x="44" y="8" width="12" height="10" rx="2" fill="#26262B"/><path d="M44 18 h12 v6 c8 6 12 10 12 22 v40 a8 8 0 0 1 -8 8 h-20 a8 8 0 0 1 -8 -8 v-40 c0-12 4-16 12-22 Z" fill="url(#mk1)"/><rect x="34" y="48" width="32" height="22" rx="2" fill="#F8FAFC"/></svg>' },
+        { kind: 'can', name: 'Can', color: '#64748B',
+          svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('mk2', '#E2E8F0', '#94A3B8') + '</defs><ellipse cx="50" cy="16" rx="24" ry="7" fill="#94A3B8"/><path d="M26 16 v66 a24 8 0 0 0 48 0 v-66" fill="url(#mk2)"/><rect x="26" y="34" width="48" height="30" fill="#F8FAFC"/></svg>' },
+        { kind: 'mug', name: 'Mug', color: '#DB2777',
+          svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('mk3', '#F9A8D4', '#DB2777') + '</defs><path d="M22 24 h44 v50 a10 10 0 0 1 -10 10 h-24 a10 10 0 0 1 -10 -10 Z" fill="url(#mk3)"/><path d="M66 34 h8 a12 12 0 0 1 0 26 h-8 v-8 h8 a5 5 0 0 0 0 -10 h-8 Z" fill="#DB2777"/><rect x="22" y="38" width="44" height="24" fill="#F8FAFC"/></svg>' },
+        { kind: 'frame', name: 'Poster frame', color: '#7C5A3A',
+          svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('mk4', '#B08356', '#7C5A3A') + '</defs><rect x="10" y="18" width="80" height="64" rx="3" fill="url(#mk4)"/><rect x="20" y="28" width="60" height="44" fill="#F8FAFC"/><rect x="26" y="34" width="30" height="6" fill="#CBD5E1"/><rect x="26" y="46" width="48" height="4" fill="#E2E8F0"/><rect x="26" y="54" width="42" height="4" fill="#E2E8F0"/></svg>' },
+        { kind: 'phone', name: 'Phone', color: '#1B1B1F',
+          svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="32" y="8" width="36" height="84" rx="8" fill="#1B1B1F"/><rect x="36" y="14" width="28" height="72" rx="3" fill="#F8FAFC"/><rect x="40" y="20" width="14" height="4" fill="#CBD5E1"/><rect x="40" y="30" width="20" height="3" fill="#E2E8F0"/></svg>' },
+        { kind: 'laptop', name: 'Laptop', color: '#8B8F96',
+          svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="18" width="56" height="40" rx="3" fill="#54575E"/><rect x="26" y="22" width="48" height="32" fill="#F8FAFC"/><path d="M14 62 h72 l6 14 a3 3 0 0 1 -3 4 h-78 a3 3 0 0 1 -3 -4 Z" fill="#8B8F96"/></svg>' }
+      ];
+      var mg = el('div', 'sb-grid'); mg.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      MOCKS.forEach(function (mk) {
+        var b = el('button', 'sb-shape-card'); b.type = 'button';
+        b.title = mk.name + ' — inserts wearing the current slide (Alt+drag to rotate)';
+        var w3 = el('span', 'sb-shape-art'); w3.innerHTML = mk.svg;
+        b.appendChild(w3);
+        b.appendChild(el('span', 'sb-card-lab', mk.name));
+        b.addEventListener('click', function () {
+          run('insertMockup3D', { kind: mk.kind, color: mk.color, name: mk.name });
+        });
+        mg.appendChild(b);
+      });
+      p.appendChild(mg);
       return;
     }
     if (cat === 'wordart') {

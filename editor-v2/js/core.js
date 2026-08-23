@@ -40,7 +40,7 @@ var FABRIC_JSON_PROPS = ['isBg', 'svgText', 'irId', 'irOrigin', 'irPara', 'irBod
   'chartType', 'chartDef', 'datasetId', 'tableId',
   'isSticker', 'stickerName', 'stickerAnim', 'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isIcon', 'iconName', 'iconWeight',
-  'is3D', 'threeKind', 'threeColor', 'threeText', 'threeQuat', 'rotX', 'rotY', 'isMockArea',
+  'is3D', 'threeKind', 'threeColor', 'threeText', 'threeQuat', 'threeTexData', 'rotX', 'rotY', 'isMockArea',
   'isIllo', 'illoIndex', 'illoPalette', 'illoName', 'illoRole', 'illoStroke',
   'isSticker', 'stickerName', 'stickerAnim',
   'layerName', 'visible', 'isBrandLogo',
@@ -282,7 +282,7 @@ function rehydrateFrames() {}
     'publishTemplate','deleteTemplate','templateThumbs','applyTemplateSlide',
     'insertShapePreset','insertLineKind','insertGrid','insertSticker','insertIllo','illoPalette',
     'layerAction','ai',
-    'shapeFill','shapeOutline','shapeOutlineW','shapeOpacity','moveSlide','insert3D','insert3DText',
+    'shapeFill','shapeOutline','shapeOutlineW','shapeOpacity','moveSlide','insert3D','insert3DText','insertMockup3D',
     'publishElement','insertElement','deleteElement','componentSave','componentDelete','insertMockupLayout',
     'mockupArea','mockupFill','signIn','signOut','backgroundImage'
   ];
