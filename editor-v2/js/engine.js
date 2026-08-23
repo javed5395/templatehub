@@ -6834,11 +6834,18 @@ Editor._register({
       document.head.appendChild(s);
     });
   }
+  /* Asset Studio gate (23 Aug 2026, Fable — List #1 phase 1): a name that
+     looks like a Drive file id loads through the asset3d_http proxy; a plain
+     name still loads from vendor/models3d/. */
+  var LD_ASSET3D_URL = window.LD_ASSET3D_URL || 'https://asset3d-http-irosbvpq7q-uc.a.run.app';
   function loadGLB(name) {
     if (_glbCache[name]) return Promise.resolve(_glbCache[name]);
+    var url = /^[A-Za-z0-9_-]{15,}$/.test(name)
+      ? LD_ASSET3D_URL + '?id=' + name
+      : 'vendor/models3d/' + name + '.glb';
     return ensureGLTF().then(function () {
       return new Promise(function (res, rej) {
-        new window.THREE.GLTFLoader().load('vendor/models3d/' + name + '.glb',
+        new window.THREE.GLTFLoader().load(url,
           function (gltf) { _glbCache[name] = gltf.scene; res(gltf.scene); },
           undefined, rej);
       });
@@ -7149,6 +7156,26 @@ Editor._register({
         toast('Light: ' + a);
       });
     },
+    /* ══ ASSET STUDIO INSERT (23 Aug 2026, Fable — List #1 phase 1) ══════
+       a = { id: <driveFileId>, name, scale, camera } from the 3D Library
+       panel. The GLB is fetched through the catalog gate, cached, then
+       inserted as a normal rotatable 3D object (threeKind 'glb:<id>'). */
+    insertAsset3D: function (a) {
+      if (!a || !a.id) return;
+      toast('Loading ' + (a.name || '3D asset') + '…');
+      ensureThree().then(function () { return loadGLB(a.id); }).then(function () {
+        var camQ = (a.camera && ANGLE3D[a.camera])
+          ? quatFromEuler(ANGLE3D[a.camera][0], ANGLE3D[a.camera][1]) : null;
+        Editor.run('insert3D', {
+          kind: 'glb:' + a.id, name: a.name || '3D asset',
+          color: a.color || '#8B8F96',
+          width: Math.round(240 * (parseFloat(a.scale) || 1)),
+          quat: camQ, light: a.light || null
+        });
+      }).catch(function (e) {
+        toast('Could not load ' + (a.name || 'the asset') + ' — ' + (e && e.message || 'network'));
+      });
+    },
     /* ══ HEXA 3D (23 Aug 2026, Fable — step 5) ═══════════════════════════
        One sentence → a placed 3D scene. Pure rules, same philosophy as the
        order grammar: no cloud, no tokens, always the same answer.
@@ -7390,6 +7417,11 @@ Editor._register({
           : (window.THREE ? quatFromEuler(o.rotX, o.rotY) : null);
         /* a mockup reopened from a saved deck needs its label re-warmed */
         if (o.threeTexData && !_texCache[o.threeTexData]) warmTexture(o.threeTexData);
+        /* a library asset reopened from a saved deck needs its GLB re-fetched */
+        if (o.threeKind && o.threeKind.indexOf('glb:') === 0 && !_glbCache[o.threeKind.slice(4)]) {
+          loadGLB(o.threeKind.slice(4)).then(function () { rerenderObj(o, true); })
+            .catch(function () { toast('Could not reload this 3D asset'); });
+        }
         /* arcball centre = the OBJECT's centre on screen; ball radius = the
            object's visible size, so the rim (the roll zone) is its edge */
         var cx = e.clientX, cy = e.clientY, R = 150;

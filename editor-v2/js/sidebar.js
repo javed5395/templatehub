@@ -550,6 +550,92 @@
         mg.appendChild(b);
       });
       p.appendChild(mg);
+      /* ══ 3D LIBRARY (23 Aug 2026, Fable — Javed's List #1, phase 1) ══════
+         Firestore `assets3d` is the catalog; Drive holds the GLB files,
+         served through the asset3d gate. Search + category chips here,
+         click → insertAsset3D. Empty catalog shows an honest hint. */
+      p.appendChild(subhead('3D Library — assets from the LazyDog catalog'));
+      var libWrap = el('div'); libWrap.style.cssText = 'padding:4px 2px;';
+      var sIn = document.createElement('input');
+      sIn.type = 'search'; sIn.placeholder = 'Search assets… (phone, tree, car)';
+      sIn.style.cssText = 'width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;' +
+        'border:1px solid rgba(128,128,140,.35);background:transparent;color:inherit;font:inherit;margin-bottom:6px;';
+      libWrap.appendChild(sIn);
+      var chipRow = el('div'); chipRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;';
+      var CATS3 = [['', 'All'], ['technology', '🖥️ Tech'], ['office', '🏢 Office'], ['transport', '🚗 Transport'],
+        ['products', '🧴 Products'], ['home', '🏠 Home'], ['business', '👔 Business'],
+        ['presentation', '🎯 Present'], ['nature', '🌿 Nature'], ['shapes', '⭐ Shapes']];
+      var libState = { all: null, cat: '', q: '' };
+      var grid = el('div', 'sb-grid'); grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+      var note = el('div'); note.style.cssText = 'font-size:11px;opacity:.7;padding:6px 2px;';
+      function drawLib() {
+        grid.innerHTML = '';
+        if (!libState.all) { note.textContent = 'Loading catalog…'; return; }
+        var items = libState.all.filter(function (it) {
+          if (libState.cat && String(it.category || '').toLowerCase() !== libState.cat) return false;
+          if (libState.q) {
+            var hay = (it.name + ' ' + (it.tags || []).join(' ') + ' ' + it.category).toLowerCase();
+            if (hay.indexOf(libState.q) === -1) return false;
+          }
+          return true;
+        });
+        note.textContent = items.length ? (items.length + ' asset(s)') :
+          (libState.all.length ? 'No match — try another word' :
+           'Catalog is empty — assets appear here as they are registered');
+        items.slice(0, 40).forEach(function (it) {
+          var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = it.name;
+          var art = el('span', 'sb-shape-art');
+          if (it.thumbUrl) {
+            var im = document.createElement('img'); im.src = it.thumbUrl; im.loading = 'lazy';
+            im.style.cssText = 'width:100%;height:100%;object-fit:contain;'; art.appendChild(im);
+          } else art.innerHTML = '<svg viewBox="0 0 100 100"><polygon points="50,12 88,32 50,52 12,32" fill="#A78BFA"/><polygon points="12,32 50,52 50,88 12,68" fill="#7C3AED"/><polygon points="88,32 50,52 50,88 88,68" fill="#5B21B6"/></svg>';
+          b.appendChild(art);
+          b.appendChild(el('span', 'sb-card-lab', it.name));
+          b.addEventListener('click', function () {
+            run('insertAsset3D', { id: it.driveFileId, name: it.name,
+              scale: it.defaultScale, camera: it.camera });
+          });
+          grid.appendChild(b);
+        });
+      }
+      CATS3.forEach(function (c) {
+        var ch = document.createElement('button'); ch.type = 'button'; ch.textContent = c[1];
+        ch.style.cssText = 'border:1px solid rgba(128,128,140,.35);background:transparent;color:inherit;' +
+          'border-radius:999px;padding:3px 9px;font-size:11px;cursor:pointer;';
+        ch.addEventListener('click', function () {
+          libState.cat = c[0];
+          Array.prototype.forEach.call(chipRow.children, function (x) { x.style.fontWeight = ''; });
+          ch.style.fontWeight = '700';
+          drawLib();
+        });
+        chipRow.appendChild(ch);
+      });
+      sIn.addEventListener('input', function () { libState.q = sIn.value.trim().toLowerCase(); drawLib(); });
+      libWrap.appendChild(chipRow); libWrap.appendChild(note); libWrap.appendChild(grid);
+      p.appendChild(libWrap);
+      (async function loadCatalog() {
+        try {
+          var fa = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+          var fs = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+          var app = fa.getApps().length ? fa.getApp() : fa.initializeApp({
+            apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes',
+            authDomain: 'auth.lazydogtemplates.com',
+            projectId: 'templatehub-16cd7',
+            storageBucket: 'templatehub-16cd7.firebasestorage.app',
+            messagingSenderId: '143000893683',
+            appId: '1:143000893683:web:fd694de96f8c0fa6569f86'
+          });
+          var db = fs.getFirestore(app);
+          var snap = await fs.getDocs(fs.query(fs.collection(db, 'assets3d'), fs.limit(200)));
+          var all = [];
+          snap.forEach(function (d) { var v = d.data() || {}; v.assetId = d.id; if (v.driveFileId) all.push(v); });
+          libState.all = all;
+        } catch (e) {
+          console.warn('[3dlib] catalog unavailable:', e && e.message);
+          libState.all = [];
+        }
+        drawLib();
+      })();
       return;
     }
     if (cat === 'wordart') {

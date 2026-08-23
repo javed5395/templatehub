@@ -455,6 +455,16 @@ service cloud.firestore {
       allow delete: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
+    // 3D ASSET STUDIO catalog (23 Aug 2026, Fable - List #1 phase 1).
+    // Public metadata only: name, category, tags, thumbnail, Drive file id,
+    // default scale, camera preset. The GLB files themselves are NOT here -
+    // they sit in Drive behind the asset3d_http gate. Writes are admin-only
+    // (registration runs through REGISTER_3D_ASSETS.py / the admin panel).
+    match /assets3d/{assetId} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
     // Block everything else
     match /{document=**} {
       allow read, write: if false;
