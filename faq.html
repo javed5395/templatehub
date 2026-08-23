@@ -74,6 +74,14 @@
     .faq-item.open .faq-a { max-height: 400px; }
     .faq-a-inner { padding: 0 26px 24px; color: var(--muted); font-size: 14.5px; line-height: 1.8; border-top: 1px solid rgba(212,175,55,0.1); padding-top: 18px; margin: 0 26px 24px; }
 
+    /* ── Bug #3 fix: readable FAQ text in LIGHT mode (near-white text → dark). ──
+         Dark mode (no .light class on body) keeps the original light text. ── */
+    body.light .faq-q { color: #17172b; }
+    body.light .faq-q:hover { color: var(--accent); }
+    body.light .faq-a-inner { color: #4a5568; }
+    body.light .page-hero p { color: #4a5568; }
+    body.light .faq-contact p { color: #4a5568; }
+
     /* CONTACT STRIP */
     .faq-contact { text-align: center; padding: 60px 40px; border-top: 1px solid rgba(212,175,55,0.1); margin-top: 20px; }
     .faq-contact h3 { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
