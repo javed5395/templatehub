@@ -423,10 +423,10 @@
 
           <!-- REPORT DOCUMENTS — Web Kits & Digital Keynotes only (13 Aug 2026) -->
           <div id="reportDocsSection" style="display:none;">
-            <p style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin:18px 0 4px;">📑 Report Documents <span class="required">*</span></p>
-            <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Required for Website Kits and Digital Keynotes — the three report PDFs included with the kit.</p>
+            <p style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin:18px 0 4px;">📑 Report Documents <span style="color:var(--muted);font-weight:400;">(Optional)</span></p>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Optional for Website Kits and Digital Keynotes — the three report PDFs included with the kit. Leave blank to submit without them.</p>
             <div class="field">
-              <label>Creative Exploration Report <span class="required">*</span></label>
+              <label>Creative Exploration Report <span style="color:var(--muted);font-weight:400;">(Optional)</span></label>
               <div class="upload-box">
                 <input type="file" id="reportDoc1" accept=".pdf" onchange="showFiles('reportDoc1','reportList1')"/>
                 <div class="upload-icon">🎨</div>
@@ -435,7 +435,7 @@
               <div class="file-list" id="reportList1"></div>
             </div>
             <div class="field">
-              <label>Design Intelligence Report <span class="required">*</span></label>
+              <label>Design Intelligence Report <span style="color:var(--muted);font-weight:400;">(Optional)</span></label>
               <div class="upload-box">
                 <input type="file" id="reportDoc2" accept=".pdf" onchange="showFiles('reportDoc2','reportList2')"/>
                 <div class="upload-icon">🧠</div>
@@ -444,7 +444,7 @@
               <div class="file-list" id="reportList2"></div>
             </div>
             <div class="field">
-              <label>Design Engineering Report <span class="required">*</span></label>
+              <label>Design Engineering Report <span style="color:var(--muted);font-weight:400;">(Optional)</span></label>
               <div class="upload-box">
                 <input type="file" id="reportDoc3" accept=".pdf" onchange="showFiles('reportDoc3','reportList3')"/>
                 <div class="upload-icon">⚙️</div>
@@ -1929,17 +1929,15 @@ window.submitForm = async function() {
       ['reportDoc2', 'Design Intelligence Report.pdf'],
       ['reportDoc3', 'Design Engineering Report.pdf']
     ];
-    const missing = [];
+    // Report PDFs are OPTIONAL (the seller's own choice) — attach whichever are
+    // provided and NEVER block the submission for a missing one. A provided file
+    // that is not a PDF is a genuine mistake, so that still warns.
     for (const [id, canonName] of REPORT_SLOTS) {
       const el = document.getElementById(id);
       const f  = el && el.files[0];
-      if (!f) { missing.push(canonName.replace('.pdf','')); continue; }
-      if (!/\.pdf$/i.test(f.name)) { alert(canonName.replace('.pdf','') + ' must be a PDF file.'); return; }
+      if (!f) { continue; }
+      if (!/\.pdf$/i.test(f.name)) { alert(canonName.replace('.pdf','') + ' must be a PDF file, or leave it blank.'); return; }
       extraFiles.push(new File([f], canonName, { type: 'application/pdf' }));
-    }
-    if (missing.length) {
-      alert('This category requires all three report PDFs. Missing: ' + missing.join(', '));
-      return;
     }
   }
 
@@ -1951,12 +1949,12 @@ window.submitForm = async function() {
       alert('Please fill all required template fields!'); return;
     }
     if (!docType) { alert('Please select the Document Type (Resume, CV, Cover Letter, etc.)!'); return; }
-    if (!pdfFile) { alert('Please upload the resume PDF!'); return; }
+    // Resume PDF is optional — no blockage if the seller chooses not to attach one.
   } else if (category === 'blog') {
     if (!templateName || !category || !industry) {
       alert('Please fill all required template fields!'); return;
     }
-    if (!pdfFile) { alert('Please upload the blog PDF!'); return; }
+    // Blog PDF is optional — no blockage if the seller chooses not to attach one.
   } else {
     if (!templateName || !category || !slideCount || !industry) {
       alert('Please fill all required template fields!'); return;
