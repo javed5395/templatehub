@@ -3,7 +3,6 @@ Allow: /
 
 # Private tools and per-user pages - not for search results
 Disallow: /editor.html
-Disallow: /editor_dissolve_DRAFT.html
 Disallow: /compose.html
 Disallow: /my_designs.html
 Disallow: /upload_form.html
