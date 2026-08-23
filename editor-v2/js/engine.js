@@ -6864,6 +6864,30 @@ Editor._register({
     return normalize(m, 2.3);
   }
 
+  /* ══ ASSET THUMBNAILS (24 Aug 2026, Fable — phase 2) ═══════════════════
+     Render a small square preview of a library asset (loading its GLB on
+     demand). The 3D Library panel calls this for any asset with no stored
+     thumbnail, shows it immediately, and — if the viewer is an admin —
+     writes it back to the catalog so everyone else sees it too. */
+  window.ldMakeAsset3DThumb = function (driveId, size) {
+    return ensureThree().then(function () { return loadGLB(driveId); }).then(function () {
+      var q = quatFromEuler(-0.3, 0.6);
+      var url = render3D('glb:' + driveId, '#8B8F96', 0, 0, null, q, null, false);
+      /* downscale the 512px render to a light thumbnail (default 128px) */
+      return new Promise(function (res) {
+        var img = new Image();
+        img.onload = function () {
+          var s = size || 128;
+          var cv = document.createElement('canvas'); cv.width = cv.height = s;
+          var ctx = cv.getContext('2d'); ctx.drawImage(img, 0, 0, s, s);
+          res(cv.toDataURL('image/png'));
+        };
+        img.onerror = function () { res(null); };
+        img.src = url;
+      });
+    });
+  };
+
   function mesh(kind, colorHex, text, texData) {
     if (MOCKUP_KINDS[kind]) return mockupMesh(kind, colorHex, texData);
     if (kind && kind.indexOf('glb:') === 0) return glbMesh(kind.slice(4), texData);

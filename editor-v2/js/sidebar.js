@@ -588,7 +588,12 @@
           if (it.thumbUrl) {
             var im = document.createElement('img'); im.src = it.thumbUrl; im.loading = 'lazy';
             im.style.cssText = 'width:100%;height:100%;object-fit:contain;'; art.appendChild(im);
-          } else art.innerHTML = '<svg viewBox="0 0 100 100"><polygon points="50,12 88,32 50,52 12,32" fill="#A78BFA"/><polygon points="12,32 50,52 50,88 12,68" fill="#7C3AED"/><polygon points="88,32 50,52 50,88 88,68" fill="#5B21B6"/></svg>';
+          } else {
+            /* phase 2: no picture yet — show a placeholder and queue an
+               auto-thumbnail render (persisted to the catalog if admin) */
+            art.innerHTML = '<svg viewBox="0 0 100 100"><polygon points="50,12 88,32 50,52 12,32" fill="#A78BFA"/><polygon points="12,32 50,52 50,88 12,68" fill="#7C3AED"/><polygon points="88,32 50,52 50,88 88,68" fill="#5B21B6"/></svg>';
+            queueThumb(it, art);
+          }
           b.appendChild(art);
           b.appendChild(el('span', 'sb-card-lab', it.name));
           b.addEventListener('click', function () {
@@ -613,10 +618,49 @@
       sIn.addEventListener('input', function () { libState.q = sIn.value.trim().toLowerCase(); drawLib(); });
       libWrap.appendChild(chipRow); libWrap.appendChild(note); libWrap.appendChild(grid);
       p.appendChild(libWrap);
+
+      /* ── auto-thumbnail engine (phase 2) ─────────────────────────────
+         One asset renders at a time (3D is heavy). A generated thumb is
+         shown at once and, for admins, saved back to the catalog so it is
+         computed once for everyone. Non-admins just see it for this session. */
+      var _fsMod = null, _db = null, _thumbBusy = false, _thumbQ = [], _thumbDone = {};
+      function queueThumb(it, artEl) {
+        if (!it.driveFileId || it.thumbUrl || _thumbDone[it.driveFileId]) return;
+        _thumbQ.push({ it: it, art: artEl });
+        pumpThumbs();
+      }
+      function pumpThumbs() {
+        if (_thumbBusy || !_thumbQ.length || !window.ldMakeAsset3DThumb) return;
+        var job = _thumbQ.shift();
+        if (_thumbDone[job.it.driveFileId]) { pumpThumbs(); return; }
+        _thumbBusy = true;
+        window.ldMakeAsset3DThumb(job.it.driveFileId, 128).then(function (dataUrl) {
+          _thumbDone[job.it.driveFileId] = true;
+          if (dataUrl) {
+            job.it.thumbUrl = dataUrl;
+            if (job.art && job.art.isConnected) {
+              job.art.innerHTML = '';
+              var im = document.createElement('img'); im.src = dataUrl;
+              im.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+              job.art.appendChild(im);
+            }
+            persistThumb(job.it, dataUrl);   /* admin-only; silently ignored otherwise */
+          }
+        }).catch(function () { _thumbDone[job.it.driveFileId] = true; })
+          .finally(function () { _thumbBusy = false; setTimeout(pumpThumbs, 60); });
+      }
+      async function persistThumb(it, dataUrl) {
+        try {
+          if (!_db || !_fsMod) return;
+          await _fsMod.updateDoc(_fsMod.doc(_db, 'assets3d', it.assetId), { thumbUrl: dataUrl });
+        } catch (e) { /* not admin, or offline — fine, it stays session-only */ }
+      }
+
       (async function loadCatalog() {
         try {
           var fa = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
           var fs = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+          _fsMod = fs;
           var app = fa.getApps().length ? fa.getApp() : fa.initializeApp({
             apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes',
             authDomain: 'auth.lazydogtemplates.com',
@@ -625,8 +669,8 @@
             messagingSenderId: '143000893683',
             appId: '1:143000893683:web:fd694de96f8c0fa6569f86'
           });
-          var db = fs.getFirestore(app);
-          var snap = await fs.getDocs(fs.query(fs.collection(db, 'assets3d'), fs.limit(200)));
+          _db = fs.getFirestore(app);
+          var snap = await fs.getDocs(fs.query(fs.collection(_db, 'assets3d'), fs.limit(200)));
           var all = [];
           snap.forEach(function (d) { var v = d.data() || {}; v.assetId = d.id; if (v.driveFileId) all.push(v); });
           libState.all = all;
