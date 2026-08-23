@@ -7068,6 +7068,8 @@ Editor._register({
          confused: it turns the baked picture, not the 3D. */
       var freeObj = null;
       function enterFree(o) {
+        if (freeObj === o) return;   /* already free — never re-capture the
+          hidden box as the "previous" state (that ate the box for good) */
         freeObj = o;
         o._ldPrevBorders = o.hasBorders; o._ldPrevControls = o.hasControls;
         o.hasBorders = false; o.hasControls = false;
@@ -7085,9 +7087,13 @@ Editor._register({
         fc.defaultCursor = 'default'; fc.hoverCursor = 'move';
         fc.renderAll(); saveState();
       }
+      /* double-click is a SWITCH: box off → free rotate; box back on → resize */
       fc.on('mouse:dblclick', function (opt) {
         var o = opt && opt.target;
-        if (o && o.is3D) { if (freeObj && freeObj !== o) exitFree(); enterFree(o); }
+        if (!o || !o.is3D) return;
+        if (freeObj === o) { exitFree(); fc.setActiveObject(o); fc.renderAll(); return; }
+        if (freeObj) exitFree();
+        enterFree(o);
       });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') exitFree(); });
       /* hide the 2D spinner stalk whenever a 3D object is selected */
