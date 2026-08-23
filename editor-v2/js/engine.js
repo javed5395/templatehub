@@ -7206,6 +7206,22 @@ Editor._register({
        e.g. "gold 3d text SALE in the middle, bottle with this slide on the
              left, star top right, disco light, isometric"                 */
     threeOrder: async function (a) {
+      /* 24 Aug 2026 (Fable) — make sure Hexa can see the 3D Library even if
+         the user never opened that panel this session. */
+      if (!window._ld3dCatalog) {
+        try {
+          var fa = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+          var fsm = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+          var app = fa.getApps().length ? fa.getApp() : fa.initializeApp({
+            apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes', authDomain: 'auth.lazydogtemplates.com',
+            projectId: 'templatehub-16cd7', storageBucket: 'templatehub-16cd7.firebasestorage.app',
+            messagingSenderId: '143000893683', appId: '1:143000893683:web:fd694de96f8c0fa6569f86' });
+          var db = fsm.getFirestore(app);
+          var snap = await fsm.getDocs(fsm.query(fsm.collection(db, 'assets3d'), fsm.limit(200)));
+          var all = []; snap.forEach(function (d) { var v = d.data() || {}; v.assetId = d.id; if (v.driveFileId) all.push(v); });
+          window._ld3dCatalog = all;
+        } catch (e) { window._ld3dCatalog = window._ld3dCatalog || []; }
+      }
       var txt = (a && a.text) || await window.ldPrompt('Tell Hexa your 3D scene:',
         'e.g. gold 3d text SALE in the middle, bottle on the left, star top right, disco light');
       txt = String(txt || '').trim();
@@ -7271,10 +7287,30 @@ Editor._register({
         }
         var kind = null;
         Object.keys(KINDS).forEach(function (k) { if (!kind && new RegExp('\\b' + k + 's?\\b').test(c)) kind = k; });
-        if (!kind) return;
-        var real = ALIAS[kind] || kind;
-        jobs.push({ type: KINDS[kind] === 'M' ? 'mockup' : 'shape', kind: real, color: color,
-                    big: /big|large|huge/.test(c), small: /small|tiny/.test(c), clause: c });
+        if (kind) {
+          var real = ALIAS[kind] || kind;
+          jobs.push({ type: KINDS[kind] === 'M' ? 'mockup' : 'shape', kind: real, color: color,
+                      big: /big|large|huge/.test(c), small: /small|tiny/.test(c), clause: c });
+          return;
+        }
+        /* 24 Aug 2026 (Fable) — no built-in match: search the 3D LIBRARY.
+           Score each asset by how many of its name/tag words appear in the
+           clause; the best clear match wins. This is what lets Hexa say
+           "add a trophy" and pull the real Gold Trophy from the catalog. */
+        var cat = window._ld3dCatalog || [];
+        var cWords = c.split(/[^a-z0-9]+/).filter(Boolean);
+        var best = null, bestScore = 0;
+        cat.forEach(function (as) {
+          var hay = ((as.name || '') + ' ' + (as.tags || []).join(' ')).toLowerCase();
+          var hayWords = hay.split(/[^a-z0-9]+/).filter(Boolean);
+          var score = 0;
+          hayWords.forEach(function (w) { if (w.length > 2 && cWords.indexOf(w) > -1) score++; });
+          if (score > bestScore) { bestScore = score; best = as; }
+        });
+        if (best && bestScore > 0) {
+          jobs.push({ type: 'asset', asset: best, color: color,
+                      big: /big|large|huge/.test(c), small: /small|tiny/.test(c), clause: c });
+        }
       });
       if (!jobs.length) {
         toast('Hexa 3D understood nothing — name things like "bottle", "star", or 3d text "HELLO"');
@@ -7290,6 +7326,9 @@ Editor._register({
           } else if (j.type === 'mockup') {
             Editor.run('insertMockup3D', { kind: j.kind, color: j.color || '#12A5A0',
               left: p.x, top: p.y, width: wdt, light: light, quat: quat, quiet: true, name: j.kind });
+          } else if (j.type === 'asset') {
+            Editor.run('insertAsset3D', { id: j.asset.driveFileId, name: j.asset.name,
+              scale: j.asset.defaultScale, camera: j.asset.camera, light: light });
           } else {
             Editor.run('insert3D', { kind: j.kind, color: j.color || '#7C3AED',
               left: p.x, top: p.y, width: wdt, light: light, quat: quat, quiet: true, name: j.kind });

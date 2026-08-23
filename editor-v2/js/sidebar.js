@@ -674,6 +674,9 @@
           var all = [];
           snap.forEach(function (d) { var v = d.data() || {}; v.assetId = d.id; if (v.driveFileId) all.push(v); });
           libState.all = all;
+          /* 24 Aug 2026 (Fable) — share the catalog with Hexa 3D so it can
+             place library assets by name/tag from a sentence */
+          window._ld3dCatalog = all;
         } catch (e) {
           console.warn('[3dlib] catalog unavailable:', e && e.message);
           libState.all = [];
