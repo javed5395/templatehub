@@ -1588,28 +1588,215 @@ Editor._register({
     try { sc.dispose(); } catch (e) {}
     return url;
   }
+  /* ═══ PRESENT REWRITE — 23 Aug 2026 (Fable, bugs #7 #8 #9) ═══════════════
+     #9  Slides are now rendered LAZILY: slide 1 shows immediately, the rest
+         render on demand (with the next one prefetched) — big decks no
+         longer freeze on "Present".
+     #8  Each of the 6 transitions now renders DISTINCTLY (fade, push, wipe,
+         split, reveal, zoom) instead of everything being a plain fade.
+     #7  Object animations finally PLAY: any object with animType is lifted
+         out of the flat slide image and overlaid as its own element, then
+         CSS-animated (entrance on show, emphasis after, exit on leave).  */
+  var _LD_ANIM = {
+    'appear':   ['ldpAppear', 1],   'fade-in':  ['ldpFadeIn', 600],
+    'fly-in':   ['ldpFlyIn', 700],  'float-in': ['ldpFloatIn', 700],
+    'split-in': ['ldpSplitIn', 600],'wipe-in':  ['ldpWipeIn', 600],
+    'shape-in': ['ldpShapeIn', 700],'wheel':    ['ldpWheel', 800],
+    'bars':     ['ldpBars', 700],   'grow-turn':['ldpGrowTurn', 700],
+    'zoom-in':  ['ldpZoomIn', 600], 'swivel':   ['ldpSwivel', 800],
+    'bounce':   ['ldpBounce', 900],
+    'pulse':    ['ldpPulse', 800],  'teeter':   ['ldpTeeter', 800],
+    'spin':     ['ldpSpin', 900],   'grow':     ['ldpGrow', 800],
+    'disappear':['ldpDisappear', 1],'fade-out': ['ldpFadeOut', 500],
+    'fly-out':  ['ldpFlyOut', 600], 'zoom-out': ['ldpZoomOut', 500]
+  };
+  var _LD_EXIT = { 'disappear': 1, 'fade-out': 1, 'fly-out': 1, 'zoom-out': 1 };
+  var _LD_EMPH = { 'pulse': 1, 'teeter': 1, 'spin': 1, 'grow': 1 };
+  function _ldPresentCss() {
+    if (document.getElementById('ld-present-css')) return;
+    var s = document.createElement('style'); s.id = 'ld-present-css';
+    s.textContent =
+      '@keyframes ldpAppear{from{opacity:0}to{opacity:1}}' +
+      '@keyframes ldpFadeIn{from{opacity:0}to{opacity:1}}' +
+      '@keyframes ldpFlyIn{from{opacity:0;transform:translateY(70vh)}to{opacity:1;transform:none}}' +
+      '@keyframes ldpFloatIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}' +
+      '@keyframes ldpSplitIn{from{opacity:0;clip-path:inset(0 50% 0 50%)}to{opacity:1;clip-path:inset(0 0 0 0)}}' +
+      '@keyframes ldpWipeIn{from{opacity:1;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}' +
+      '@keyframes ldpShapeIn{from{opacity:0;clip-path:circle(0% at 50% 50%)}to{opacity:1;clip-path:circle(75% at 50% 50%)}}' +
+      '@keyframes ldpWheel{from{opacity:0;transform:rotate(-180deg) scale(.4)}to{opacity:1;transform:none}}' +
+      '@keyframes ldpBars{0%{opacity:0}20%{opacity:.15}40%{opacity:.35}60%{opacity:.55}80%{opacity:.8}100%{opacity:1}}' +
+      '@keyframes ldpGrowTurn{from{opacity:0;transform:scale(.1) rotate(-90deg)}to{opacity:1;transform:none}}' +
+      '@keyframes ldpZoomIn{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}' +
+      '@keyframes ldpSwivel{from{opacity:0;transform:perspective(600px) rotateY(90deg)}to{opacity:1;transform:none}}' +
+      '@keyframes ldpBounce{0%{opacity:0;transform:translateY(-60vh)}45%{opacity:1;transform:translateY(0)}62%{transform:translateY(-8vh)}78%{transform:translateY(0)}90%{transform:translateY(-3vh)}100%{transform:translateY(0)}}' +
+      '@keyframes ldpPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}' +
+      '@keyframes ldpTeeter{0%,100%{transform:rotate(0)}25%{transform:rotate(6deg)}75%{transform:rotate(-6deg)}}' +
+      '@keyframes ldpSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}' +
+      '@keyframes ldpGrow{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}' +
+      '@keyframes ldpDisappear{to{opacity:0}}' +
+      '@keyframes ldpFadeOut{to{opacity:0}}' +
+      '@keyframes ldpFlyOut{to{opacity:0;transform:translateY(-70vh)}}' +
+      '@keyframes ldpZoomOut{to{opacity:0;transform:scale(.2)}}' +
+      '.ldp-layer{position:absolute;inset:0;}' +
+      '.ldp-layer img.ldp-base{position:absolute;inset:0;width:100%;height:100%;}' +
+      '.ldp-obj{position:absolute;will-change:transform,opacity,clip-path;}';
+    document.head.appendChild(s);
+  }
+  /* Render ONE slide for the show: flat base image + separate images for
+     every animated object (lifted out so they can move on their own). */
+  async function slideBundle(i) {
+    var page = state.pages[i];
+    var W = (fc._baseWidth || 1920), H = (fc._baseHeight || 1080);
+    var sc = new fabric.StaticCanvas(null, { width: W, height: H });
+    sc._baseWidth = W; sc._baseHeight = H;
+    if (i === state.currentPage) { captureCurrentPage(); }
+    if (page.canvasJSON) {
+      await new Promise(function (res) { sc.loadFromJSON(page.canvasJSON, function () { sc.renderAll(); res(); }); });
+    } else if (page.ir && typeof renderSlideIR === 'function') {
+      await renderSlideIR(page.ir, window._deckIR, sc);
+      sc.renderAll();
+    }
+    var anims = [];
+    try {
+      sc.getObjects().forEach(function (o) {
+        if (!o.animType || !_LD_ANIM[o.animType]) return;
+        var r = o.getBoundingRect(true, true);
+        var url;
+        try { url = o.toDataURL({ format: 'png' }); } catch (e) { return; }
+        anims.push({ url: url, l: r.left / W, t: r.top / H, w: r.width / W, h: r.height / H, type: o.animType });
+        o.visible = false;      // lifted out of the flat base image
+      });
+      if (anims.length) sc.renderAll();
+    } catch (e) { console.warn('[present] anim lift failed', e); }
+    var url = sc.toDataURL({ format: 'jpeg', quality: 0.92 });
+    try { sc.dispose(); } catch (e) {}
+    return { url: url, anims: anims, W: W, H: H };
+  }
   async function present(fromCurrent) {
-    showToast('Preparing slide show…');
-    var imgs = [];
-    for (var i = 0; i < state.pages.length; i++) imgs.push(await slideImage(i));
+    _ldPresentCss();
+    var n = state.pages.length;
+    var bundles = new Array(n);
+    function getBundle(i) { return bundles[i] || (bundles[i] = slideBundle(i)); }
     var idx = fromCurrent ? state.currentPage : 0;
     var ov = document.createElement('div');
-    ov.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;display:grid;place-items:center;cursor:none;';
-    var img = document.createElement('img');
-    img.style.cssText = 'max-width:100vw;max-height:100vh;transition:opacity 0.4s ease;';
-    ov.appendChild(img);
+    ov.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;cursor:none;overflow:hidden;';
+    var stage = document.createElement('div');
+    stage.style.cssText = 'position:absolute;overflow:hidden;background:#000;';
+    ov.appendChild(stage);
     var counter = document.createElement('div');
-    counter.style.cssText = 'position:fixed;bottom:16px;right:22px;color:#888;font:600 13px "DM Sans",sans-serif;';
+    counter.style.cssText = 'position:fixed;bottom:16px;right:22px;color:#888;font:600 13px "DM Sans",sans-serif;z-index:3;';
     ov.appendChild(counter);
     document.body.appendChild(ov);
-    function show(i) {
-      idx = Math.max(0, Math.min(imgs.length - 1, i));
-      var t = (state.pages[idx] || {}).transition;
-      if (t && t.type && t.type !== 'none') {
-        img.style.opacity = 0;
-        setTimeout(function () { img.src = imgs[idx]; img.style.opacity = 1; }, Math.min(300, (t.ms || 400) / 2));
-      } else img.src = imgs[idx];
-      counter.textContent = (idx + 1) + ' / ' + imgs.length;
+    var ratio = (fc._baseWidth || 1920) / (fc._baseHeight || 1080);
+    function fitStage() {
+      var vw = ov.clientWidth, vh = ov.clientHeight;
+      var w = Math.min(vw, vh * ratio), h = w / ratio;
+      stage.style.width = w + 'px'; stage.style.height = h + 'px';
+      stage.style.left = ((vw - w) / 2) + 'px'; stage.style.top = ((vh - h) / 2) + 'px';
+    }
+    fitStage();
+    window.addEventListener('resize', fitStage);
+    function buildLayer(b) {
+      var layer = document.createElement('div'); layer.className = 'ldp-layer';
+      var base = document.createElement('img'); base.className = 'ldp-base'; base.src = b.url;
+      layer.appendChild(base);
+      b.anims.forEach(function (a) {
+        var im = document.createElement('img'); im.className = 'ldp-obj'; im.src = a.url;
+        im.style.left = (a.l * 100) + '%'; im.style.top = (a.t * 100) + '%';
+        im.style.width = (a.w * 100) + '%'; im.style.height = (a.h * 100) + '%';
+        im.dataset.anim = a.type;
+        if (!_LD_EXIT[a.type] && !_LD_EMPH[a.type]) im.style.opacity = '0'; // entrance: hidden until played
+        layer.appendChild(im);
+      });
+      return layer;
+    }
+    function playAnims(layer) {
+      var objs = Array.prototype.slice.call(layer.querySelectorAll('.ldp-obj'));
+      var delay = 150, entTotal = 0;
+      objs.forEach(function (im) {
+        var k = im.dataset.anim, spec = _LD_ANIM[k];
+        if (!spec || _LD_EXIT[k] || _LD_EMPH[k]) return;
+        im.style.opacity = '';
+        im.style.animation = spec[0] + ' ' + spec[1] + 'ms ease both ' + entTotal + 'ms';
+        entTotal += delay;
+      });
+      var emStart = entTotal + 500;
+      objs.forEach(function (im) {
+        var k = im.dataset.anim, spec = _LD_ANIM[k];
+        if (!spec || !_LD_EMPH[k]) return;
+        im.style.animation = spec[0] + ' ' + spec[1] + 'ms ease both ' + emStart + 'ms';
+        emStart += delay;
+      });
+    }
+    function playExits(layer) {
+      var ms = 0;
+      layer.querySelectorAll('.ldp-obj').forEach(function (im) {
+        var k = im.dataset.anim, spec = _LD_ANIM[k];
+        if (!spec || !_LD_EXIT[k]) return;
+        im.style.animation = spec[0] + ' ' + spec[1] + 'ms ease both';
+        ms = Math.max(ms, spec[1]);
+      });
+      return Math.min(ms, 700);
+    }
+    /* #8 — each transition type has its OWN look (applied to the slide we
+       are ARRIVING at, PowerPoint-style "transition to this slide"). */
+    function runTransition(oldL, newL, type, ms) {
+      ms = Math.max(150, Math.min(3000, ms || 500));
+      var ease = ' ' + ms + 'ms ease';
+      function done() { if (oldL && oldL.parentNode) oldL.remove(); }
+      if (!oldL || !type || type === 'none') { done(); return 0; }
+      newL.style.zIndex = 2; oldL.style.zIndex = 1;
+      if (type === 'fade') {
+        newL.style.opacity = '0'; newL.style.transition = 'opacity' + ease;
+        requestAnimationFrame(function () { requestAnimationFrame(function () { newL.style.opacity = '1'; }); });
+      } else if (type === 'slide') {          /* Push */
+        newL.style.transform = 'translateX(100%)'; newL.style.transition = 'transform' + ease;
+        oldL.style.transition = 'transform' + ease;
+        requestAnimationFrame(function () { requestAnimationFrame(function () {
+          newL.style.transform = 'translateX(0)'; oldL.style.transform = 'translateX(-100%)';
+        }); });
+      } else if (type === 'wipe') {
+        newL.style.clipPath = 'inset(0 100% 0 0)'; newL.style.transition = 'clip-path' + ease;
+        requestAnimationFrame(function () { requestAnimationFrame(function () { newL.style.clipPath = 'inset(0 0 0 0)'; }); });
+      } else if (type === 'split') {
+        newL.style.clipPath = 'inset(0 50% 0 50%)'; newL.style.transition = 'clip-path' + ease;
+        requestAnimationFrame(function () { requestAnimationFrame(function () { newL.style.clipPath = 'inset(0 0 0 0)'; }); });
+      } else if (type === 'reveal') {         /* old slide lifts away, new sits beneath */
+        newL.style.zIndex = 1; oldL.style.zIndex = 2;
+        oldL.style.transition = 'opacity' + ease + ', transform' + ease;
+        requestAnimationFrame(function () { requestAnimationFrame(function () {
+          oldL.style.opacity = '0'; oldL.style.transform = 'translateX(-12%)';
+        }); });
+      } else if (type === 'zoom') {
+        newL.style.opacity = '0'; newL.style.transform = 'scale(.6)';
+        newL.style.transition = 'opacity' + ease + ', transform' + ease;
+        requestAnimationFrame(function () { requestAnimationFrame(function () {
+          newL.style.opacity = '1'; newL.style.transform = 'scale(1)';
+        }); });
+      } else { done(); return 0; }
+      setTimeout(done, ms + 60);
+      return ms;
+    }
+    var busy = false;
+    async function show(i, first) {
+      var to = Math.max(0, Math.min(n - 1, i));
+      if (!first && to === idx) return;
+      if (busy) return;
+      busy = true;
+      try {
+        var oldL = stage.firstChild || null;
+        var exitMs = (!first && oldL && to > idx) ? playExits(oldL) : 0;   // #7 exit anims on leave (forward)
+        if (exitMs) await new Promise(function (r) { setTimeout(r, exitMs); });
+        var b = await getBundle(to);                                        // #9 lazy render on demand
+        idx = to;
+        var t = (state.pages[idx] || {}).transition || {};
+        var newL = buildLayer(b);
+        stage.appendChild(newL);
+        runTransition(first ? null : oldL, newL, t.type, t.ms);
+        playAnims(newL);                                                    // #7 entrance + emphasis
+        counter.textContent = (idx + 1) + ' / ' + n;
+        if (idx + 1 < n) getBundle(idx + 1);                                // #9 prefetch the next slide
+      } finally { busy = false; }
     }
     function key(e) {
       if (e.key === 'Escape') { close(); return; }
@@ -1619,13 +1806,15 @@ Editor._register({
     function click() { show(idx + 1); }
     function close() {
       document.removeEventListener('keydown', key);
+      window.removeEventListener('resize', fitStage);
       ov.remove();
       if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
     }
     document.addEventListener('keydown', key);
     ov.addEventListener('click', click);
     try { await ov.requestFullscreen(); } catch (e) {}
-    show(idx);
+    fitStage();
+    show(idx, true);
   }
   function ldLoadScript(src) {
     return new Promise(function (res, rej) {
@@ -6432,12 +6621,138 @@ Editor._register({
     return R;
   }
 
-  function mesh(kind, colorHex) {
+  /* ══ 3D TEXT (23 Aug 2026, Fable) ═══════════════════════════════════════
+     Any word the user types — A-Z, a-z, 0-9, punctuation — extruded into a
+     real, rotatable 3D mesh. three r128 dropped TextGeometry from core, so
+     the glyph outlines are parsed here directly from a typeface.json font
+     (self-hosted in vendor/fonts3d/, CDN fallback) into THREE.Shape paths
+     and pushed through ExtrudeGeometry. */
+  var FONT3D_URL = 'vendor/fonts3d/helvetiker_bold.typeface.json';
+  var FONT3D_CDN = 'https://unpkg.com/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json';
+  var _font3d = null, _font3dLoading = null;
+  function ensureFont3D() {
+    if (_font3d) return Promise.resolve(_font3d);
+    if (_font3dLoading) return _font3dLoading;
+    _font3dLoading = fetch(FONT3D_URL).then(function (r) {
+      if (!r.ok) throw new Error('local font missing');
+      return r.json();
+    }).catch(function () { return fetch(FONT3D_CDN).then(function (r) { return r.json(); }); })
+      .then(function (j) { _font3d = j; return j; })
+      .catch(function (e) { _font3dLoading = null; throw e; });
+    return _font3dLoading;
+  }
+  /* one glyph's outline string ("m x y l x y q x y cx cy …") → THREE.Shapes.
+     Same command grammar as three's own Font.js: q/b put the TARGET point
+     first, control point(s) after. */
+  function glyphToShapes(glyph, scale, offX) {
+    var T = window.THREE;
+    var sp = new T.ShapePath();
+    var o = (glyph.o || '').split(' ');
+    var i = 0;
+    function n() { return parseFloat(o[i++]) * scale; }
+    while (i < o.length) {
+      var cmd = o[i++];
+      if (cmd === 'm')      sp.moveTo(n() + offX, n());
+      else if (cmd === 'l') sp.lineTo(n() + offX, n());
+      else if (cmd === 'q') { var qx = n() + offX, qy = n(), qcx = n() + offX, qcy = n(); sp.quadraticCurveTo(qcx, qcy, qx, qy); }
+      else if (cmd === 'b') { var bx = n() + offX, by = n(), b1x = n() + offX, b1y = n(), b2x = n() + offX, b2y = n(); sp.bezierCurveTo(b1x, b1y, b2x, b2y, bx, by); }
+      else if (cmd === 'z') { /* close — ShapePath closes on next moveTo */ }
+    }
+    return sp.toShapes(true);
+  }
+  function textMesh(text, material) {
+    var T = window.THREE;
+    var data = _font3d;
+    if (!data) return new T.Mesh(new T.BoxGeometry(1.5, 1.5, 1.5), material);
+    var size = 1, scale = size / (data.resolution || 1000);
+    var shapes = [], offX = 0;
+    String(text || 'ABC').split('').forEach(function (ch) {
+      if (ch === ' ') { offX += (data.resolution || 1000) * 0.5 * scale; return; }
+      var glyph = (data.glyphs || {})[ch] || (data.glyphs || {})['?'];
+      if (!glyph) return;
+      glyphToShapes(glyph, scale, offX).forEach(function (s) { shapes.push(s); });
+      offX += (glyph.ha || (data.resolution || 1000) * 0.6) * scale;
+    });
+    if (!shapes.length) return new T.Mesh(new T.BoxGeometry(1.5, 1.5, 1.5), material);
+    var geo = new T.ExtrudeGeometry(shapes, {
+      depth: size * 0.28, curveSegments: 8,
+      bevelEnabled: true, bevelThickness: size * 0.02, bevelSize: size * 0.015, bevelSegments: 2
+    });
+    return new T.Mesh(geo, material);
+  }
+  /* centre any mesh/group on the origin and scale it to a standard size so
+     every kind — a letter, a word, an arch — fills the frame the same way */
+  function normalize(m, target) {
+    var T = window.THREE;
+    var box = new T.Box3().setFromObject(m);
+    var c = box.getCenter(new T.Vector3()), s = box.getSize(new T.Vector3());
+    var g = new T.Group();
+    m.position.sub(c);
+    g.add(m);
+    var maxd = Math.max(s.x, s.y, s.z) || 1;
+    var k = (target || 2.2) / maxd;
+    g.scale.set(k, k, k);
+    return g;
+  }
+  function starShape() {
+    var T = window.THREE, sh = new T.Shape();
+    for (var i = 0; i < 10; i++) {
+      var r = i % 2 ? 0.45 : 1, a = Math.PI / 2 + i * Math.PI / 5;
+      var x = Math.cos(a) * r, y = Math.sin(a) * r;
+      if (i === 0) sh.moveTo(x, y); else sh.lineTo(x, y);
+    }
+    sh.closePath();
+    return sh;
+  }
+  function arrowShape() {
+    var T = window.THREE, sh = new T.Shape();
+    sh.moveTo(-1, 0.22); sh.lineTo(0.25, 0.22); sh.lineTo(0.25, 0.55);
+    sh.lineTo(1, 0); sh.lineTo(0.25, -0.55); sh.lineTo(0.25, -0.22);
+    sh.lineTo(-1, -0.22); sh.closePath();
+    return sh;
+  }
+
+  function mesh(kind, colorHex, text) {
     var T = window.THREE;
     var mat = new T.MeshStandardMaterial({ color: colorHex, roughness: 0.35, metalness: 0.25 });
     var flat = new T.MeshStandardMaterial({ color: colorHex, roughness: 0.35, metalness: 0.25, flatShading: true });
     var g;
     switch (kind) {
+      /* ── new kinds (23 Aug 2026, Fable): text, star, lines, structures ── */
+      case 'text':
+        return normalize(textMesh(text, mat), 4.4);
+      case 'star':
+        return normalize(new T.Mesh(new T.ExtrudeGeometry(starShape(), {
+          depth: 0.35, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.04, bevelSegments: 2 }), mat), 2.2);
+      case 'arrow3d':
+        return normalize(new T.Mesh(new T.ExtrudeGeometry(arrowShape(), {
+          depth: 0.3, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.03, bevelSegments: 2 }), mat), 2.3);
+      case 'rod':      /* a straight 3D line / bar */
+        g = new T.Mesh(new T.CylinderGeometry(0.09, 0.09, 2.6, 24), mat);
+        g.rotation.z = Math.PI / 2;
+        return normalize(g, 2.5);
+      case 'curve': {  /* a swooping 3D line */
+        var path = new T.CatmullRomCurve3([
+          new T.Vector3(-1.2, -0.5, 0), new T.Vector3(-0.4, 0.55, 0.25),
+          new T.Vector3(0.45, -0.45, -0.2), new T.Vector3(1.2, 0.5, 0)]);
+        return normalize(new T.Mesh(new T.TubeGeometry(path, 64, 0.09, 16, false), mat), 2.4);
+      }
+      case 'capsule': /* r128 has no CapsuleGeometry — cylinder + 2 sphere caps */
+        g = new T.Group();
+        g.add(new T.Mesh(new T.CylinderGeometry(0.55, 0.55, 1.3, 32), mat));
+        var c1 = new T.Mesh(new T.SphereGeometry(0.55, 32, 20), mat); c1.position.y = 0.65; g.add(c1);
+        var c2 = new T.Mesh(new T.SphereGeometry(0.55, 32, 20), mat); c2.position.y = -0.65; g.add(c2);
+        return normalize(g, 2.1);
+      case 'dome':
+        g = new T.Group();
+        g.add(new T.Mesh(new T.SphereGeometry(1, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), mat));
+        var cap = new T.Mesh(new T.CircleGeometry(1, 48), mat);
+        cap.rotation.x = Math.PI / 2; g.add(cap);
+        return normalize(g, 2.1);
+      case 'plate':
+        return normalize(new T.Mesh(new T.CylinderGeometry(1, 1, 0.14, 64), mat), 2.2);
+      case 'arch':
+        return normalize(new T.Mesh(new T.TorusGeometry(0.95, 0.3, 24, 64, Math.PI), mat), 2.2);
       case 'cube':     return new T.Mesh(new T.BoxGeometry(1.5, 1.5, 1.5), flat);
       case 'box':      return new T.Mesh(new T.BoxGeometry(2, 1.2, 1.2), flat);
       case 'sphere':   return new T.Mesh(new T.SphereGeometry(1.05, 48, 32), mat);
@@ -6469,19 +6784,23 @@ Editor._register({
     }
   }
 
-  function render3D(kind, colorHex, rx, ry) {
+  function render3D(kind, colorHex, rx, ry, text) {
     var T = window.THREE;
+    /* words are wide — give text a 2:1 frame so it isn't letterboxed tiny */
+    var isText = kind === 'text';
+    var W = isText ? 1024 : 512, H = 512;
     var scene = new T.Scene();
-    var cam = new T.PerspectiveCamera(35, 1, 0.1, 50);
-    cam.position.set(0, 0, 5.2);
+    var cam = new T.PerspectiveCamera(35, W / H, 0.1, 50);
+    cam.position.set(0, 0, isText ? 5.8 : 5.2);
     scene.add(new T.AmbientLight(0xffffff, 0.55));
     var key = new T.DirectionalLight(0xffffff, 0.9); key.position.set(3, 4, 5); scene.add(key);
     var rim = new T.DirectionalLight(0x8b7cf3, 0.35); rim.position.set(-4, -2, -3); scene.add(rim);
-    var m = mesh(kind, colorHex);
+    var m = mesh(kind, colorHex, text);
     m.rotation.x = rx || 0;
     m.rotation.y = ry || 0;
     scene.add(m);
     var r = renderer();
+    r.setSize(W, H);
     r.render(scene, cam);
     return r.domElement.toDataURL('image/png');
   }
@@ -6493,22 +6812,36 @@ Editor._register({
     insert3D: function (a) {
       if (!a || !a.kind) return;
       var color = a.color || '#7C3AED';
-      ensureThree().then(function () {
-        var rx = -0.35, ry = 0.65;   /* pleasant starting angle */
-        var url = render3D(a.kind, color, rx, ry);
+      var pre = a.kind === 'text'
+        ? Promise.all([ensureThree(), ensureFont3D()])
+        : ensureThree();
+      pre.then(function () {
+        var rx = a.kind === 'text' ? -0.12 : -0.35;   /* text: nearly face-on */
+        var ry = a.kind === 'text' ?  0.22 :  0.65;
+        var url = render3D(a.kind, color, rx, ry, a.text);
         fabric.Image.fromURL(url, function (img) {
-          img.scaleToWidth(240);
+          img.scaleToWidth(a.kind === 'text' ? 420 : 240);
           img.set({
             left: 220, top: 130,
             is3D: true, threeKind: a.kind, threeColor: color,
+            threeText: a.text || '',
             rotX: rx, rotY: ry,
-            layerName: (a.name || '3D object')
+            layerName: (a.kind === 'text' ? '3D text: ' + (a.text || '') : (a.name || '3D object'))
           });
           fc.add(img).setActiveObject(img);
           fc.renderAll(); saveState();
           toast((a.name || '3D object') + ' added — hold Alt and drag to rotate it in 3D');
         });
       }).catch(function () { toast('3D engine could not load — check your connection'); });
+    },
+    /* 23 Aug 2026 (Fable) — 3D TEXT: ask for the word, then extrude it.
+       Any letters A-Z a-z, digits 0-9 and punctuation the font knows. */
+    insert3DText: async function (a) {
+      var txt = (a && a.text) || await window.ldPrompt('Your 3D text:', 'HELLO');
+      txt = String(txt || '').trim();
+      if (!txt) return;
+      if (txt.length > 24) { txt = txt.slice(0, 24); toast('3D text is limited to 24 characters'); }
+      Editor.run('insert3D', { kind: 'text', text: txt, color: (a && a.color) || '#7C3AED', name: '3D text' });
     }
   });
 
@@ -6533,7 +6866,7 @@ Editor._register({
         requestAnimationFrame(function () {
           pending = false;
           if (!window.THREE) return;
-          var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY);
+          var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText);
           o.setSrc(url, function () { fc.renderAll(); });
         });
       });

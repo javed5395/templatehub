@@ -767,11 +767,30 @@
             tag: 'Journal',
             title: v.title || t.name || 'Untitled',
             date: when ? when.toLocaleDateString(undefined, { month:'long', year:'numeric' }) : '',
-            link: 'blog-view.html?id=' + d.id,
+            /* 23 Aug 2026 (Fable, bug #10) — this used to be
+               'blog-view.html?id=…', a page that does NOT exist, so every
+               bell item 404'd. Real posts are static files at
+               blogs/<slug>.html and the Firestore doc id IS the slug.
+               Each link is verified below before rendering; anything that
+               doesn't resolve falls back to the journal index (blog.html). */
+            link: 'blogs/' + d.id + '.html',
             timestamp: when ? when.getTime() : 0
           });
         });
         items.sort(function(a,b){ return b.timestamp - a.timestamp; });
+        /* bug #10 continued — verify each built link really exists (one HEAD
+           per post, cached for the session), so the bell can never send a
+           reader to a 404 even if a doc id and file name ever drift apart. */
+        await Promise.all(items.map(async function (it) {
+          try {
+            var key = 'nbBlogLink:' + it.link;
+            var hit = sessionStorage.getItem(key);
+            if (hit) { it.link = hit; return; }
+            var r = await fetch(it.link, { method: 'HEAD' });
+            if (!r.ok) it.link = 'blog.html';
+            sessionStorage.setItem(key, it.link);
+          } catch (e) { it.link = 'blog.html'; }
+        }));
         renderUpdates(items);
       } catch (e) {
         console.warn('[navbar] updates feed unavailable:', e && e.message);

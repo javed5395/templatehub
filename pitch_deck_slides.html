@@ -1238,6 +1238,22 @@ async function ldtFetchDownloadUrl(kitId, kind){
     method: 'POST', headers: headers,
     body: JSON.stringify({ kitId: kitId, kind: kind })
   });
+  /* 23 Aug 2026 (Fable, bug #31) — a PAID file no longer arrives as a link.
+     The server now streams the file itself to the verified buyer, so a pasted
+     link can never unlock it for others. When bytes arrive, save them here and
+     return '' — callers skip their old link handling on a falsy return. */
+  var ct = res.headers.get('Content-Type') || '';
+  if (res.ok && ct.indexOf('json') === -1) {
+    var blob = await res.blob();
+    var cd = res.headers.get('Content-Disposition') || '';
+    var fm = cd.match(/filename="([^"]+)"/);
+    var fname = (fm && fm[1]) || (kitId + (kind === 'pptx' ? '.pptx' : kind === 'key' ? '.key' : ''));
+    var ourl = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = ourl; a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(ourl); }, 8000);
+    return '';
+  }
   var j = {}; try { j = await res.json(); } catch(e){}
   if (!res.ok || !j.url) throw new Error((j && j.error) || 'Download unavailable');
   return j.url;
@@ -1285,6 +1301,7 @@ function handleDownload(){
     var kitId = ldtKitId();
     if (!kitId) { alert('PPTX download not available for this template yet.'); return; }
     ldtFetchDownloadUrl(kitId, 'pptx').then(function(url){
+      if (!url) return;   /* bug #31: file was streamed and saved already */
       var a = document.createElement('a');
       a.href = toDirectDownload(url);
       a.target = '_blank';

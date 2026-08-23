@@ -211,7 +211,16 @@
     { name: '3D bars', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('h1', '#818CF8', '#4F46E5') + g3('h2', '#A78BFA', '#7C3AED') + g3('h3', '#F472B6', '#DB2777') + '</defs><g><polygon points="14,60 26,54 26,88 14,94" fill="url(#h1)"/><polygon points="26,54 34,58 34,92 26,88" fill="#3730A3"/><polygon points="42,42 54,36 54,88 42,94" fill="url(#h2)"/><polygon points="54,36 62,40 62,92 54,88" fill="#5B21B6"/><polygon points="70,24 82,18 82,88 70,94" fill="url(#h3)"/><polygon points="82,18 90,22 90,92 82,88" fill="#9D174D"/></g></svg>' },
     { name: '3D arrow', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('a1', '#4ADE80', '#16A34A') + '</defs><polygon points="10,42 55,42 55,26 92,52 55,78 55,62 10,62" fill="url(#a1)"/><polygon points="10,62 55,62 55,78 92,52 88,58 55,86 55,70 10,70" fill="#166534" opacity="0.85"/></svg>' },
     { name: 'Prism', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('pr1', '#5EEAD4', '#0D9488') + g3('pr2', '#0D9488', '#134E4A') + '</defs><polygon points="26,30 74,30 92,74 8,74" fill="url(#pr1)"/><polygon points="26,30 8,74 8,80 26,36" fill="url(#pr2)"/><polygon points="26,30 74,30 74,36 26,36" fill="#99F6E4" opacity="0.6"/></svg>' },
-    { name: 'Diamond', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('d1', '#E9D5FF', '#A855F7') + g3('d2', '#A855F7', '#6B21A8') + '</defs><polygon points="30,20 70,20 88,42 50,90 12,42" fill="url(#d1)"/><polygon points="50,90 12,42 34,42" fill="url(#d2)" opacity="0.8"/><polygon points="50,90 88,42 66,42" fill="url(#d2)" opacity="0.6"/><polygon points="30,20 34,42 12,42" fill="#C084FC"/><polygon points="70,20 88,42 66,42" fill="#C084FC"/></svg>' }
+    { name: 'Diamond', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('d1', '#E9D5FF', '#A855F7') + g3('d2', '#A855F7', '#6B21A8') + '</defs><polygon points="30,20 70,20 88,42 50,90 12,42" fill="url(#d1)"/><polygon points="50,90 12,42 34,42" fill="url(#d2)" opacity="0.8"/><polygon points="50,90 88,42 66,42" fill="url(#d2)" opacity="0.6"/><polygon points="30,20 34,42 12,42" fill="#C084FC"/><polygon points="70,20 88,42 66,42" fill="#C084FC"/></svg>' },
+    /* ── 23 Aug 2026 (Fable) — 3D text + new shape kinds ─────────────── */
+    { name: '3D text', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('t1', '#A78BFA', '#6D28D9') + '</defs><text x="14" y="66" font-family="Arial Black,Arial" font-weight="900" font-size="46" fill="#4C1D95">Aa</text><text x="10" y="62" font-family="Arial Black,Arial" font-weight="900" font-size="46" fill="url(#t1)">Aa</text></svg>' },
+    { name: 'Star', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('st1', '#FDE68A', '#F59E0B') + '</defs><polygon points="54,12 66,40 96,42 72,61 80,91 54,74 28,91 36,61 12,42 42,40" fill="#B45309"/><polygon points="50,8 62,36 92,38 68,57 76,87 50,70 24,87 32,57 8,38 38,36" fill="url(#st1)"/></svg>' },
+    { name: 'Rod', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('rd1', '#93C5FD', '#1D4ED8') + '</defs><rect x="8" y="42" width="84" height="16" rx="8" fill="url(#rd1)"/><ellipse cx="16" cy="50" rx="8" ry="8" fill="#BFDBFE"/></svg>' },
+    { name: 'Curve', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('cv1', '#6EE7B7', '#059669') + '</defs><path d="M8 72 C 30 20, 55 88, 92 30" fill="none" stroke="url(#cv1)" stroke-width="13" stroke-linecap="round"/></svg>' },
+    { name: 'Capsule', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('cp1', '#FDA4AF', '#E11D48') + '</defs><rect x="30" y="14" width="40" height="72" rx="20" fill="url(#cp1)"/><ellipse cx="42" cy="30" rx="8" ry="12" fill="#FECDD3" opacity="0.7"/></svg>' },
+    { name: 'Dome', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('dm1', '#C4B5FD', '#6D28D9') + '</defs><path d="M12 68 a38 38 0 0 1 76 0 Z" fill="url(#dm1)"/><ellipse cx="50" cy="68" rx="38" ry="9" fill="#8B5CF6"/></svg>' },
+    { name: 'Plate', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('pl1', '#67E8F9', '#0E7490') + '</defs><ellipse cx="50" cy="56" rx="40" ry="16" fill="#155E75"/><ellipse cx="50" cy="48" rx="40" ry="16" fill="url(#pl1)"/></svg>' },
+    { name: 'Arch', svg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' + g3('ar1', '#FCA5A5', '#DC2626') + '</defs><path d="M14 82 a36 36 0 0 1 72 0 h-18 a18 18 0 0 0 -36 0 Z" fill="url(#ar1)"/></svg>' }
   ];
 
   var _elCat = null;   /* open Elements category, null = tiles home */
@@ -489,10 +498,14 @@
       p.appendChild(subhead('3D objects — insert one, then hold Alt and drag it to rotate'));
       var KIND3 = { 'Cube': 'cube', 'Sphere': 'sphere', 'Cylinder': 'cylinder', 'Pyramid': 'pyramid',
         'Cone': 'cone', 'Ring': 'ring', 'Box': 'box', 'Coin stack': 'coins',
-        '3D bars': 'bars', '3D arrow': 'knot', 'Prism': 'prism', 'Diamond': 'diamond' };
+        '3D bars': 'bars', '3D arrow': 'knot', 'Prism': 'prism', 'Diamond': 'diamond',
+        '3D text': 'text', 'Star': 'star', 'Rod': 'rod', 'Curve': 'curve',
+        'Capsule': 'capsule', 'Dome': 'dome', 'Plate': 'plate', 'Arch': 'arch' };
       var COL3 = { 'Cube': '#7C3AED', 'Sphere': '#3B82F6', 'Cylinder': '#059669', 'Pyramid': '#D97706',
         'Cone': '#DB2777', 'Ring': '#0E7490', 'Box': '#EA580C', 'Coin stack': '#F59E0B',
-        '3D bars': '#6D28D9', '3D arrow': '#16A34A', 'Prism': '#0D9488', 'Diamond': '#A855F7' };
+        '3D bars': '#6D28D9', '3D arrow': '#16A34A', 'Prism': '#0D9488', 'Diamond': '#A855F7',
+        '3D text': '#7C3AED', 'Star': '#F59E0B', 'Rod': '#1D4ED8', 'Curve': '#059669',
+        'Capsule': '#E11D48', 'Dome': '#6D28D9', 'Plate': '#0E7490', 'Arch': '#DC2626' };
       var og = el('div', 'sb-grid'); og.style.gridTemplateColumns = 'repeat(2, 1fr)';
       OBJ3D.forEach(function (o3) {
         var b = el('button', 'sb-shape-card'); b.type = 'button'; b.title = o3.name + ' — 3D object (Alt+drag to rotate)';
@@ -500,6 +513,9 @@
         b.appendChild(w3);
         b.appendChild(el('span', 'sb-card-lab', o3.name));
         b.addEventListener('click', function () {
+          /* 3D text asks for the word first (insert3DText prompts), every
+             other kind inserts straight away */
+          if (KIND3[o3.name] === 'text') { run('insert3DText', { color: COL3[o3.name] }); return; }
           run('insert3D', { kind: KIND3[o3.name] || 'cube', color: COL3[o3.name] || '#7C3AED', name: o3.name });
         });
         og.appendChild(b);
