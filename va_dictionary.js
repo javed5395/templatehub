@@ -411,7 +411,7 @@ var vaDictionary = [
       'do i have to register'
     ],
     action: 'speak',
-    reply: 'No account needed to browse. To download, just enter your email address — no full signup required.'
+    reply: 'Browsing is free for everyone. To buy, you must be logged in — you don\'t have to create an account manually, just sign in with Google in one tap. Your purchases are then saved so you can re-download them any time.'
   },
 
   {
