@@ -7148,6 +7148,104 @@ Editor._register({
         rerenderObj(o, true); saveState();
         toast('Light: ' + a);
       });
+    },
+    /* ══ HEXA 3D (23 Aug 2026, Fable — step 5) ═══════════════════════════
+       One sentence → a placed 3D scene. Pure rules, same philosophy as the
+       order grammar: no cloud, no tokens, always the same answer.
+       e.g. "gold 3d text SALE in the middle, bottle with this slide on the
+             left, star top right, disco light, isometric"                 */
+    threeOrder: async function (a) {
+      var txt = (a && a.text) || await window.ldPrompt('Tell Hexa your 3D scene:',
+        'e.g. gold 3d text SALE in the middle, bottle on the left, star top right, disco light');
+      txt = String(txt || '').trim();
+      if (!txt) return;
+      var low = ' ' + txt.toLowerCase() + ' ';
+      var COLORS = { gold: '#D4AF37', golden: '#D4AF37', silver: '#C0C4CC', red: '#DC2626',
+        blue: '#2563EB', green: '#16A34A', purple: '#7C3AED', violet: '#7C3AED',
+        teal: '#12A5A0', pink: '#DB2777', orange: '#EA580C', yellow: '#EAB308',
+        black: '#1B1B1F', white: '#F4F4F5', brown: '#7C4A21', navy: '#1E3A8A' };
+      var KINDS = { bottle: 'M', can: 'M', mug: 'M', cup: 'M', frame: 'M', poster: 'M',
+        phone: 'M', mobile: 'M', laptop: 'M',
+        cube: 'S', sphere: 'S', ball: 'S', cylinder: 'S', pyramid: 'S', cone: 'S',
+        ring: 'S', donut: 'S', box: 'S', star: 'S', rod: 'S', curve: 'S',
+        capsule: 'S', dome: 'S', plate: 'S', arch: 'S', diamond: 'S', knot: 'S',
+        coins: 'S', bars: 'S', prism: 'S' };
+      var ALIAS = { ball: 'sphere', donut: 'ring', cup: 'mug', poster: 'frame', mobile: 'phone' };
+      /* global light + starting angle for the whole scene */
+      var light = null;
+      [['disco', 'disco'], ['rgb', 'rgb'], ['spot', 'spot'], ['neon', 'tube'], ['tube', 'tube'],
+       ['area', 'area'], ['warm', 'warm'], ['cool', 'cool'], ['multi', 'multi']].forEach(function (L) {
+        if (low.indexOf(L[0]) > -1) light = light || L[1];
+      });
+      var quat = null;
+      if (/isometric|iso\b/.test(low)) quat = quatFromEuler(-0.615, Math.PI / 4);
+      else if (/\b45\b|tilt/.test(low)) quat = quatFromEuler(-0.35, Math.PI / 4);
+      else if (/front|face/.test(low)) quat = quatFromEuler(0, 0);
+      /* canvas geography (1920x1080 space) */
+      var W = fc._baseWidth || 1920, H = fc._baseHeight || 1080;
+      function spot(clause, i, n) {
+        var x = W * (0.5 - 0.11), y = H * 0.32;                 /* default: middle-ish */
+        if (/left/.test(clause)) x = W * 0.08;
+        if (/right/.test(clause)) x = W * 0.68;
+        if (/middle|center|centre/.test(clause)) x = W * 0.39;
+        if (/top/.test(clause)) y = H * 0.06;
+        if (/bottom/.test(clause)) y = H * 0.58;
+        if (/middle|center|centre/.test(clause) && !/left|right/.test(clause)) y = H * 0.30;
+        /* nothing said? spread them out so they never stack */
+        if (!/left|right|middle|center|centre|top|bottom/.test(clause)) {
+          x = W * (0.10 + (i / Math.max(1, n)) * 0.6); y = H * (i % 2 ? 0.12 : 0.45);
+        }
+        return { x: Math.round(x), y: Math.round(y) };
+      }
+      var clauses = low.split(/,| and | then |\+/).map(function (c) { return c.trim(); }).filter(Boolean);
+      var jobs = [];
+      clauses.forEach(function (c) {
+        var color = null;
+        Object.keys(COLORS).forEach(function (w) { if (!color && new RegExp('\\b' + w + '\\b').test(c)) color = COLORS[w]; });
+        /* 3d text: quoted words win; else the words after text/saying/says,
+           with filler + position words trimmed off both ends */
+        var tm = /["']([^"']{1,24})["']/.exec(c)
+              || /(?:text|word|saying|says|likh[oa]?)\s+([a-z0-9!&%.\-]+(?:\s+[a-z0-9!&%.\-]+){0,3})/.exec(c);
+        if (/\b(text|word|saying|says)\b/.test(c) && tm) {
+          var STOP = { on: 1, in: 1, at: 1, to: 1, the: 1, a: 1, saying: 1, says: 1, text: 1, word: 1,
+                       left: 1, right: 1, top: 1, bottom: 1, middle: 1, center: 1, centre: 1, of: 1, slide: 1 };
+          var words = tm[1].trim().split(/\s+/);
+          while (words.length && STOP[words[0]]) words.shift();
+          while (words.length && STOP[words[words.length - 1]]) words.pop();
+          if (words.length) {
+            jobs.push({ type: 'text', text: words.join(' ').toUpperCase().slice(0, 24),
+                        color: color, clause: c });
+            return;
+          }
+        }
+        var kind = null;
+        Object.keys(KINDS).forEach(function (k) { if (!kind && new RegExp('\\b' + k + 's?\\b').test(c)) kind = k; });
+        if (!kind) return;
+        var real = ALIAS[kind] || kind;
+        jobs.push({ type: KINDS[kind] === 'M' ? 'mockup' : 'shape', kind: real, color: color,
+                    big: /big|large|huge/.test(c), small: /small|tiny/.test(c), clause: c });
+      });
+      if (!jobs.length) {
+        toast('Hexa 3D understood nothing — name things like "bottle", "star", or 3d text "HELLO"');
+        return;
+      }
+      ensureThree().then(function () {
+        jobs.forEach(function (j, i) {
+          var p = spot(j.clause || '', i, jobs.length);
+          var wdt = j.big ? 520 : j.small ? 160 : null;
+          if (j.type === 'text') {
+            Editor.run('insert3D', { kind: 'text', text: j.text, color: j.color || '#7C3AED',
+              left: p.x, top: p.y, width: wdt || 460, light: light, quat: quat, quiet: true, name: '3D text' });
+          } else if (j.type === 'mockup') {
+            Editor.run('insertMockup3D', { kind: j.kind, color: j.color || '#12A5A0',
+              left: p.x, top: p.y, width: wdt, light: light, quat: quat, quiet: true, name: j.kind });
+          } else {
+            Editor.run('insert3D', { kind: j.kind, color: j.color || '#7C3AED',
+              left: p.x, top: p.y, width: wdt, light: light, quat: quat, quiet: true, name: j.kind });
+          }
+        });
+        toast('Hexa placed ' + jobs.length + ' 3D element(s)' + (light ? ' under ' + light + ' light' : '') + ' ✨');
+      });
     }
   });
 
@@ -7162,21 +7260,21 @@ Editor._register({
       pre.then(function () {
         var rx = a.kind === 'text' ? -0.12 : -0.35;   /* text: nearly face-on */
         var ry = a.kind === 'text' ?  0.22 :  0.65;
-        var q0 = quatFromEuler(rx, ry);
-        var url = render3D(a.kind, color, rx, ry, a.text, q0, null, true);
+        var q0 = a.quat || quatFromEuler(rx, ry);
+        var url = render3D(a.kind, color, rx, ry, a.text, q0, null, true, null, a.light);
         fabric.Image.fromURL(url, function (img) {
-          img.scaleToWidth(a.kind === 'text' ? 420 : 240);
+          img.scaleToWidth(a.width || (a.kind === 'text' ? 420 : 240));
           img.set({
-            left: 220, top: 130,
+            left: a.left != null ? a.left : 220, top: a.top != null ? a.top : 130,
             is3D: true, threeKind: a.kind, threeColor: color,
             threeText: a.text || '',
-            threeQuat: q0,
+            threeQuat: q0, threeLight: a.light || null,
             rotX: rx, rotY: ry,
             layerName: (a.kind === 'text' ? '3D text: ' + (a.text || '') : (a.name || '3D object'))
           });
           fc.add(img).setActiveObject(img);
           fc.renderAll(); saveState();
-          toast((a.name || '3D object') + ' added — hold Alt and drag to rotate it in 3D');
+          if (!a.quiet) toast((a.name || '3D object') + ' added — hold Alt and drag to rotate it in 3D');
         });
       }).catch(function () { toast('3D engine could not load — check your connection'); });
     },
@@ -7207,19 +7305,19 @@ Editor._register({
           try { sc.dispose(); } catch (e) {}
           warmTexture(texData).then(function () {
             var rx = -0.12, ry = 0.45;
-            var q0 = quatFromEuler(rx, ry);
-            var url = render3D(a.kind, a.color || '#12A5A0', rx, ry, null, q0, texData, true);
+            var q0 = a.quat || quatFromEuler(rx, ry);
+            var url = render3D(a.kind, a.color || '#12A5A0', rx, ry, null, q0, texData, true, null, a.light);
             fabric.Image.fromURL(url, function (img) {
-              img.scaleToWidth(300);
+              img.scaleToWidth(a.width || 300);
               img.set({
-                left: 220, top: 110,
+                left: a.left != null ? a.left : 220, top: a.top != null ? a.top : 110,
                 is3D: true, threeKind: a.kind, threeColor: a.color || '#12A5A0',
-                threeTexData: texData, threeQuat: q0,
+                threeTexData: texData, threeQuat: q0, threeLight: a.light || null,
                 layerName: (a.name || 'Mockup') + ' (this slide as label)'
               });
               fc.add(img).setActiveObject(img);
               fc.renderAll(); saveState();
-              toast((a.name || 'Mockup') + ' added wearing this slide — Alt+drag to rotate');
+              if (!a.quiet) toast((a.name || 'Mockup') + ' added wearing this slide — Alt+drag to rotate');
             });
           });
         };

@@ -830,6 +830,10 @@
       col(big({ matIcon: '360', label: 'Orbit\n360°', cmd: 'threeAngle', arg: 'orbit' }))
     ));
     body.appendChild(sepd());
+    body.appendChild(group('Hexa 3D',
+      col(big({ matIcon: 'auto_awesome', label: 'Describe\nyour scene', cmd: 'threeOrder' }))
+    ));
+    body.appendChild(sepd());
     body.appendChild(group('Lights',
       col(sm('light_mode', 'Softbox', 'threeLight', 'softbox'),
           sm('fluorescent', 'Tube', 'threeLight', 'tube'),
