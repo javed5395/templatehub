@@ -805,6 +805,45 @@
     return body;
   }
 
+  /* ── 3D tab (23 Aug 2026, Fable — step 4: Javed's angle + light list) ──
+     Works on the SELECTED 3D object: camera angles snap its pose, light
+     presets re-light it. Both re-bake sharp instantly. */
+  function tab3D() {
+    var body = el('div', 'rb-body-inner');
+    function sm(ic, lab, cmd, arg) { return small({ matIcon: ic, label: lab, cmd: cmd, arg: arg }); }
+    body.appendChild(group('Camera angle',
+      col(sm('center_focus_strong', 'Front', 'threeAngle', 'front'),
+          sm('flip', 'Back', 'threeAngle', 'back'),
+          sm('arrow_back', 'Left', 'threeAngle', 'left')),
+      col(sm('arrow_forward', 'Right', 'threeAngle', 'right'),
+          sm('arrow_upward', 'Top', 'threeAngle', 'top'),
+          sm('arrow_downward', 'Bottom', 'threeAngle', 'bottom')),
+      col(sm('rotate_right', '45° view', 'threeAngle', 'deg45'),
+          sm('deployed_code', 'Isometric', 'threeAngle', 'iso'),
+          sm('casino', 'Random cine', 'threeAngle', 'random'))
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Shot',
+      col(sm('zoom_in', 'Close-up', 'threeAngle', 'closeup'),
+          sm('zoom_out', 'Wide shot', 'threeAngle', 'wide'),
+          sm('crop_free', 'Normal zoom', 'threeAngle', 'zoomoff')),
+      col(big({ matIcon: '360', label: 'Orbit\n360°', cmd: 'threeAngle', arg: 'orbit' }))
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Lights',
+      col(sm('light_mode', 'Softbox', 'threeLight', 'softbox'),
+          sm('fluorescent', 'Tube', 'threeLight', 'tube'),
+          sm('flashlight_on', 'Spot', 'threeLight', 'spot')),
+      col(sm('select_all', 'Area', 'threeLight', 'area'),
+          sm('palette', 'RGB', 'threeLight', 'rgb'),
+          sm('celebration', 'Disco', 'threeLight', 'disco')),
+      col(sm('wb_sunny', 'Warm studio', 'threeLight', 'warm'),
+          sm('ac_unit', 'Cool studio', 'threeLight', 'cool'),
+          sm('tune', 'Multi-light', 'threeLight', 'multi'))
+    ));
+    return body;
+  }
+
   /* ── tab strip + shell ───────────────────────────────────────────── */
   var TABS = [
     { id: 'home', name: 'Home', build: tabHome },
@@ -813,6 +852,7 @@
     { id: 'design', name: 'Design', build: tabDesign },
     { id: 'transitions', name: 'Transitions', build: tabTransitions },
     { id: 'animations', name: 'Animations', build: tabAnimations },
+    { id: 'three', name: '3D', build: tab3D },
     { id: 'slideshow', name: 'Slide Show', build: tabSlideShow },
     { id: 'review', name: 'Review', build: tabReview },
     { id: 'view', name: 'View', build: tabView },

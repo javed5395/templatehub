@@ -6727,6 +6727,7 @@ Editor._register({
       img.onload = function () {
         var T = window.THREE;
         var t = new T.Texture(img);
+        t.encoding = T.sRGBEncoding;   /* keep the design's true colours */
         t.needsUpdate = true;
         _texCache[dataURL] = t;
         res(t);
@@ -6739,12 +6740,14 @@ Editor._register({
     var T = window.THREE;
     var t = texData && _texCache[texData];
     return t
-      ? new T.MeshStandardMaterial({ map: t, roughness: 0.5, metalness: 0.05 })
+      ? new T.MeshStandardMaterial({ map: t, roughness: 0.5, metalness: 0.05, envMapIntensity: 0.3 })
       : new T.MeshStandardMaterial({ color: fallbackColor || '#FFFFFF', roughness: 0.5, metalness: 0.05 });
   }
   function bodyMat(color, opts) {
     var T = window.THREE;
-    return new T.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.35, metalness: 0.2 }, opts || {}));
+    var m = new T.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.35, metalness: 0.2 }, opts || {}));
+    m.color.convertSRGBToLinear();
+    return m;
   }
   function mockupMesh(kind, colorHex, texData) {
     var T = window.THREE, g = new T.Group();
@@ -6756,7 +6759,12 @@ Editor._register({
        [0.45, 2.0], [0.26, 2.15], [0.24, 2.45], [0.24, 2.6]].forEach(function (p) {
         pts.push(new T.Vector2(p[0], p[1]));
       });
-      g.add(new T.Mesh(new T.LatheGeometry(pts, 48), bodyMat(colorHex, { roughness: 0.25, metalness: 0.1 })));
+      /* clearcoated plastic — the studio env reflects in the coat layer */
+      var bmat = new T.MeshPhysicalMaterial({
+        color: colorHex, roughness: 0.22, metalness: 0.05,
+        clearcoat: 0.7, clearcoatRoughness: 0.18 });
+      bmat.color.convertSRGBToLinear();
+      g.add(new T.Mesh(new T.LatheGeometry(pts, 48), bmat));
       var cap = new T.Mesh(new T.CylinderGeometry(0.27, 0.27, 0.3, 32), bodyMat('#26262B'));
       cap.position.y = 2.72; g.add(cap);
       /* the label: an open band around the body, wearing the slide */
@@ -6854,7 +6862,9 @@ Editor._register({
     if (kind && kind.indexOf('glb:') === 0) return glbMesh(kind.slice(4), texData);
     var T = window.THREE;
     var mat = new T.MeshStandardMaterial({ color: colorHex, roughness: 0.35, metalness: 0.25 });
+    mat.color.convertSRGBToLinear();
     var flat = new T.MeshStandardMaterial({ color: colorHex, roughness: 0.35, metalness: 0.25, flatShading: true });
+    flat.color.convertSRGBToLinear();
     var g;
     switch (kind) {
       /* ── new kinds (23 Aug 2026, Fable): text, star, lines, structures ── */
@@ -6923,26 +6933,128 @@ Editor._register({
     }
   }
 
-  function render3D(kind, colorHex, rx, ry, text, quat, texData) {
+  /* ══ STUDIO (23 Aug 2026, Fable — beauty pass, step 3) ══════════════════
+     A tiny photographer's studio rendered once into an environment map:
+     a big soft key panel, a cooler fill panel and a warm rim strip. Every
+     material reflects it, which is what makes metal look like metal and
+     glassy plastic look expensive — the same trick product-shot sites use. */
+  var _envTex = null;
+  function studioEnv() {
     var T = window.THREE;
-    /* words are wide — give text a 2:1 frame so it isn't letterboxed tiny */
+    if (_envTex) return _envTex;
+    var r = renderer();
+    var scene = new T.Scene();
+    scene.background = new T.Color(0x0b0b0e);
+    function panel(w, h, colour, intensity, x, y, z, ry2, rx2) {
+      var p = new T.Mesh(new T.PlaneGeometry(w, h),
+        new T.MeshBasicMaterial({ color: new T.Color(colour).multiplyScalar(intensity) }));
+      p.position.set(x, y, z);
+      if (ry2) p.rotation.y = ry2;
+      if (rx2) p.rotation.x = rx2;
+      scene.add(p);
+    }
+    panel(6, 4, 0xffffff, 1.7, -4, 2.5, 2, Math.PI / 3);        /* key softbox   */
+    panel(5, 3, 0xbfd4ff, 0.9, 4.5, 1.5, 1, -Math.PI / 3);      /* cool fill     */
+    panel(8, 1.2, 0xfff1d6, 1.3, 0, 4.5, -2, 0, Math.PI / 2);   /* warm top strip*/
+    panel(8, 8, 0x2a2a30, 1.0, 0, -4.2, 0, 0, -Math.PI / 2);    /* floor bounce  */
+    var pm = new T.PMREMGenerator(r);
+    _envTex = pm.fromScene(scene, 0.04).texture;
+    pm.dispose();
+    return _envTex;
+  }
+  /* soft contact shadow — a radial-gradient pad under the object so it SITS
+     on the poster instead of floating. Baked into the same transparent PNG. */
+  var _shadowTex = null;
+  function shadowTexture() {
+    var T = window.THREE;
+    if (_shadowTex) return _shadowTex;
+    var cv = document.createElement('canvas'); cv.width = cv.height = 256;
+    var ctx = cv.getContext('2d');
+    var grd = ctx.createRadialGradient(128, 128, 10, 128, 128, 128);
+    grd.addColorStop(0, 'rgba(0,0,0,0.42)');
+    grd.addColorStop(0.55, 'rgba(0,0,0,0.18)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grd; ctx.fillRect(0, 0, 256, 256);
+    _shadowTex = new T.CanvasTexture(cv);
+    return _shadowTex;
+  }
+  /* ══ LIGHT PRESETS (23 Aug 2026, Fable — step 4, Javed's list) ══════════
+     Each preset is a real light rig; the studio env stays underneath. */
+  function applyLights(scene, preset) {
+    var T = window.THREE;
+    function dir(c, i, x, y, z) { var l = new T.DirectionalLight(c, i); l.position.set(x, y, z); scene.add(l); }
+    var p = preset || 'softbox';
+    if (p === 'tube') {          /* two neon strips, cyan + magenta */
+      scene.add(new T.AmbientLight(0xffffff, 0.15));
+      dir(0x22d3ee, 0.95, -5, 1, 3); dir(0xdb2777, 0.95, 5, -1, 3); dir(0xffffff, 0.2, 0, 5, 2);
+    } else if (p === 'spot') {   /* one hard beam from above — dramatic */
+      scene.add(new T.AmbientLight(0xffffff, 0.12));
+      var sp = new T.SpotLight(0xffffff, 1.5, 0, 0.5, 0.45); sp.position.set(1.5, 6, 4); scene.add(sp);
+      dir(0x8b7cf3, 0.15, -4, -2, -3);
+    } else if (p === 'area') {   /* big even wash, catalogue style */
+      scene.add(new T.AmbientLight(0xffffff, 0.55));
+      dir(0xffffff, 0.5, 3, 4, 5); dir(0xffffff, 0.4, -4, 2, 3); dir(0xffffff, 0.3, 0, -3, 4);
+    } else if (p === 'rgb') {    /* RGB thirds — red / green / blue */
+      scene.add(new T.AmbientLight(0xffffff, 0.1));
+      dir(0xff3355, 0.95, -5, 2, 3); dir(0x33ff88, 0.85, 0, 6, 2); dir(0x3366ff, 0.95, 5, -1, 3);
+    } else if (p === 'warm') {
+      scene.add(new T.AmbientLight(0xffe2bd, 0.35));
+      dir(0xffd9a0, 0.85, 3, 4, 5); dir(0xff9d5c, 0.3, -4, -1, -2);
+    } else if (p === 'cool') {
+      scene.add(new T.AmbientLight(0xdbe9ff, 0.35));
+      dir(0xa8c8ff, 0.85, 3, 4, 5); dir(0x7c9dff, 0.3, -4, -1, -2);
+    } else if (p === 'disco') {  /* colours reshuffle every render — rotate it and it flashes */
+      scene.add(new T.AmbientLight(0xffffff, 0.12));
+      var cols = [0xff2d78, 0x2dffb3, 0x2d9bff, 0xffe32d, 0xb02dff];
+      for (var i = 0; i < 4; i++) {
+        var pl = new T.PointLight(cols[Math.floor(Math.random() * cols.length)], 1.15, 30);
+        pl.position.set(Math.cos(i * 1.57) * 5, Math.sin(i * 1.57) * 4, 3);
+        scene.add(pl);
+      }
+    } else if (p === 'multi') {  /* classic 4-light: key, fill, rim, kicker */
+      scene.add(new T.AmbientLight(0xffffff, 0.2));
+      dir(0xffffff, 0.9, 3, 4, 5); dir(0xbfd4ff, 0.4, -5, 1, 2);
+      dir(0xffe0b0, 0.5, -2, 3, -4); dir(0xffffff, 0.25, 0, -4, 3);
+    } else {                     /* softbox — the default studio */
+      scene.add(new T.AmbientLight(0xffffff, 0.32));
+      dir(0xffffff, 0.75, 3, 4, 5); dir(0x8b7cf3, 0.28, -4, -2, -3);
+    }
+  }
+  function render3D(kind, colorHex, rx, ry, text, quat, texData, hiRes, zoom, lightPreset) {
+    var T = window.THREE;
+    /* words are wide — give text a 2:1 frame so it isn't letterboxed tiny.
+       hiRes doubles the bake for the FINAL image (inserts and rotation end);
+       live rotation keeps the fast size so dragging stays smooth. */
     var isText = kind === 'text';
-    var W = isText ? 1024 : 512, H = 512;
+    var s = hiRes ? 2 : 1;
+    var W = (isText ? 1024 : 512) * s, H = 512 * s;
     var scene = new T.Scene();
     var cam = new T.PerspectiveCamera(35, W / H, 0.1, 50);
-    cam.position.set(0, 0, isText ? 5.8 : 5.2);
-    scene.add(new T.AmbientLight(0xffffff, 0.55));
-    var key = new T.DirectionalLight(0xffffff, 0.9); key.position.set(3, 4, 5); scene.add(key);
-    var rim = new T.DirectionalLight(0x8b7cf3, 0.35); rim.position.set(-4, -2, -3); scene.add(rim);
+    /* zoom: >1 close-up, <1 wide shot */
+    cam.position.set(0, 0.25, (isText ? 5.8 : 5.4) / (zoom || 1));
+    cam.lookAt(0, -0.1, 0);
+    try { scene.environment = studioEnv(); } catch (e) { /* studio optional */ }
+    applyLights(scene, lightPreset);
     var m = mesh(kind, colorHex, text, texData);
-    /* 23 Aug 2026 (Fable) — FREE trackball rotation. A quaternion (quat)
-       is the object's full 3D orientation; it never gimbal-locks, so the
-       object tumbles freely like PowerPoint's 3D models. Old saved objects
-       that only carry rotX/rotY still render via the Euler fallback. */
+    /* FREE trackball rotation (quat) with Euler fallback for old objects */
     if (quat && quat.length === 4) m.quaternion.fromArray(quat);
     else { m.rotation.x = rx || 0; m.rotation.y = ry || 0; }
     scene.add(m);
+    /* contact shadow sized to the rotated object's real footprint */
+    try {
+      var bb = new T.Box3().setFromObject(m);
+      var sz = bb.getSize(new T.Vector3()), ctr = bb.getCenter(new T.Vector3());
+      var pad = new T.Mesh(new T.PlaneGeometry(1, 1),
+        new T.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false }));
+      pad.rotation.x = -Math.PI / 2;
+      pad.position.set(ctr.x, bb.min.y - 0.03, ctr.z);
+      pad.scale.set(Math.max(sz.x, sz.z) * 1.5, Math.max(sz.x, sz.z) * 1.5, 1);
+      scene.add(pad);
+    } catch (e) {}
     var r = renderer();
+    r.outputEncoding = T.sRGBEncoding;
+    r.toneMapping = T.ACESFilmicToneMapping;
+    r.toneMappingExposure = 0.95;
     r.setSize(W, H);
     r.render(scene, cam);
     return r.domElement.toDataURL('image/png');
@@ -6977,6 +7089,68 @@ Editor._register({
 
   function toast(m) { if (window.Editor && Editor._toast) Editor._toast(m); }
 
+  /* one re-bake path for every situation — reads all 3D props off the object */
+  function rerenderObj(o, hiRes, cb) {
+    if (!window.THREE || !o || !o.is3D) return;
+    var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText,
+                       o.threeQuat, o.threeTexData, hiRes, o.threeZoom, o.threeLight);
+    o.setSrc(url, function () { fc.renderAll(); if (cb) cb(); });
+  }
+
+  /* ══ RIBBON COMMANDS (23 Aug 2026, Fable — step 4) ══════════════════════
+     Camera angles + light rigs for the SELECTED 3D object, driven from the
+     ribbon's 3D tab. */
+  var ANGLE3D = {
+    front: [0, 0], back: [0, Math.PI], left: [0, Math.PI / 2], right: [0, -Math.PI / 2],
+    top: [Math.PI / 2, 0], bottom: [-Math.PI / 2, 0],
+    deg45: [-0.35, Math.PI / 4], iso: [-0.615, Math.PI / 4]
+  };
+  function _active3D() {
+    var o = fc.getActiveObject();
+    if (!o || !o.is3D) { toast('Select a 3D object first'); return null; }
+    return o;
+  }
+  Editor._register({
+    threeAngle: function (a) {
+      var o = _active3D(); if (!o) return;
+      ensureThree().then(function () {
+        if (a === 'closeup') { o.threeZoom = 1.4; }
+        else if (a === 'wide') { o.threeZoom = 0.75; }
+        else if (a === 'zoomoff') { o.threeZoom = 1; }
+        else if (a === 'random') {
+          /* random cinematic: low hero angle + a touch of roll */
+          var T = window.THREE;
+          var e = new T.Euler(-(0.1 + Math.random() * 0.5), Math.random() * Math.PI * 2,
+                              (Math.random() - 0.5) * 0.35);
+          o.threeQuat = new T.Quaternion().setFromEuler(e).toArray();
+        } else if (a === 'orbit') {
+          /* a 2-second fly-around, then settle sharp where it started */
+          var T2 = window.THREE, q0 = o.threeQuat || quatFromEuler(o.rotX, o.rotY);
+          var t0 = performance.now(), DUR = 2000;
+          (function spin() {
+            var k = (performance.now() - t0) / DUR;
+            if (k >= 1) { o.threeQuat = q0; rerenderObj(o, true); saveState(); return; }
+            var qy = new T2.Quaternion().setFromAxisAngle(new T2.Vector3(0, 1, 0), k * Math.PI * 2);
+            o.threeQuat = qy.multiply(new T2.Quaternion().fromArray(q0)).toArray();
+            rerenderObj(o, false, function () { requestAnimationFrame(spin); });
+          })();
+          return;
+        } else if (ANGLE3D[a]) {
+          o.threeQuat = quatFromEuler(ANGLE3D[a][0], ANGLE3D[a][1]);
+        } else return;
+        rerenderObj(o, true); saveState();
+      });
+    },
+    threeLight: function (a) {
+      var o = _active3D(); if (!o) return;
+      ensureThree().then(function () {
+        o.threeLight = a === 'softbox' ? null : a;
+        rerenderObj(o, true); saveState();
+        toast('Light: ' + a);
+      });
+    }
+  });
+
   /* ── insert: a fabric.Image that carries its 3D soul ── */
   Editor._register({
     insert3D: function (a) {
@@ -6989,7 +7163,7 @@ Editor._register({
         var rx = a.kind === 'text' ? -0.12 : -0.35;   /* text: nearly face-on */
         var ry = a.kind === 'text' ?  0.22 :  0.65;
         var q0 = quatFromEuler(rx, ry);
-        var url = render3D(a.kind, color, rx, ry, a.text, q0);
+        var url = render3D(a.kind, color, rx, ry, a.text, q0, null, true);
         fabric.Image.fromURL(url, function (img) {
           img.scaleToWidth(a.kind === 'text' ? 420 : 240);
           img.set({
@@ -7034,7 +7208,7 @@ Editor._register({
           warmTexture(texData).then(function () {
             var rx = -0.12, ry = 0.45;
             var q0 = quatFromEuler(rx, ry);
-            var url = render3D(a.kind, a.color || '#12A5A0', rx, ry, null, q0, texData);
+            var url = render3D(a.kind, a.color || '#12A5A0', rx, ry, null, q0, texData, true);
             fabric.Image.fromURL(url, function (img) {
               img.scaleToWidth(300);
               img.set({
@@ -7142,8 +7316,7 @@ Editor._register({
         requestAnimationFrame(function () {
           pending = false;
           if (!window.THREE) return;
-          var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText, o.threeQuat, o.threeTexData);
-          o.setSrc(url, function () { fc.renderAll(); });
+          rerenderObj(o, false);
         });
       });
       function endRot() {
@@ -7153,6 +7326,9 @@ Editor._register({
            not start moving the object across the slide */
         if (freeObj !== o) { o.lockMovementX = false; o.lockMovementY = false; }
         rot = null;
+        /* rotation done — re-bake this object at DOUBLE resolution so the
+           image on the slide (and the exported PNG) is crisp */
+        if (window.THREE && o.is3D) rerenderObj(o, true);
         saveState();
       }
       fc.on('mouse:up', endRot);
