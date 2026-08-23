@@ -623,9 +623,32 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- 23 Aug 2026 — PDF tools now load ON DEMAND, not on every page open.
+     pdf-lib (~0.3MB), pdf.js (~1MB) and jsPDF (~0.35MB) used to download and
+     block on every visit even when no PDF was touched. They are the same
+     libraries; only WHEN they load changed. ensurePdfLibs() fetches whichever
+     is missing (once, cached) the first time a PDF is actually processed. -->
+<script>
+window.ensurePdfLibs = (function () {
+  var p = null;
+  function load(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src; s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  return function () {
+    if (p) return p;
+    var jobs = [];
+    if (!window.pdfjsLib) jobs.push(load('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js'));
+    if (!window.PDFLib)   jobs.push(load('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js'));
+    if (!window.jspdf)    jobs.push(load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'));
+    p = Promise.all(jobs);
+    return p;
+  };
+})();
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, getDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
@@ -1275,6 +1298,7 @@ window.readPdfMetadata = async function(input) {
 
   try {
     // extract the text with PDF.js
+    await window.ensurePdfLibs();
     const pdfjsLib = window.pdfjsLib;
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
@@ -1683,6 +1707,7 @@ window.resetSubmitForm = function() {
 window.pdfHasSection11 = async function(file) {
   if (!file || !/\.pdf$/i.test(file.name || '')) return false;
   try {
+    await window.ensurePdfLibs();
     const pdfjsLib = window.pdfjsLib;
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
@@ -1719,16 +1744,8 @@ window.pdfHasSection11 = async function(file) {
 // ─────────────────────────────────────────────────────────────────────────────
 async function stripSection11FromPdf(file) {
   try {
-    // load pdf-lib from the CDN if it is not already loaded
-    if (!window.PDFLib) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
-        s.onload  = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
+    // load the PDF tools on demand (pdf-lib + pdf.js), cached after first use
+    await window.ensurePdfLibs();
 
     const pdfjsLib = window.pdfjsLib;
     pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -1831,6 +1848,7 @@ async function compressPdfIfNeeded(file) {
   if (file.size <= CLOUDINARY_PDF_MAX) return file; // already fine
 
   try {
+    await window.ensurePdfLibs();
     const pdfjsLib = window.pdfjsLib;
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
