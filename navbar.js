@@ -407,9 +407,7 @@
       <button class="nb-theme-nb" id="nbBellBtn" onclick="nbToggleUpdates()" title="What's new"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span id="nbBellDot" style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:#e5533c;display:none;box-sizing:border-box;"></span></button>
       <div class="nb-updates-panel" id="nbUpdatesPanel">
         <div class="nb-updates-head">Updates</div>
-        <div class="nb-updates-list" id="nbUpdatesList">
-          <div class="nb-updates-empty">Checking for updates…</div>
-        </div>
+        <div class="nb-updates-list" id="nbUpdatesList"></div>
         <a href="blog.html" class="nb-updates-footer">View all updates →</a>
       </div>
     </div>
@@ -705,7 +703,7 @@
       var list = document.getElementById('nbUpdatesList');
       if (!list) return;
       if (!items || !items.length) {
-        list.innerHTML = '<div class="nb-updates-empty">No updates yet — check back soon.</div>';
+        list.innerHTML = '';   // no empty-state text — only the "View all updates →" arrow shows
         return;
       }
       list.innerHTML = items.slice(0, 5).map(function(u){
