@@ -827,7 +827,9 @@
       col(sm('zoom_in', 'Close-up', 'threeAngle', 'closeup'),
           sm('zoom_out', 'Wide shot', 'threeAngle', 'wide'),
           sm('crop_free', 'Normal zoom', 'threeAngle', 'zoomoff')),
-      col(big({ matIcon: '360', label: 'Orbit\n360°', cmd: 'threeAngle', arg: 'orbit' }))
+      col(big({ matIcon: '360', label: 'Orbit\n360°', cmd: 'threeAngle', arg: 'orbit' })),
+      col(sm('contrast', 'Shadow off', 'threeShadow', 'off'),
+          sm('wb_shade', 'Shadow on', 'threeShadow', 'on'))
     ));
     body.appendChild(sepd());
     body.appendChild(group('Hexa 3D',

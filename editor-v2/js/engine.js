@@ -7051,7 +7051,7 @@ Editor._register({
       dir(0xffffff, 0.75, 3, 4, 5); dir(0x8b7cf3, 0.28, -4, -2, -3);
     }
   }
-  function render3D(kind, colorHex, rx, ry, text, quat, texData, hiRes, zoom, lightPreset) {
+  function render3D(kind, colorHex, rx, ry, text, quat, texData, hiRes, zoom, lightPreset, noShadow) {
     var T = window.THREE;
     /* words are wide — give text a 2:1 frame so it isn't letterboxed tiny.
        hiRes doubles the bake for the FINAL image (inserts and rotation end);
@@ -7071,8 +7071,9 @@ Editor._register({
     if (quat && quat.length === 4) m.quaternion.fromArray(quat);
     else { m.rotation.x = rx || 0; m.rotation.y = ry || 0; }
     scene.add(m);
-    /* contact shadow sized to the rotated object's real footprint */
-    try {
+    /* contact shadow sized to the rotated object's real footprint —
+       skippable per object (24 Aug 2026, Fable — Javed's ask) */
+    if (!noShadow) try {
       var bb = new T.Box3().setFromObject(m);
       var sz = bb.getSize(new T.Vector3()), ctr = bb.getCenter(new T.Vector3());
       var pad = new T.Mesh(new T.PlaneGeometry(1, 1),
@@ -7131,7 +7132,7 @@ Editor._register({
     var keepW = o.getScaledWidth ? o.getScaledWidth() : (o.width * o.scaleX);
     var cen = o.getCenterPoint ? o.getCenterPoint() : null;
     var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText,
-                       o.threeQuat, o.threeTexData, hiRes, o.threeZoom, o.threeLight);
+                       o.threeQuat, o.threeTexData, hiRes, o.threeZoom, o.threeLight, o.threeNoShadow);
     o.setSrc(url, function () {
       if (keepW) o.scaleToWidth(keepW);
       if (cen && o.setPositionByOrigin) {
@@ -7192,6 +7193,15 @@ Editor._register({
         o.threeLight = a === 'softbox' ? null : a;
         rerenderObj(o, true); saveState();
         toast('Light: ' + a);
+      });
+    },
+    /* 24 Aug 2026 (Fable) — shadow on/off under the selected 3D object */
+    threeShadow: function (a) {
+      var o = _active3D(); if (!o) return;
+      ensureThree().then(function () {
+        o.threeNoShadow = (a === 'off');
+        rerenderObj(o, true); saveState();
+        toast(o.threeNoShadow ? 'Shadow off' : 'Shadow on');
       });
     },
     /* ══ ASSET STUDIO INSERT (23 Aug 2026, Fable — List #1 phase 1) ══════
