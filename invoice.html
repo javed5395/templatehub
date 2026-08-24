@@ -45,6 +45,9 @@
        genuinely free and its output carries no branding. WATERMARK_ON is now
        undefined, and the note below is already written with a typeof guard,
        so it correctly shows "Clean download — no watermark". -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Segoe UI',sans-serif;background-color:#f8f8f8;background-image:repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px);color:#1a1a2e;}
@@ -60,7 +63,7 @@
     .steps{display:flex;justify-content:center;margin:24px auto;max-width:700px;}
     .step{flex:1;text-align:center;position:relative;}
     .step-num{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;margin:0 auto 5px;border:2px solid #1e2a5a;background:#0d0d2b;color:#8899aa;transition:all 0.3s;}
-    .step-label{font-size:10px;color:#8899aa;font-weight:600;}
+    .step-label{font-size:10px;color:#5f5a6b;font-weight:600;}   /* was #8899aa — unreadable on the light page */
     .step.active .step-num{background:linear-gradient(135deg,#64c8ff,#b464ff);border-color:transparent;color:#0a0a1e;}
     .step.active .step-label{color:#64c8ff;}
     .step.done .step-num{background:#64c8ff;border-color:transparent;color:#0a0a1e;}
@@ -70,29 +73,40 @@
     /* SECTIONS */
     .section{display:none;padding:36px 60px;}
     .section.active{display:block;}
-    .sec-title{font-size:20px;font-weight:800;text-align:center;margin-bottom:6px;}
-    .sec-sub{color:#8899aa;font-size:13px;text-align:center;margin-bottom:30px;}
+    .sec-title{font-family:'Instrument Serif',serif;font-weight:400;font-size:29px;line-height:1.15;color:#1a1a2e;text-align:center;margin-bottom:6px;}
+    .sec-sub{color:#5f5a6b;font-size:13.5px;text-align:center;margin-bottom:30px;}   /* was #8899aa — too pale on the light page */
 
-    /* TYPE CARDS */
-    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:700px;margin:0 auto;}
-    .type-card{background:#0d0d2b;border:2px solid #1e1e4a;border-radius:16px;padding:36px 30px;cursor:pointer;transition:all 0.25s;text-align:center;}
-    .type-card:hover{border-color:#64c8ff;transform:translateY(-3px);}
-    .type-icon{font-size:48px;margin-bottom:16px;}
-    .type-name{font-size:18px;font-weight:800;margin-bottom:8px;}
-    .type-desc{font-size:13px;color:#8899aa;line-height:1.6;}
+    /* ═══════════════════════════════════════════════════════════════════
+       CARDS — 24 Aug 2026
+       These were dark navy (#0d0d2b) left over from when this page had a
+       dark body. The body is light now, and the card titles had no colour
+       of their own, so they inherited the dark body colour and became
+       near-invisible on the dark card. Rebuilt in the same journal card
+       style the CV/career section uses: bone paper, hairline inset border,
+       Instrument Serif titles, square corners, lift on hover.
+       Every text colour below is now explicit — nothing inherits.
+       ═══════════════════════════════════════════════════════════════════ */
+    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:700px;margin:0 auto;}
+    .type-card{position:relative;background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;padding:34px 30px;cursor:pointer;transition:transform .2s,box-shadow .2s;text-align:center;}
+    .type-card::before{content:"";position:absolute;inset:10px;border:1px solid rgba(0,0,0,.08);pointer-events:none;}
+    .type-card:hover{transform:translateY(-5px);box-shadow:0 14px 34px rgba(0,0,0,.13);}
+    .type-icon{font-size:46px;margin-bottom:14px;position:relative;}
+    .type-name{font-family:'Instrument Serif',serif;font-weight:400;font-size:24px;line-height:1.2;color:#1a1a2e;margin-bottom:8px;position:relative;}
+    .type-desc{font-size:13px;color:#4d4857;line-height:1.6;position:relative;}
 
     /* INDUSTRY GRID */
     .industry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1000px;margin:0 auto;}
-    .industry-card{background:#0d0d2b;border:2px solid #1e1e4a;border-radius:12px;padding:20px 16px;cursor:pointer;transition:all 0.25s;text-align:center;}
-    .industry-card:hover{border-color:#b464ff;transform:translateY(-3px);}
-    .industry-icon{font-size:32px;margin-bottom:10px;}
-    .industry-name{font-size:13px;font-weight:700;margin-bottom:4px;}
-    .industry-desc{font-size:11px;color:#8899aa;}
+    .industry-card{position:relative;background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;padding:20px 16px;cursor:pointer;transition:transform .2s,box-shadow .2s;text-align:center;}
+    .industry-card::before{content:"";position:absolute;inset:8px;border:1px solid rgba(0,0,0,.08);pointer-events:none;}
+    .industry-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);}
+    .industry-icon{font-size:30px;margin-bottom:10px;position:relative;}
+    .industry-name{font-family:'Instrument Serif',serif;font-weight:400;font-size:17px;line-height:1.2;color:#1a1a2e;margin-bottom:4px;position:relative;}
+    .industry-desc{font-size:11.5px;color:#4d4857;position:relative;}
 
     /* STYLE GRID */
     .style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1100px;margin:0 auto;}
-    .style-card{background:#0d0d2b;border:2px solid #1e1e4a;border-radius:14px;cursor:pointer;transition:all 0.25s;overflow:hidden;}
-    .style-card:hover{border-color:#64c8ff;transform:translateY(-3px);}
+    .style-card{background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;cursor:pointer;transition:transform .2s,box-shadow .2s;overflow:hidden;}
+    .style-card:hover{transform:translateY(-5px);box-shadow:0 14px 34px rgba(0,0,0,.13);}
     .style-thumb{height:130px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;}
     .style-thumb.blue{background:linear-gradient(135deg,#1a3a6b,#2a5aab);}
     .style-thumb.dark{background:linear-gradient(135deg,#1a1a1a,#2a2a2a);}
@@ -106,9 +120,9 @@
     .style-thumb.beige{background:linear-gradient(135deg,#2a1f14,#8a6040);}
     .style-thumb.bold{background:linear-gradient(135deg,#1a1a1a,#333);}
     .style-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600;}
-    .style-info{padding:12px 14px;}
-    .style-name{font-size:13px;font-weight:700;margin-bottom:3px;}
-    .style-desc{font-size:10px;color:#8899aa;}
+    .style-info{padding:13px 15px;border-top:1px solid rgba(0,0,0,.08);}
+    .style-name{font-family:'Instrument Serif',serif;font-weight:400;font-size:17px;line-height:1.2;color:#1a1a2e;margin-bottom:3px;}
+    .style-desc{font-size:11px;color:#4d4857;}
     .btn-select{display:block;width:calc(100% - 28px);margin:0 14px 14px;background:linear-gradient(90deg,#64c8ff,#b464ff);color:#0a0a1e;border:none;padding:8px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;}
 
     /* FORM */
