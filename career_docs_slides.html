@@ -1114,22 +1114,6 @@ async function ldtFetchDownloadUrl(kitId, kind){
     method: 'POST', headers: headers,
     body: JSON.stringify({ kitId: kitId, kind: kind })
   });
-  /* 23 Aug 2026 (Fable, bug #31) — a PAID file no longer arrives as a link.
-     The server now streams the file itself to the verified buyer, so a pasted
-     link can never unlock it for others. When bytes arrive, save them here and
-     return '' — callers skip their old link handling on a falsy return. */
-  var ct = res.headers.get('Content-Type') || '';
-  if (res.ok && ct.indexOf('json') === -1) {
-    var blob = await res.blob();
-    var cd = res.headers.get('Content-Disposition') || '';
-    var fm = cd.match(/filename="([^"]+)"/);
-    var fname = (fm && fm[1]) || (kitId + (kind === 'pptx' ? '.pptx' : kind === 'key' ? '.key' : ''));
-    var ourl = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href = ourl; a.download = fname;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(ourl); }, 8000);
-    return '';
-  }
   var j = {}; try { j = await res.json(); } catch(e){}
   if (!res.ok || !j.url) throw new Error((j && j.error) || 'Download unavailable');
   return j.url;
@@ -1147,7 +1131,6 @@ function handleDownload(){
   var kitId = ldtKitId();
   if (!kitId) { alert('Download not available for this template yet.'); return; }
   ldtFetchDownloadUrl(kitId, _dlIsPdf ? 'pdf' : 'pptx').then(function(url){
-    if (!url) return;   /* bug #31: file was streamed and saved already */
     if (_dlIsPdf) { window.open(toDirectDownload(url), '_blank'); return; }
     var a = document.createElement('a'); a.href = toDirectDownload(url); a.target = '_blank';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -1193,7 +1176,7 @@ function lbNext(){var t=_lbTotal();lbGoTo(currentSlideNum<t?currentSlideNum+1:1)
 function openLightbox(){buildLbStrip();document.getElementById('lbOverlay').classList.add('open');lbGoTo(currentSlideNum);document.body.style.overflow='hidden';}
 function closeLightbox(){document.getElementById('lbOverlay').classList.remove('open');document.body.style.overflow='';showSlide(currentSlideNum);}
 function lbDownload(){openModal('png');}
-function lbPrint(){var src=document.getElementById('lbImg').src;var w=window.open('about:blank');w.document.write('<html><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh"><img src="'+src+'" style="max-width:100%;max-height:100vh;object-fit:contain"><\/body><\/html>');w.document.close();w.onload=function(){w.focus();w.print();};}
+function lbPrint(){var src=document.getElementById('lbImg').src;var w=window.open('about:blank');w.document.write('<html><body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh"><img src="'+src+'" alt="Slide preview" style="max-width:100%;max-height:100vh;object-fit:contain"><\/body><\/html>');w.document.close();w.onload=function(){w.focus();w.print();};}
 document.addEventListener('keydown',function(e){var lb=document.getElementById('lbOverlay');if(!lb||!lb.classList.contains('open'))return;if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')lbPrev();if(e.key==='ArrowRight')lbNext();});
 
 // THEME TOGGLE — centralised in navbar.js (nbToggleTheme + saved-theme restore on load)
