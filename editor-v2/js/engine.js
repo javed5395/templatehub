@@ -7121,25 +7121,33 @@ Editor._register({
 
   function toast(m) { if (window.Editor && Editor._toast) Editor._toast(m); }
 
-  /* one re-bake path for every situation — reads all 3D props off the object */
+  /* one re-bake path for every situation — reads all 3D props off the object.
+     24 Aug 2026 (Fable) — SERIALIZED + SIZE-LOCKED. Two re-bakes used to race
+     (the drag preview and the sharp final), and the second one measured the
+     object's size mid-swap — so every click DOUBLED it until it filled the
+     canvas. Now: one re-bake at a time per object, the display width is
+     captured once while the object is stable, and it is clamped to the slide
+     so no 3D object can ever outgrow the canvas. */
   function rerenderObj(o, hiRes, cb) {
     if (!window.THREE || !o || !o.is3D) return;
-    /* 24 Aug 2026 (Fable) — KEEP the user's size + position across a re-bake.
-       setSrc loads a new image at its natural pixel size, which used to reset
-       scale (the object suddenly shrank) and shift its centre. Capture the
-       current displayed centre + width, then restore them after the load. */
-    var cx = o.left + (o.width * o.scaleX) / 2 * 0;   /* origin-safe below */
+    if (o._ldBaking) { o._ldBakeNext = hiRes; return; }   /* queue, don't race */
+    o._ldBaking = true;
     var keepW = o.getScaledWidth ? o.getScaledWidth() : (o.width * o.scaleX);
+    keepW = Math.min(keepW || 240, (fc._baseWidth || 1920) * 0.95);
     var cen = o.getCenterPoint ? o.getCenterPoint() : null;
     var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText,
                        o.threeQuat, o.threeTexData, hiRes, o.threeZoom, o.threeLight, o.threeNoShadow);
     o.setSrc(url, function () {
       if (keepW) o.scaleToWidth(keepW);
-      if (cen && o.setPositionByOrigin) {
-        o.setPositionByOrigin(cen, 'center', 'center');
-      }
+      if (cen && o.setPositionByOrigin) o.setPositionByOrigin(cen, 'center', 'center');
       o.setCoords && o.setCoords();
-      fc.renderAll(); if (cb) cb();
+      fc.renderAll();
+      o._ldBaking = false;
+      if (o._ldBakeNext !== undefined) {   /* run the newest queued bake once */
+        var h = o._ldBakeNext; delete o._ldBakeNext;
+        rerenderObj(o, h);
+      }
+      if (cb) cb();
     });
   }
 
