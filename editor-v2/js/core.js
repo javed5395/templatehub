@@ -282,7 +282,7 @@ function rehydrateFrames() {}
     'publishTemplate','deleteTemplate','templateThumbs','applyTemplateSlide',
     'insertShapePreset','insertLineKind','insertGrid','insertSticker','insertIllo','illoPalette',
     'layerAction','ai',
-    'shapeFill','shapeOutline','shapeOutlineW','shapeOpacity','moveSlide','insert3D','insert3DText','insertMockup3D','threeAngle','threeLight','threeShadow','threeOrder','insertAsset3D',
+    'shapeFill','shapeOutline','shapeOutlineW','shapeOpacity','moveSlide','insert3D','insert3DText','insertMockup3D','threeAngle','threeAngleCustom','threeColorSet','threeLight','threeShadow','threeOrder','insertAsset3D',
     'publishElement','insertElement','deleteElement','componentSave','componentDelete','insertMockupLayout',
     'mockupArea','mockupFill','signIn','signOut','backgroundImage'
   ];

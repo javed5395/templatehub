@@ -820,7 +820,8 @@
           sm('arrow_downward', 'Bottom', 'threeAngle', 'bottom')),
       col(sm('rotate_right', '45° view', 'threeAngle', 'deg45'),
           sm('deployed_code', 'Isometric', 'threeAngle', 'iso'),
-          sm('casino', 'Random cine', 'threeAngle', 'random'))
+          sm('casino', 'Random cine', 'threeAngle', 'random')),
+      col(sm('rotate_90_degrees_ccw', 'Custom angle°', 'threeAngleCustom'))
     ));
     body.appendChild(sepd());
     body.appendChild(group('Shot',
@@ -834,6 +835,17 @@
     body.appendChild(sepd());
     body.appendChild(group('Hexa 3D',
       col(big({ matIcon: 'auto_awesome', label: 'Describe\nyour scene', cmd: 'threeOrder' }))
+    ));
+    body.appendChild(sepd());
+    body.appendChild(group('Colour',
+      col(sm('circle', 'Red', 'threeColorSet', '#DC2626'),
+          sm('circle', 'Blue', 'threeColorSet', '#2563EB'),
+          sm('circle', 'Green', 'threeColorSet', '#16A34A')),
+      col(sm('circle', 'Gold', 'threeColorSet', '#D4AF37'),
+          sm('circle', 'Purple', 'threeColorSet', '#7C3AED'),
+          sm('circle', 'Black', 'threeColorSet', '#1B1B1F')),
+      col(sm('circle', 'White', 'threeColorSet', '#F4F4F5'),
+          sm('palette', 'More colour…', 'threeColorSet', 'custom'))
     ));
     body.appendChild(sepd());
     body.appendChild(group('Lights',

@@ -7195,6 +7195,32 @@ Editor._register({
         toast('Light: ' + a);
       });
     },
+    /* 24 Aug 2026 (Fable) — recolour the selected 3D object */
+    threeColorSet: async function (a) {
+      var o = _active3D(); if (!o) return;
+      var hex = a;
+      if (a === 'custom') {
+        hex = await window.ldPrompt('Colour (name or #hex):', 'e.g. red or #E11D48', o.threeColor || '#7C3AED');
+        if (!hex) return;
+        var NAMED = { red:'#DC2626', blue:'#2563EB', green:'#16A34A', gold:'#D4AF37', silver:'#C0C4CC',
+          purple:'#7C3AED', teal:'#12A5A0', pink:'#DB2777', orange:'#EA580C', yellow:'#EAB308',
+          black:'#1B1B1F', white:'#F4F4F5', navy:'#1E3A8A', brown:'#7C4A21' };
+        hex = NAMED[hex.trim().toLowerCase()] || hex.trim();
+        if (hex[0] !== '#') hex = '#' + hex;
+      }
+      ensureThree().then(function () { o.threeColor = hex; rerenderObj(o, true); saveState(); toast('Colour changed'); });
+    },
+    /* 24 Aug 2026 (Fable) — turn the object to ANY angle the user types */
+    threeAngleCustom: async function () {
+      var o = _active3D(); if (!o) return;
+      var v = await window.ldPrompt('Turn to how many degrees? (0–360, left–right)', 'e.g. 78', '45');
+      if (!v) return;
+      var deg = parseFloat(String(v).replace(/[^0-9.\-]/g, '')) || 0;
+      ensureThree().then(function () {
+        o.threeQuat = quatFromEuler(-0.2, deg * Math.PI / 180);
+        rerenderObj(o, true); saveState(); toast('Turned to ' + deg + '°');
+      });
+    },
     /* 24 Aug 2026 (Fable) — shadow on/off under the selected 3D object */
     threeShadow: function (a) {
       var o = _active3D(); if (!o) return;
