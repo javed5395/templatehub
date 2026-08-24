@@ -235,6 +235,13 @@ body:not(.light) .nav-search-close:hover{color:#fff;background:rgba(255,255,255,
 
   /* Language picker — fixed 480px width was overflowing phone screens */
   .nb-lang-panel{width:calc(100vw - 32px)!important;max-width:400px;}
+  /* 23 Aug 2026 — on phones the JS positions the panel from the globe button's
+     spot; when the button sits on the LEFT of the collapsed menu the panel's
+     left edge ran off-screen (~200px hidden). Pin it 16px from both edges here
+     so it can never overflow either side, whatever the button's position. The
+     !important overrides the inline left/right/width the JS sets. Desktop is
+     untouched (this lives inside the phone media query). */
+  .nb-lang-panel.open{left:16px!important;right:16px!important;width:auto!important;max-width:none!important;}
 
   /* Search bar — fixed 120px side padding left almost no room on phones */
   .nav-search-panel-inner{padding:16px 20px!important;}
