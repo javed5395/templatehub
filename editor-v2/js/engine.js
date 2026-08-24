@@ -7130,24 +7130,34 @@ Editor._register({
      so no 3D object can ever outgrow the canvas. */
   function rerenderObj(o, hiRes, cb) {
     if (!window.THREE || !o || !o.is3D) return;
-    if (o._ldBaking) { o._ldBakeNext = hiRes; return; }   /* queue, don't race */
+    if (o._ldBaking) { o._ldBakeNext = hiRes; return; }
     o._ldBaking = true;
-    var keepW = o.getScaledWidth ? o.getScaledWidth() : (o.width * o.scaleX);
-    keepW = Math.min(keepW || 240, (fc._baseWidth || 1920) * 0.95);
+    /* 24 Aug 2026 (Fable) — the display width is a STORED number (threeDispW),
+       set at insert and updated only when the USER resizes. Re-bakes never
+       measure the live object (measuring mid-swap is what doubled the size
+       every click). Callback is try/finally so one error can never wedge it. */
+    /* width comes ONLY from a stored value the user controls. No live
+       measurement is ever trusted (that was the growth loop). Missing? use a
+       sane default by kind. Hard-capped so it can never fill the canvas. */
+    var def = (o.threeKind === 'text') ? 420 : 260;
+    var keepW = o.threeDispW || def;
+    keepW = Math.max(60, Math.min(keepW, (fc._baseWidth || 1920) * 0.6));
+    o.threeDispW = keepW;
     var cen = o.getCenterPoint ? o.getCenterPoint() : null;
     var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText,
                        o.threeQuat, o.threeTexData, hiRes, o.threeZoom, o.threeLight, o.threeNoShadow);
     o.setSrc(url, function () {
-      if (keepW) o.scaleToWidth(keepW);
-      if (cen && o.setPositionByOrigin) o.setPositionByOrigin(cen, 'center', 'center');
-      o.setCoords && o.setCoords();
-      fc.renderAll();
-      o._ldBaking = false;
-      if (o._ldBakeNext !== undefined) {   /* run the newest queued bake once */
-        var h = o._ldBakeNext; delete o._ldBakeNext;
-        rerenderObj(o, h);
+      try {
+        o.scaleToWidth(keepW);
+        if (cen && o.setPositionByOrigin) o.setPositionByOrigin(cen, 'center', 'center');
+        o.setCoords && o.setCoords();
+        fc.renderAll();
+      } catch (e) { console.warn('[3d] rebake restore failed', e); }
+      finally {
+        o._ldBaking = false;
+        if (o._ldBakeNext !== undefined) { var h = o._ldBakeNext; delete o._ldBakeNext; rerenderObj(o, h); }
+        if (cb) cb();
       }
-      if (cb) cb();
     });
   }
 
@@ -7411,7 +7421,9 @@ Editor._register({
         var q0 = a.quat || quatFromEuler(rx, ry);
         var url = render3D(a.kind, color, rx, ry, a.text, q0, null, true, null, a.light);
         fabric.Image.fromURL(url, function (img) {
-          img.scaleToWidth(a.width || (a.kind === 'text' ? 420 : 240));
+          var dw3 = a.width || (a.kind === 'text' ? 420 : 240);
+          img.scaleToWidth(dw3);
+          img.threeDispW = dw3;
           img.set({
             left: a.left != null ? a.left : 220, top: a.top != null ? a.top : 130,
             is3D: true, threeKind: a.kind, threeColor: color,
@@ -7456,7 +7468,9 @@ Editor._register({
             var q0 = a.quat || quatFromEuler(rx, ry);
             var url = render3D(a.kind, a.color || '#12A5A0', rx, ry, null, q0, texData, true, null, a.light);
             fabric.Image.fromURL(url, function (img) {
-              img.scaleToWidth(a.width || 300);
+              var dwm = a.width || 300;
+              img.scaleToWidth(dwm);
+              img.threeDispW = dwm;
               img.set({
                 left: a.left != null ? a.left : 220, top: a.top != null ? a.top : 110,
                 is3D: true, threeKind: a.kind, threeColor: a.color || '#12A5A0',
@@ -7523,6 +7537,13 @@ Editor._register({
           if (o.is3D && o.setControlsVisibility) o.setControlsVisibility({ mtr: false });
         });
       }
+      /* user's own resize becomes the new authoritative display width */
+      fc.on('object:modified', function (opt) {
+        var o = opt && opt.target;
+        if (o && o.is3D && !o._ldBaking && o.getScaledWidth) {
+          o.threeDispW = Math.max(60, Math.min(o.getScaledWidth(), (fc._baseWidth || 1920) * 0.6));
+        }
+      });
       fc.on('selection:created', hideSpinner);
       fc.on('selection:updated', hideSpinner);
       fc.on('mouse:down', function (opt) {
