@@ -781,10 +781,25 @@ window.ldPlansModal = async function () {
     if (snap.exists()) { var d = snap.data() || {}; CFG = { costs: Object.assign({}, FALLBACK.costs, d.costs || {}), plans: Object.assign({}, FALLBACK.plans, d.plans || {}), carryForwardPct: d.carryForwardPct != null ? d.carryForwardPct : 50, graceDays: d.graceDays != null ? d.graceDays : 30, whopPlanMap: d.whopPlanMap || {} }; }
   } catch (e) { /* fallback prices */ }
   function checkoutFor(key) { var m = CFG.whopPlanMap || {}; for (var id in m) if (m[id] === key) return 'https://whop.com/checkout/' + id; return 'https://www.lazydogtemplates.com/pricing.html'; }
+  /* 24 Aug 2026 (Javed) — the modal now wears the pricing.html skin: bone
+     paper, navy ink, Instrument Serif headings, Poppins buttons, mono for the
+     small labels. Same palette and type as the website so the two never look
+     like two different products. Fonts are pulled in once, on first open. */
+  if (!document.getElementById('ld-plans-fonts')) {
+    var lf = document.createElement('link'); lf.id = 'ld-plans-fonts'; lf.rel = 'stylesheet';
+    lf.href = 'https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap';
+    document.head.appendChild(lf);
+  }
+  var SERIF = '"Instrument Serif",Georgia,serif';
+  var SANS  = 'Inter,"DM Sans",system-ui,sans-serif';
+  var UI    = 'Poppins,Inter,system-ui,sans-serif';
+  var MONO  = 'Consolas,"SFMono-Regular",Menlo,monospace';
+  var BONE = '#f2eee5', INK = '#1a1a2e', NAVY = '#07071a', GOLD = '#d4af37',
+      LINE = '#d9d4c7', MUTED = '#5f5d70';
   var ov = document.createElement('div'); ov.id = 'ld-plans-overlay';
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.66);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:"DM Sans",system-ui,sans-serif;';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(7,7,26,.72);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:' + SANS + ';';
   var box = document.createElement('div');
-  box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:18px;width:min(1120px,96vw);max-height:92vh;overflow:auto;padding:26px 28px;color:#e8e9f2;box-shadow:0 24px 70px rgba(0,0,0,.6);position:relative;';
+  box.style.cssText = 'background:' + BONE + ';border:1px solid ' + LINE + ';width:min(1120px,96vw);max-height:92vh;overflow:auto;padding:30px 30px 26px;color:' + INK + ';box-shadow:0 24px 70px rgba(0,0,0,.45);position:relative;';
   var n = function (v) { return Number(v || 0).toLocaleString(); };
   var c = CFG.costs, perDeck = (Number(c.composePerSlide || 0) + Number(c.fillPerSlide || 0)) * 10;
   var mode = 'monthly';
@@ -792,37 +807,53 @@ window.ldPlansModal = async function () {
     var keys = mode === 'monthly' ? ['pro', 'studio', 'annualFlex'] : ['proAnnual', 'studioAnnual', 'annualFlex'];
     var LABEL = { pro: 'Pro', studio: 'Studio', proAnnual: 'Pro', studioAnnual: 'Studio', annualFlex: 'Flex' };
     var SUB = { pro: 'For steady, regular work', studio: 'For heavy use and teams', proAnnual: 'For steady, regular work', studioAnnual: 'For heavy use and teams', annualFlex: 'For work that comes in bursts' };
-    box.innerHTML = '<button id="ld-plans-x" style="position:absolute;top:12px;right:14px;border:0;background:#23243a;color:#c9cbe0;border-radius:999px;width:32px;height:32px;font-size:18px;cursor:pointer;">×</button>' +
-      '<div style="font-size:22px;font-weight:800;">Upgrade your plan</div>' +
-      '<div style="font-size:13px;color:#a9abc4;margin:4px 0 14px;">Editing is always free. Tokens pay for AI work — designing, writing, dissolving files. ' + CFG.carryForwardPct + '% of unused tokens carry over when you renew or re-subscribe within ' + CFG.graceDays + ' days of a plan ending.</div>' +
-      '<div style="display:inline-flex;background:#0e0f1a;border:1px solid #34365a;border-radius:999px;padding:3px;margin-bottom:16px;">' +
-        '<button data-mode="monthly" style="border:0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;' + (mode === 'monthly' ? 'background:#7c5cff;color:#fff;' : 'background:transparent;color:#c9cbe0;') + '">Monthly</button>' +
-        '<button data-mode="annual" style="border:0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer;' + (mode === 'annual' ? 'background:#7c5cff;color:#fff;' : 'background:transparent;color:#c9cbe0;') + '">Annual · save ~16%</button>' +
+    box.innerHTML = '<button id="ld-plans-x" style="position:absolute;top:14px;right:16px;border:1px solid ' + LINE + ';background:#fff;color:' + INK + ';border-radius:999px;width:32px;height:32px;font-size:18px;line-height:1;cursor:pointer;">×</button>' +
+      '<div style="font-family:' + SERIF + ';font-weight:400;font-size:34px;line-height:1.1;color:' + INK + ';">Upgrade your plan</div>' +
+      '<div style="font-size:13px;color:' + MUTED + ';margin:8px 0 16px;max-width:70ch;line-height:1.7;">Editing is always free. Tokens pay for AI work — designing, writing, dissolving files. ' + CFG.carryForwardPct + '% of unused tokens carry over when you renew or re-subscribe within ' + CFG.graceDays + ' days of a plan ending.</div>' +
+      '<div style="display:inline-flex;background:#fff;border:1px solid ' + LINE + ';border-radius:100px;padding:5px;margin-bottom:18px;">' +
+        '<button data-mode="monthly" style="border:0;border-radius:100px;padding:7px 16px;font-family:' + UI + ';font-weight:700;font-size:13.5px;cursor:pointer;' + (mode === 'monthly' ? 'background:' + NAVY + ';color:#fff;' : 'background:transparent;color:' + INK + ';') + '">Monthly</button>' +
+        '<button data-mode="annual" style="border:0;border-radius:100px;padding:7px 16px;font-family:' + UI + ';font-weight:700;font-size:13.5px;cursor:pointer;' + (mode === 'annual' ? 'background:' + NAVY + ';color:#fff;' : 'background:transparent;color:' + INK + ';') + '">Annual · save ~16%</button>' +
       '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:14px;align-items:stretch;">' +
       keys.map(function (k, i) {
         var p = CFG.plans[k] || {}; var tk = Number(p.tokens || 0); var decks = perDeck ? Math.floor(tk / perDeck) : 0;
-        var price = p.oneTime ? '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">once</span>' : p.billedAnnually ? '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">/year</span>' : '$' + p.priceUsd + ' <span style="font-size:13px;color:#a9abc4;">/month</span>';
+        var unit = p.oneTime ? 'once' : p.billedAnnually ? '/year' : '/month';
+        var price = '<b style="font-family:' + SERIF + ';font-size:40px;font-weight:400;line-height:1;color:' + INK + ';">$' + p.priceUsd + '</b> <span style="font-size:13px;color:' + MUTED + ';">' + unit + '</span>';
         var note = p.oneTime ? 'Valid one year. Never charged again.' : p.billedAnnually ? (n(tk) + ' tokens every month, billed yearly') : 'Cancel any time';
-        return '<div style="background:#0e0f1a;border:1px solid ' + (i === 0 ? '#7c5cff' : '#2c2e45') + ';border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;">' +
-          (i === 0 ? '<div style="font-size:10px;letter-spacing:.1em;color:#e05fa9;font-weight:800;">MOST POPULAR</div>' : '<div style="height:12px;"></div>') +
-          '<div style="font-size:20px;font-weight:800;">' + LABEL[k] + '</div><div style="font-size:12px;color:#a9abc4;">' + SUB[k] + '</div>' +
-          '<div style="font-size:30px;font-weight:800;margin-top:6px;">' + price + '</div><div style="font-size:11.5px;color:#a9abc4;">' + note + '</div>' +
-          '<div style="font-size:16px;font-weight:700;margin-top:8px;">' + n(tk) + ' tokens</div><div style="font-size:11.5px;color:#a9abc4;">about ' + decks + ' full 10-slide decks</div>' +
-          '<div style="font-size:11px;color:#8b8ea8;margin-top:8px;line-height:1.7;">Design one slide <b style="float:right;color:#e8e9f2;">' + c.composePerSlide + '</b><br>Write one slide from your content <b style="float:right;color:#e8e9f2;">' + c.fillPerSlide + '</b><br>PDF page → slides <b style="float:right;color:#e8e9f2;">' + c.pdfDecomposePerPage + '</b><br>PNG → editable slide <b style="float:right;color:#e8e9f2;">' + c.pngDecompose + '</b></div>' +
-          '<a data-buy="' + k + '" href="' + checkoutFor(k) + '" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:auto;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;">' + (p.oneTime ? 'Buy once' : 'Subscribe') + '</a>' +
+        var cost = function (label, v) { return '<li style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.07);"><span>' + label + '</span><b style="font-family:' + MONO + ';font-weight:700;white-space:nowrap;color:' + INK + ';">' + v + '</b></li>'; };
+        return '<div style="position:relative;background:' + BONE + ';border:1px solid ' + (i === 0 ? GOLD : LINE) + ';padding:26px 22px;display:flex;flex-direction:column;gap:6px;">' +
+          '<span style="position:absolute;inset:11px;border:1px solid rgba(0,0,0,.09);pointer-events:none;"></span>' +
+          (i === 0 ? '<div style="font-family:' + MONO + ';font-size:9.5px;font-weight:700;letter-spacing:.16em;color:' + INK + ';background:' + GOLD + ';display:inline-block;padding:3px 8px;align-self:flex-start;">MOST POPULAR</div>' : '<div style="height:19px;"></div>') +
+          '<h2 style="font-family:' + SERIF + ';font-weight:400;font-size:29px;line-height:1.1;color:' + INK + ';margin:6px 0 4px;">' + LABEL[k] + '</h2>' +
+          '<div style="font-size:12.5px;color:' + MUTED + ';">' + SUB[k] + '</div>' +
+          '<div style="margin-top:12px;">' + price + '</div><div style="font-size:11.5px;color:' + MUTED + ';margin-top:4px;">' + note + '</div>' +
+          '<div style="margin-top:14px;"><b style="font-family:' + SERIF + ';font-size:23px;font-weight:400;display:block;line-height:1.2;color:' + INK + ';">' + n(tk) + ' tokens</b><span style="font-size:11.5px;color:' + MUTED + ';">about ' + decks + ' full 10-slide decks</span></div>' +
+          '<div style="font-family:' + MONO + ';font-size:9.5px;font-weight:700;letter-spacing:.14em;color:' + MUTED + ';margin-top:14px;">WHAT THINGS COST</div>' +
+          '<ul style="list-style:none;margin:6px 0 0;padding:0;font-size:12px;color:' + MUTED + ';">' +
+            cost('Design one slide', c.composePerSlide) + cost('Write one slide from your content', c.fillPerSlide) +
+            cost('PDF page → slides', c.pdfDecomposePerPage) + cost('PNG → editable slide', c.pngDecompose) +
+          '</ul>' +
+          '<a data-buy="' + k + '" href="' + checkoutFor(k) + '" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:20px;padding:12px;font-family:' + UI + ';font-weight:700;font-size:13.5px;cursor:pointer;' + (i === 0 ? 'background:' + GOLD + ';color:' + NAVY + ';' : 'background:' + NAVY + ';color:#fff;') + '">' + (p.oneTime ? 'Buy once' : 'Subscribe') + '</a>' +
         '</div>';
       }).join('') +
       /* 4th card — Custom / done-for-you, quoted per job (same as pricing.html) */
-      '<div style="background:#0e0f1a;border:1px solid #2c2e45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;">' +
-        '<div style="font-size:10px;letter-spacing:.1em;color:#12A5A0;font-weight:800;">QUOTED PER JOB</div>' +
-        '<div style="font-size:20px;font-weight:800;">Custom</div><div style="font-size:12px;color:#a9abc4;">We build it and put it live for you</div>' +
-        '<div style="font-size:30px;font-weight:800;margin-top:6px;">Let\'s talk</div><div style="font-size:11.5px;color:#a9abc4;">No fixed price. Asking costs nothing.</div>' +
-        '<div style="font-size:16px;font-weight:700;margin-top:8px;">Done for you</div><div style="font-size:11.5px;color:#a9abc4;">You supply the content, we deliver the finished site</div>' +
-        '<div style="font-size:11px;color:#8b8ea8;margin-top:8px;line-height:1.7;">Your text and images placed <b style="float:right;color:#e8e9f2;">yes</b><br>Colours, fonts and logo applied <b style="float:right;color:#e8e9f2;">yes</b><br>Live on your own domain <b style="float:right;color:#e8e9f2;">yes</b><br>Contact form and basic SEO <b style="float:right;color:#e8e9f2;">yes</b></div>' +
-        '<a href="https://www.lazydogtemplates.com/deployment/quote.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:auto;border:0;border-radius:10px;padding:11px;font-weight:800;font-size:13px;cursor:pointer;background:#23243a;color:#fff;border:1px solid #34365a;">Request a quote</a>' +
+      '<div style="position:relative;background:' + BONE + ';border:1px solid ' + LINE + ';padding:26px 22px;display:flex;flex-direction:column;gap:6px;">' +
+        '<span style="position:absolute;inset:11px;border:1px solid rgba(0,0,0,.09);pointer-events:none;"></span>' +
+        '<div style="font-family:' + MONO + ';font-size:9.5px;font-weight:700;letter-spacing:.16em;color:#0f5f5c;background:#dcefee;display:inline-block;padding:3px 8px;align-self:flex-start;">QUOTED PER JOB</div>' +
+        '<h2 style="font-family:' + SERIF + ';font-weight:400;font-size:29px;line-height:1.1;color:' + INK + ';margin:6px 0 4px;">Custom</h2>' +
+        '<div style="font-size:12.5px;color:' + MUTED + ';">We build it and put it live for you</div>' +
+        '<div style="margin-top:12px;"><b style="font-family:' + SERIF + ';font-size:40px;font-weight:400;line-height:1;color:' + INK + ';">Let\'s talk</b></div>' +
+        '<div style="font-size:11.5px;color:' + MUTED + ';margin-top:4px;">No fixed price. Asking costs nothing.</div>' +
+        '<div style="margin-top:14px;"><b style="font-family:' + SERIF + ';font-size:23px;font-weight:400;display:block;line-height:1.2;color:' + INK + ';">Done for you</b><span style="font-size:11.5px;color:' + MUTED + ';">You supply the content, we deliver the finished site</span></div>' +
+        '<div style="font-family:' + MONO + ';font-size:9.5px;font-weight:700;letter-spacing:.14em;color:' + MUTED + ';margin-top:14px;">WHAT YOU GET</div>' +
+        '<ul style="list-style:none;margin:6px 0 0;padding:0;font-size:12px;color:' + MUTED + ';">' +
+          ['Your text and images placed', 'Colours, fonts and logo applied', 'Live on your own domain', 'Contact form and basic SEO'].map(function (t) {
+            return '<li style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.07);"><span>' + t + '</span><b style="font-family:' + MONO + ';font-weight:700;color:' + INK + ';">yes</b></li>';
+          }).join('') +
+        '</ul>' +
+        '<a href="https://www.lazydogtemplates.com/deployment/quote.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:20px;padding:12px;font-family:' + UI + ';font-weight:700;font-size:13.5px;cursor:pointer;background:' + NAVY + ';color:#fff;">Request a quote</a>' +
       '</div></div>' +
-      '<div style="font-size:11px;color:#8b8ea8;margin-top:14px;line-height:1.6;">Payments are processed by Whop in your browser — card details never reach LazyDog. A lapsed plan keeps its balance for ' + CFG.graceDays + ' days. Cancelling never takes back tokens you have paid for. Templates are sold separately.</div>';
+      '<div style="font-size:11.5px;color:' + MUTED + ';margin-top:18px;line-height:1.7;border-top:1px solid ' + LINE + ';padding-top:14px;">Payments are processed by Whop in your browser — card details never reach LazyDog. A lapsed plan keeps its balance for ' + CFG.graceDays + ' days. Cancelling never takes back tokens you have paid for. Templates are sold separately.</div>';
     box.querySelector('#ld-plans-x').onclick = close;
     box.querySelectorAll('[data-mode]').forEach(function (b) { b.onclick = function () { mode = b.getAttribute('data-mode'); render(); }; });
     box.querySelectorAll('a[target=_blank]').forEach(function (a) {
@@ -834,8 +865,8 @@ window.ldPlansModal = async function () {
         var w = null; try { w = window.open(url, '_blank', 'noopener'); } catch (err) {}
         e.preventDefault();
         if (w === null) {
-          var note = box.querySelector('#ld-plans-note') || (function () { var d = document.createElement('div'); d.id = 'ld-plans-note'; d.style.cssText = 'margin-top:10px;font-size:12px;color:#e8e9f2;'; box.appendChild(d); return d; })();
-          note.innerHTML = 'Your browser blocked the checkout window. Open this address: <input readonly value="' + url + '" style="width:100%;margin-top:4px;background:#0e0f1a;color:#fff;border:1px solid #34365a;border-radius:8px;padding:7px 9px;font-size:12px;">';
+          var note = box.querySelector('#ld-plans-note') || (function () { var d = document.createElement('div'); d.id = 'ld-plans-note'; d.style.cssText = 'margin-top:10px;font-size:12px;color:' + INK + ';'; box.appendChild(d); return d; })();
+          note.innerHTML = 'Your browser blocked the checkout window. Open this address: <input readonly value="' + url + '" style="width:100%;margin-top:4px;background:#fff;color:' + INK + ';border:1px solid ' + LINE + ';padding:7px 9px;font-size:12px;">';
           note.querySelector('input').select();
         } else showToast('Opening checkout in your browser…');
       });
@@ -848,6 +879,19 @@ window.ldPlansModal = async function () {
   render(); ov.appendChild(box); document.body.appendChild(ov);
 };
 Editor._register({ showPlans: function () { window.ldPlansModal(); } });
+
+/* 24 Aug 2026 (Javed) — ?plans=1 opens the plan cards on arrival.
+   The landing page's "See plans" button sends people here rather than to
+   pricing.html, so they see the real cards with live prices inside the
+   product instead of a separate marketing page. */
+(function () {
+  try {
+    if (!/[?&]plans=1\b/.test(location.search)) return;
+    window.addEventListener('load', function () {
+      setTimeout(function () { try { window.ldPlansModal(); } catch (e) {} }, 1200);
+    });
+  } catch (e) {}
+})();
 
 /* ═════════ SHARE (21 Aug 2026, Javed) — real links, Canva-style ═════════
    The deck is published as JSON to Storage under shares/{uid}/{slug}.json
