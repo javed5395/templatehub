@@ -2721,7 +2721,7 @@ function openWorkbookEditor(id) {
   d.id = 'wb-editor';
   d.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.45);z-index:5000;display:flex;align-items:center;justify-content:center;';
   d.innerHTML = '<div id="wb-shell" style="background:#fff;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,0.35);max-width:92vw;max-height:88vh;overflow:auto;padding:16px;font-size:13px;font-family:inherit">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:24px"><b style="color:#217346">&#9638; ' + (el.oleName || 'Worksheet') + '</b><button id="wb-x" style="font-size:18px">&#10005;</button></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:24px"><b style="color:#217346">&#9638; ' + (el.oleName || 'Worksheet') + '</b><button id="wb-x" aria-label="Close" style="font-size:18px">&#10005;</button></div>' +
     '<div style="color:#64748B;margin-bottom:8px">Formulas: start with = &nbsp;&bull;&nbsp; Right-click for insert/delete rows &amp; columns</div>' +
     '<div id="wb-sheet">Loading spreadsheet engine…</div>' +
     '<div style="margin-top:12px;display:flex;gap:8px">' +
@@ -2850,7 +2850,7 @@ function _openWorkbookEditorBasic(id) {
     body += '</tr>';
   }
   d.innerHTML = '<div style="background:#fff;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,0.35);max-width:90vw;max-height:85vh;overflow:auto;padding:16px;font-size:13px;font-family:inherit">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:24px"><b style="color:#217346">&#9638; ' + (el.oleName || 'Worksheet') + '</b><button id="wb-x" style="font-size:18px">&#10005;</button></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:24px"><b style="color:#217346">&#9638; ' + (el.oleName || 'Worksheet') + '</b><button id="wb-x" aria-label="Close" style="font-size:18px">&#10005;</button></div>' +
     '<table style="border-collapse:collapse">' + head + body + '</table>' +
     '<div style="margin-top:12px;display:flex;gap:8px">' +
     '<button id="wb-save" style="background:#217346;color:#fff;border-radius:8px;padding:6px 16px;font-weight:600">Save to slide</button>' +
@@ -2899,7 +2899,7 @@ function openChartOptions(id) {
     heads += '<td><input data-sname="' + si + '" value="' + String(s2.name || '').replace(/"/g, '&quot;') + '" style="width:56px"> <input data-scolor="' + si + '" type="color" value="' + (/^#([0-9A-Fa-f]{6})/.test(s2.color) ? s2.color.slice(0, 7) : '#4472C4') + '" style="width:24px;height:20px;padding:0;border:none"></td>';
   });
   heads += '</tr>';
-  d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Chart options</b><button id="cop-x" style="font-size:16px">&#10005;</button></div>' +
+  d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Chart options</b><button id="cop-x" aria-label="Close" style="font-size:16px">&#10005;</button></div>' +
     '<label style="display:block;margin-bottom:6px">Title <input id="cop-title" value="' + String(el.title || '').replace(/"/g, '&quot;') + '" style="width:100%"></label>' +
     '<label><input type="checkbox" id="cop-legend"' + (el.hasLegend !== false ? ' checked' : '') + '> Legend</label> ' +
     '<label><input type="checkbox" id="cop-grid"' + (el.hasGrid ? ' checked' : '') + '> Gridlines</label> ' +

@@ -73,7 +73,7 @@
   var authHTML = `
 <div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-modal">
-    <button class="auth-modal-close" onclick="closeAuthModal()">✕</button>
+    <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
     <h2 id="authTitle">Welcome Back</h2>
     <p id="authSubtitle">Sign in to access your downloads</p>
     <div class="auth-tabs">
@@ -767,30 +767,11 @@
             tag: 'Journal',
             title: v.title || t.name || 'Untitled',
             date: when ? when.toLocaleDateString(undefined, { month:'long', year:'numeric' }) : '',
-            /* 23 Aug 2026 (Fable, bug #10) — this used to be
-               'blog-view.html?id=…', a page that does NOT exist, so every
-               bell item 404'd. Real posts are static files at
-               blogs/<slug>.html and the Firestore doc id IS the slug.
-               Each link is verified below before rendering; anything that
-               doesn't resolve falls back to the journal index (blog.html). */
-            link: 'blogs/' + d.id + '.html',
+            link: 'blog-view.html?id=' + d.id,
             timestamp: when ? when.getTime() : 0
           });
         });
         items.sort(function(a,b){ return b.timestamp - a.timestamp; });
-        /* bug #10 continued — verify each built link really exists (one HEAD
-           per post, cached for the session), so the bell can never send a
-           reader to a 404 even if a doc id and file name ever drift apart. */
-        await Promise.all(items.map(async function (it) {
-          try {
-            var key = 'nbBlogLink:' + it.link;
-            var hit = sessionStorage.getItem(key);
-            if (hit) { it.link = hit; return; }
-            var r = await fetch(it.link, { method: 'HEAD' });
-            if (!r.ok) it.link = 'blog.html';
-            sessionStorage.setItem(key, it.link);
-          } catch (e) { it.link = 'blog.html'; }
-        }));
         renderUpdates(items);
       } catch (e) {
         console.warn('[navbar] updates feed unavailable:', e && e.message);
@@ -1047,7 +1028,7 @@
   <div class="helpbot-header">
     <div class="helpbot-avatar">👩‍💼</div>
     <div><div class="helpbot-title">Hexa</div><div class="helpbot-sub">LazyDog assistant • Ask me anything ✦</div></div>
-    <button class="helpbot-close" onclick="toggleBot()">✕</button>
+    <button class="helpbot-close" onclick="toggleBot()" aria-label="Close">✕</button>
   </div>
   <div class="helpbot-body" id="helpbotBody">
     <style>

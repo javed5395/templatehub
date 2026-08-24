@@ -1247,9 +1247,9 @@ function toggleLearnMore(btn){
         <button class="lb-tool-btn" onclick="lbPrint()">Print</button>
       </div>
       <div class="lb-img-area">
-        <button class="lb-nav-btn" id="lbBtnPrev" onclick="lbPrev()">&#8249;</button>
+        <button class="lb-nav-btn" id="lbBtnPrev" onclick="lbPrev()" aria-label="Previous slide">&#8249;</button>
         <img id="lbImg" src="" alt="Slide">
-        <button class="lb-nav-btn" id="lbBtnNext" onclick="lbNext()">&#8250;</button>
+        <button class="lb-nav-btn" id="lbBtnNext" onclick="lbNext()" aria-label="Next slide">&#8250;</button>
       </div>
     </div>
     <div class="lb-strip"></div>
@@ -1258,7 +1258,7 @@ function toggleLearnMore(btn){
 </div>
 <div id="editPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:18px;padding:36px 32px;max-width:400px;width:90%;text-align:center;font-family:'Poppins',sans-serif;position:relative;">
-    <button onclick="closeEditPopup()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:20px;cursor:pointer;color:#888;">✕</button>
+    <button onclick="closeEditPopup()" aria-label="Close" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:20px;cursor:pointer;color:#888;">✕</button>
     <h2 style="font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:6px;">Edit Template</h2>
     <p style="font-size:13px;color:#666;margin-bottom:24px;">Choose what you want to edit in the editor.</p>
     <div style="display:flex;flex-direction:column;gap:12px;">

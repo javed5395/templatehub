@@ -2517,7 +2517,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
 <!-- ── AUTH MODAL (sign in / sign up) — ported from navbar.js ── -->
 <div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-modal">
-    <button class="auth-modal-close" onclick="closeAuthModal()">✕</button>
+    <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
     <h2 id="authTitle">Welcome Back</h2>
     <p id="authSubtitle">Sign in to access your downloads</p>
     <div class="auth-tabs">

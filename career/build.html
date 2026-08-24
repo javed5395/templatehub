@@ -247,7 +247,7 @@ function addJob(d={}){
 function drawJobs(){
   $('jobs').innerHTML = jobs.map((j,i)=>`
    <div class="card">
-     <button class="del" onclick="jobs.splice(${i},1);drawJobs();render()">×</button>
+     <button class="del" onclick="jobs.splice(${i},1);drawJobs();render()" aria-label="Remove">×</button>
      <label>Job title</label>
      <input value="${esc(j.title)}" oninput="jobs[${i}].title=this.value;render()" placeholder="Senior Marketing Manager">
      <div class="row2">
@@ -276,7 +276,7 @@ function addEdu(d={}){
 function drawEdus(){
   $('edus').innerHTML = edus.map((e,i)=>`
    <div class="card">
-     <button class="del" onclick="edus.splice(${i},1);drawEdus();render()">×</button>
+     <button class="del" onclick="edus.splice(${i},1);drawEdus();render()" aria-label="Remove">×</button>
      <label>Degree</label>
      <input value="${esc(e.degree)}" oninput="edus[${i}].degree=this.value;render()" placeholder="BS Computer Science">
      <label>Institution</label>
