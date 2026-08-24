@@ -73,7 +73,7 @@
              About Us  -> the Studio page already tells the LazyDog story
              Affiliate -> the freelancer programme is launching; collect interest
              Careers   -> same, straight to the inbox -->
-      <a href="lazydog_studio.html">About Us</a>
+      <a href="about.html">About Us</a>
       <a href="blog.html">Blog</a>
       <a href="mailto:support@lazydogtemplates.com?subject=Affiliate%20%2F%20Freelancer%20Programme">Affiliate Program</a>
       <a href="mailto:support@lazydogtemplates.com?subject=Careers%20at%20LazyDog">Careers</a>
