@@ -21,9 +21,15 @@
   --bg-inset: #F8F9FB;
 
   /* text */
-  --text-1: #1F2430;
-  --text-2: #5B6472;
-  --text-3: #9AA3B2;
+  /* 24 Aug 2026 — light mode text darkened. Measured on the live page:
+     text-3 was #9AA3B2, which gave the ribbon group labels (Clipboard, Font,
+     Paragraph…) a contrast ratio of 2.54 against white — under the 4.5 needed
+     to be readable, and in practice they disappeared. text-2 was raised at the
+     same time because secondary copy read washed out beside it.
+     Dark mode is untouched; it sets its own values below. */
+  --text-1: #171C27;
+  --text-2: #454B57;
+  --text-3: #6E7686;
 
   /* lines */
   --line-1: #E4E7EE;
@@ -529,7 +535,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 }
 body[data-theme="light"] #ribbon-slot{
   --bg-chrome:#FFFFFF; --bg-inset:#F8F9FB;
-  --text-1:#1F2430; --text-2:#5B6472; --text-3:#9AA3B2;
+  --text-1:#171C27; --text-2:#454B57; --text-3:#6E7686;   /* 24 Aug 2026: darkened — see :root */
   --line-1:#E4E7EE; --line-2:#CBD2DE;
   --accent:#7C3AED; --accent-soft:#F1EAFE; --accent-line:#D9C9F9;
   background:#FFFFFF;
