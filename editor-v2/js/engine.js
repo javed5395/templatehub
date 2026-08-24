@@ -7123,9 +7123,23 @@ Editor._register({
   /* one re-bake path for every situation — reads all 3D props off the object */
   function rerenderObj(o, hiRes, cb) {
     if (!window.THREE || !o || !o.is3D) return;
+    /* 24 Aug 2026 (Fable) — KEEP the user's size + position across a re-bake.
+       setSrc loads a new image at its natural pixel size, which used to reset
+       scale (the object suddenly shrank) and shift its centre. Capture the
+       current displayed centre + width, then restore them after the load. */
+    var cx = o.left + (o.width * o.scaleX) / 2 * 0;   /* origin-safe below */
+    var keepW = o.getScaledWidth ? o.getScaledWidth() : (o.width * o.scaleX);
+    var cen = o.getCenterPoint ? o.getCenterPoint() : null;
     var url = render3D(o.threeKind, o.threeColor, o.rotX, o.rotY, o.threeText,
                        o.threeQuat, o.threeTexData, hiRes, o.threeZoom, o.threeLight);
-    o.setSrc(url, function () { fc.renderAll(); if (cb) cb(); });
+    o.setSrc(url, function () {
+      if (keepW) o.scaleToWidth(keepW);
+      if (cen && o.setPositionByOrigin) {
+        o.setPositionByOrigin(cen, 'center', 'center');
+      }
+      o.setCoords && o.setCoords();
+      fc.renderAll(); if (cb) cb();
+    });
   }
 
   /* ══ RIBBON COMMANDS (23 Aug 2026, Fable — step 4) ══════════════════════
