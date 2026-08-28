@@ -134,38 +134,63 @@
 
        All sixty names were checked against fonts_list.json. Ordered plainest
        first, and no two pairings are meant to feel alike. */
-    var FONTS = [
-      ['Poppins|Inter',                'Modern Sans'],
-      ['Montserrat|Open Sans',         'Clean Corporate'],
-      ['Archivo|Inter',                'Swiss Minimal'],
-      ['Work Sans|Source Sans Pro',    'Neutral Workhorse'],
-      ['Segoe UI|Calibri',             'Office Standard'],
-      ['Cambria|Candara',              'Traditional Business'],
-      ['Space Grotesk|DM Sans',        'Startup Deck'],
-      ['Sora|Figtree',                 'Clean Grotesk'],
-      ['Rubik|Karla',                  'Friendly Tech'],
-      ['Lexend|Chivo',                 'Easy Reading'],
-      ['Manrope|Mulish',               'Quiet Modern'],
-      ['Futura|Avenir',                'Geometric Cool'],
-      ['Josefin Sans|Raleway',         'Elegant Light'],
-      ['Quicksand|Nunito',             'Soft and Friendly'],
-      ['Comfortaa|Mulish',             'Rounded Approachable'],
-      ['Gill Sans|Georgia',            'Warm Humanist'],
-      ['Optima|Cabin',                 'Refined Classic'],
-      ['Oswald|Barlow',                'Tall and Narrow'],
-      ['Teko|Barlow',                  'High Energy'],
-      ['Bebas Neue|Archivo',           'Poster Display'],
-      ['Anton|Roboto',                 'Bold Statement'],
-      ['Roboto Slab|Roboto',           'Slab Confident'],
-      ['Arvo|Bitter',                  'Vintage Slab'],
-      ['IBM Plex Serif|IBM Plex Sans', 'Technical'],
-      ['Playfair Display|Lora',        'Editorial Classic'],
-      ['Merriweather|PT Sans',         'Newspaper'],
-      ['Abril Fatface|Spectral',       'Magazine'],
-      ['Didot|Lato',                   'Fashion Editorial'],
-      ['Cormorant Garamond|Lato',      'Luxury Serif'],
-      ['EB Garamond|Crimson Text',     'Timeless Print'],
-      ['Baskerville|PT Serif',         'Academic']
+    var FONT_FAMILIES = [
+      ['Abril Fatface', 'Abril Fatface'],
+      ['Anton', 'Anton'],
+      ['Archivo', 'Archivo'],
+      ['Arvo', 'Arvo'],
+      ['Avenir', 'Avenir'],
+      ['Barlow', 'Barlow'],
+      ['Baskerville', 'Baskerville'],
+      ['Bebas Neue', 'Bebas Neue'],
+      ['Bitter', 'Bitter'],
+      ['Cabin', 'Cabin'],
+      ['Calibri', 'Calibri'],
+      ['Cambria', 'Cambria'],
+      ['Candara', 'Candara'],
+      ['Chivo', 'Chivo'],
+      ['Comfortaa', 'Comfortaa'],
+      ['Cormorant Garamond', 'Cormorant Garamond'],
+      ['Crimson Text', 'Crimson Text'],
+      ['Didot', 'Didot'],
+      ['DM Sans', 'DM Sans'],
+      ['EB Garamond', 'EB Garamond'],
+      ['Figtree', 'Figtree'],
+      ['Futura', 'Futura'],
+      ['Georgia', 'Georgia'],
+      ['Gill Sans', 'Gill Sans'],
+      ['IBM Plex Sans', 'IBM Plex Sans'],
+      ['IBM Plex Serif', 'IBM Plex Serif'],
+      ['Inter', 'Inter'],
+      ['Josefin Sans', 'Josefin Sans'],
+      ['Karla', 'Karla'],
+      ['Lato', 'Lato'],
+      ['Lexend', 'Lexend'],
+      ['Lora', 'Lora'],
+      ['Manrope', 'Manrope'],
+      ['Merriweather', 'Merriweather'],
+      ['Montserrat', 'Montserrat'],
+      ['Mulish', 'Mulish'],
+      ['Nunito', 'Nunito'],
+      ['Open Sans', 'Open Sans'],
+      ['Optima', 'Optima'],
+      ['Oswald', 'Oswald'],
+      ['Playfair Display', 'Playfair Display'],
+      ['Poppins', 'Poppins'],
+      ['PT Sans', 'PT Sans'],
+      ['PT Serif', 'PT Serif'],
+      ['Quicksand', 'Quicksand'],
+      ['Raleway', 'Raleway'],
+      ['Roboto', 'Roboto'],
+      ['Roboto Slab', 'Roboto Slab'],
+      ['Rubik', 'Rubik'],
+      ['Segoe UI', 'Segoe UI'],
+      ['Sora', 'Sora'],
+      ['Source Sans Pro', 'Source Sans Pro'],
+      ['Space Grotesk', 'Space Grotesk'],
+      ['Spectral', 'Spectral'],
+      ['Teko', 'Teko'],
+      ['Work Sans', 'Work Sans']
     ];
 
     var CONTENT = [['pitch-deck','Pitch Deck'],['media-kit','Media Kit'],
@@ -315,7 +340,8 @@
       sel('colorFamily', 'Colour family', COLOR) +
       sel('background', 'Background', BG) +
       sel('style', 'Style', STYLE) +
-      sel('fonts', 'Fonts', FONTS) +
+      sel('headingFont', 'Heading font', FONT_FAMILIES) +
+      sel('bodyFont', 'Body font', FONT_FAMILIES) +
       sel('tone', 'Tone', TONE) +
       sel('audience', 'Audience', AUD) +
       sel('bestFor', 'Best for', BEST) +
@@ -560,11 +586,8 @@
       // sentence when hunting the body font, and further down we push things
       // like "medium text" for the canvas weights. Said here, "body font Lora"
       // is found first and the weights can never be mistaken for a font name.
-      var ft = v('dw_fonts');
-      if (ft) {
-        var fp = ft.split('|');
-        bits.push('heading font ' + fp[0] + ', body font ' + (fp[1] || fp[0]));
-      }
+      var hf = v('dw_headingFont'), bf = v('dw_bodyFont');
+      if (hf || bf) bits.push('heading font ' + (hf || bf) + ', body font ' + (bf || hf));
 
       var tn = word('dw_tone');        if (tn) bits.push(tn + ' tone');
       var au = word('dw_audience');    if (au) bits.push('for ' + au);
