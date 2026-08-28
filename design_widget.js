@@ -329,6 +329,8 @@
       });
     }
 
+    var HSIZE = [['28','28 pt'],['32','32 pt'],['36','36 pt'],['40','40 pt'],['44','44 pt'],['48','48 pt'],['54','54 pt'],['60','60 pt'],['66','66 pt'],['72','72 pt']];
+    var BSIZE = [['12','12 pt'],['14','14 pt'],['16','16 pt'],['18','18 pt'],['20','20 pt'],['22','22 pt'],['24','24 pt'],['28','28 pt'],['32','32 pt']];
     var FIELDS =
       sel('contentType', 'Template type', CONTENT, true) +
       txt('slides', 'Slides', 'e.g. 15', 'number') +
@@ -342,6 +344,8 @@
       sel('style', 'Style', STYLE) +
       sel('headingFont', 'Heading font', FONT_FAMILIES) +
       sel('bodyFont', 'Body font', FONT_FAMILIES) +
+      sel('headingSize', 'Heading size', HSIZE) +
+      sel('bodySize', 'Body size', BSIZE) +
       sel('tone', 'Tone', TONE) +
       sel('audience', 'Audience', AUD) +
       sel('bestFor', 'Best for', BEST) +
@@ -588,6 +592,9 @@
       // is found first and the weights can never be mistaken for a font name.
       var hf = v('dw_headingFont'), bf = v('dw_bodyFont');
       if (hf || bf) bits.push('heading font ' + (hf || bf) + ', body font ' + (bf || hf));
+      var hs = v('dw_headingSize'), bs = v('dw_bodySize');
+      if (hs) bits.push('heading size ' + hs);
+      if (bs) bits.push('body size ' + bs);
 
       var tn = word('dw_tone');        if (tn) bits.push(tn + ' tone');
       var au = word('dw_audience');    if (au) bits.push('for ' + au);
