@@ -4,6 +4,8 @@
    Three blocks: Describe content | Load file | Drag design. */
 (function () {
   function boot() {
+    /* 28 Aug 2026 (Javed) — fill card hidden site-wide until the flow is ready. */
+    return true;
     var row = document.getElementById('metaSearchRow');
     if (!row) return false;
     if (document.getElementById('fillWidget')) return true;
