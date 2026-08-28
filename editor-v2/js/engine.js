@@ -2696,6 +2696,27 @@ function pageRefresh() { renderPageThumbs(); }
       if (kind === 'prepare') {
         var pr = await window.ldPrepareModal();
         if (!pr) return;
+        if (pr.generate) {
+          /* 28 Aug 2026 (Javed) — no design chosen: build one from the Make-a-
+             design card, then fill it with the buyer's content. Compose is
+             free; the fill is the paid step (fillPerSlide per slide). */
+          var fpg = await window.ldDesignForm({ title: 'Make a design for your content' });
+          if (!fpg || !fpg.sentence) return;
+          _aiRunning = true; busy(true, 'Designing in the cloud\u2026');
+          (async function () {
+            try {
+              await window.ldCompose(fpg.sentence);
+              applyChosenSize(fpg.size);
+              busy(true, 'Writing your slides \u2014 Hexa + the writers are on it\u2026');
+              var dIR = await buildEffectiveDeckIR();
+              var rg = await fetch(window.LD_FILL_URL, { method: 'POST', headers: window.ldHeaders('application/json'), body: JSON.stringify({ design: dIR, content: pr.content, qa: true }) });
+              if (!rg.ok) { var emg = ''; try { emg = ((await rg.json()) || {}).error || ''; } catch (e2) {} say('Design is ready, but filling failed: ' + (emg || ('HTTP ' + rg.status)), 8000); }
+              else { var fdg = await rg.json(); await window.loadDeckIRIntoEditor(fdg.deck || fdg); if (window.ldRefreshTokens) window.ldRefreshTokens(); say('Presentation ready \u2713'); }
+            } catch (eg) { say('Could not build it: ' + eg.message, 8000); }
+            _aiRunning = false;
+          })();
+          return;
+        }
         _aiRunning = true;
         (async function () {
           try {
@@ -3002,7 +3023,15 @@ window.ldPrepareModal = function () {
       if (!content) { note.textContent = 'Paste or load your content first.'; ta.focus(); return; }
       var src = box.querySelector('input[name=ld-prep-src]:checked').value;
       if (src === 'pptx' && !pptxFile) { note.textContent = 'Choose the .pptx you want filled.'; return; }
-      if (src === 'open' && state.pages.length === 1 && !(fc.getObjects() || []).length && !window._deckIR) { note.textContent = 'The editor is empty — open a design, or choose a PowerPoint file.'; return; }
+      if (src === 'open' && state.pages.length === 1 && !(fc.getObjects() || []).length && !window._deckIR) {
+        var noDesignPick = await window.ldChoose(
+          'You have not picked a design to fill.\n\nPick one above \u2014 a design number, or a PowerPoint file \u2014 or I can generate a design for you from your content. Generating and writing the slides is a paid step.',
+          ['Generate a design for me \u2192', 'I\u2019ll pick a design'],
+          'No design selected');
+        if (noDesignPick === 0) { close({ content: content, generate: true }); return; }
+        note.textContent = 'Pick a design number or choose a PowerPoint file above.';
+        return;
+      }
       var designCode = '';
       if (src === 'designno') {
         designCode = (box.querySelector('#ld-prep-designno').value || '').trim();
