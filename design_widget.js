@@ -358,8 +358,7 @@
       // 2 Aug 2026 — "Image weight" removed (Javed): the search card has no such
       // field, and shapes/graphs/empty space already describe the canvas.
       txt('mockups', 'Mock-up slides', 'e.g. 5 or 20%') +
-      txt('ref', 'Past design', 'e.g. PD-044 background') +
-      txt('inspired', 'Inspired by', 'e.g. the Aurora kit layout');
+      txt('ref', 'Past design', 'e.g. PD-044 background');
 
     var wrap = document.createElement('div');
     wrap.id = 'dwWrap';
@@ -644,7 +643,6 @@
           bits.push(rf);
         }
       }
-      var insp = v('dw_inspired'); if (insp) bits.push('inspired by ' + insp);
 
       /* 9 Aug 2026 (Javed) — 600 → 1000. A fully filled card, plus a
          description typed into Hexa's prompt bar, runs past 600 characters —

@@ -59,8 +59,7 @@ window.LD_DESIGN_DATA.FIELDS = [
   ["bestFor","Best for","sel","BEST"],["textWeight","Text","sel","WEIGHT"],
   ["shapeWeight","Shapes","sel","WEIGHT"],["graphWeight","Graphs","sel","WEIGHT"],
   ["emptySpace","Empty space","sel","WEIGHT"],["accent","Accent colour","sel","ACCENT"],
-  ["mockups","Mock-up slides","txt","e.g. 5 or 20%"],["ref","Past design","txt","e.g. PD-044 background"],
-  ["inspired","Inspired by","txt","e.g. the Aurora kit layout"]
+  ["mockups","Mock-up slides","txt","e.g. 5 or 20%"],["ref","Past design","txt","e.g. PD-044 background"]
 ];
 /* orderSentence(get, desc) — identical wording to design_widget.js orderSentence.
    get(id) returns the raw value of a field; desc is the free-text description. */
@@ -111,6 +110,5 @@ window.LD_DESIGN_DATA.orderSentence = function (get, desc) {
     } else if (/design\s*\d/i.test(rf)) bits.push("use " + rf.toLowerCase());
     else bits.push(rf);
   }
-  var insp = v("inspired"); if (insp) bits.push("inspired by " + insp);
   return bits.join(", ").slice(0, 1000);
 };
