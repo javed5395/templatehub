@@ -84,7 +84,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- 9 Aug 2026 — same commerce brain as main.html and the slide pages, so the
+<!-- 9 Aug 2026 — same commerce brain as index.html and the slide pages, so the
      basket is ONE basket across the whole site (same localStorage key). This
      page previously had a private array that was written to and never read. -->
 <script defer src="commerce-loader.js"></script>
@@ -3603,7 +3603,7 @@ function ldsContactNote(msg,kind){
    Was: `let cartItems=[]` — pushed to, never read. No panel, no checkout, no
    memory. Now it drives the SAME basket as the rest of the site
    (financail folder/cart_core.js via commerce-loader.js), so an item added
-   here is in the same cart on main.html and survives a refresh.            */
+   here is in the same cart on index.html and survives a refresh.            */
 
 function ldsCart(){
   return (window.Commerce && window.Commerce.cart) ? window.Commerce.cart : null;
@@ -4061,7 +4061,7 @@ document.addEventListener('keydown',e=>{
      The important part is what this does NOT do: it does not create a second
      account system. It attaches to the SAME Firebase project on the SAME
      domain, so the session the main site already wrote is the session read
-     here. Someone who signed in on main.html arrives already signed in and is
+     here. Someone who signed in on index.html arrives already signed in and is
      never asked again — which is the behaviour Javed asked for.
 
      Firebase stores that session in IndexedDB keyed by API key + app name, so

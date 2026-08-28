@@ -1161,7 +1161,7 @@ footer {
   .orb { animation: none; }
 }
 
-/* ── AUTH MODAL (ported from navbar.js / main.html) ── */
+/* ── AUTH MODAL (ported from navbar.js / index.html) ── */
 .auth-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; backdrop-filter: blur(6px); align-items: center; justify-content: center; }
 .auth-overlay.open { display: flex; }
 .auth-modal { background: #0f1030; border: 1px solid rgba(212,175,55,0.2); border-radius: 24px; padding: 36px; width: 100%; max-width: 420px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); font-family: 'Poppins', sans-serif; position: relative; }
@@ -1216,7 +1216,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
   <!-- 3 Aug 2026 — the brand pointed at "#", so clicking the logo did nothing
        at all. On every other page the logo goes home, and people try it here
        for the same reason. It goes home now. -->
-  <a href="main.html" class="brand" title="Back to LazyDog Templates">
+  <a href="index.html" class="brand" title="Back to LazyDog Templates">
     <img src="images/site_logo_round.png" alt="LazyDog logo" style="height:36px;width:36px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:10px;box-shadow:0 2px 6px rgba(0,0,0,0.25);flex:0 0 auto;">
     <span class="brand-name">Lazy<b>Dog</b> <span class="brand-suffix">Templates</span></span>
   </a>
@@ -1265,7 +1265,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
          way at all to reach LazyDog Studios from this page.
          Home is quiet, Studios carries the accent — it is the more interesting
          of the two, and the green matches the Studios wordmark used sitewide. -->
-    <a href="main.html" class="btn btn-ghost" title="Back to the LazyDog store">
+    <a href="index.html" class="btn btn-ghost" title="Back to the LazyDog store">
       Home
     </a>
     <a href="lazydog_studio.html" class="btn btn-accent" title="LazyDog Studios">
@@ -2253,7 +2253,7 @@ body.light .auth-field input { background: #f5f5ff; border-color: rgba(0,0,0,0.1
         var raw=(d&&d.reply)?d.reply:(fallback||"Sorry, I couldn't answer that right now.");
         var p=(window.chatParseAction)?window.chatParseAction(raw):null;
         if(!p){ /* fallback parse if chat_brain isn't loaded — never show raw ACTION text */
-          var AT={pitch_decks:'pitch_deck_folder_section.html',media_kits:'media_kits_folder_section.html',web_kits:'web_kit_folder_file.html',career_docs:'career_docs_folder_section.html',digital_keynotes:'digital_keynote-folder.html',invoice:'invoice.html',home:'main.html',faq:'faq.html',whats_new:'whats_new_keynote.html'};
+          var AT={pitch_decks:'pitch_deck_folder_section.html',media_kits:'media_kits_folder_section.html',web_kits:'web_kit_folder_file.html',career_docs:'career_docs_folder_section.html',digital_keynotes:'digital_keynote-folder.html',invoice:'invoice.html',home:'index.html',faq:'faq.html',whats_new:'whats_new_keynote.html'};
           var mm=raw.match(/ACTION:\s*([a-z_]+)/i);
           p={ text: raw.replace(/ACTION:\s*[a-z_]+/ig,'').trim(), target: (mm&&AT[mm[1].toLowerCase()])||null, label:null };
         }

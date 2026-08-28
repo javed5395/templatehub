@@ -187,7 +187,7 @@
        This page is only ever reached by an already-logged-in approved
        contributor clicking "Upload" in the nav. A signed-out visitor has no
        reason to land here, so instead of showing a local sign-in/create-account
-       box, they are redirected to main.html (see the onAuthStateChanged
+       box, they are redirected to index.html (see the onAuthStateChanged
        handler below). Kept id="authSection" as an empty placeholder so
        showSection()/getElementById calls elsewhere don't break. -->
   <div id="authSection" style="display:none"></div>
@@ -994,7 +994,7 @@ onAuthStateChanged(auth, async (user) => {
     // approved contributor via the nav "Upload" button; a signed-out visitor
     // has no reason to be here at all, so send them to the homepage to sign
     // in from there instead of showing a local sign-in/create-account form.
-    window.location.href = 'main.html';
+    window.location.href = 'index.html';
   }
 });
 
@@ -1165,7 +1165,7 @@ window.doSignOut = async function() {
 window.doSwitchAccount = async function() {
   await signOut(auth);
   // 23 Aug 2026: the local sign-in box is gone (see SECTION 1 above) — signing
-  // out now sends them to main.html via the onAuthStateChanged handler below,
+  // out now sends them to index.html via the onAuthStateChanged handler below,
   // same as any other signed-out visitor. No switchTab() call needed anymore.
 };
 

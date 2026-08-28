@@ -133,7 +133,7 @@ var vaDictionary = [
       'start page'
     ],
     action: 'navigate',
-    target: 'main.html',
+    target: 'index.html',
     reply: 'Taking you to the home page.'
   },
 
@@ -1328,7 +1328,7 @@ var vaTargetWords = [
       'home', 'main page', 'homepage', 'front page', 'landing page',
       'start page', 'beginning', 'main screen'
     ],
-    target: 'main.html',
+    target: 'index.html',
     reply: 'Taking you to the home page.'
   }
 ];

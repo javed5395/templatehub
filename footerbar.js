@@ -57,7 +57,7 @@
       <!-- "Browse All" used to open Pitch Decks only. The Studio collection page
            is the genuine all-products view (every category, live counts). -->
       <a href="lazydog_studio.html#marketplace">Browse All</a>
-      <!-- "Pro Plans" removed 29 Jul 2026: it pointed at main.html#pro, an anchor
+      <!-- "Pro Plans" removed 29 Jul 2026: it pointed at index.html#pro, an anchor
            that does not exist, so the page silently reloaded. That was a link
            people clicked intending to pay. Re-add it when the subscription plan
            is live and has a real page. -->

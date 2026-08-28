@@ -98,7 +98,7 @@
   import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
   const firebaseConfig = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"auth.lazydogtemplates.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app", messagingSenderId:"143000893683", appId:"1:143000893683:web:fd694de96f8c0fa6569f86" };
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig); // reuse existing app — duplicate-app crash fix (main.html)
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig); // reuse existing app — duplicate-app crash fix (index.html)
   const auth = getAuth(app);
   // Hexa admin: fresh ID token for gated composer calls (null when logged out)
   window.ldGetToken = async function(){ try{ return auth.currentUser ? await auth.currentUser.getIdToken() : null; }catch(e){ return null; } };
@@ -252,7 +252,7 @@
      already open in the browser and never shows the chooser. This navbar is on
      every page, media kits included — so picking "lazydogtemplates" could sign
      you in as javed5395 with no warning at all. upload_form.html and
-     editor.html already set this; navbar.js, main.html and Hexa_Promptbox.html
+     editor.html already set this; navbar.js, index.html and Hexa_Promptbox.html
      did not, which made them the only three doors the wrong account could walk
      through silently. */
   window.doGoogleSignIn = async function() {
@@ -361,7 +361,7 @@
   // ── INJECT NAVBAR HTML ──
   var navHTML = `
 <nav id="sharedNav">
-  <div style="display:inline-flex;align-items:center;gap:0;"><a href="main.html" class="nb-logo notranslate" translate="no" style="display:inline-flex;align-items:center;gap:9px;"><img src="images/site_logo_round.png" alt="LazyDog Templates logo" class="nb-brand-logo" style="height:42px;width:42px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 2px 6px rgba(0,0,0,0.22);">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="lazydog_studio.html" class="nb-logo-studios notranslate" translate="no">LazyDog<span>Studios</span></a></div>
+  <div style="display:inline-flex;align-items:center;gap:0;"><a href="index.html" class="nb-logo notranslate" translate="no" style="display:inline-flex;align-items:center;gap:9px;"><img src="images/site_logo_round.png" alt="LazyDog Templates logo" class="nb-brand-logo" style="height:42px;width:42px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 2px 6px rgba(0,0,0,0.22);">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="lazydog_studio.html" class="nb-logo-studios notranslate" translate="no">LazyDog<span>Studios</span></a></div>
   <button class="nb-hamburger" id="nbHamburgerBtn" onclick="nbToggleMobileMenu()" title="Menu" aria-label="Menu">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
@@ -1497,7 +1497,7 @@
       var lr=Math.min(255,220+Math.round(r*0.14)),lg=Math.min(255,215+Math.round(g*0.14)),lb=Math.min(255,210+Math.round(b*0.14));
       var lbg='rgb('+lr+','+lg+','+lb+')';
       s.textContent=
-        // CSS variables — for pages that use them (main.html hero gradients etc.)
+        // CSS variables — for pages that use them (index.html hero gradients etc.)
         ':root{--bg-body:'+exact+';--bg-hero-dark-1:'+exact+';--bg-hero-dark-2:'+exact+
         ';--bg-body-light:'+exact+';--bg-hero-light-1:'+exact+';--bg-hero-light-2:'+exact+
         ';--bg-stats:'+exact+';--bg-stats-light:'+exact+';--accent:'+hex+';--bg:'+exact+';}'+

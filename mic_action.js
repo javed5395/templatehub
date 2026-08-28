@@ -429,7 +429,7 @@
    PATCH 2026-08-07 23:10 UTC · Opus · BUG No. 13 (and the cause of BUG No. 14)
    The small chat bubble resets to the first-time welcome on a casual question.
 
-   PROVED ON THE LIVE SITE, not guessed. On www.lazydogtemplates.com/main.html:
+   PROVED ON THE LIVE SITE, not guessed. On www.lazydogtemplates.com/index.html:
      · Sent "do you have media kits"  -> "Opening Media Kits for you." (fine)
      · Sent "would you like to have a cup of tea with me?"
          -> "Hello! Welcome to LazyDogTemplates. I can help you find pitch

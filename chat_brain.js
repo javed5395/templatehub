@@ -571,7 +571,7 @@
     career_docs: { url: 'career_docs_folder_section.html', label: 'Open Career Docs' },
     digital_keynotes: { url: 'digital_keynote-folder.html', label: 'Open Digital Keynotes' },
     invoice:     { url: 'invoice.html',                    label: 'Open Invoice Generator' },
-    home:        { url: 'main.html',                       label: 'Go to Store Hub' },
+    home:        { url: 'index.html',                       label: 'Go to Store Hub' },
     faq:         { url: 'faq.html',                        label: 'Open FAQ' },
     whats_new:   { url: 'whats_new_keynote.html',          label: "See What's New" }
   };

@@ -163,7 +163,7 @@ function show(msg, withSignIn){
   $('content').style.display = 'none';
   $('state').innerHTML = esc(msg) +
     /* ../ because this page now lives in /contributor/ (9 Aug 2026). */
-    (withSignIn ? '<br/><a class="btn" href="../main.html">Go to the site and sign in</a>' : '');
+    (withSignIn ? '<br/><a class="btn" href="../index.html">Go to the site and sign in</a>' : '');
 }
 
 onAuthStateChanged(auth, async (user) => {
