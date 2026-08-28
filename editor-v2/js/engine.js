@@ -2663,12 +2663,31 @@ function pageRefresh() { renderPageThumbs(); }
          works everywhere); the flow is async but otherwise unchanged. */
       (async function () {
       if (kind === 'deck') {
-        if (state.pages.length > 1 && !(await window.ldConfirm('This builds a NEW deck and replaces the ' + state.pages.length + ' slides open here.\n\nReplace everything?', 'Replace'))) return;
-        /* 20 Aug 2026 (Fable, Javed's order) — the SAME form Hexa shows on the
-           site, right here in the editor. It builds the exact order sentence
-           the grammar reads; the free-text box on top still accepts anything. */
+        /* 28 Aug 2026 (Javed) — show the card FIRST, then decide. If the order
+           is about mock-ups and a design is already open, the buyer chooses:
+           add the mock-ups to the current design, or replace it with a new one.
+           A normal (non-mock-up) new design keeps the plain replace guard. */
         var f0 = await window.ldDesignForm({ title: 'Make a design' });
         if (!f0 || !f0.sentence) return;
+        var hasDesign = state.pages.length > 1 || !!window._deckIR || (fc.getObjects() || []).length > 0;
+        var mm0 = f0.sentence.match(/(\d{1,3})\s*mock\s*-?\s*ups?/i);
+        var mockN = mm0 ? Math.max(1, Math.min(20, parseInt(mm0[1], 10) || 0)) : 0;
+        if (mockN && hasDesign) {
+          var pick = await window.ldChoose(
+            'You already have a design open. What should I do with the ' + mockN + ' mock-up slide' + (mockN === 1 ? '' : 's') + '?',
+            ['Add them to this design', 'Replace it with a new mock-up design', 'Cancel'],
+            'Mock-up slides');
+          if (pick === 0) {
+            _aiRunning = true; busy(true, 'Adding ' + plural(mockN, 'mock-up slide') + '…');
+            window.ldComposeAppend(styleClause() + (mockN + 2) + ' slides, ' + mockN + ' mockup slides', { onlyMockups: true, keep: mockN })
+              .then(function (added) { _aiRunning = false; if (added) say(plural(added, 'mock-up slide') + ' added ✓'); })
+              .catch(function () { _aiRunning = false; say('Could not add the mock-ups'); });
+            return;
+          }
+          if (pick !== 1) return;
+        } else if (hasDesign) {
+          if (!(await window.ldConfirm('This builds a NEW deck and replaces the ' + state.pages.length + ' slides open here.\n\nReplace everything?', 'Replace'))) return;
+        }
         _aiRunning = true; busy(true, 'Designing in the cloud… a big deck can take a few minutes');
         window.ldCompose(f0.sentence).then(function () { _aiRunning = false; applyChosenSize(f0.size); })
           .catch(function (e) { _aiRunning = false; say('Compose failed: ' + e.message); });
@@ -3131,6 +3150,29 @@ window.ldConfirm = function (message, okLabel) {
     ov.onmousedown = function (e) { if (e.target === ov) close(false); };
     row.appendChild(cancel); row.appendChild(ok); box.appendChild(msg); box.appendChild(row); ov.appendChild(box); document.body.appendChild(ov);
     setTimeout(function () { ok.focus(); }, 30);
+  });
+};
+window.ldChoose = function (message, labels, title) {
+  return new Promise(function (resolve) {
+    var old = document.getElementById('ld-choose-overlay'); if (old) old.remove();
+    var ov = document.createElement('div'); ov.id = 'ld-choose-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(6,7,12,.62);z-index:99999;display:flex;align-items:center;justify-content:center;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#151623;border:1px solid #2c2e45;border-radius:12px;padding:20px 22px;width:min(460px,92vw);box-shadow:0 18px 50px rgba(0,0,0,.5);font-family:"DM Sans",system-ui,sans-serif;color:#e8e9f2;';
+    if (title) { var h = document.createElement('div'); h.style.cssText = 'font-size:15px;font-weight:700;margin-bottom:8px;'; h.textContent = title; box.appendChild(h); }
+    var msg = document.createElement('div'); msg.style.cssText = 'font-size:14px;line-height:1.5;white-space:pre-line;'; msg.textContent = String(message || ''); box.appendChild(msg);
+    var row = document.createElement('div'); row.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-top:16px;';
+    function close(v) { ov.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); }
+    function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(-1); } }
+    document.addEventListener('keydown', onKey, true);
+    (labels || []).forEach(function (lab, i) {
+      var b = document.createElement('button'); b.textContent = lab;
+      b.style.cssText = 'border:0;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;' + (i === 0 ? 'background:linear-gradient(135deg,#7c5cff,#e05fa9);color:#fff;' : 'background:#23243a;color:#c9cbe0;');
+      b.onclick = function () { close(i); };
+      row.appendChild(b);
+    });
+    ov.onmousedown = function (e) { if (e.target === ov) close(-1); };
+    box.appendChild(row); ov.appendChild(box); document.body.appendChild(ov);
   });
 };
 window.ldAlert = function (message, title) {
