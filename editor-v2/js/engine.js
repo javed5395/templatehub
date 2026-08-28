@@ -830,7 +830,10 @@ window.ldPlansModal = async function () {
           '<div style="margin-top:14px;"><b style="font-family:' + SERIF + ';font-size:23px;font-weight:400;display:block;line-height:1.2;color:' + INK + ';">' + n(tk) + ' tokens</b><span style="font-size:11.5px;color:' + MUTED + ';">about ' + decks + ' full 10-slide decks</span></div>' +
           '<div style="font-family:' + MONO + ';font-size:9.5px;font-weight:700;letter-spacing:.14em;color:' + MUTED + ';margin-top:14px;">WHAT THINGS COST</div>' +
           '<ul style="list-style:none;margin:6px 0 0;padding:0;font-size:12px;color:' + MUTED + ';">' +
-            cost('Design one slide', c.composePerSlide) + cost('Write one slide from your content', c.fillPerSlide) +
+            /* 29 Aug 2026 — "Write one slide from your content" removed from the
+               plan cards: that feature is not launched yet, so it must not be
+               advertised or priced here. Put the line back when it ships. */
+            cost('Design one slide', c.composePerSlide) +
             cost('PDF page → slides', c.pdfDecomposePerPage) + cost('PNG → editable slide', c.pngDecompose) +
           '</ul>' +
           '<a data-buy="' + k + '" href="' + checkoutFor(k) + '" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:20px;padding:12px;font-family:' + UI + ';font-weight:700;font-size:13.5px;cursor:pointer;' + (i === 0 ? 'background:' + GOLD + ';color:' + NAVY + ';' : 'background:' + NAVY + ';color:#fff;') + '">' + (p.oneTime ? 'Buy once' : 'Subscribe') + '</a>' +
