@@ -176,7 +176,7 @@
         '<div class="sw-panels">' +
           '<div class="sw-col">' +
             '<div id="filterBlock"><div class="sw-grid">' +
-              '<div class="sw-field" id="f_contentTypeWrap"><label>Template Type</label>' +
+              '<div class="sw-field" id="f_contentTypeWrap"><label>Template type</label>' +
                 // 6 Aug 2026: four types. NO 'Any' — 'Any' is not a search we run.
                 // The first row is 'None' with an EMPTY value: it is what Clear
                 // returns to, not a filter. Picking a real type narrows the
@@ -242,7 +242,7 @@
                 '<option value="tech_ai">Tech & AI</option><option value="travel">Travel</option><option value="ugc">UGC Creator</option>' +
                 '<option value="wedding_professional">Wedding Professional</option><option value="youtuber">YouTuber</option><option value="other">Other</option>' +
               '</select></div>' +
-              '<div class="sw-field"><label>Color Family</label><select autocomplete="off" id="f_colorFamily" multiple><option value="">None</option>' +
+              '<div class="sw-field"><label>Colour family</label><select autocomplete="off" id="f_colorFamily" multiple><option value="">None</option>' +
                 '<option value="black">Black</option><option value="white">White</option><option value="gray">Gray</option>' +
                 '<option value="silver">Silver</option><option value="charcoal">Charcoal</option><option value="beige">Beige</option>' +
                 '<option value="neutral">Neutral</option><option value="navy">Navy</option><option value="blue">Blue</option>' +
