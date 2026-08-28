@@ -893,11 +893,8 @@
       { matIcon: 'note_add', label: 'One slide', tip: 'Adds one more slide in this deck\'s style', onClick: function () { run('ai', { kind: 'slide' }); } },
       { matIcon: 'library_add', label: 'Add slides', tip: 'Adds several slides in this deck\'s style', onClick: function () { run('ai', { kind: 'addSlides' }); } },
       { matIcon: 'dashboard_customize', label: 'Mock-ups', onClick: function () { run('ai', { kind: 'mockups' }); } },
-      /* 20 Aug 2026 (Fable, Javed's order) — design + YOUR content in one go:
-         the design form plus a content box; Hexa composes, the model cascade
-         fills. Pure UI — the engine owns the flow behind 'preparePresentation'. */
-      { matIcon: 'auto_stories', label: 'Prepare my presentation', tip: 'Your content (paste or .txt/.docx) written into the design open here, or into a .pptx you choose', onClick: function () { run('ai', { kind: 'prepare' }); } },
-      { matIcon: 'co_present', label: 'Design + my content', tip: 'Hexa designs the deck, then writes every slide from the content you paste', onClick: function () { run('ai', { kind: 'preparePresentation' }); } }
+      /* 28 Aug 2026 (Javed) — 'Prepare my presentation' and 'Design + my content'
+         hidden from the panel until the fill flow is finished. */
     ], 2));
     p.appendChild(subhead('Text — select a text box first'));
     p.appendChild(grid([
