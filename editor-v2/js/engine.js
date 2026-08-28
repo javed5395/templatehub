@@ -2840,7 +2840,7 @@ window.ldDesignForm = function (opts) {
       'box-shadow:0 18px 50px rgba(0,0,0,.5);font-family:"DM Sans",system-ui,sans-serif;color:#e8e9f2;';
     box.innerHTML = '<div style="font-size:16px;font-weight:700;margin-bottom:4px;">' +
       (opts.title || 'Make a design') + '</div>' +
-      '<div style="font-size:12px;color:#a9abc4;margin-bottom:14px;">Describe it — or fill any boxes below for more precision. Empty boxes mean "you decide".</div>';
+      '<div style="font-size:12px;color:#a9abc4;margin-bottom:14px;">Fill any boxes below for more precision. Empty boxes mean "you decide".</div>';
 
     function field(label, el) {
       var w = document.createElement('div');
@@ -2863,7 +2863,6 @@ window.ldDesignForm = function (opts) {
 
     var fDesc = txt('e.g. a fintech pitch deck for investors');
     fDesc.style.marginBottom = '12px';
-    box.appendChild(field('Describe your design', fDesc));
 
     /* 21 Aug 2026 (Fable, Javed's order) — THE SAME CARD AS THE SITE. Every
        field, label, option list and the order wording come from the shared

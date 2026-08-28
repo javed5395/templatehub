@@ -329,12 +329,14 @@
       });
     }
 
+    var SIZES = [["16:9","Presentation 16:9 (1920 x 1080)",1920,1080],["4:3","Presentation 4:3 (1440 x 1080)",1440,1080],["16:10","Presentation 16:10 (1920 x 1200)",1920,1200],["a4","A4 Landscape (1123 x 794)",1123,794],["a4p","A4 Portrait (794 x 1123)",794,1123],["letter","US Letter Landscape (1056 x 816)",1056,816],["1:1","Square 1:1 (1080 x 1080)",1080,1080],["ig-post","Instagram Post (1080 x 1080)",1080,1080],["ig-portrait","Instagram Portrait (1080 x 1350)",1080,1350],["ig-story","Instagram Story / Reel (1080 x 1920)",1080,1920],["tiktok","TikTok Video (1080 x 1920)",1080,1920],["fb-post","Facebook Post (1200 x 630)",1200,630],["fb-cover","Facebook Cover (820 x 312)",820,312],["li-post","LinkedIn Post (1200 x 1200)",1200,1200],["li-banner","LinkedIn Banner (1584 x 396)",1584,396],["x-post","X / Twitter Post (1600 x 900)",1600,900],["yt-thumb","YouTube Thumbnail (1280 x 720)",1280,720],["yt-banner","YouTube Banner (2560 x 1440)",2560,1440],["pinterest","Pinterest Pin (1000 x 1500)",1000,1500],["poster","Poster 18 x 24 in (1728 x 2304)",1728,2304],["flyer","Flyer A5 (559 x 794)",559,794],["biz-card","Business Card (336 x 192)",336,192],["custom","Custom size\u2026",0,0]];
+    function sizeRatio(key){for(var i=0;i<SIZES.length;i++){if(SIZES[i][0]===key){var w=SIZES[i][2],h=SIZES[i][3];if(!w||!h)return '';function g(a,b){return b?g(b,a%b):a;}var d=g(w,h)||1;return (w/d)+':'+(h/d);}}return '';}
     var HSIZE = [['28','28 pt'],['32','32 pt'],['36','36 pt'],['40','40 pt'],['44','44 pt'],['48','48 pt'],['54','54 pt'],['60','60 pt'],['66','66 pt'],['72','72 pt']];
     var BSIZE = [['12','12 pt'],['14','14 pt'],['16','16 pt'],['18','18 pt'],['20','20 pt'],['22','22 pt'],['24','24 pt'],['28','28 pt'],['32','32 pt']];
     var FIELDS =
       sel('contentType', 'Template type', CONTENT, true) +
       txt('slides', 'Slides', 'e.g. 15', 'number') +
-      sel('aspectRatio', 'Aspect ratio', [['16 9', '16:9']]) +
+      sel('aspectRatio', 'Canvas size', SIZES) +
       sel('type', 'Sub-Category', TYPE) +
       sel('industry', 'Industry', IND) +
       sel('formality', 'Formality', [['very high','Very High'],['high','High'],['medium high','Medium-High'],
@@ -601,7 +603,7 @@
 
       var ac = v('dw_accent');      if (ac) bits.push(ac + ' accents');
       var sl = v('dw_slides');      if (sl) bits.push(sl + ' slides');
-      var ar = v('dw_aspectRatio'); if (ar) bits.push(ar.replace(' ', ':'));
+      var ar = v('dw_aspectRatio'); if (ar === '16 9') ar = '16:9'; if (ar && ar !== 'custom') { var rr = sizeRatio(ar) || ar.replace(' ', ':'); if (rr) bits.push(rr); }
       var fo = v('dw_formality');   if (fo) bits.push(fo + ' formality');
 
       [['dw_textWeight', 'text'], ['dw_shapeWeight', 'shapes'],
