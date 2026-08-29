@@ -334,6 +334,21 @@
     .hero h1 span { background: linear-gradient(90deg, #5b9fff 0%, #3a6aff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 3px 10px rgba(91,127,255,0.30)); }
     .hero p { font-family:'Poppins',sans-serif; font-size: 18px; font-weight:400; color: #6b7280; max-width: 520px; margin: 0 0 32px; line-height: 1.6; }
     .hero-btns { display: flex; gap: 16px; justify-content: flex-start; flex-wrap: nowrap; margin-bottom: 0; }
+    /* ── HERO CTA + TRUST (new) ── */
+    .hero-cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 30px; }
+    .hero-cta-btn { display: inline-flex; align-items: center; gap: 9px; }
+    .btn-outline { padding: 16px 30px; border-radius: 0; font-size: 16px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s, background 0.3s; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.22); color: #ffffff; }
+    .btn-outline:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,0.30); background: rgba(255,255,255,0.14); }
+    body.light .btn-outline { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.14); color: #1a1a2e; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    body.light .btn-outline:hover { box-shadow: 0 10px 26px rgba(0,0,0,0.12); }
+    .hero-trust { display: flex; gap: 28px; flex-wrap: wrap; }
+    .hero-trust .ht-item { display: flex; gap: 11px; align-items: flex-start; }
+    .hero-trust .ht-ic { font-size: 20px; line-height: 1; }
+    .hero-trust .ht-txt b { display: block; font-size: 14px; font-weight: 700; color: #ffffff; font-family: 'Poppins', sans-serif; }
+    .hero-trust .ht-txt span { font-size: 12.5px; color: #a0b0c0; font-family: 'Poppins', sans-serif; }
+    body.light .hero-trust .ht-txt b { color: #1a1a2e; }
+    body.light .hero-trust .ht-txt span { color: #8890a0; }
+    @media (max-width: 1000px) { .hero-cta-row { justify-content: center; } .hero-trust { justify-content: center; } }
 
     .btn-primary { position: relative; overflow: hidden; background: linear-gradient(160deg, #7b94ff 0%, #5b7fff 40%, #7a3fff 100%); color: #ffffff; padding: 16px 34px; border-radius: 0; font-size: 16px; font-weight: 600; font-family: 'Poppins', sans-serif; text-decoration: none; display: inline-block; border: none; cursor: pointer; box-shadow: 0 6px 22px rgba(91,127,255,0.38), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.20); transform: perspective(600px) rotateX(0deg) rotateY(0deg); transition: transform 0.55s ease-out, box-shadow 0.55s ease-out; }
     .btn-primary::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 52%; background: linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 70%, transparent 100%); border-radius: 0; pointer-events: none; z-index: 0; }
@@ -396,6 +411,73 @@
     .platform-card-desc { font-size:11px; color:rgba(255,255,255,0.42); font-family:'Poppins',sans-serif; line-height:1.4; }
     body.light .platform-card-name { color:#ffffff; }
     body.light .platform-card-desc { color:rgba(255,255,255,0.6); }
+    /* Browse by Category (new, part of hero) */
+    .hero-cats-wrap { max-width: 1200px; margin: 40px auto 0; }
+    .hc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+    .hc-head h2 { font-family: 'Space Grotesk', 'Poppins', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: #1a1a2e; }
+    body:not(.light) .hc-head h2 { color: #ffffff; }
+    .hc-viewall { font-size: 14px; font-weight: 600; color: #5b7fff; text-decoration: none; white-space: nowrap; }
+    .hc-viewall:hover { text-decoration: underline; }
+    .hc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .hc-card { display: flex; align-items: stretch; gap: 0; background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; overflow: hidden; text-decoration: none; box-shadow: 0 2px 14px rgba(0,0,0,0.06); transition: transform 0.18s ease, box-shadow 0.18s ease; min-height: 150px; }
+    .hc-card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(0,0,0,0.13); }
+    body:not(.light) .hc-card { background: #12122e; border-color: rgba(255,255,255,0.08); box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
+    .hc-left { flex: 1 1 52%; padding: 18px 16px; display: flex; flex-direction: column; }
+    .hc-ico { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--cc); background: color-mix(in srgb, var(--cc) 15%, transparent); }
+    .hc-left h3 { font-family: 'Space Grotesk', 'Poppins', sans-serif; font-size: 18px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 8px; }
+    body:not(.light) .hc-left h3 { color: #ffffff; }
+    .hc-left p { font-size: 13px; color: #6b7280; margin: 6px 0 auto; line-height: 1.5; }
+    body:not(.light) .hc-left p { color: #9aa8bd; }
+    .hc-exp { font-size: 13px; font-weight: 700; color: #5b7fff; margin-top: 12px; }
+    .hc-free { font-size: 10px; font-weight: 800; color: #fff; background: #16b268; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px; }
+    .hc-prev { flex: 1 1 48%; position: relative; overflow: hidden; background: linear-gradient(150deg, #eef1f7, #e4e8f1); }
+    body:not(.light) .hc-prev { background: linear-gradient(150deg, #0e1430, #0a0f24); }
+    .hc-prev .pv { position: absolute; border-radius: 8px; }
+    .hc-prev .pv-b { width: 60%; height: 70%; right: 26%; top: 16%; transform: rotate(-6deg); background: linear-gradient(160deg, #141c38, #0a1024); box-shadow: 0 8px 18px rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.06); }
+    .hc-prev .pv-a { width: 64%; height: 74%; right: 6%; top: 12%; transform: rotate(6deg); background: linear-gradient(160deg, #1f2a4a, #0e1630); box-shadow: 0 12px 24px rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.08); }
+    .hc-prev .pv-bar { position: absolute; top: 12px; left: 12px; width: 46%; height: 7px; border-radius: 4px; background: var(--cc); }
+    .hc-prev .pv-ln { position: absolute; left: 12px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.18); }
+    .hc-prev .pv-ln { top: 30px; width: 62%; }
+    .hc-prev .pv-ln.s { top: 42px; width: 42%; }
+    @media (max-width: 1000px) { .hc-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 700px) { .hc-grid { grid-template-columns: 1fr; } }
+    .hc-prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    /* Trending Templates (new, part of hero) */
+    .hero-trend-wrap { max-width: 1200px; margin: 36px auto 0; }
+    .ht-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .tr-card { display: block; background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; overflow: hidden; text-decoration: none; box-shadow: 0 2px 14px rgba(0,0,0,0.06); transition: transform 0.18s ease, box-shadow 0.18s ease; }
+    .tr-card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(0,0,0,0.13); }
+    body:not(.light) .tr-card { background: #12122e; border-color: rgba(255,255,255,0.08); box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
+    .tr-pv { position: relative; height: 150px; overflow: hidden; background: #f4f5f8; }
+    .tr-pv img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tr-tag { position: absolute; top: 10px; left: 10px; z-index: 2; font-size: 10px; font-weight: 800; letter-spacing: 0.3px; background: rgba(0,0,0,0.45); color: #fff; padding: 3px 9px; border-radius: 20px; backdrop-filter: blur(4px); }
+    .tr-body { padding: 13px 15px 15px; }
+    .tr-body h3 { font-family: 'Space Grotesk', 'Poppins', sans-serif; font-size: 15px; font-weight: 700; color: #1a1a2e; }
+    body:not(.light) .tr-body h3 { color: #ffffff; }
+    .tr-cat { font-size: 12px; color: #8899aa; margin-top: 2px; }
+    .tr-row { display: flex; justify-content: flex-end; align-items: center; margin-top: 11px; }
+    .tr-price { font-family: 'Space Grotesk', 'Poppins', sans-serif; font-weight: 800; font-size: 17px; color: #d4af37; }
+    .tr-prev { font-size: 12.5px; font-weight: 700; color: #5b7fff; border: 1px solid rgba(91,127,255,0.4); padding: 6px 12px; border-radius: 8px; }
+    @media (max-width: 1000px) { .ht-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 520px) { .ht-grid { grid-template-columns: 1fr; } }
+    /* Generate with AI (new) */
+    .ai-wrap { max-width: 1200px; margin: 56px auto 66px; padding: 0 70px; }
+    .ai-panel { background: linear-gradient(135deg, #10122f 0%, #0a0a1e 100%); border: 1px solid rgba(255,255,255,0.09); border-radius: 22px; padding: 44px; display: grid; grid-template-columns: 1.25fr auto 1fr; gap: 36px; align-items: center; position: relative; overflow: hidden; }
+    .ai-panel::after { content: ''; position: absolute; right: -50px; top: -50px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(124,92,255,0.38), transparent 70%); pointer-events: none; }
+    .ai-left { position: relative; z-index: 1; }
+    .ai-rocket { width: 64px; height: 64px; border-radius: 16px; background: rgba(124,92,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px; }
+    .ai-left h2 { font-family: 'Space Grotesk', 'Poppins', sans-serif; font-size: 30px; font-weight: 700; color: #ffffff; line-height: 1.16; letter-spacing: -0.02em; }
+    .ai-left h2 span { background: linear-gradient(90deg, #b464ff, #ff6ec7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .ai-left p { color: #9aa8bd; font-size: 15px; margin: 14px 0 24px; max-width: 44ch; line-height: 1.6; }
+    .ai-btn { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #5b7fff, #b464ff); color: #fff; padding: 14px 26px; border-radius: 12px; font-weight: 700; font-family: 'Poppins', sans-serif; text-decoration: none; box-shadow: 0 8px 24px rgba(91,127,255,0.35); transition: transform 0.2s, box-shadow 0.2s; }
+    .ai-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(91,127,255,0.5); }
+    .ai-divider { width: 1px; align-self: stretch; background: rgba(255,255,255,0.10); }
+    .ai-feats { display: flex; flex-direction: column; gap: 22px; position: relative; z-index: 1; }
+    .ai-f { display: flex; gap: 14px; align-items: flex-start; }
+    .ai-fi { width: 40px; height: 40px; border-radius: 11px; background: rgba(124,92,255,0.16); color: #c9a8ff; display: flex; align-items: center; justify-content: center; font-size: 17px; flex: none; }
+    .ai-f b { display: block; color: #ffffff; font-size: 15px; font-weight: 700; font-family: 'Poppins', sans-serif; }
+    .ai-f span { color: #9aa8bd; font-size: 13px; }
+    @media (max-width: 820px) { .ai-panel { grid-template-columns: 1fr; padding: 30px; } .ai-divider { display: none; } .ai-wrap { padding: 0 20px; } }
 
     /* Top padding raised from 28px to 130px on 2 Aug 2026. "Stats" was creeping
        into the first screen on common laptop heights, so every screenshot and
@@ -658,6 +740,8 @@
       .beta-badge { padding: 10px 8px 10px 11px; }
       .beta-badge span.beta-text { font-size: 10px; }
     }
+      /* Footer temporarily hidden on homepage (remove this line to bring it back) */
+    footer { display: none !important; }
   </style>
 
   <!-- ── FIREBASE AUTH ── -->
@@ -821,33 +905,17 @@
       <h1>Explore Premium<br/>Digital <span>Collections</span></h1>
       <p class="hero-subline" style="font-size:15px;font-weight:600;margin:0 0 14px;opacity:0.85;">Free Invoice Generator Included</p>
       <p>Interactive WebKits, Pitch Decks, Media Kits, and Brand Assets — preview every design live, download instantly, or commission LazyDog Studios for bespoke projects.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px;">
-
-        <!-- Row 1 -->
-        <a href="web_kit_folder_file.html" class="ld-tilt-btn" style="background:linear-gradient(160deg,#1a6bff 0%,#00c6ff 100%);color:#fff;padding:14px 16px;border-radius:0;font-size:15px;font-weight:700;font-family:'Poppins',sans-serif;text-decoration:none;display:flex;align-items:center;justify-content:flex-start;text-align:left;gap:9px;white-space:normal;line-height:1.15;box-shadow:0 6px 22px rgba(26,107,255,0.4);transition:all 0.3s;width:100%;height:56px;box-sizing:border-box;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          Website UI Kits</a>
-        <a href="digital_keynote-folder.html" class="ld-tilt-btn" style="background:linear-gradient(160deg,#20c9c9 0%,#0e8f9e 100%);color:#fff;padding:14px 16px;border-radius:0;font-size:15px;font-weight:700;font-family:'Poppins',sans-serif;text-decoration:none;display:flex;align-items:center;justify-content:flex-start;text-align:left;gap:9px;white-space:normal;line-height:1.15;box-shadow:0 6px 22px rgba(14,143,158,0.4);transition:all 0.3s;width:100%;height:56px;box-sizing:border-box;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>
-          Digital Keynotes</a>
-
-        <!-- Row 2 -->
-        <a href="pitch_deck_folder_section.html" class="ld-tilt-btn" style="background:linear-gradient(160deg,#7b94ff 0%,#5b7fff 40%,#7a3fff 100%);color:#fff;padding:14px 16px;border-radius:0;font-size:15px;font-weight:700;font-family:'Poppins',sans-serif;text-decoration:none;display:flex;align-items:center;justify-content:flex-start;text-align:left;gap:9px;white-space:normal;line-height:1.15;box-shadow:0 6px 22px rgba(91,127,255,0.38);transition:all 0.3s;width:100%;height:56px;box-sizing:border-box;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M2 3h20v13H2z"/><path d="M8 21h8M12 16v5"/><polyline points="7 10 10 7 13 10 17 6"/></svg>
-          Pitch Deck Templates</a>
-        <a href="career_docs_folder_section.html" class="ld-tilt-btn" style="background:linear-gradient(160deg,#b464ff 0%,#7a3fff 100%);color:#fff;padding:14px 16px;border-radius:0;font-size:15px;font-weight:700;font-family:'Poppins',sans-serif;text-decoration:none;display:flex;align-items:center;justify-content:flex-start;text-align:left;gap:9px;white-space:normal;line-height:1.15;box-shadow:0 6px 22px rgba(180,100,255,0.38);transition:all 0.3s;width:100%;height:56px;box-sizing:border-box;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
-          Resume / CV Templates</a>
-
-        <!-- Row 3 -->
-        <a href="media_kits_folder_section.html" class="ld-tilt-btn" style="background:linear-gradient(160deg,#f5d060 0%,#e8b830 40%,#c88020 100%);color:#3a1e00;padding:14px 16px;border-radius:0;font-size:15px;font-weight:700;font-family:'Poppins',sans-serif;text-decoration:none;display:flex;align-items:center;justify-content:flex-start;text-align:left;gap:9px;white-space:normal;line-height:1.15;box-shadow:0 6px 22px rgba(201,151,47,0.40);transition:all 0.3s;width:100%;height:56px;box-sizing:border-box;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          Media Kit Templates</a>
-        <!-- Row 3 continued -->
-        <a href="invoice.html" class="ld-tilt-btn" style="background:linear-gradient(160deg, #6eeaaa 0%, #2ecc82 40%, #00996a 100%);color:#003a22;padding:14px 16px;border-radius:0;font-size:15px;font-weight:700;font-family:'Poppins',sans-serif;text-decoration:none;display:flex;align-items:center;justify-content:flex-start;text-align:left;gap:9px;white-space:normal;line-height:1.15;box-shadow:0 6px 22px rgba(46,204,130,0.38);transition:all 0.3s;width:100%;height:56px;box-sizing:border-box;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Free Invoices</a>
-
+      <!-- Primary CTAs + trust badges (replaced the 6 category quick-links; categories move to their own section) -->
+      <div class="hero-cta-row">
+        <a href="lazydog_studio.html" class="btn-primary hero-cta-btn">Explore Templates
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        <a href="about.html" class="btn-outline hero-cta-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><polygon points="6 4 20 12 6 20 6 4"/></svg>How It Works</a>
+      </div>
+      <div class="hero-trust">
+        <div class="ht-item"><span class="ht-ic">⚡</span><div class="ht-txt"><b>Instant Download</b><span>Get files right away</span></div></div>
+        <div class="ht-item"><span class="ht-ic">🎛️</span><div class="ht-txt"><b>Easy to Customize</b><span>Edit in minutes</span></div></div>
+        <div class="ht-item"><span class="ht-ic">📄</span><div class="ht-txt"><b>Commercial License</b><span>Use for your clients</span></div></div>
       </div>
     </div>
     <div class="hero-right" style="flex-direction:column; align-items:center; justify-content:center;">
@@ -857,6 +925,112 @@
            alt="LazyDog Templates — Pitch Deck and Brand Identity Kit mockups"/>
     </div>
   </div>
+
+  <!-- BROWSE BY CATEGORY (part of hero block) -->
+  <div class="hero-cats-wrap">
+    <div class="hc-head">
+      <h2>Browse by Category</h2>
+      <a class="hc-viewall" href="lazydog_studio.html">View All Categories &rarr;</a>
+    </div>
+    <div class="hc-grid">
+      <a class="hc-card" href="pitch_deck_folder_section.html" style="--cc:#5b7fff">
+        <div class="hc-left">
+          <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20v13H2z"/><path d="M8 21h8M12 16v5"/><polyline points="7 10 10 7 13 10 17 6"/></svg></div>
+          <h3>Pitch Decks</h3>
+          <p>Investor-ready decks that win funding.</p>
+          <span class="hc-exp">Explore &rarr;</span>
+        </div>
+        <div class="hc-prev"><img src="images/cat-pitch.png" alt="Pitch deck preview" loading="lazy"></div>
+      </a>
+      <a class="hc-card" href="media_kits_folder_section.html" style="--cc:#b464ff">
+        <div class="hc-left">
+          <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+          <h3>Media Kits</h3>
+          <p>Professional kits that showcase your brand.</p>
+          <span class="hc-exp">Explore &rarr;</span>
+        </div>
+        <div class="hc-prev"><img src="images/cat-media.png" alt="Media kit preview" loading="lazy"></div>
+      </a>
+      <a class="hc-card" href="career_docs_folder_section.html" style="--cc:#16b268">
+        <div class="hc-left">
+          <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div>
+          <h3>Resumes / CVs</h3>
+          <p>Modern resumes that get you noticed.</p>
+          <span class="hc-exp">Explore &rarr;</span>
+        </div>
+        <div class="hc-prev"><img src="images/cat-resume.png" alt="Resume preview" loading="lazy"></div>
+      </a>
+      <a class="hc-card" href="web_kit_folder_file.html" style="--cc:#2f7cf6">
+        <div class="hc-left">
+          <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg></div>
+          <h3>WebKits</h3>
+          <p>Website &amp; landing-page UI kits for every need.</p>
+          <span class="hc-exp">Explore &rarr;</span>
+        </div>
+        <div class="hc-prev"><img src="images/cat-web.png" alt="Website UI kit preview" loading="lazy"></div>
+      </a>
+      <a class="hc-card" href="digital_keynote-folder.html" style="--cc:#3aa0ff">
+        <div class="hc-left">
+          <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
+          <h3>Digital Keynotes</h3>
+          <p>Stunning keynotes for powerful presentations.</p>
+          <span class="hc-exp">Explore &rarr;</span>
+        </div>
+        <div class="hc-prev"><img src="images/cat-key.png" alt="Keynote preview" loading="lazy"></div>
+      </a>
+      <a class="hc-card" href="invoice.html" style="--cc:#16b268">
+        <div class="hc-left">
+          <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <h3>Invoices <span class="hc-free">FREE</span></h3>
+          <p>Clean &amp; professional invoices for your business.</p>
+          <span class="hc-exp">Explore &rarr;</span>
+        </div>
+        <div class="hc-prev"><img src="images/cat-inv.png" alt="Invoice preview" loading="lazy"></div>
+      </a>
+    </div>
+  </div>
+  <!-- TRENDING TEMPLATES (part of hero block) -->
+  <div class="hero-trend-wrap">
+    <div class="hc-head">
+      <h2>Trending Templates</h2>
+      <a class="hc-viewall" href="lazydog_studio.html">View All Templates &rarr;</a>
+    </div>
+    <div class="ht-grid">
+      <a class="tr-card" href="pitch_deck_folder_section.html">
+        <div class="tr-pv"><span class="tr-tag">Bestseller</span><img src="images/cat-pitch.png" alt="Minimal Pitch Deck preview" loading="lazy"></div>
+        <div class="tr-body">
+          <h3>Minimal Pitch Deck</h3>
+          <div class="tr-cat">Pitch Decks</div>
+          <div class="tr-row"><span class="tr-prev">Preview</span></div>
+        </div>
+      </a>
+      <a class="tr-card" href="media_kits_folder_section.html">
+        <div class="tr-pv"><span class="tr-tag">New</span><img src="images/cat-media.png" alt="Brand Media Kit preview" loading="lazy"></div>
+        <div class="tr-body">
+          <h3>Brand Media Kit</h3>
+          <div class="tr-cat">Media Kits</div>
+          <div class="tr-row"><span class="tr-prev">Preview</span></div>
+        </div>
+      </a>
+      <a class="tr-card" href="career_docs_folder_section.html">
+        <div class="tr-pv"><span class="tr-tag">Popular</span><img src="images/cat-resume.png" alt="Creative Resume preview" loading="lazy"></div>
+        <div class="tr-body">
+          <h3>Creative Resume</h3>
+          <div class="tr-cat">Resumes</div>
+          <div class="tr-row"><span class="tr-prev">Preview</span></div>
+        </div>
+      </a>
+      <a class="tr-card" href="web_kit_folder_file.html">
+        <div class="tr-pv"><span class="tr-tag">Popular</span><img src="images/cat-web.png" alt="Website UI Kit preview" loading="lazy"></div>
+        <div class="tr-body">
+          <h3>Website UI Kit</h3>
+          <div class="tr-cat">WebKits</div>
+          <div class="tr-row"><span class="tr-prev">Preview</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
   <!-- PLATFORM CARDS — full width below hero -->
   <div class="hero-platform-wrap">
     <div class="platform-row">
@@ -952,21 +1126,19 @@
   </div>
 </section>
 
-<!-- STATS -->
-<div class="stats">
-  <div class="stats-label">Stats</div>
-  <div class="stats-grid">
-    <div class="stat">
-      <div class="stat-icon">📦</div>
-      <div><div class="stat-num">Many</div><div class="stat-lbl">Templates Coming</div></div>
+<!-- GENERATE WITH AI -->
+<div class="ai-wrap">
+  <div class="ai-panel">
+    <div class="ai-left">
+      <div class="ai-rocket">🚀</div>
+      <h2>Don't find what you need?<br><span>Generate it with AI.</span></h2>
+      <p>Create custom presentations, decks and more in seconds with our AI-powered engine.</p>
+      <a class="ai-btn" href="editor.html">Generate Designs <span style="font-size:13px">✦</span></a>
     </div>
-    <div class="stat">
-      <div class="stat-icon">🏭</div>
-      <div><div class="stat-num">Multiple</div><div class="stat-lbl">Industries Covered</div></div>
-    </div>
-    <div class="stat">
-      <div class="stat-icon">🎁</div>
-      <div><div class="stat-num">100<span class="gold">%</span></div><div class="stat-lbl">Instant Download</div></div>
+    <div class="ai-divider"></div>
+    <div class="ai-feats">
+      <div class="ai-f"><span class="ai-fi">✦</span><div><b>AI-Powered</b><span>Smart content generation</span></div></div>
+      <div class="ai-f"><span class="ai-fi">🎨</span><div><b>Fully Customizable</b><span>Edit everything easily</span></div></div>
     </div>
   </div>
 </div>
