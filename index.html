@@ -419,7 +419,7 @@
     .hc-viewall { font-size: 14px; font-weight: 600; color: #5b7fff; text-decoration: none; white-space: nowrap; }
     .hc-viewall:hover { text-decoration: underline; }
     .hc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .hc-card { display: flex; align-items: stretch; gap: 0; background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; overflow: hidden; text-decoration: none; box-shadow: 0 2px 14px rgba(0,0,0,0.06); transition: transform 0.18s ease, box-shadow 0.18s ease; min-height: 150px; }
+    .hc-card { display: flex; align-items: stretch; gap: 0; background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 0; overflow: hidden; text-decoration: none; box-shadow: 0 2px 14px rgba(0,0,0,0.06); transition: transform 0.18s ease, box-shadow 0.18s ease; min-height: 150px; }
     .hc-card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(0,0,0,0.13); }
     body:not(.light) .hc-card { background: #12122e; border-color: rgba(255,255,255,0.08); box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
     .hc-left { flex: 1 1 52%; padding: 18px 16px; display: flex; flex-direction: column; }
@@ -429,6 +429,10 @@
     .hc-left p { font-size: 13px; color: #6b7280; margin: 6px 0 auto; line-height: 1.5; }
     body:not(.light) .hc-left p { color: #9aa8bd; }
     .hc-exp { font-size: 13px; font-weight: 700; color: #5b7fff; margin-top: 12px; }
+    .hc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .hc-foot .hc-exp { margin-top: 0; }
+    .hc-count { font-size: 12px; font-weight: 700; color: #8899aa; white-space: nowrap; }
+    body:not(.light) .hc-count { color: #9aa8bd; }
     .hc-free { font-size: 10px; font-weight: 800; color: #fff; background: #16b268; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px; }
     .hc-prev { flex: 1 1 48%; position: relative; overflow: hidden; background: linear-gradient(150deg, #eef1f7, #e4e8f1); }
     body:not(.light) .hc-prev { background: linear-gradient(150deg, #0e1430, #0a0f24); }
@@ -445,7 +449,7 @@
     /* Trending Templates (new, part of hero) */
     .hero-trend-wrap { max-width: 1200px; margin: 36px auto 0; }
     .ht-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .tr-card { display: block; background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; overflow: hidden; text-decoration: none; box-shadow: 0 2px 14px rgba(0,0,0,0.06); transition: transform 0.18s ease, box-shadow 0.18s ease; }
+    .tr-card { display: block; background: #ffffff; border: 1px solid rgba(0,0,0,0.06); border-radius: 0; overflow: hidden; text-decoration: none; box-shadow: 0 2px 14px rgba(0,0,0,0.06); transition: transform 0.18s ease, box-shadow 0.18s ease; }
     .tr-card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(0,0,0,0.13); }
     body:not(.light) .tr-card { background: #12122e; border-color: rgba(255,255,255,0.08); box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
     .tr-pv { position: relative; height: 150px; overflow: hidden; background: #f4f5f8; }
@@ -740,9 +744,7 @@
       .beta-badge { padding: 10px 8px 10px 11px; }
       .beta-badge span.beta-text { font-size: 10px; }
     }
-      /* Footer temporarily hidden on homepage (remove this line to bring it back) */
-    footer { display: none !important; }
-  </style>
+    </style>
 
   <!-- ── FIREBASE AUTH ── -->
   <script type="module">
@@ -938,7 +940,7 @@
           <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20v13H2z"/><path d="M8 21h8M12 16v5"/><polyline points="7 10 10 7 13 10 17 6"/></svg></div>
           <h3>Pitch Decks</h3>
           <p>Investor-ready decks that win funding.</p>
-          <span class="hc-exp">Explore &rarr;</span>
+          <div class="hc-foot"><span class="hc-exp">Explore &rarr;</span><span class="hc-count">38 templates</span></div>
         </div>
         <div class="hc-prev"><img src="images/cat-pitch.png" alt="Pitch deck preview" loading="lazy"></div>
       </a>
@@ -947,7 +949,7 @@
           <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
           <h3>Media Kits</h3>
           <p>Professional kits that showcase your brand.</p>
-          <span class="hc-exp">Explore &rarr;</span>
+          <div class="hc-foot"><span class="hc-exp">Explore &rarr;</span><span class="hc-count">35 templates</span></div>
         </div>
         <div class="hc-prev"><img src="images/cat-media.png" alt="Media kit preview" loading="lazy"></div>
       </a>
@@ -956,7 +958,7 @@
           <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div>
           <h3>Resumes / CVs</h3>
           <p>Modern resumes that get you noticed.</p>
-          <span class="hc-exp">Explore &rarr;</span>
+          <div class="hc-foot"><span class="hc-exp">Explore &rarr;</span><span class="hc-count">49 templates</span></div>
         </div>
         <div class="hc-prev"><img src="images/cat-resume.png" alt="Resume preview" loading="lazy"></div>
       </a>
@@ -965,7 +967,7 @@
           <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg></div>
           <h3>WebKits</h3>
           <p>Website &amp; landing-page UI kits for every need.</p>
-          <span class="hc-exp">Explore &rarr;</span>
+          <div class="hc-foot"><span class="hc-exp">Explore &rarr;</span><span class="hc-count">1 template</span></div>
         </div>
         <div class="hc-prev"><img src="images/cat-web.png" alt="Website UI kit preview" loading="lazy"></div>
       </a>
@@ -974,7 +976,7 @@
           <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
           <h3>Digital Keynotes</h3>
           <p>Stunning keynotes for powerful presentations.</p>
-          <span class="hc-exp">Explore &rarr;</span>
+          <div class="hc-foot"><span class="hc-exp">Explore &rarr;</span><span class="hc-count">Coming soon</span></div>
         </div>
         <div class="hc-prev"><img src="images/cat-key.png" alt="Keynote preview" loading="lazy"></div>
       </a>
@@ -983,7 +985,7 @@
           <div class="hc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
           <h3>Invoices <span class="hc-free">FREE</span></h3>
           <p>Clean &amp; professional invoices for your business.</p>
-          <span class="hc-exp">Explore &rarr;</span>
+          <div class="hc-foot"><span class="hc-exp">Explore &rarr;</span><span class="hc-count">Free tool</span></div>
         </div>
         <div class="hc-prev"><img src="images/cat-inv.png" alt="Invoice preview" loading="lazy"></div>
       </a>
@@ -1152,5 +1154,33 @@
 <script src="navbar.js"></script>
 <script defer src="commerce-loader.js"></script>
 
+<!-- Live category counts (auto-updates from Firebase, like LazyDog Studios) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getFirestore, collection, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  (async () => {
+    try {
+      const cfg = { apiKey:"AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes", authDomain:"auth.lazydogtemplates.com", projectId:"templatehub-16cd7", storageBucket:"templatehub-16cd7.firebasestorage.app" };
+      const app = initializeApp(cfg, "ldHomeCounts");
+      const db = getFirestore(app);
+      const CATS = [
+        ["pitch_deck_folder_section.html", "pitch_deck"],
+        ["media_kits_folder_section.html", "media_kit"],
+        ["career_docs_folder_section.html", "resume_cv"],
+        ["web_kit_folder_file.html", "web_kit"],
+        ["digital_keynote-folder.html", "digital_keynotes"]
+      ];
+      await Promise.all(CATS.map(async ([href, cat]) => {
+        try {
+          const q = query(collection(db, "templates"), where("status", "==", "approved"), where("template.category", "==", cat));
+          const n = (await getCountFromServer(q)).data().count;
+          const card = document.querySelector('.hc-card[href="' + href + '"]');
+          const el = card && card.querySelector(".hc-count");
+          if (el) el.textContent = n > 0 ? (n + " template" + (n > 1 ? "s" : "")) : "Coming soon";
+        } catch (e) { /* keep static number for this card */ }
+      }));
+    } catch (e) { /* Firebase unavailable — static fallback numbers stay */ }
+  })();
+</script>
 </body>
 </html>
