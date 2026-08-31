@@ -454,6 +454,21 @@
             </div>
           </div>
 
+          <!-- SOURCE FILES ZIP — Web Kits & Digital Keynotes only (31 Aug 2026) -->
+          <div id="sourceZipSection" style="display:none;">
+            <p style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin:18px 0 4px;">🗂️ Source Files ZIP <span class="required">*</span></p>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Required for Website Kits and Digital Keynotes — the actual working files the buyer opens/runs. Zip your HTML/CSS/JS (or Keynote project folder) into one .zip before uploading. This kit cannot be submitted without it.</p>
+            <div class="field">
+              <label>Source Files ZIP <span class="required">*</span></label>
+              <div class="upload-box">
+                <input type="file" id="sourceZipFile" accept=".zip" onchange="showFiles('sourceZipFile','sourceZipList')"/>
+                <div class="upload-icon">🗂️</div>
+                <p><strong>Click to upload Source Files (.zip)</strong></p>
+              </div>
+              <div class="file-list" id="sourceZipList"></div>
+            </div>
+          </div>
+
           <!-- DYNAMIC EXTRA BOXES -->
           <div id="extraFormatsContainer"></div>
           <button type="button" class="btn btn-outline" onclick="addExtraFormat()" style="margin-top:8px;font-size:13px;">
@@ -2649,6 +2664,10 @@ window.applyCategoryRequirements = function(cat) {
   var isKitOrKeynote = (cat === 'web_kit' || cat === 'digital_keynotes');
   var reportSec = document.getElementById('reportDocsSection');
   if (reportSec) reportSec.style.display = isKitOrKeynote ? '' : 'none';
+
+  // Source Files ZIP — only for Website Kits & Digital Keynotes (31 Aug 2026)
+  var zipSec = document.getElementById('sourceZipSection');
+  if (zipSec) zipSec.style.display = isKitOrKeynote ? '' : 'none';
 
   // "Editable In" panel — hidden for Website Kits & Digital Keynotes (13 Aug 2026).
   // Those ship as finished files, not source documents a buyer re-opens in
