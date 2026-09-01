@@ -906,6 +906,15 @@
     p.appendChild(grid([
       { matIcon: 'auto_fix_normal', label: 'Remove background', tip: 'Select a photo, then: cuts the background out (transparent PNG)', onClick: function () { run('ai', { kind: 'removeBg' }); } }
     ], 1));
+    /* 01 Sep 2026 (Sonnet) — MS Store cert (11.16 Live Generative AI Content):
+       always-visible way to flag AI-generated output for review. */
+    p.appendChild(subhead('Report'));
+    var repRow = el('button', 'sb-report-ai'); repRow.type = 'button';
+    repRow.title = 'Flag AI-generated content that looks wrong or inappropriate';
+    repRow.appendChild(mat('flag', 'sb-btn-i'));
+    repRow.appendChild(el('span', null, 'Report an issue with AI content'));
+    repRow.addEventListener('click', function () { run('aiReport'); });
+    p.appendChild(repRow);
   }
   function panelComponents(p) {
     p.appendChild(head('Components'));

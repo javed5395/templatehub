@@ -2569,6 +2569,42 @@ function pageRefresh() { renderPageThumbs(); }
 (function () {
   function busy(on, msg) { showToast(msg || (on ? 'Working…' : 'Done'), on ? 60000 : 1200); }
   function say(m) { showToast(m, 4000); }
+  /* 01 Sep 2026 (Sonnet) — MS Store cert (11.16 Live Generative AI Content):
+     remembers the most recent AI-generated output so the user can report it.
+     Keep it small — a snippet, not the whole deck. */
+  window._ldLastAI = null;
+  function noteAI(kind, before, after) {
+    window._ldLastAI = { kind: kind, before: String(before || '').slice(0, 400), after: String(after || '').slice(0, 400), ts: Date.now() };
+  }
+  /* Sends the report to Firestore (same project the rest of the editor
+     writes to) and always resolves — a failed write never blocks the
+     "thanks, reported" confirmation the user sees. */
+  window.ldReportAIContent = async function () {
+    var last = window._ldLastAI;
+    var reasonIdx = await window.ldChoose(
+      last ? ('Report the last AI result (' + last.kind + ')?') : 'Report AI-generated content — what\'s the problem?',
+      ['Inappropriate content', 'Inaccurate / wrong', 'Offensive', 'Other', 'Cancel'],
+      'Report AI content');
+    if (reasonIdx == null || reasonIdx === 4) return;
+    var reasons = ['Inappropriate content', 'Inaccurate / wrong', 'Offensive', 'Other'];
+    var note = (await window.ldPrompt('Anything else to add? (optional)', '', '')) || '';
+    try {
+      var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+      var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+      var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({ apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes', authDomain: 'templatehub-16cd7.firebaseapp.com', projectId: 'templatehub-16cd7', storageBucket: 'templatehub-16cd7.firebasestorage.app' });
+      var u = (window.ask ? window.ask('user') : null) || {};
+      await fsMod.addDoc(fsMod.collection(fsMod.getFirestore(app), 'ai_content_reports'), {
+        kind: (last && last.kind) || 'unknown',
+        before: (last && last.before) || '',
+        after: (last && last.after) || '',
+        reason: reasons[reasonIdx] || 'Other',
+        note: note,
+        userEmail: u.email || null,
+        createdAt: fsMod.serverTimestamp()
+      });
+    } catch (e) { /* still confirm below — the report shouldn't feel like it vanished */ }
+    say('Thanks — this has been reported for review.');
+  };
   /* the canvas size picked on the card is applied HERE, after the design
      lands — so it is exact whatever the composer made of the ratio */
   function applyChosenSize(key) {
@@ -2614,6 +2650,7 @@ function pageRefresh() { renderPageThumbs(); }
       o.set({ text: t, scaleX: _sy, charSpacing: 0 });
       if (o.initDimensions) o.initDimensions();
       o.setCoords(); o.dirty = true; fc.renderAll(); saveState();
+      noteAI(kind, src, t);
       say((kind === 'translate' ? 'Translated' : kind === 'rewrite' ? 'Rewritten' : 'Summarised') + ' ✓ — Ctrl+Z to undo');
     } catch (e) { say('AI text failed: ' + e.message); }
   }
@@ -2648,13 +2685,14 @@ function pageRefresh() { renderPageThumbs(); }
       var url = await new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(out); });
       o.setSrc(url, function () {
         o.src = url; delete o.irId; /* a new picture — export it as such */
-        fc.renderAll(); saveState(); say('Background removed ✓ — Ctrl+Z to undo');
+        fc.renderAll(); saveState(); noteAI('removeBg', '(original photo)', '(background removed)'); say('Background removed ✓ — Ctrl+Z to undo');
         if (window.ldRefreshTokens) window.ldRefreshTokens();
       }, { crossOrigin: 'anonymous' });
     } catch (e) { say('Background removal failed: ' + e.message, 6000); }
   }
   var _aiRunning = false;
   Editor._register({
+    aiReport: function () { window.ldReportAIContent(); },
     ai: function (a) {
       var kind = a && a.kind;
       if (['rewrite', 'summarize', 'translate'].indexOf(kind) > -1) { aiText(kind); return; }
@@ -2780,7 +2818,7 @@ function pageRefresh() { renderPageThumbs(); }
         /* 21 Aug 2026 (Javed) — no questions: one more slide in this deck's style */
         _aiRunning = true; busy(true, 'Designing one slide…');
         window.ldComposeAppend(styleClause() + 'one more slide in this style, 3 slides', { keep: 1 })
-          .then(function (n) { _aiRunning = false; if (n) say('Slide added ✓'); })
+          .then(function (n) { _aiRunning = false; if (n) { noteAI('slide', '', n + ' new slide'); say('Slide added ✓'); } })
           .catch(function (e) { _aiRunning = false; say('Could not add the slide: ' + (e && e.message || e)); });
         return;
       }
@@ -2801,7 +2839,7 @@ function pageRefresh() { renderPageThumbs(); }
           .replace(/\b(more |add |with |some )?(text|words)\b/ig, 'high text');
         _aiRunning = true; busy(true, 'Adding ' + plural(n, 'slide') + '…');
         window.ldComposeAppend(styleClause() + about + (about ? ', ' : '') + (n + 2) + ' slides', { keep: n })
-          .then(function (added) { _aiRunning = false; if (added) say(plural(added, 'slide') + ' added ✓'); })
+          .then(function (added) { _aiRunning = false; if (added) { noteAI('addSlides', about, plural(added, 'slide')); say(plural(added, 'slide') + ' added ✓'); } })
           .catch(function (e) { _aiRunning = false; say('Could not add the slides: ' + (e && e.message || e)); });
         return;
       }
@@ -2812,7 +2850,7 @@ function pageRefresh() { renderPageThumbs(); }
         if (!m) { say('Give a number between 1 and 20'); return; }
         _aiRunning = true; busy(true, 'Adding ' + plural(m, 'mock-up slide') + '…');
         window.ldComposeAppend(styleClause() + (m + 2) + ' slides, ' + m + ' mockup slides', { onlyMockups: true, keep: m })
-          .then(function (added) { _aiRunning = false; if (added) say(plural(added, 'mock-up slide') + ' added ✓'); })
+          .then(function (added) { _aiRunning = false; if (added) { noteAI('mockups', '', plural(added, 'mock-up slide')); say(plural(added, 'mock-up slide') + ' added ✓'); } })
           .catch(function () { _aiRunning = false; say('Could not add the mock-ups'); });
         return;
       }
