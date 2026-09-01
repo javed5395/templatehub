@@ -1952,6 +1952,17 @@ window.submitForm = async function() {
     if (el && el.files[0]) extraFiles.push(el.files[0]);
   }
 
+  // ── SOURCE FILES ZIP (Web Kits & Digital Keynotes) — 31 Aug 2026 ─────────
+  // Required working-files zip, rides the same extraFiles pipeline (Drive
+  // upload + templates_files storage) as the report PDFs above.
+  if (category === 'web_kit' || category === 'digital_keynotes') {
+    const zipEl = document.getElementById('sourceZipFile');
+    const zipF  = zipEl && zipEl.files[0];
+    if (!zipF) { alert('Source Files ZIP is required for this category — upload your HTML/CSS/JS (or Keynote project) as one .zip file.'); return; }
+    if (!/\.zip$/i.test(zipF.name)) { alert('Source Files must be a .zip file.'); return; }
+    extraFiles.push(new File([zipF], 'Source Files.zip', { type: 'application/zip' }));
+  }
+
   // ── REPORT DOCUMENTS (Web Kits & Digital Keynotes) — 13 Aug 2026 ─────────
   // Three fixed-name report PDFs, required for these two categories. They ride
   // the existing extraFiles pipeline (Drive upload + extraFiles badges), but
