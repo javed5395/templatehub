@@ -2620,7 +2620,10 @@ function pageRefresh() { renderPageThumbs(); }
         'After: ' + ((last && last.after) || '(n/a)')
       ];
       var mailUrl = 'mailto:support@lazydogtemplates.com?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(bodyLines.join('\n'));
-      window.open(mailUrl, '_blank');
+      /* window.open() here got silently blocked as a popup by some browsers
+         (too much async delay after the click for them to trust it as a
+         real user action). location.href is not subject to that block. */
+      window.location.href = mailUrl;
     } catch (e2) {}
     say('Thanks — your email app should now open with this report addressed to support. Press Send to submit it.');
   };
