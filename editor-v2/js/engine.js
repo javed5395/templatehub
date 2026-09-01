@@ -2588,22 +2588,41 @@ function pageRefresh() { renderPageThumbs(); }
     if (reasonIdx == null || reasonIdx === 4) return;
     var reasons = ['Inappropriate content', 'Inaccurate / wrong', 'Offensive', 'Other'];
     var note = (await window.ldPrompt('Anything else to add? (optional)', '', '')) || '';
+    var reasonText = reasons[reasonIdx] || 'Other';
+    var u = (window.ask ? window.ask('user') : null) || {};
     try {
       var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
       var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
       var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({ apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes', authDomain: 'templatehub-16cd7.firebaseapp.com', projectId: 'templatehub-16cd7', storageBucket: 'templatehub-16cd7.firebasestorage.app' });
-      var u = (window.ask ? window.ask('user') : null) || {};
       await fsMod.addDoc(fsMod.collection(fsMod.getFirestore(app), 'ai_content_reports'), {
         kind: (last && last.kind) || 'unknown',
         before: (last && last.before) || '',
         after: (last && last.after) || '',
-        reason: reasons[reasonIdx] || 'Other',
+        reason: reasonText,
         note: note,
         userEmail: u.email || null,
         createdAt: fsMod.serverTimestamp()
       });
-    } catch (e) { /* still confirm below — the report shouldn't feel like it vanished */ }
-    say('Thanks — this has been reported for review.');
+    } catch (e) { /* Firestore write is best-effort — the email below is the real delivery */ }
+    /* 01 Sep 2026 (Sonnet) — no backend email API exists in this codebase
+       (every other "contact us" in the site is a mailto: link too), so this
+       opens the user's own mail client with support@lazydogtemplates.com
+       pre-filled — one click to send, no server needed. */
+    try {
+      var subj = 'AI Content Report — ' + ((last && last.kind) || 'unknown');
+      var bodyLines = [
+        'Reason: ' + reasonText,
+        'AI feature: ' + ((last && last.kind) || 'unknown'),
+        'Note: ' + (note || '(none)'),
+        'User: ' + (u.email || '(not signed in)'),
+        '',
+        'Before: ' + ((last && last.before) || '(n/a)'),
+        'After: ' + ((last && last.after) || '(n/a)')
+      ];
+      var mailUrl = 'mailto:support@lazydogtemplates.com?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(bodyLines.join('\n'));
+      window.open(mailUrl, '_blank');
+    } catch (e2) {}
+    say('Thanks — your email app should now open with this report addressed to support. Press Send to submit it.');
   };
   /* the canvas size picked on the card is applied HERE, after the design
      lands — so it is exact whatever the composer made of the ratio */
