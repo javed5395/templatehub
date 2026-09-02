@@ -4174,6 +4174,101 @@ function drawChartPng(el, pxW, pxH) {
         g.fillText(L.t, lx, ly + F * 0.35);
       });
     }
+  } else if (el.chartType === 'treemap') {
+    /* TREEMAP: squarified tiles, one per category. "Group / Leaf" category
+       names build the two-level layout PowerPoint draws. */
+    var s0t = series[0] || { vals: [] };
+    var _pts = [];
+    (s0t.vals || []).forEach(function (v, i) {
+      var nm = String(cats[i] == null ? '' : cats[i]);
+      var sl = nm.indexOf(' / ');
+      var vv = isFinite(v) ? Math.max(0, v) : 0;
+      if (vv <= 0) return;
+      _pts.push({ v: vv, grp: sl >= 0 ? nm.slice(0, sl) : '',
+                  lab: sl >= 0 ? nm.slice(sl + 3) : nm, c: colorOf(s0t, i) });
+    });
+    var _squar = function (items, x, y, w, h, out) {
+      var remain = 0, i2;
+      for (i2 = 0; i2 < items.length; i2++) remain += items[i2].v;
+      var cx2 = x, cy2 = y, cw = w, ch = h, i3 = 0;
+      while (i3 < items.length && remain > 0 && cw > 0.5 && ch > 0.5) {
+        var vert = cw >= ch, side = vert ? ch : cw;
+        var rowSum = 0, best = Infinity, j = i3, rowN = 0;
+        while (j < items.length) {
+          var s2 = rowSum + items[j].v;
+          var thick = (s2 / remain) * (vert ? cw : ch);
+          var worst = 0;
+          for (var k = i3; k <= j; k++) {
+            var len = (items[k].v / s2) * side;
+            if (len <= 0 || thick <= 0) { worst = Infinity; break; }
+            var rr2 = Math.max(thick / len, len / thick);
+            if (rr2 > worst) worst = rr2;
+          }
+          if (worst > best && rowN > 0) break;
+          best = worst; rowSum = s2; rowN++; j++;
+        }
+        var thick2 = (rowSum / remain) * (vert ? cw : ch);
+        var pos = vert ? cy2 : cx2;
+        for (var m = i3; m < j; m++) {
+          var len2 = (items[m].v / rowSum) * side;
+          if (vert) out.push({ it: items[m], x: cx2, y: pos, w: thick2, h: len2 });
+          else out.push({ it: items[m], x: pos, y: cy2, w: len2, h: thick2 });
+          pos += len2;
+        }
+        if (vert) { cx2 += thick2; cw -= thick2; } else { cy2 += thick2; ch -= thick2; }
+        remain -= rowSum; i3 = j;
+      }
+    };
+    var _tile = function (r, fill, label, bold) {
+      if (r.w < 1 || r.h < 1) return;
+      g.fillStyle = fill; g.fillRect(r.x, r.y, r.w, r.h);
+      g.strokeStyle = '#FFFFFF'; g.lineWidth = 2; g.strokeRect(r.x, r.y, r.w, r.h);
+      if (!label) return;
+      var fs = Math.max(8, Math.round(F * (bold ? 0.95 : 0.9)));
+      if (r.w < fs * 2.2 || r.h < fs * 1.5) return;
+      g.font = (bold ? 'bold ' : '') + fs + 'px sans-serif';
+      var t = String(label);
+      while (t.length > 1 && g.measureText(t).width > r.w - 6) t = t.slice(0, -1);
+      g.fillStyle = '#333333'; g.textAlign = 'center';
+      g.fillText(t, r.x + r.w / 2, r.y + r.h / 2 + fs * 0.35);
+    };
+    var _px = 2, _py = topY + 2, _pw = W - 4, _ph = H - topY - 4;
+    var _hasG = _pts.some(function (p) { return p.grp; });
+    if (_pts.length && _pw > 4 && _ph > 4) {
+      if (_hasG) {
+        var order = [], byG = {};
+        _pts.forEach(function (p) {
+          var kk = p.grp || '';
+          if (!byG[kk]) { byG[kk] = { grp: kk, v: 0, kids: [] }; order.push(byG[kk]); }
+          byG[kk].v += p.v; byG[kk].kids.push(p);
+        });
+        order.sort(function (p, q) { return q.v - p.v; });
+        var gout = [];
+        _squar(order, _px, _py, _pw, _ph, gout);
+        gout.forEach(function (gr) {
+          var kids = gr.it.kids.slice().sort(function (p, q) { return q.v - p.v; });
+          var head = gr.it.grp ? Math.min(F * 1.7, gr.h * 0.28) : 0;
+          g.fillStyle = kids[0] ? kids[0].c : '#CCCCCC';
+          g.fillRect(gr.x, gr.y, gr.w, gr.h);
+          g.strokeStyle = '#FFFFFF'; g.lineWidth = 3; g.strokeRect(gr.x, gr.y, gr.w, gr.h);
+          if (head > 0 && gr.w > F * 3) {
+            g.font = 'bold ' + Math.max(8, Math.round(F * 0.95)) + 'px sans-serif';
+            var gt = gr.it.grp;
+            while (gt.length > 1 && g.measureText(gt).width > gr.w - 8) gt = gt.slice(0, -1);
+            g.fillStyle = '#222222'; g.textAlign = 'left';
+            g.fillText(gt, gr.x + 5, gr.y + head * 0.72);
+          }
+          var lout = [];
+          _squar(kids, gr.x + 3, gr.y + head, Math.max(1, gr.w - 6), Math.max(1, gr.h - head - 3), lout);
+          lout.forEach(function (lf) { _tile(lf, lf.it.c, lf.it.lab, false); });
+        });
+      } else {
+        var flat = _pts.slice().sort(function (p, q) { return q.v - p.v; });
+        var fout = [];
+        _squar(flat, _px, _py, _pw, _ph, fout);
+        fout.forEach(function (lf) { _tile(lf, lf.it.c, lf.it.lab, false); });
+      }
+    }
   } else if (el.chartType === 'radar') {
     var rcx = W / 2, rcy = (H + topY) / 2, RR = Math.min(W / 2, (H - topY) / 2) - F * 3;
     var nSp = Math.max(3, cats.length);
