@@ -4174,6 +4174,42 @@ function drawChartPng(el, pxW, pxH) {
         g.fillText(L.t, lx, ly + F * 0.35);
       });
     }
+  } else if (el.chartType === 'funnel') {
+    /* FUNNEL: the values are the widths at each stage boundary, so every band
+       is a trapezoid running from one stage's width down to the next. */
+    var s0f = series[0] || { vals: [] };
+    var vvf = (s0f.vals || []).map(function (v) { return isFinite(v) ? Math.max(0, v) : 0; });
+    var n2 = vvf.length;
+    if (n2 >= 2) {
+      var maxvf = Math.max.apply(null, vvf.concat([1]));
+      var padLf = Math.min(W * 0.30, F * 8), padRf = Math.min(W * 0.16, F * 4.5);
+      var bxf = padLf, bwf = Math.max(10, W - padLf - padRf);
+      var byf = topY + F * 1.0, bhf = Math.max(10, H - byf - F * 1.0);
+      var cxf = bxf + bwf / 2;
+      var yOf = function (i) { return byf + bhf * (i / (n2 - 1)); };
+      var wOf = function (i) { return bwf * (vvf[i] / maxvf); };
+      for (var i4 = 0; i4 < n2 - 1; i4++) {
+        var wt = wOf(i4), wb = wOf(i4 + 1), yt = yOf(i4), yb = yOf(i4 + 1);
+        g.beginPath();
+        g.moveTo(cxf - wt / 2, yt); g.lineTo(cxf + wt / 2, yt);
+        g.lineTo(cxf + wb / 2, yb); g.lineTo(cxf - wb / 2, yb);
+        g.closePath(); g.fillStyle = colorOf(s0f, i4); g.fill();
+      }
+      g.font = Math.round(F * 0.85) + 'px sans-serif';
+      var sufF = el.lblSuffix || '';
+      for (var i5 = 0; i5 < n2; i5++) {
+        var yy = yOf(i5), hw = wOf(i5) / 2;
+        g.strokeStyle = '#E2E2E2'; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(bxf - 3, yy); g.lineTo(cxf - hw - 2, yy); g.stroke();
+        g.beginPath(); g.moveTo(cxf + hw + 2, yy); g.lineTo(bxf + bwf + 3, yy); g.stroke();
+        g.fillStyle = '#555555'; g.textAlign = 'right';
+        var ct = String(cats[i5] == null ? '' : cats[i5]);
+        while (ct.length > 1 && g.measureText(ct).width > padLf - 10) ct = ct.slice(0, -1);
+        g.fillText(ct, bxf - 7, yy + F * 0.3);
+        g.textAlign = 'left';
+        g.fillText(String(vvf[i5]) + sufF, bxf + bwf + 7, yy + F * 0.3);
+      }
+    }
   } else if (el.chartType === 'treemap') {
     /* TREEMAP: squarified tiles, one per category. "Group / Leaf" category
        names build the two-level layout PowerPoint draws. */
