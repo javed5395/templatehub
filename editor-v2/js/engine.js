@@ -4127,9 +4127,20 @@ window.dissolveFlatFile = async function (file) {
                the old 4% floor threw both away before the service ever saw them.
                A second, flat-background rule lets those through; photos, which
                are never this white, still do not qualify. */
-            var lf = light / tot, df = dom / tot, ds = dom / Math.max(1, sat);
-            res((lf > 0.35 && df > 0.04 && df < 0.55 && ds > 0.5) ||
-                (lf > 0.90 && df > 0.002 && df < 0.55 && ds > 0.35));
+            /* A chart is painted from a HANDFUL of flat colours, whatever it
+               plots. Judging it by the single biggest colour threw away every
+               multi-series picture - three lines share the ink three ways, so
+               no one colour ever reached the old floor. Score the top five
+               colours together instead: charts sit above 0.7, photographs and
+               3-D art well below it. */
+            var _ns = [];
+            for (var k3 in buckets) _ns.push(buckets[k3]);
+            _ns.sort(function (p, q) { return q - p; });
+            var top5 = 0;
+            for (var t5 = 0; t5 < 5 && t5 < _ns.length; t5++) top5 += _ns[t5];
+            var lf = light / tot, sf = sat / tot;
+            top5 = top5 / Math.max(1, sat);
+            res(lf > 0.15 && sf > 0.004 && sf < 0.95 && top5 > 0.70);
           } catch (e) { res(false); }
         };
         im.onerror = function () { res(false); };
@@ -4165,7 +4176,7 @@ window.dissolveFlatFile = async function (file) {
           var el = ir.elements[j];
           if (!el || el.type !== 'image' || el.format === 'svg' || !el.src) continue;
           var rw = Math.abs(el.w) / W, rh = Math.abs(el.h) / H;
-          if (rw < 0.28 || rh < 0.28 || rw > 0.92 || rh > 0.92) continue;
+          if (rw < 0.15 || rh < 0.15 || rw > 0.97 || rh > 0.97) continue;
           if (!(await looksChartish(el.src))) continue;
           var chart = null;
           try { chart = await probeOne(el); } catch (e) { chart = null; }
