@@ -177,9 +177,12 @@ function initFabric() {
      one, remove them all. */
   fc.on('object:removed', function (ev) {
     var o = ev && ev.target;
-    if (!o || !o.irChart || fc.__ldChartBusy) return;
+    if (!o || !o.irChart) return;
+    /* Only a DELETE by the user cascades. Loading a slide also removes every
+       object, and treating that as a delete threw the chart's live data away -
+       come back to the slide and the options panel would no longer open. */
+    if (fc.__ldChartBusy || fc.__ldClearing || window._bulkLoad) return;
     _ldChartRemoveAll(o.irChart);
-    try { delete window._chartCtx[o.irChart]; } catch (e) {}
     closeChartOptions();
   });
   fc.on('object:modified', _chartBarModified);
@@ -4433,7 +4436,8 @@ async function renderSlideIR(slideIR, deckIR, fc) {
   var __gen = (fc.__ldRenderGen = (fc.__ldRenderGen || 0) + 1);
   try { closeChartOptions(); } catch (eC) {}   /* panel belongs to the old slide */
   fc.__ldFx = [];   /* late artwork for THIS render (see _ldFxTrack) */
-  fc.clear();
+  fc.__ldClearing = true;
+  try { fc.clear(); } finally { fc.__ldClearing = false; }
   var cw = fc._baseWidth || fc.getWidth();
   var ch = fc._baseHeight || fc.getHeight();
   var sx = cw / (deckIR.size.w || 1), sy = ch / (deckIR.size.h || 1);
