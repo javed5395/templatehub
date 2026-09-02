@@ -1100,13 +1100,36 @@ function ldFF(r) {
   return chain.join(', ');
 }
 
+/* a run's gradient glyph fill as a fabric gradient over the glyph box */
+function runGradFill(run) {
+  if (!run || !run.gradStops || run.gradStops.length < 2) return null;
+  try {
+    var ang = (((run.gradAngle == null ? 90 : run.gradAngle) % 360) + 360) % 360;
+    var rad = ang * Math.PI / 180, ca = Math.cos(rad), sa = Math.sin(rad);
+    return new fabric.Gradient({
+      type: 'linear', gradientUnits: 'percentage',
+      coords: { x1: 0.5 - 0.5 * ca, y1: 0.5 - 0.5 * sa, x2: 0.5 + 0.5 * ca, y2: 0.5 + 0.5 * sa },
+      colorStops: run.gradStops.map(function (s) { return { offset: Math.max(0, Math.min(1, s.pos || 0)), color: s.color }; })
+    });
+  } catch (e) { return null; }
+}
+
+/* ══ WORDART WARP ══ Arch presets curve the baseline; the INFLATE family
+   stretches the glyphs to fill the shape with a bowed top edge. Only the arch
+   was handled, so <a:prstTxWarp prst="textInflate"> fell through to a small
+   flat line of text (slide 13 #26). Arch text is also anchored the way
+   PowerPoint anchors it — the apex sits on the box edge, not in the middle of
+   the box, which is why arched headlines imported too low. */
 function buildArchTextIR(el, sx, sy) {
   try {
     var para = el.paragraphs && el.paragraphs[0];
     if (!para || !para.runs || !para.runs.length) return null;
     var text = para.runs.map(function (r) { return r.text; }).join('');
     if (!text.trim()) return null;
-    var down = /Down/.test(el.txWarp);
+    var warp = String(el.txWarp || '');
+    var inflate = /^textInflate|^textDeflate/.test(warp);
+    var deflate = /^textDeflate/.test(warp);
+    var down = /Down/.test(warp);
     var r0 = para.runs[0];
     var fontPx = Math.max(2, r0.sizePt * 12700 * sx);
     var boxW = Math.abs(el.w * sx), boxH = Math.abs(el.h * sy);
@@ -1125,15 +1148,51 @@ function buildArchTextIR(el, sx, sy) {
         originX: 'center', originY: down ? 'top' : 'bottom'
       });
       if (run.strokeColor) t.set({ stroke: run.strokeColor, strokeWidth: Math.max(1, (run.strokeWPt || 0.75) * 12700 * sx), paintFirst: 'stroke' }); /* PPT paints the FILL on top of a centered stroke: only w/2 peeks outside, fill stays light and un-darkened (slide 1 audit round 2) */
+      var gfl = runGradFill(run);
+      if (gfl) t.set({ fill: gfl });
       chars.push(t); widths.push(t.width || fontPx * 0.6); total += (t.width || fontPx * 0.6);
+    }
+    /* ── INFLATE / DEFLATE ── PowerPoint fits this warp to the SHAPE: the word
+       is scaled until it spans the box, sits on a flat baseline near the
+       bottom, and each glyph is stretched vertically most in the middle
+       (inflate) or least in the middle (deflate). */
+    if (inflate) {
+      var iw = Math.max(8, Math.abs(el.w * sx)), ih = Math.max(8, Math.abs(el.h * sy));
+      var kFit = Math.min(iw / Math.max(1, total), (ih * 0.82) / Math.max(1, fontPx));
+      if (!isFinite(kFit) || kFit <= 0) kFit = 1;
+      var xPen = el.x * sx + (iw - total * kFit) / 2;
+      var baseY = el.y * sy + ih * 0.88;
+      var halfW = Math.max(1, total * kFit / 2), midX = xPen + halfW;
+      for (i = 0; i < chars.length; i++) {
+        var cwI = widths[i] * kFit;
+        var cxI = xPen + cwI / 2;
+        var uI = Math.max(-1, Math.min(1, (cxI - midX) / halfW));
+        var bow = Math.cos(uI * Math.PI / 2);            /* 1 in the middle, 0 at the ends */
+        var kY = kFit * (deflate ? (1 - 0.28 * bow) : (1 + 0.30 * bow));
+        chars[i].set({ originX: 'center', originY: 'bottom', left: cxI, top: baseY,
+                       scaleX: kFit, scaleY: kY });
+        xPen += cwI;
+      }
+      var igrp = new fabric.Group(chars, { irId: el.id, irOrigin: el.origin, angle: el.rot || 0 });
+      if (el.flipH) igrp.set('flipX', true);
+      if (el.flipV) igrp.set('flipY', true);
+      return igrp;
     }
     var half = Math.min(total / 2, R * 1.4);
     var sag = R - Math.sqrt(Math.max(0, R * R - half * half)); /* arc drop across the chord */
     var blockH = fontPx + sag;
     var cx = el.x * sx + boxW / 2;
-    var blockTop = el.y * sy + Math.max(0, (boxH - blockH) / 2); /* WordArt default anchor: centred */
-    var cy = down ? (blockTop + sag + fontPx * 0.1 - R) /* circle above, glyph tops hang on lower arc */
-                  : (blockTop + fontPx + R);            /* circle below, baselines ride the upper arc */
+    /* ANCHOR: PowerPoint rides the arc of the shape itself — the apex baseline
+       sits on the TOP edge of the box for ArchUp (glyphs rising above it) and
+       on the BOTTOM edge for ArchDown. Centring the block inside the box, as
+       this did, dropped every arched headline half a box too low (slide 13
+       #25). blockH is still used to keep a short arc from leaving the box. */
+    /* fabric anchors these glyphs by their bounding box (originY bottom /
+       top), which sits a descender below / an ascender above the true
+       baseline — allow for it so the apex lands ON the box edge. */
+    var blockTop = el.y * sy + fontPx * 0.21;
+    var cy = down ? (el.y * sy + boxH - fontPx - R)  /* circle above, glyph tops hang on lower arc */
+                  : (blockTop + R);                   /* circle below, baselines ride the upper arc */
     var s = -total / 2;
     for (i = 0; i < chars.length; i++) {
       var phi = (s + widths[i] / 2) / R; /* radians from apex */
@@ -1149,12 +1208,498 @@ function buildArchTextIR(el, sx, sy) {
   } catch (e) { return null; }
 }
 
+/* ══ TAB STOPS ══ A tab is not a character a textbox can lay out: fabric
+   swallows it, so "Item<TAB>Left<TAB>Centre" arrived as one running sentence
+   (slide 15 #30). PowerPoint jumps the pen to the next <a:tab> and aligns the
+   piece there — left, centred, right, or on its decimal point. Build such a
+   paragraph as pieces placed at their stops instead of one flowing line. */
+function buildTabbedTextIR(el, sx, sy) {
+  try {
+    var paras = el.paragraphs || [], hasTab = false, pi, ri;
+    for (pi = 0; pi < paras.length && !hasTab; pi++) {
+      var rs0 = paras[pi].runs || [];
+      for (ri = 0; ri < rs0.length; ri++) if (String(rs0[ri].text || '').indexOf('\t') !== -1) { hasTab = true; break; }
+    }
+    if (!hasTab) return null;
+    var insL = (el.insL == null ? 91440 : el.insL) * sx;
+    var insT = (el.insT == null ? 45720 : el.insT) * sy;
+    var originX = el.x * sx + insL, y = el.y * sy + insT;
+    var parts = [];
+    paras.forEach(function (p) {
+      var runs = p.runs || [];
+      /* split the paragraph on tabs, each piece keeping its own run's style */
+      var segs = [[]];
+      runs.forEach(function (rn) {
+        String(rn.text == null ? '' : rn.text).split('\t').forEach(function (piece, k) {
+          if (k > 0) segs.push([]);
+          if (piece) segs[segs.length - 1].push({ text: piece, run: rn });
+        });
+      });
+      var r0 = runs[0] || { sizePt: 18, color: '#000000' };
+      var fontPx = Math.max(2, (r0.sizePt || 18) * 12700 * sx);
+      var lineH = fontPx * (p.lineSpacingPct || 1.2);
+      var defTab = Math.max(8, (p.defTabSz || 914400) * sx);
+      var tabs = (p.tabs || []).map(function (t) { return { pos: t.pos * sx, algn: t.algn || 'l' }; })
+                               .sort(function (a, b) { return a.pos - b.pos; });
+      var pen = Math.max(0, (p.marL || 0) * sx + (p.indent || 0) * sx); /* hanging indent: first line */
+      segs.forEach(function (seg, si) {
+        var txt = seg.map(function (s) { return s.text; }).join('');
+        var run = (seg[0] && seg[0].run) || r0;
+        var fs = Math.max(2, (run.sizePt || 18) * 12700 * sx);
+        var tObj = new fabric.Text(txt, {
+          fontSize: fs, fontFamily: ldFF(run),
+          fontWeight: run.weight ? run.weight : (run.b ? 'bold' : 'normal'),
+          fontStyle: run.i ? 'italic' : 'normal', underline: !!run.u,
+          fill: runGradFill(run) || run.color, originX: 'left', originY: 'top'
+        });
+        var wSeg = tObj.width || 0, stopX = pen, algn = 'l';
+        if (si > 0) {
+          var hit = null;
+          for (var ti = 0; ti < tabs.length; ti++) if (tabs[ti].pos > pen + 0.5) { hit = tabs[ti]; break; }
+          if (hit) { stopX = hit.pos; algn = hit.algn; }
+          else { stopX = (Math.floor(pen / defTab) + 1) * defTab; algn = 'l'; }
+        }
+        var drawX = stopX;
+        if (algn === 'ctr') drawX = stopX - wSeg / 2;
+        else if (algn === 'r') drawX = stopX - wSeg;
+        else if (algn === 'dec') {
+          var dot = txt.indexOf('.');
+          if (dot === -1) drawX = stopX - wSeg;
+          else {
+            var head = new fabric.Text(txt.slice(0, dot), { fontSize: fs, fontFamily: tObj.fontFamily,
+              fontWeight: tObj.fontWeight, fontStyle: tObj.fontStyle });
+            drawX = stopX - (head.width || 0);
+          }
+        }
+        if (drawX < pen) drawX = pen;   /* a stop already passed never back-tracks */
+        tObj.set({ left: originX + drawX, top: y });
+        parts.push(tObj);
+        pen = drawX + wSeg;
+      });
+      y += lineH;
+    });
+    if (!parts.length) return null;
+    return new fabric.Group(parts, { irId: el.id, irOrigin: el.origin, angle: el.rot || 0 });
+  } catch (e) { return null; }
+}
+
+/* ══ HANGING-INDENT BULLETS ══ PowerPoint parks the bullet out at
+   marL+indent and starts the text at marL, so the numbers form their own
+   column. The engine glued "1. " onto the front of the line instead, which
+   killed the column, the bullet colour and the bullet size. Returns the text
+   margin (EMU) when this element wants out-dented bullets, else 0. */
+function ldBulletOutdent(el) {
+  if (!el || el._noOutdent) return 0;
+  var paras = el.paragraphs || [], mar = 0, any = false;
+  for (var i = 0; i < paras.length; i++) {
+    var p = paras[i];
+    if (!p.bulletBlip && !p.bullet) continue;
+    if (!p.bulletBlip && !((p.indent || 0) < 0 && (p.marL || 0) > 0)) continue;
+    any = true;
+    if ((p.marL || 0) > mar) mar = p.marL || 0;
+  }
+  /* a picture bullet with no margin of its own still needs a column to sit
+     in — otherwise it has nowhere to draw and vanishes like before */
+  if (any && !mar) mar = 228600;
+  return any ? mar : 0;
+}
+
+/* Draw the bullet column beside a body textbox: auto-numbers and characters
+   as text in their own colour and size, picture bullets (a:buBlip) as the
+   real image. Marked irBody so edit-sync treats them as decoration of the
+   text element and never turns them into separate shapes. */
+function ldDrawBullets(el, tb, sx, sy, fc) {
+  try {
+    if (!tb || !fc || !ldBulletOutdent(el)) return;
+    var paras = el.paragraphs || [];
+    var insL = el.insL != null ? el.insL : 91440;
+    var gen = fc.__ldRenderGen;
+    /* y of each paragraph's FIRST visual line (fabric maps wrapped lines back
+       to their source paragraph through _styleMap) */
+    var tops = {};
+    try {
+      var vlines = tb._textLines || [], smap = tb._styleMap;
+      var yAcc = tb.top || 0;
+      for (var vi = 0; vi < vlines.length; vi++) {
+        var pIdx = (smap && smap[vi]) ? smap[vi].line : vi;
+        if (tops[pIdx] == null) tops[pIdx] = yAcc;
+        yAcc += (typeof tb.getHeightOfLine === 'function') ? tb.getHeightOfLine(vi) : ((tb.fontSize || 16) * 1.16);
+      }
+    } catch (e) {}
+    paras.forEach(function (p, pi) {
+      if (!p.bullet && !p.bulletBlip) return;
+      var r0 = p.runs && p.runs[0] ? p.runs[0] : {};
+      var runPx = Math.max(2, (r0.sizePt || 18) * 12700 * sx);
+      var bpx = runPx * ((p.bulletSizePct || 100) / 100);
+      var bx = (el.x + insL + (p.marL || 0) + (p.indent || 0)) * sx;
+      var by = tops[pi];
+      if (by == null) by = (tb.top || 0) + pi * runPx * 1.16;
+      if (p.bulletBlip) {
+        fabric.Image.fromURL(p.bulletBlip, function (im) {
+          if (!im || fc.__ldRenderGen !== gen) return;
+          var ih = im.height || bpx, iw = im.width || bpx;
+          var k = bpx / Math.max(1, ih);
+          im.set({ left: bx, top: by + (runPx - bpx) * 0.55, scaleX: k, scaleY: k,
+                   irId: el.id, irOrigin: el.origin, irBody: true, selectable: false, evented: false });
+          fc.add(im);
+          if (fc.requestRenderAll) fc.requestRenderAll();
+        });
+        return;
+      }
+      fc.add(new fabric.Text(String(p.bullet), {
+        left: bx, top: by + (runPx - bpx) * 0.15, fontSize: bpx,
+        fontFamily: ldFF({ font: p.bulletFont || r0.font, fontDisplay: r0.fontDisplay }),
+        fontWeight: r0.weight ? r0.weight : (r0.b ? 'bold' : 'normal'),
+        fill: p.bulletColor || r0.color || '#000000',
+        originX: 'left', originY: 'top',
+        irId: el.id, irOrigin: el.origin, irBody: true, selectable: false, evented: false
+      }));
+    });
+  } catch (e) { console.warn('bullet column skipped', e); }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   ==== 3-D (a:scene3d / a:sp3d) ====
+   A flat face under a camera rotation + perspective divide is exact maths,
+   so the tilted outline and the extrusion are COMPUTED, not eyeballed. Only
+   the shading (material sheen, bevel) is painted, because a 2-D canvas has
+   no lighting model. The file keeps its real scene3d/sp3d on export.
+
+   Rotation convention: <a:rot lat lon rev> places the CAMERA, so the model
+   takes the inverse turn — Rz(-rev) . Rx(-lat) . Ry(-lon). Checked against
+   PowerPoint's own render of this deck's slide 19: 85% pixel overlap.
+   ══════════════════════════════════════════════════════════════════════ */
+var LD3D_CAM = {   /* presets that carry a fixed rotation (degrees lat/lon/rev) */
+  orthographicFront: [0, 0, 0],
+  isometricTopUp: [-35.3, -45, 0], isometricTopDown: [-35.3, 45, 0],
+  isometricLeftUp: [0, -45, 0], isometricRightUp: [0, 45, 0],
+  isometricOffAxis1Left: [-18, -45, 0], isometricOffAxis1Right: [-18, 45, 0],
+  perspectiveFront: [0, 0, 0], perspectiveLeft: [0, -20, 0], perspectiveRight: [0, 20, 0],
+  perspectiveAbove: [-20, 0, 0], perspectiveBelow: [20, 0, 0]
+};
+function ld3DObliqueDir(prst) {
+  var m = /^oblique(TopLeft|TopRight|Top|BottomLeft|BottomRight|Bottom|Left|Right)$/.exec(String(prst || ''));
+  if (!m) return null;
+  var map = { TopLeft: [-1, -1], Top: [0, -1], TopRight: [1, -1], Left: [-1, 0],
+              Right: [1, 0], BottomLeft: [-1, 1], Bottom: [0, 1], BottomRight: [1, 1] };
+  var v = map[m[1]] || [1, -1];
+  var L = Math.sqrt(v[0] * v[0] + v[1] * v[1]) || 1;
+  return { dx: v[0] / L, dy: v[1] / L };
+}
+/* Only a camera that actually TILTS gets the projected-solid treatment. A
+   plain <a:sp3d> with no camera (or orthographicFront) hides its extrusion
+   directly behind the face in PowerPoint too, so those keep rendering flat —
+   slides 6, 7 and 24 of this deck are exactly that case. */
+function ld3DTilts(sc) {
+  if (!sc) return false;
+  if (sc.lat || sc.lon || sc.rev) return true;
+  if (ld3DObliqueDir(sc.prst)) return true;
+  var p = LD3D_CAM[sc.prst];
+  return !!(p && (p[0] || p[1] || p[2]));
+}
+function ld3DRot(sc) {
+  var lat = 0, lon = 0, rev = 0;
+  if (sc) {
+    if (sc.lat != null || sc.lon != null || sc.rev != null) {
+      lat = sc.lat || 0; lon = sc.lon || 0; rev = sc.rev || 0;
+    } else if (LD3D_CAM[sc.prst]) { lat = LD3D_CAM[sc.prst][0]; lon = LD3D_CAM[sc.prst][1]; rev = LD3D_CAM[sc.prst][2]; }
+  }
+  var D = Math.PI / 180, a = -lat * D, b = -lon * D, c = -rev * D;
+  var ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b), cc = Math.cos(c), sc2 = Math.sin(c);
+  var Rx = [[1, 0, 0], [0, ca, -sa], [0, sa, ca]];
+  var Ry = [[cb, 0, sb], [0, 1, 0], [-sb, 0, cb]];
+  var Rz = [[cc, -sc2, 0], [sc2, cc, 0], [0, 0, 1]];
+  function mul(A, B) { var M = [[0,0,0],[0,0,0],[0,0,0]];
+    for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) { var v = 0;
+      for (var k = 0; k < 3; k++) v += A[i][k] * B[k][j]; M[i][j] = v; } return M; }
+  return mul(Rz, mul(Rx, Ry));
+}
+/* the shape's own outline, in local EMU */
+function ld3DOutline(el) {
+  var w = Math.abs(el.w), h = Math.abs(el.h), g = el.geom || {}, pts = [], k;
+  if (g.custom && g.custom.pathCmds) {
+    var kx = w / (g.custom.pathW || 1), ky = h / (g.custom.pathH || 1), cx = 0, cy = 0;
+    g.custom.pathCmds.forEach(function (c) {
+      if (c[0] === 'M' || c[0] === 'L') { cx = c[1]; cy = c[2]; pts.push([cx * kx, cy * ky]); }
+      else if (c[0] === 'C') { for (k = 1; k <= 8; k++) { var t = k / 8, u = 1 - t;
+        pts.push([(u*u*u*cx + 3*u*u*t*c[1] + 3*u*t*t*c[3] + t*t*t*c[5]) * kx,
+                  (u*u*u*cy + 3*u*u*t*c[2] + 3*u*t*t*c[4] + t*t*t*c[6]) * ky]); } cx = c[5]; cy = c[6]; }
+      else if (c[0] === 'Q') { for (k = 1; k <= 6; k++) { var t2 = k / 6, u2 = 1 - t2;
+        pts.push([(u2*u2*cx + 2*u2*t2*c[1] + t2*t2*c[3]) * kx,
+                  (u2*u2*cy + 2*u2*t2*c[2] + t2*t2*c[4]) * ky]); } cx = c[3]; cy = c[4]; }
+    });
+    if (pts.length > 2) return pts;
+  }
+  var p = g.preset || 'rect', s;
+  switch (p) {
+    case 'hexagon': return [[0.25*w,0],[0.75*w,0],[w,h/2],[0.75*w,h],[0.25*w,h],[0,h/2]];
+    case 'octagon': s = Math.min(w,h)*0.29289; return [[s,0],[w-s,0],[w,s],[w,h-s],[w-s,h],[s,h],[0,h-s],[0,s]];
+    case 'triangle': return [[w/2,0],[w,h],[0,h]];
+    case 'diamond': return [[w/2,0],[w,h/2],[w/2,h],[0,h/2]];
+    case 'trapezoid': s = Math.min(w,h)*0.25; return [[s,0],[w-s,0],[w,h],[0,h]];
+    case 'parallelogram': return [[w/5,0],[w,0],[w*4/5,h],[0,h]];
+    case 'homePlate': return [[0,0],[w*0.75,0],[w,h/2],[w*0.75,h],[0,h]];
+    case 'pentagon': pts = []; for (k = 0; k < 5; k++) { var ap = -Math.PI/2 + k*2*Math.PI/5;
+      pts.push([w/2 + w/2*Math.cos(ap), h/2 + h/2*Math.sin(ap)]); } return pts;
+    case 'ellipse': case 'circle': case 'roundRect':
+      pts = []; for (k = 0; k < 36; k++) { var ae = k/36*Math.PI*2;
+        pts.push([w/2 + w/2*Math.cos(ae), h/2 + h/2*Math.sin(ae)]); }
+      return p === 'roundRect' ? [[0,0],[w,0],[w,h],[0,h]] : pts;
+    default: return [[0,0],[w,0],[w,h],[0,h]];
+  }
+}
+/* A light rig LIGHTENS a coloured surface, it does not wash it toward grey —
+   so the ramp moves lightness and saturation and leaves the hue alone.
+   Deltas measured off PowerPoint's own render of slide 19: the base #2E86AB
+   comes back as #225E79 in shadow, #77C9EB at mid and #ACFBFF in the
+   highlight, which is L-12%, L+26%/S+15% and L+41%/S+25%. */
+function ld3DShade(css, dL, dS) {
+  function rgb(c) { c = String(c || '#000000');
+    var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(c);
+    if (m) return [+m[1] / 255, +m[2] / 255, +m[3] / 255];
+    var h = c.replace('#', ''); if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    return [(parseInt(h.slice(0,2),16)||0)/255, (parseInt(h.slice(2,4),16)||0)/255, (parseInt(h.slice(4,6),16)||0)/255]; }
+  var c0 = rgb(css), R = c0[0], G = c0[1], B = c0[2];
+  var mx = Math.max(R,G,B), mn = Math.min(R,G,B), L = (mx+mn)/2, S = 0, H = 0;
+  if (mx !== mn) {
+    var dd = mx - mn;
+    S = L > 0.5 ? dd / (2 - mx - mn) : dd / (mx + mn);
+    if (mx === R) H = ((G - B) / dd + (G < B ? 6 : 0));
+    else if (mx === G) H = (B - R) / dd + 2; else H = (R - G) / dd + 4;
+    H /= 6;
+  }
+  L = Math.max(0, Math.min(1, L + (dL || 0)));
+  S = Math.max(0, Math.min(1, S + (dS || 0)));
+  function h2r(p, q, t) { if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p; }
+  var o1, o2, o3;
+  if (S === 0) { o1 = o2 = o3 = L; }
+  else { var q2 = L < 0.5 ? L * (1 + S) : L + S - L * S, p2 = 2 * L - q2;
+    o1 = h2r(p2, q2, H + 1/3); o2 = h2r(p2, q2, H); o3 = h2r(p2, q2, H - 1/3); }
+  function hx(v) { return ('0' + Math.max(0, Math.min(255, Math.round(v * 255))).toString(16)).slice(-2); }
+  return '#' + hx(o1) + hx(o2) + hx(o3);
+}
+/* inset a polygon by d px along each vertex's bisector (a true parallel
+   offset — scaling toward the centroid gave an uneven rim on a hexagon) */
+function ld3DInset(pts, d) {
+  var n = pts.length, cx = 0, cy = 0, i;
+  for (i = 0; i < n; i++) { cx += pts[i].x; cy += pts[i].y; }
+  cx /= n; cy /= n;
+  function build(sgn) {
+    var out = [];
+    for (var j = 0; j < n; j++) {
+      var p = pts[j], a = pts[(j - 1 + n) % n], b = pts[(j + 1) % n];
+      var v1x = p.x - a.x, v1y = p.y - a.y, l1 = Math.sqrt(v1x*v1x + v1y*v1y) || 1;
+      var v2x = b.x - p.x, v2y = b.y - p.y, l2 = Math.sqrt(v2x*v2x + v2y*v2y) || 1;
+      var mx = v1y/l1 + v2y/l2, my = -v1x/l1 - v2x/l2, ml = Math.sqrt(mx*mx + my*my) || 1;
+      out.push({ x: p.x + sgn * mx / ml * d, y: p.y + sgn * my / ml * d });
+    }
+    return out;
+  }
+  function spread(P) { var s = 0; for (var k = 0; k < P.length; k++) s += Math.abs(P[k].x - cx) + Math.abs(P[k].y - cy); return s; }
+  var A = build(1), B = build(-1);
+  return spread(A) < spread(B) ? A : B;   /* whichever went inward */
+}
+function ld3DMix(css, other, t) {
+  function rgb(c) { c = String(c || '#000000');
+    var m = /rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(c);
+    if (m) return [+m[1], +m[2], +m[3]];
+    var h = c.replace('#',''); if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    return [parseInt(h.slice(0,2),16)||0, parseInt(h.slice(2,4),16)||0, parseInt(h.slice(4,6),16)||0]; }
+  var a = rgb(css), b2 = rgb(other);
+  function hx(v) { return ('0' + Math.max(0, Math.min(255, Math.round(v))).toString(16)).slice(-2); }
+  return '#' + hx(a[0]+(b2[0]-a[0])*t) + hx(a[1]+(b2[1]-a[1])*t) + hx(a[2]+(b2[2]-a[2])*t);
+}
+/* project the outline to the face polygon and the extruded back polygon */
+function ld3DProject(el, sx, sy) {
+  var sc = el.scene3d, s3 = el.sp3d || {};
+  var w = Math.abs(el.w), h = Math.abs(el.h);
+  var loc = ld3DOutline(el);
+  var M = ld3DRot(sc);
+  var E = s3.extrusionH || 0;
+  var fov = (sc && sc.fov) ? sc.fov : 45;
+  var ob = ld3DObliqueDir(sc && sc.prst);
+  var d = Math.max(w, h) / (2 * Math.tan(Math.max(10, Math.min(120, fov)) * Math.PI / 360)) * 1.6;
+  function proj(px, py, pz) {
+    var x = px - w / 2, y = py - h / 2, z = pz;
+    var X = M[0][0]*x + M[0][1]*y + M[0][2]*z;
+    var Y = M[1][0]*x + M[1][1]*y + M[1][2]*z;
+    var Z = M[2][0]*x + M[2][1]*y + M[2][2]*z;
+    var k = ob ? 1 : d / (d - Z);
+    return { x: X * k, y: Y * k, z: Z };
+  }
+  var cx = (el.x + w / 2) * sx, cy = (el.y + h / 2) * sy;
+  function toPx(q) { return { x: cx + q.x * sx, y: cy + q.y * sy }; }
+  var face = loc.map(function (p) { return toPx(proj(p[0], p[1], 0)); });
+  var back;
+  if (ob) {
+    var ox = ob.dx * E * sx, oy = ob.dy * E * sy;
+    back = face.map(function (p) { return { x: p.x + ox, y: p.y + oy }; });
+  } else {
+    back = loc.map(function (p) { return toPx(proj(p[0], p[1], -E)); });
+  }
+  /* the face's own axes after projection — used to sit the label on the face */
+  var o0 = toPx(proj(w / 2, h / 2, 0)), oX = toPx(proj(w, h / 2, 0)), oY = toPx(proj(w / 2, h, 0));
+  return { face: face, back: back, axes: { o: o0, ex: { x: oX.x - o0.x, y: oX.y - o0.y }, ey: { x: oY.x - o0.x, y: oY.y - o0.y } } };
+}
+/* Draw the whole 3-D solid. Returns true when it took the element over. */
+function render3DElementIR(el, sx, sy, fc) {
+  try {
+    var s3 = el.sp3d, sc = el.scene3d;
+    if (!ld3DTilts(sc)) return false;
+    var pr = ld3DProject(el, sx, sy);
+    var faceCss = fillIRToFabric(el.fill, Math.abs(el.w) * sx, Math.abs(el.h) * sy) || '#BFBFBF';
+    var baseCss = (el.fill && el.fill.type === 'solid') ? el.fill.color : (typeof faceCss === 'string' ? faceCss : '#BFBFBF');
+    var extCss = (s3 && s3.extrusionClr) || ld3DMix(baseCss, '#000000', 0.45);
+    var conCss = s3 && s3.contourClr;
+    var conW = s3 && s3.contourW ? Math.max(1, s3.contourW * sx) : 0;
+    var parts = [];
+    /* light direction on screen, from the rig ('t' = from the top) */
+    var DIRA = { t: -90, tl: -135, tr: -45, l: 180, r: 0, b: 90, bl: 135, br: 45 };
+    var rigA = ((DIRA[(sc && sc.rigDir) || 't'] == null ? -90 : DIRA[(sc && sc.rigDir) || 't']) + ((sc && sc.rigRev) || 0)) * Math.PI / 180;
+    var lx = Math.cos(rigA), ly = Math.sin(rigA);
+    var poly = function (pts, opt) { return new fabric.Polygon(pts.map(function (p) { return { x: p.x, y: p.y }; }),
+      Object.assign({ selectable: false, evented: false, objectCaching: false }, opt)); };
+    var signedArea = function (P) { var s = 0; for (var k = 0; k < P.length; k++) {
+      var q = P[(k + 1) % P.length]; s += P[k].x * q.y - q.x * P[k].y; } return s / 2; };
+    var faceSign = signedArea(pr.face) >= 0 ? 1 : -1;
+    /* metal reads brighter and glassier than a matte surface */
+    var shiny = /metal|clear|plastic|flat/i.test((s3 && s3.material) || '');
+    var dHi = shiny ? 0.41 : 0.28, sHi = shiny ? 0.41 : 0.18;
+    var dMid = shiny ? 0.26 : 0.16, sMid = shiny ? 0.15 : 0.07;
+    var dLo = shiny ? -0.12 : -0.10;
+    /* 1. back face, deepest shade */
+    parts.push(poly(pr.back, { fill: ld3DShade(extCss, -0.10, 0), stroke: conCss || '', strokeWidth: conCss ? conW : 0 }));
+    /* 2. side walls — BACK-FACE CULLED. Drawing every wall let the hidden ones
+       stick out past the silhouette as dark slivers on the near side; a wall is
+       only visible when its projected winding runs opposite to the face's. */
+    for (var i = 0; i < pr.face.length; i++) {
+      var a = pr.face[i], b = pr.face[(i + 1) % pr.face.length];
+      var a2 = pr.back[i], b2 = pr.back[(i + 1) % pr.back.length];
+      var quad = [a, b, b2, a2];
+      if ((signedArea(quad) >= 0 ? 1 : -1) === faceSign) continue;   /* facing away — hidden */
+      var ex = b.x - a.x, ey = b.y - a.y, eL = Math.sqrt(ex * ex + ey * ey) || 1;
+      var nx = ey / eL, ny = -ex / eL;
+      var lit = Math.max(0, nx * lx + ny * ly);
+      parts.push(poly(quad, { fill: ld3DShade(extCss, -0.06 + lit * 0.16, lit * 0.05),
+        stroke: conCss || '', strokeWidth: conCss ? conW : 0 }));
+    }
+    /* 3. the lit face — hue kept, lightness and saturation ramped */
+    var gradAt = function (hiL, hiS, midL, midS, loL) {
+      return new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage',
+        coords: { x1: 0.5 - lx / 2, y1: 0.5 - ly / 2, x2: 0.5 + lx / 2, y2: 0.5 + ly / 2 },
+        colorStops: [{ offset: 0, color: ld3DShade(baseCss, hiL, hiS) },
+                     { offset: 0.55, color: ld3DShade(baseCss, midL, midS) },
+                     { offset: 1, color: ld3DShade(baseCss, loL, 0) }] });
+    };
+    var faceFill = (typeof faceCss === 'string') ? gradAt(dHi, sHi, dMid, sMid, dLo) : faceCss;
+    parts.push(poly(pr.face, { fill: faceFill, stroke: conCss || '', strokeWidth: conCss ? conW : 0 }));
+    /* 4. the raised rim: the face IS the rim, and a true parallel inset holds
+       the flatter plateau, so the bevel reads as a lip all the way round */
+    if (s3 && s3.bevelT && s3.bevelT.w) {
+      var bw = Math.max(2, s3.bevelT.w * sx * 0.75);
+      var inner = ld3DInset(pr.face, bw);
+      parts.push(poly(inner, { fill: gradAt(dMid + 0.06, sMid, dMid - 0.02, sMid, dLo + 0.16) }));
+    }
+    /* 5. the shape's own text, sitting on the tilted face */
+    if (el.type === 'text' && el.paragraphs && el.paragraphs.length) {
+      var tb = buildTextboxFromIR(Object.assign({}, el, { _no3d: true }), sx, sy);
+      if (tb) {
+        var exv = pr.axes.ex, eyv = pr.axes.ey;
+        var kx2 = Math.sqrt(exv.x * exv.x + exv.y * exv.y) / Math.max(1, Math.abs(el.w) / 2 * sx);
+        var ky2 = Math.sqrt(eyv.x * eyv.x + eyv.y * eyv.y) / Math.max(1, Math.abs(el.h) / 2 * sy);
+        var angX = Math.atan2(exv.y, exv.x), angY = Math.atan2(eyv.y, eyv.x);
+        var skew = ((angY - angX) * 180 / Math.PI) - 90;
+        while (skew > 90) skew -= 180; while (skew < -90) skew += 180;
+        tb.set({ originX: 'center', originY: 'center', left: pr.axes.o.x, top: pr.axes.o.y,
+                 angle: angX * 180 / Math.PI, scaleX: kx2 || 1, scaleY: ky2 || 1,
+                 skewX: Math.max(-60, Math.min(60, -skew)) });
+        parts.push(tb);
+      }
+    }
+    var g3 = new fabric.Group(parts, { irId: el.id, irOrigin: el.origin });
+    fc.add(g3);
+    return true;
+  } catch (e) { console.warn('3-D render skipped', e); return false; }
+}
+/* 3-D on a TEXT BODY (bodyPr scene3d/sp3d): an oblique camera extrudes the
+   glyphs along a fixed diagonal, which is exactly a stack of offset copies. */
+function ld3DTextBody(el, sx, sy) {
+  try {
+    var s3 = el.txSp3d, sc = el.txScene3d;
+    if (!s3 || !s3.extrusionH || !ld3DTilts(sc)) return null;
+    var ob = ld3DObliqueDir(sc && sc.prst) || { dx: 0.7071, dy: -0.7071 };
+    var E = s3.extrusionH * sx;
+    var steps = Math.max(2, Math.min(40, Math.round(E)));
+    var extCss = s3.extrusionClr || '#333333';
+    var flat = Object.assign({}, el, { _no3d: true });
+    var parts = [];
+    for (var i = steps; i >= 1; i--) {
+      var t = i / steps;
+      var shadeEl = Object.assign({}, flat, { paragraphs: (el.paragraphs || []).map(function (p) {
+        return Object.assign({}, p, { runs: (p.runs || []).map(function (rn) {
+          return Object.assign({}, rn, { color: ld3DMix(extCss, '#000000', 0.35 * t), gradStops: null, strokeColor: null }); }) }); }) });
+      var cp = buildTextboxFromIR(shadeEl, sx, sy);
+      if (!cp) continue;
+      cp.set({ left: (cp.left || 0) + ob.dx * E * t, top: (cp.top || 0) + ob.dy * E * t, selectable: false, evented: false });
+      parts.push(cp);
+    }
+    var faceTb = buildTextboxFromIR(flat, sx, sy);
+    if (!faceTb) return null;
+    parts.push(faceTb);
+    return new fabric.Group(parts, { irId: el.id, irOrigin: el.origin, angle: el.rot || 0 });
+  } catch (e) { console.warn('3-D text skipped', e); return null; }
+}
+
+/* what a run actually SHOWS: cap="all" and cap="small" are display-only
+   transforms — the file keeps the original text, so the change is made here
+   and never written back. (Only when the case change keeps the same length,
+   so nothing can slide out of step with the per-character styles.) */
+function ldRunText(rn) {
+  var t = String(rn && rn.text != null ? rn.text : '');
+  if (rn && (rn.caps === 'all' || rn.caps === 'small')) {
+    var up = t.toUpperCase();
+    if (up.length === t.length) return up;
+  }
+  return t;
+}
 function buildTextboxFromIR(el, sx, sy) {
   /* WordArt arch family renders curved; other warp presets fall through to
      flat text but the preset survives on the IR for export */
-  if (el.txWarp && /^textArch(Up|Down)/.test(el.txWarp)) {
+  if (el.txSp3d && !el._no3d) {
+    var _t3 = ld3DTextBody(el, sx, sy);
+    if (_t3) return _t3;
+  }
+  if (el.txWarp && /^text(Arch(Up|Down)|Inflate|Deflate)/.test(el.txWarp)) {
     var _arch = buildArchTextIR(el, sx, sy);
     if (_arch) return _arch;
+  }
+  /* ROTATED TEXT BODY (<a:bodyPr rot>): build the body normally, then spin it
+     about the SHAPE's centre — the shape's own fill and border stay square,
+     which is exactly what PowerPoint draws. */
+  if (el.txRot && !el._noRot) {
+    var rInner = buildTextboxFromIR(Object.assign({}, el, { _noRot: true }), sx, sy);
+    if (rInner) {
+      var scx = (el.x + Math.abs(el.w) / 2) * sx, scy = (el.y + Math.abs(el.h) / 2) * sy;
+      var rbw = (rInner.width || 0) * (rInner.scaleX || 1), rbh = (rInner.height || 0) * (rInner.scaleY || 1);
+      var rbcx = rInner.originX === 'center' ? (rInner.left || 0) : (rInner.left || 0) + rbw / 2;
+      var rbcy = rInner.originY === 'center' ? (rInner.top || 0) : (rInner.top || 0) + rbh / 2;
+      var ra = el.txRot * Math.PI / 180, rcos = Math.cos(ra), rsin = Math.sin(ra);
+      var rdx = rbcx - scx, rdy = rbcy - scy;
+      rInner.set({ originX: 'center', originY: 'center',
+                   left: scx + rdx * rcos - rdy * rsin,
+                   top: scy + rdx * rsin + rdy * rcos,
+                   angle: (rInner.angle || 0) + el.txRot });
+      return new fabric.Group([rInner], { irId: el.id, irOrigin: el.origin });
+    }
+  }
+  if (!el._noTab) {
+    var _tabbed = buildTabbedTextIR(el, sx, sy);
+    if (_tabbed) return _tabbed;
   }
   /* vertical text body (vert270 = 90° CCW, vert/eaVert = 90° CW): the flat
      textbox is built against the SWAPPED axis then rotated about the box
@@ -1193,13 +1738,17 @@ function buildTextboxFromIR(el, sx, sy) {
   var insR = el.insR != null ? el.insR : 91440;
   var insT = el.insT != null ? el.insT : 45720;
   if (el.wrapNone) { insL = 0; insR = 0; }
+  /* hanging indent: the BODY starts at the text margin, the bullet is drawn
+     separately out at marL+indent by ldDrawBullets */
+  var _outd = ldBulletOutdent(el);
+  if (_outd) insL += _outd;
   var left = (el.x + insL) * sx, top = (el.y + insT) * sy;
   var w = Math.max(4, Math.abs((el.w - insL - insR) * sx));
   var lines = [], styles = {};
   var firstRun = null, firstLineHeight = 1.16;
   el.paragraphs.forEach(function (para, li) {
-    var bulletPrefix = para.bullet ? (para.bullet + ' ') : '';
-    var lineText = bulletPrefix + para.runs.map(function (r) { return r.text; }).join('');
+    var bulletPrefix = (para.bullet && !_outd) ? (para.bullet + ' ') : '';
+    var lineText = bulletPrefix + para.runs.map(function (r) { return ldRunText(r); }).join('');
     lines.push(lineText);
     var charStyles = {};
     var offset = bulletPrefix.length;
@@ -1207,7 +1756,14 @@ function buildTextboxFromIR(el, sx, sy) {
       if (!firstRun) firstRun = r;
       /* Phase-1 proven formula: pt -> EMU (x12700) -> px (x sx) */
       var fpx = Math.max(2, r.sizePt * 12700 * sx);
-      var st = { fontSize: fpx, fontWeight: r.weight ? r.weight : (r.b ? 'bold' : 'normal'), fontStyle: r.i ? 'italic' : 'normal', underline: !!r.u, fill: r.color, fontFamily: ldFF(r) };
+      var st = { fontSize: fpx, fontWeight: r.weight ? r.weight : (r.b ? 'bold' : 'normal'), fontStyle: r.i ? 'italic' : 'normal', underline: !!r.u, fill: runGradFill(r) || r.color, fontFamily: ldFF(r) };
+      if (r.strike) st.linethrough = true;                       /* struck through */
+      if (r.highlight) st.textBackgroundColor = r.highlight;     /* marker pen behind the run */
+      if (r.caps === 'small') st.fontSize = fpx * 0.8;           /* small caps: capitals at 80% */
+      if (r.baseline) {                                          /* super / subscript */
+        st.fontSize = fpx * 0.62;
+        st.deltaY = -r.baseline * fpx * 0.9;
+      }
       if (r.spcPt) st.charSpacing = (r.spcPt / r.sizePt) * 1000;
       if (r.strokeColor) { st.stroke = r.strokeColor; st.strokeWidth = Math.max(1, (r.strokeWPt || 0.75) * 12700 * sx); st.paintFirst = 'stroke'; /* PowerPoint paints the FILL ON TOP of a centered stroke: only the outer w/2 of the outline is visible and the fill is never darkened. Stroke-over-fill (round 1) doubled the visible ring and muddied the fill colour (slide 1 audit round 2) */ }
       for (var k = 0; k < r.text.length; k++) charStyles[offset + k] = st;
@@ -1263,8 +1819,19 @@ function buildTextboxFromIR(el, sx, sy) {
      it in per-char styles (above) silently does nothing. Decks with heavy
      negative tracking (Canva: spc="-581") rendered too wide and wrapped
      lines PowerPoint keeps on one line. */
-  if (firstRun && firstRun.spcPt && firstRun.sizePt) {
-    tb.set('charSpacing', (firstRun.spcPt / firstRun.sizePt) * 1000);
+  /* TRACKING: fabric only honours charSpacing on the WHOLE object, so the
+     first run's tracking used to stretch every other run with it — one tracked
+     phrase spaced out the entire paragraph. Use the value that covers the most
+     characters instead, so a mostly-normal line stays normal. */
+  var _spcTally = {}, _spcBest = null, _spcBestN = 0;
+  (el.paragraphs || []).forEach(function (p2) { (p2.runs || []).forEach(function (r2) {
+    var key = String(r2.spcPt || 0) + '|' + (r2.sizePt || 0);
+    _spcTally[key] = (_spcTally[key] || 0) + String(r2.text || '').length;
+    if (_spcTally[key] > _spcBestN) { _spcBestN = _spcTally[key]; _spcBest = r2; }
+  }); });
+  var _spcRun = _spcBest || firstRun;
+  if (_spcRun && _spcRun.spcPt && _spcRun.sizePt) {
+    tb.set('charSpacing', (_spcRun.spcPt / _spcRun.sizePt) * 1000);
   }
   /* WIDTH TOLERANCE (keep-original rule): the box HEIGHT budgets how many
      lines PowerPoint drew. If canvas wrapped into MORE lines, the font just
@@ -1382,15 +1949,71 @@ function buildTableFromIR(el, sx, sy, fc) {
       for (var rsp = 1; rsp < (cell.rowSpan || 1); rsp++) {
         var nxt = (el.rows[rowIdx + rsp]); if (nxt) ch2 += nxt.h * sy;
       }
-      var fillCss = fillIRToFabric(cell.fill, cw, ch2) || 'rgba(0,0,0,0)';
-      var strokeC = cell.border ? cell.border.color : (cell.styleStroke ? '#FFFFFF' : '');
-      var strokeW = cell.border ? Math.max(1, cell.border.w * sx) : (cell.styleStroke ? 1.5 : 0);
+      /* a bevelled cell (a:cell3D) with no fill of its own gets PowerPoint's
+         silver face, so the raised edges below have something to sit on */
+      var fillCss = fillIRToFabric(cell.fill, cw, ch2) || (cell.cell3D ? '#F2F3F7' : 'rgba(0,0,0,0)');
+      var perEdge = cell.borders && (cell.borders.L || cell.borders.T || cell.borders.R || cell.borders.B);
+      var strokeC = (!perEdge && cell.border) ? cell.border.color : (cell.styleStroke ? '#FFFFFF' : '');
+      var strokeW = (!perEdge && cell.border) ? Math.max(1, cell.border.w * sx) : (cell.styleStroke ? 1.5 : 0);
       fc.add(new fabric.Rect({ left: xCur, top: yCur, width: cw, height: ch2, fill: fillCss, irTable: el.id,
         stroke: strokeC, strokeWidth: strokeW }));
-      if (cell.diag) {
-        var dpts = cell.diag.up ? [xCur, yCur + ch2, xCur + cw, yCur] : [xCur, yCur, xCur + cw, yCur + ch2];
-        fc.add(new fabric.Line(dpts, { stroke: cell.diag.color, strokeWidth: Math.max(1, cell.diag.w * sx), irTable: el.id, selectable: false, evented: false }));
+      /* each edge drawn on its own, so a cell can carry four different rules */
+      if (perEdge) {
+        var EDGES = { L: [xCur, yCur, xCur, yCur + ch2], T: [xCur, yCur, xCur + cw, yCur],
+                      R: [xCur + cw, yCur, xCur + cw, yCur + ch2], B: [xCur, yCur + ch2, xCur + cw, yCur + ch2] };
+        Object.keys(EDGES).forEach(function (ek) {
+          var bd = cell.borders[ek];
+          if (!bd) return;
+          var bwPx = Math.max(1, (bd.w || 9525) * sx);
+          var pen = { stroke: bd.color, strokeWidth: bwPx, irTable: el.id, selectable: false, evented: false,
+                      strokeLineCap: bd.cap === 'rnd' ? 'round' : bd.cap === 'sq' ? 'square' : 'butt' };
+          if (bd.dash && bd.dash !== 'solid') pen.strokeDashArray = dashArrayFor(bd.dash, bwPx);
+          if (bd.grad && bd.grad.stops && bd.grad.stops.length >= 2) {
+            /* a gradient-filled edge: a zero-area line cannot carry a gradient,
+               so the edge is drawn as a thin rect with the gradient as its fill */
+            var horiz = ek === 'T' || ek === 'B';
+            fc.add(new fabric.Rect({
+              left: horiz ? xCur : EDGES[ek][0] - bwPx / 2, top: horiz ? EDGES[ek][1] - bwPx / 2 : yCur,
+              width: horiz ? cw : bwPx, height: horiz ? bwPx : ch2, irTable: el.id, selectable: false, evented: false,
+              fill: new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage',
+                coords: horiz ? { x1: 0, y1: 0.5, x2: 1, y2: 0.5 } : { x1: 0.5, y1: 0, x2: 0.5, y2: 1 },
+                colorStops: bd.grad.stops.map(function (s2) { return { offset: Math.max(0, Math.min(1, s2.pos)), color: s2.color }; }) }) }));
+            return;
+          }
+          fc.add(new fabric.Line(EDGES[ek], pen));
+        });
       }
+      /* ══ RAISED CELL (a:cell3D) ══ PowerPoint lights a real bevel; a 2-D
+         canvas cannot, so paint what that lighting produces: the two edges
+         facing the light go bright, the two facing away go dark. The file
+         still carries the true cell3D, so PowerPoint redraws its own bevel. */
+      if (cell.cell3D) {
+        var bw = Math.max(2, Math.min(Math.min(cw, ch2) / 4, (cell.cell3D.bevelW || 76200) * sx));
+        var litTop = !/b/i.test(String(cell.cell3D.dir || 't').charAt(0));
+        var hiC = 'rgba(255,255,255,0.9)', loC = 'rgba(0,0,0,0.20)';
+        if (!litTop) { var _sw = hiC; hiC = loC; loC = _sw; }
+        fc.add(new fabric.Polygon([{ x: xCur, y: yCur }, { x: xCur + cw, y: yCur },
+            { x: xCur + cw - bw, y: yCur + bw }, { x: xCur + bw, y: yCur + bw },
+            { x: xCur + bw, y: yCur + ch2 - bw }, { x: xCur, y: yCur + ch2 }],
+          { fill: hiC, irTable: el.id, selectable: false, evented: false, objectCaching: false }));
+        fc.add(new fabric.Polygon([{ x: xCur + cw, y: yCur }, { x: xCur + cw, y: yCur + ch2 },
+            { x: xCur, y: yCur + ch2 }, { x: xCur + bw, y: yCur + ch2 - bw },
+            { x: xCur + cw - bw, y: yCur + ch2 - bw }, { x: xCur + cw - bw, y: yCur + bw }],
+          { fill: loC, irTable: el.id, selectable: false, evented: false, objectCaching: false }));
+      }
+      /* DIAGONAL RULES: draw EVERY rule the cell carries. Reading only
+         cell.diag drew one stroke of PowerPoint's red X and dropped the
+         other; cell.diags holds both (cell.diag kept for older IR). */
+      var _dgs = (cell.diags && cell.diags.length) ? cell.diags : (cell.diag ? [cell.diag] : []);
+      _dgs.forEach(function (dg) {
+        var dpts = dg.up ? [xCur, yCur + ch2, xCur + cw, yCur] : [xCur, yCur, xCur + cw, yCur + ch2];
+        var dln = new fabric.Line(dpts, { stroke: dg.color, strokeWidth: Math.max(1, dg.w * sx),
+          irTable: el.id, selectable: false, evented: false });
+        if (dg.dash && dg.dash !== 'solid' && typeof dashArrayFor === 'function') {
+          try { dln.set({ strokeDashArray: dashArrayFor(dg.dash, Math.max(1, dg.w * sx)) }); } catch (e) {}
+        }
+        fc.add(dln);
+      });
       if (cell.paragraphs && cell.paragraphs.length) {
         var pseudoEl = { id: el.id + '-cell', origin: el.origin, x: (xCur + 4) / sx, y: (yCur + 4) / sy, w: (cw - 8) / sx, h: ch2 / sy, rot: 0, paragraphs: cell.paragraphs, bodyAnchor: 't' };
         var ctb = buildTextboxFromIR(pseudoEl, sx, sy);
@@ -1475,7 +2098,28 @@ function loadFabricSVGAsync(svgText) {
   });
 }
 
-function bakeImageEffects(src, duo, featherFrac, colorKey) {
+/* shadow, glow and reflection on a PICTURE — the shape road applied these but
+   the picture road never did, so a photo with a reflection showed none. */
+function ldPicEffects(obj, el, sx, sy, fc) {
+  try {
+    if (!obj || !el) return;
+    if (el.shadow) {
+      var sr = el.shadow.dir * Math.PI / 180, sd = el.shadow.dist * sx;
+      obj.set('shadow', new fabric.Shadow({ color: el.shadow.color, blur: el.shadow.blur * sx,
+        offsetX: Math.cos(sr) * sd, offsetY: Math.sin(sr) * sd }));
+    }
+    if (el.glow) {
+      var gr = Math.max(2, (el.glow.rad || 101600) * sx), gc = el.glow.color || 'rgba(255,165,0,0.7)';
+      obj.set({ irHasGlow: true, irGlowRadPx: gr, irGlowColor: gc });
+      _makeGlow(obj, { id: el.id, radPx: gr, color: gc }, fc);
+    }
+    if (el.reflection) {
+      obj.set('irHasRefl', true);
+      _makeReflection(obj, el, sx, sy, fc);
+    }
+  } catch (e) { console.warn('picture effects skipped', e); }
+}
+function bakeImageEffects(src, duo, featherFrac, colorKey, biLevel, grayscale, lum) {
   return new Promise(function (resolve) {
     var img = new Image();
     img.crossOrigin = 'anonymous';   /* cross-origin GCS images must not taint the effect canvas */
@@ -1507,6 +2151,32 @@ function bakeImageEffects(src, duo, featherFrac, colorKey) {
             d[i] = A[0] + (B[0] - A[0]) * t; d[i+1] = A[1] + (B[1] - A[1]) * t; d[i+2] = A[2] + (B[2] - A[2]) * t;
           }
           g.putImageData(im, 0, 0);
+        }
+        if (grayscale || biLevel != null) {
+          /* grayscale drops the colour; bi-level then pushes every pixel to
+             pure black or pure white either side of the threshold */
+          var ib = g.getImageData(0, 0, c.width, c.height), db = ib.data;
+          var thr = (biLevel == null ? 0.5 : biLevel) * 255;
+          for (var q = 0; q < db.length; q += 4) {
+            var lum = db[q] * 0.299 + db[q + 1] * 0.587 + db[q + 2] * 0.114;
+            var v = (biLevel != null) ? (lum >= thr ? 255 : 0) : lum;
+            db[q] = db[q + 1] = db[q + 2] = v;
+          }
+          g.putImageData(ib, 0, 0);
+        }
+        if (lum && (lum.bright || lum.contrast)) {
+          var il = g.getImageData(0, 0, c.width, c.height), dl = il.data;
+          var addB = (lum.bright || 0) * 255;
+          var cc = Math.max(-0.95, Math.min(0.95, lum.contrast || 0));
+          var fC = (1 + cc) / (1 - cc);
+          for (var w2 = 0; w2 < dl.length; w2 += 4) {
+            for (var ch3 = 0; ch3 < 3; ch3++) {
+              var vv = dl[w2 + ch3] + addB;
+              vv = (vv - 128) * fC + 128;
+              dl[w2 + ch3] = vv < 0 ? 0 : vv > 255 ? 255 : vv;
+            }
+          }
+          g.putImageData(il, 0, 0);
         }
         if (featherFrac) {
           var f = Math.max(2, Math.round(Math.min(c.width, c.height) * featherFrac));
@@ -1618,6 +2288,7 @@ async function renderImageElementIR(el, sx, sy, fc) {
       fgrp.isFrame = true; fgrp._sx = sx; fgrp._sy = sy;
       applyCenterRotation(fgrp, el, sx, sy);
       if (__live()) fc.add(fgrp);
+      ldPicEffects(fgrp, el, sx, sy, fc);
       return;
     }
   }
@@ -1625,7 +2296,13 @@ async function renderImageElementIR(el, sx, sy, fc) {
   /* picture/texture-fill SHAPES (tile, border or rounded corners): painted
      as a fabric.Rect with a Pattern fill so radius+stroke render natively;
      wrapped in a group so edit-sync reuses the original image IR */
-  if ((el.tile || el.spStroke || (el.geom && el.geom.preset === 'roundRect')) && el.src && el.format !== 'svg') {
+  /* A picture inside a PRESET FRAME (ellipse, two-corner rounded, hexagon…)
+     used to be cropped to a rectangle because only roundRect was recognised.
+     Any preset with real geometry now clips the photo to that shape. */
+  var _picPrst = (el.geom && el.geom.preset && el.geom.preset !== 'rect') ? el.geom.preset : null;
+  var _picShaped = _picPrst && (_picPrst === 'roundRect' || _picPrst === 'ellipse' || _picPrst === 'circle' ||
+                                (typeof PRESET_PATHS !== 'undefined' && PRESET_PATHS[_picPrst]));
+  if ((el.tile || el.spStroke || _picShaped || (el.sp3d && el.sp3d.bevelT)) && el.src && el.format !== 'svg') {
     var pimg = await new Promise(function (res) {
       var im2 = new Image(); im2.crossOrigin = 'anonymous'; im2.onload = function () { res(im2); }; im2.onerror = function () { res(null); };
       im2.src = el.src;
@@ -1633,21 +2310,69 @@ async function renderImageElementIR(el, sx, sy, fc) {
     if (pimg) {
       var pcv2 = document.createElement('canvas');
       if (el.tile) {
-        pcv2.width = Math.max(1, Math.round(pimg.width * el.tile.sx));
-        pcv2.height = Math.max(1, Math.round(pimg.height * el.tile.sy));
-        pcv2.getContext('2d').drawImage(pimg, 0, 0, pcv2.width, pcv2.height);
+        /* TILE SIZE: OOXML tiles the picture at its NATURAL size — 96 dpi, so
+           9525 EMU per image pixel — scaled by sx/sy, and that lands on the
+           canvas through the slide scale. The old code used RAW IMAGE PIXELS,
+           so the tile was locked to the image's own resolution and ignored the
+           canvas: on this bench the squares came out half size and the shape
+           held twice as many as PowerPoint draws (slide 18 #36). */
+        var tW = Math.max(1, Math.round(pimg.width * 9525 * (el.tile.sx || 1) * sx));
+        var tH = Math.max(1, Math.round(pimg.height * 9525 * (el.tile.sy || 1) * sy));
+        /* flip x / y / xy: PowerPoint mirrors every other tile, so the repeat
+           unit is a 2-wide and/or 2-tall block of mirrored copies */
+        var tfx = /x/i.test(el.tile.flip || ''), tfy = /y/i.test(el.tile.flip || '');
+        pcv2.width = tW * (tfx ? 2 : 1);
+        pcv2.height = tH * (tfy ? 2 : 1);
+        var tg = pcv2.getContext('2d');
+        for (var qy = 0; qy <= (tfy ? 1 : 0); qy++) {
+          for (var qx = 0; qx <= (tfx ? 1 : 0); qx++) {
+            tg.save();
+            tg.translate(qx ? tW * 2 : 0, qy ? tH * 2 : 0);
+            tg.scale(qx ? -1 : 1, qy ? -1 : 1);
+            tg.drawImage(pimg, 0, 0, tW, tH);
+            tg.restore();
+          }
+        }
       } else {
         pcv2.width = Math.max(1, Math.round(w)); pcv2.height = Math.max(1, Math.round(h));
         pcv2.getContext('2d').drawImage(pimg, 0, 0, pcv2.width, pcv2.height);
       }
-      var rxv = (el.geom && el.geom.preset === 'roundRect') ? Math.min(w, h) * 0.1667 : 0;
-      var prect = new fabric.Rect({ left: 0, top: 0, width: w, height: h, rx: rxv, ry: rxv,
-        fill: new fabric.Pattern({ source: pcv2, repeat: el.tile ? 'repeat' : 'no-repeat' }),
+      var patFill = new fabric.Pattern({ source: pcv2, repeat: el.tile ? 'repeat' : 'no-repeat' });
+      var common2 = { left: 0, top: 0, fill: patFill,
         stroke: el.spStroke ? el.spStroke.color : '', strokeWidth: el.spStroke ? Math.max(1, el.spStroke.w * sx) : 0,
-        opacity: el.opacity == null ? 1 : el.opacity });
-      var pgrp = new fabric.Group([prect], { left: left, top: top, angle: el.rot || 0, irId: el.id, irOrigin: el.origin });
+        opacity: el.opacity == null ? 1 : el.opacity };
+      var prect;
+      if (_picPrst === 'ellipse' || _picPrst === 'circle') {
+        prect = new fabric.Ellipse(Object.assign({}, common2, { rx: w / 2, ry: h / 2 }));
+      } else if (_picPrst && _picPrst !== 'roundRect' && typeof PRESET_PATHS !== 'undefined' && PRESET_PATHS[_picPrst]) {
+        prect = new fabric.Path(PRESET_PATHS[_picPrst](w, h, el.geom && el.geom.adj), common2);
+        prect.set({ left: 0, top: 0 });
+      } else {
+        var rxv = (_picPrst === 'roundRect') ? Math.min(w, h) * 0.1667 : 0;
+        prect = new fabric.Rect(Object.assign({}, common2, { width: w, height: h, rx: rxv, ry: rxv }));
+      }
+      var pKids = [prect];
+      /* a bevel declared on the PICTURE itself (a:sp3d > a:bevelT): a lit lip
+         round the frame, which is what PowerPoint draws over the photo */
+      if (el.sp3d && el.sp3d.bevelT && el.sp3d.bevelT.w) {
+        var bwp = Math.max(2, Math.min(Math.min(w, h) / 5, el.sp3d.bevelT.w * sx));
+        var lip = prect.constructor === fabric.Rect
+          ? new fabric.Rect({ left: 0, top: 0, width: w, height: h, rx: prect.rx || 0, ry: prect.ry || 0 })
+          : (prect.constructor === fabric.Ellipse
+              ? new fabric.Ellipse({ left: 0, top: 0, rx: w / 2, ry: h / 2 })
+              : new fabric.Path(PRESET_PATHS[_picPrst](w, h, el.geom && el.geom.adj), { left: 0, top: 0 }));
+        lip.set({ fill: '', strokeWidth: bwp, strokeLineJoin: 'round', selectable: false, evented: false,
+          stroke: new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage',
+            coords: { x1: 0.15, y1: 0, x2: 0.85, y2: 1 },
+            colorStops: [{ offset: 0, color: 'rgba(255,255,255,0.85)' },
+                         { offset: 0.45, color: 'rgba(190,200,210,0.55)' },
+                         { offset: 1, color: 'rgba(0,0,0,0.45)' }] }) });
+        pKids.push(lip);
+      }
+      var pgrp = new fabric.Group(pKids, { left: left, top: top, angle: el.rot || 0, irId: el.id, irOrigin: el.origin });
       applyCenterRotation(pgrp, el, sx, sy);
       if (__live()) fc.add(pgrp);
+      ldPicEffects(pgrp, el, sx, sy, fc);
       return;
     }
   }
@@ -1789,10 +2514,10 @@ async function renderImageElementIR(el, sx, sy, fc) {
     }
   } else {
     var effSrc = el.src;
-    if (el.duotone || el.softEdge || el.colorKey) {
+    if (el.duotone || el.softEdge || el.colorKey || el.grayscale || el.biLevel != null || el.lum) {
       /* feather radius as a fraction of the displayed size → image space */
       var fFrac = el.softEdge ? (el.softEdge * sx) / Math.max(1, Math.min(w, h)) : 0;
-      effSrc = await bakeImageEffects(el.src, el.duotone, fFrac, el.colorKey);
+      effSrc = await bakeImageEffects(el.src, el.duotone, fFrac, el.colorKey, el.biLevel, el.grayscale, el.lum);
     }
     try { obj = await loadFabricImageAsync(effSrc); }
     catch (le) { brokenImagePlaceholder(left, top, w, h, fc, el); return; }
@@ -1823,6 +2548,7 @@ async function renderImageElementIR(el, sx, sy, fc) {
           opacity: el.opacity == null ? 1 : el.opacity });
         applyCenterRotation(obj, el, sx, sy);
         fc.add(obj);
+        ldPicEffects(obj, el, sx, sy, fc);
         return;
       }
     }
@@ -1834,9 +2560,19 @@ async function renderImageElementIR(el, sx, sy, fc) {
   if (isFullBleed) obj.set({ isBg: true, selectable: false, evented: false });
   if (el.media) obj.set({ mediaSrc: el.media.src, mediaKind: el.media.kind });
   fc.add(obj);
+  ldPicEffects(obj, el, sx, sy, fc);
 }
 
-function dashArrayFor(dashVal, w) {
+function dashArrayFor(dashVal, w, custDash) {
+  /* <a:custDash>: explicit d/sp pairs, each a multiple of the line width */
+  if (custDash && custDash.length) {
+    var cd = [];
+    custDash.forEach(function (sg) {
+      cd.push(Math.max(0.5, (sg.d == null ? 1 : sg.d) * w));
+      cd.push(Math.max(0.5, (sg.sp == null ? 1 : sg.sp) * w));
+    });
+    return cd;
+  }
   switch (dashVal) {
     case 'dot': case 'sysDot': return [w, w * 2.2];
     case 'sysDash':            return [w * 3, w];
@@ -1869,7 +2605,7 @@ function renderShapeElementIR(el, sx, sy, fc) {
   }
   var common = { left: left, top: top, angle: el.rot || 0, originX: 'left', originY: 'top', flipX: !!el.flipH, flipY: !!el.flipV, irId: el.id, irOrigin: el.origin, fill: fillIRToFabric(el.fill, w, h) };
   if (el.stroke) { common.stroke = el.stroke.color; common.strokeWidth = Math.max(1, el.stroke.w * sx); }
-  if (el.stroke && el.stroke.dash && el.stroke.dash !== 'solid') { var dw = Math.max(1, el.stroke.w * sx); common.strokeDashArray = dashArrayFor(el.stroke.dash, dw); }
+  if (el.stroke && ((el.stroke.dash && el.stroke.dash !== 'solid') || (el.stroke.custDash && el.stroke.custDash.length))) { var dw = Math.max(1, el.stroke.w * sx); common.strokeDashArray = dashArrayFor(el.stroke.dash, dw, el.stroke.custDash); }
   if (el.geom && el.geom.preset === 'donut') common.fillRule = 'evenodd';
   if (el.rot) { common.originX = 'center'; common.originY = 'center'; common.left = (el.x + el.w / 2) * sx; common.top = (el.y + el.h / 2) * sy; }
   var prst = el.geom && el.geom.preset;
@@ -1934,6 +2670,20 @@ function renderShapeElementIR(el, sx, sy, fc) {
     for (var tSt = 0; tSt <= 16; tSt++) { var ta = aa1 + asw * tSt / 16; bPts.push([acx + arx * Math.cos(ta), acy + ary * Math.sin(ta)]); }
     bPts.forEach(function (pp) { bMinX = Math.min(bMinX, pp[0]); bMinY = Math.min(bMinY, pp[1]); });
     obj.set({ left: left + bMinX, top: top + bMinY });
+  }
+  else if ((prst === 'curvedRightArrow' || prst === 'curvedLeftArrow') && typeof _curvedArrowPath === 'function') {
+    /* PowerPoint shades the far half of the ring one step darker */
+    var _cp = _curvedArrowPath(w, h, el.geom && el.geom.adj, prst === 'curvedLeftArrow');
+    function _shdOf(css) {
+      var m3 = /^#?(..)(..)(..)/.exec(String(css || '#7D3C98').replace('#', ''));
+      if (!m3) return 'rgba(0,0,0,0.18)';
+      function d3(hx) { return ('0' + Math.round(parseInt(hx, 16) * 0.8).toString(16)).slice(-2); }
+      return '#' + d3(m3[1]) + d3(m3[2]) + d3(m3[3]);
+    }
+    var _bodyP = new fabric.Path(_cp.body, { fill: common.fill, stroke: common.stroke || '', strokeWidth: common.strokeWidth || 0, strokeDashArray: common.strokeDashArray, selectable: false, evented: false });
+    var _shadeP = new fabric.Path(_cp.shade, { fill: _shdOf(typeof common.fill === 'string' ? common.fill : null), stroke: '', selectable: false, evented: false });
+    obj = new fabric.Group([_bodyP, _shadeP], { irId: el.id, irOrigin: el.origin, flipX: !!el.flipH, flipY: !!el.flipV,
+      angle: el.rot || 0, originX: common.originX, originY: common.originY, left: common.left, top: common.top });
   }
   else if (PRESET_PATHS[prst]) {
     obj = new fabric.Path(PRESET_PATHS[prst](w, h, el.geom && el.geom.adj), common);
@@ -2020,12 +2770,23 @@ function _makeReflection(obj, el, sx, sy, fc) {
       cv.width = img.width; cv.height = img.height;
       var g = cv.getContext('2d');
       g.translate(0, cv.height); g.scale(1, -1);
+      /* PowerPoint blurs the reflection (blurRad) — softens the mirrored copy */
+      try { if (refl.blur) g.filter = 'blur(' + Math.max(0.5, refl.blur * sx * mult * 0.5).toFixed(1) + 'px)'; } catch (eF) {}
       g.drawImage(img, 0, 0);
+      try { g.filter = 'none'; } catch (eF2) {}
       g.setTransform(1, 0, 0, 1, 0, 0);
       g.globalCompositeOperation = 'destination-in';
+      /* the fade runs stPos -> endPos, and STOPS there: everything past
+         endPos is fully transparent, which is what makes PowerPoint's
+         reflection short and faint instead of a tall solid block */
+      var stP = Math.max(0, Math.min(0.98, refl.stPos || 0));
+      var enP = Math.max(stP + 0.02, Math.min(1, refl.endPos == null ? 1 : refl.endPos));
+      var enA = Math.max(0, Math.min(1, refl.endAlpha || 0));
       var grad = g.createLinearGradient(0, 0, 0, cv.height);
       grad.addColorStop(0, 'rgba(0,0,0,' + startA + ')');
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      if (stP > 0) grad.addColorStop(stP, 'rgba(0,0,0,' + startA + ')');
+      grad.addColorStop(enP, 'rgba(0,0,0,' + enA + ')');
+      if (enP < 0.999) grad.addColorStop(Math.min(1, enP + 0.001), 'rgba(0,0,0,0)');
       g.fillStyle = grad; g.fillRect(0, 0, cv.width, cv.height);
       fabric.Image.fromURL(cv.toDataURL('image/png'), function (mimg) {
         if (!pageOk()) return; /* page changed while rasterizing — discard */
@@ -2116,6 +2877,18 @@ function _reflFollow(opt) {
   }
 }
 
+/* OOXML compound strokes: the declared width is shared between several
+   parallel lines. Each band is {o: centre offset, w: width}, both as a
+   fraction of the total width. sng (or nothing) returns null = one line. */
+function ldCompoundBands(cmpd) {
+  switch (cmpd) {
+    case 'dbl':       return [{ o: -1 / 3, w: 1 / 3 }, { o: 1 / 3, w: 1 / 3 }];
+    case 'thickThin': return [{ o: -1 / 5, w: 3 / 5 }, { o: 2 / 5, w: 1 / 5 }];
+    case 'thinThick': return [{ o: -2 / 5, w: 1 / 5 }, { o: 1 / 5, w: 3 / 5 }];
+    case 'tri':       return [{ o: -2 / 5, w: 1 / 5 }, { o: 0, w: 1 / 5 }, { o: 2 / 5, w: 1 / 5 }];
+    default:          return null;
+  }
+}
 function renderLineElementIR(el, sx, sy, fc) {
   /* 11 Aug 2026 — LINES IGNORED ROTATION (media-kit-48 bug): a "vertical"
      line in OOXML is usually a HORIZONTAL line (cy=0) with rot="5400000"
@@ -2162,8 +2935,11 @@ function renderLineElementIR(el, sx, sy, fc) {
       return;
     }
   }
-  var lineOpts = { fill: '', stroke: strokeColor, strokeWidth: strokeW, irId: el.id, irOrigin: el.origin, strokeLineCap: 'round' };
-  if (el.stroke && el.stroke.dash && el.stroke.dash !== 'solid') lineOpts.strokeDashArray = dashArrayFor(el.stroke.dash, strokeW);
+  /* end cap from the file: flat = butt, sq = square, rnd = round */
+  var _capMap = { flat: 'butt', sq: 'square', rnd: 'round' };
+  var lineOpts = { fill: '', stroke: strokeColor, strokeWidth: strokeW, irId: el.id, irOrigin: el.origin,
+                   strokeLineCap: (el.stroke && _capMap[el.stroke.cap]) || 'round' };
+  if (el.stroke && ((el.stroke.dash && el.stroke.dash !== 'solid') || (el.stroke.custDash && el.stroke.custDash.length))) lineOpts.strokeDashArray = dashArrayFor(el.stroke.dash, strokeW, el.stroke.custDash);
   var mx = (x1 + x2) / 2, my = (y1 + y2) / 2, parts = [];
   /* connection sites decide the tangent axis at each end: idx 0/2 = top/
      bottom edge (VERTICAL leave/enter), idx 1/3 = left/right (HORIZONTAL).
@@ -2186,19 +2962,59 @@ function renderLineElementIR(el, sx, sy, fc) {
     parts.push(new fabric.Path('M ' + x1 + ' ' + y1 + ' C ' + c1x + ' ' + c1y + ' ' + c2x + ' ' + c2y + ' ' + x2 + ' ' + y2, lineOpts));
     startAng = Math.atan2(y1 - c1y, x1 - c1x); endAng = Math.atan2(y2 - c2y, x2 - c2x);
   } else {
-    parts.push(new fabric.Line([x1, y1, x2, y2], lineOpts));
+    /* COMPOUND: lay the bands side by side across the line's own normal */
+    var _bands = ldCompoundBands(el.stroke && el.stroke.cmpd);
+    if (_bands) {
+      var _lenL = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) || 1;
+      var _nxL = -(y2 - y1) / _lenL, _nyL = (x2 - x1) / _lenL;
+      _bands.forEach(function (bd) {
+        var _off = bd.o * strokeW;
+        var _lo = Object.assign({}, lineOpts, { strokeWidth: Math.max(0.5, bd.w * strokeW) });
+        parts.push(new fabric.Line([x1 + _nxL * _off, y1 + _nyL * _off, x2 + _nxL * _off, y2 + _nyL * _off], _lo));
+      });
+    } else {
+      parts.push(new fabric.Line([x1, y1, x2, y2], lineOpts));
+    }
     startAng = Math.atan2(y1 - y2, x1 - x2); endAng = Math.atan2(y2 - y1, x2 - x1);
   }
   /* arrowheads (head = at line START, tail = at line END) */
-  function arrowAt(px, py, ang) {
-    var L = Math.max(8, strokeW * 5), Wd = Math.max(3.5, strokeW * 2);
+  /* END SHAPE BY TYPE: every end was drawn as a filled triangle, so an
+     <a:headEnd type="oval"> (a dot, slide 12 #23) arrived as an arrow
+     pointing the wrong way into the box. Draw what the file actually asks for. */
+  function arrowAt(px, py, ang, kind, wCls, lCls) {
+    /* SIZE: OOXML sizes an end by class — sm/med/lg — as a multiple of the
+       line width. One fixed size was used for everything, which is why a
+       "med" diamond came out long and blunt. */
+    var _mL = lCls === 'sm' ? 2 : lCls === 'lg' ? 5 : 3;
+    var _mW = wCls === 'sm' ? 2 : wCls === 'lg' ? 5 : 3;
+    var L = Math.max(4, strokeW * _mL), Wd = Math.max(2, strokeW * _mW / 2);
+    var opt = { fill: strokeColor, stroke: '', selectable: false, evented: false };
+    var k = String(kind || 'triangle');
+    if (k === 'oval') {
+      var rr = Math.max(2.5, strokeW * 1.6);
+      return new fabric.Circle({ left: px - rr, top: py - rr, radius: rr,
+        fill: strokeColor, stroke: '', selectable: false, evented: false });
+    }
     var bx = px - L * Math.cos(ang), by = py - L * Math.sin(ang);
     var nx = -Math.sin(ang) * Wd, ny = Math.cos(ang) * Wd;
-    return new fabric.Polygon([{ x: px, y: py }, { x: bx + nx, y: by + ny }, { x: bx - nx, y: by - ny }],
-      { fill: strokeColor, stroke: '', selectable: false, evented: false });
+    if (k === 'diamond') {
+      var hx = px - (L / 2) * Math.cos(ang), hy = py - (L / 2) * Math.sin(ang);
+      return new fabric.Polygon([{ x: px, y: py }, { x: hx + nx, y: hy + ny }, { x: bx, y: by }, { x: hx - nx, y: hy - ny }], opt);
+    }
+    if (k === 'arrow') {
+      /* an OPEN arrow: two strokes meeting at the tip, not a filled head */
+      return new fabric.Polyline([{ x: bx + nx, y: by + ny }, { x: px, y: py }, { x: bx - nx, y: by - ny }],
+        { fill: '', stroke: strokeColor, strokeWidth: Math.max(1, strokeW),
+          strokeLineCap: 'round', strokeLineJoin: 'round', selectable: false, evented: false });
+    }
+    if (k === 'stealth') {
+      var cx5 = px - (L * 0.55) * Math.cos(ang), cy5 = py - (L * 0.55) * Math.sin(ang);
+      return new fabric.Polygon([{ x: px, y: py }, { x: bx + nx, y: by + ny }, { x: cx5, y: cy5 }, { x: bx - nx, y: by - ny }], opt);
+    }
+    return new fabric.Polygon([{ x: px, y: py }, { x: bx + nx, y: by + ny }, { x: bx - nx, y: by - ny }], opt);
   }
-  if (el.stroke && el.stroke.head) parts.push(arrowAt(x1, y1, startAng));
-  if (el.stroke && el.stroke.tail) parts.push(arrowAt(x2, y2, endAng));
+  if (el.stroke && el.stroke.head) parts.push(arrowAt(x1, y1, startAng, el.stroke.head, el.stroke.headW, el.stroke.headLen));
+  if (el.stroke && el.stroke.tail) parts.push(arrowAt(x2, y2, endAng, el.stroke.tail, el.stroke.tailW, el.stroke.tailLen));
   if (parts.length > 1) {
     var g = new fabric.Group(parts, { irId: el.id, irOrigin: el.origin });
     fc.add(g);
@@ -2952,6 +3768,10 @@ function drawChartPng(el, pxW, pxH) {
   var legend = (el.hasLegend === false) ? [] : (visSeries.length >= 1 && el.chartType !== 'pie' && el.chartType !== 'doughnut' && !(el.varyColors && series.length === 1))
     ? visSeries.map(function (s, i) { return { label: s.name || ('Series ' + (i + 1)), color: s.color }; })
     : (el.varyColors ? cats.map(function (c, i) { return { label: c, color: colorOf(series[0] || {}, i) }; }) : []);
+  /* a trendline is its own legend entry in PowerPoint — "Linear (Observed)" */
+  visSeries.forEach(function (s) {
+    if (s.trend) legend.push({ label: 'Linear (' + (s.name || 'Series') + ')', color: '#333333', line: true });
+  });
   if (el.chartType === 'surface') {
     var sBandC = [el.colors[0], el.colors[1], '#A6A6A6', el.colors[3], el.colors[4]];
     var sStep = Math.max(1, Math.ceil((axMax0_ || 6) / 3));
@@ -2989,16 +3809,44 @@ function drawChartPng(el, pxW, pxH) {
   if (el.chartType === 'pie' || el.chartType === 'doughnut') {
     var s0 = series[0] || { vals: [] };
     var tot = s0.vals.reduce(function (a, b) { return a + (isFinite(b) ? b : 0); }, 0) || 1;
-    var cx = W / 2, cy = (H + topY) / 2, R = Math.min(W / 2, (H - topY) / 2) - 8, a0 = -Math.PI / 2;
+    var cx = W / 2, cy = (H + topY) / 2, R = Math.min(W / 2, (H - topY) / 2) - 8;
+    /* the ring starts where the file says, not always at 12 o'clock */
+    var a0 = -Math.PI / 2 + (el.firstAng || 0) * Math.PI / 180;
+    var holeR = R * (el.chartType === 'doughnut' ? (el.holeSize != null ? el.holeSize : 0.5) : 0);
+    var labels = [];
     s0.vals.forEach(function (v, i) {
-      var a1 = a0 + (v / tot) * 2 * Math.PI;
-      g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, R, a0, a1); g.closePath();
-      g.fillStyle = colorOf(s0, i); g.fill(); a0 = a1;
+      var frac = (isFinite(v) ? v : 0) / tot;
+      var a1 = a0 + frac * 2 * Math.PI, aM = (a0 + a1) / 2;
+      /* a pulled-out slice moves along its own middle angle */
+      /* PowerPoint throws the slice the full distance — a huge explosion puts
+         it right off the plot, leaving only its label pinned at the edge */
+      var ex = (s0.ptExplode && s0.ptExplode[i]) ? Math.min(50, s0.ptExplode[i]) * R : 0;
+      var ox = Math.cos(aM) * ex, oy = Math.sin(aM) * ex;
+      g.beginPath();
+      if (holeR > 0) {
+        g.arc(cx + ox, cy + oy, R, a0, a1);
+        g.arc(cx + ox, cy + oy, holeR, a1, a0, true);
+      } else { g.moveTo(cx + ox, cy + oy); g.arc(cx + ox, cy + oy, R, a0, a1); }
+      g.closePath(); g.fillStyle = colorOf(s0, i); g.fill();
+      if (el.showPct || el.showVals) {
+        var lr = holeR > 0 ? (holeR + R) / 2 : R * 0.68;
+        labels.push({ x: cx + ox + Math.cos(aM) * lr, y: cy + oy + Math.sin(aM) * lr,
+                      t: el.showPct ? (Math.round(frac * 100) + '%')
+                                    : (String(v) + (/%/.test(String(el.lblFmt || '')) ? '%' : '')) });
+      }
+      a0 = a1;
     });
-    if (el.chartType === 'doughnut') {
-      g.globalCompositeOperation = 'destination-out';
-      g.beginPath(); g.arc(cx, cy, R * 0.5, 0, 2 * Math.PI); g.fill();
-      g.globalCompositeOperation = 'source-over';
+    if (labels.length) {
+      g.font = 'bold ' + Math.round(F * 0.95) + 'px sans-serif';
+      g.textAlign = 'center'; g.fillStyle = '#FFFFFF';
+      labels.forEach(function (L) {
+        /* a slice thrown outside the plot keeps its label at the edge, the
+           way PowerPoint pins it, instead of vanishing off-canvas */
+        var lx = Math.max(F, Math.min(W - F, L.x)), ly = Math.max(topY + F, Math.min(H - F * 0.4, L.y));
+        var outside = (lx !== L.x || ly !== L.y);
+        g.fillStyle = outside ? '#444444' : '#FFFFFF';
+        g.fillText(L.t, lx, ly + F * 0.35);
+      });
     }
   } else if (el.chartType === 'radar') {
     var rcx = W / 2, rcy = (H + topY) / 2, RR = Math.min(W / 2, (H - topY) / 2) - F * 3;
@@ -3185,6 +4033,66 @@ function drawChartPng(el, pxW, pxH) {
           });
           g.stroke();
         }
+        /* ERROR BARS: PowerPoint's "standard error" whisker is one value for
+           the whole series — stdev / sqrt(n) — drawn on every point. */
+        if (isScat && s.errBars && s.errBars.length) {
+          var vv = s.vals.filter(function (q) { return isFinite(q); });
+          var mean = vv.reduce(function (a2, b2) { return a2 + b2; }, 0) / Math.max(1, vv.length);
+          var varr = vv.reduce(function (a2, b2) { return a2 + (b2 - mean) * (b2 - mean); }, 0) / Math.max(1, vv.length - 1);
+          var stdErr = Math.sqrt(Math.max(0, varr)) / Math.sqrt(Math.max(1, vv.length));
+          g.strokeStyle = '#555555'; g.lineWidth = 1;
+          s.errBars.forEach(function (eb) {
+            var amt = (eb.valType === 'fixedVal' && eb.val != null) ? eb.val
+                    : (eb.valType === 'stdDev' ? Math.sqrt(Math.max(0, varr)) : stdErr);
+            s.vals.forEach(function (v, i) {
+              var ex2 = ptX(s, i), ey2 = H - padB - plotH * (v / axMax);
+              if (eb.dir === 'x') {
+                var dxp = plotW * (amt / Math.max(1e-9, xMaxS));
+                g.beginPath(); g.moveTo(ex2 - dxp, ey2); g.lineTo(ex2 + dxp, ey2);
+                g.moveTo(ex2 - dxp, ey2 - 3); g.lineTo(ex2 - dxp, ey2 + 3);
+                g.moveTo(ex2 + dxp, ey2 - 3); g.lineTo(ex2 + dxp, ey2 + 3); g.stroke();
+              } else {
+                var dyp = plotH * (amt / Math.max(1e-9, axMax));
+                g.beginPath(); g.moveTo(ex2, ey2 - dyp); g.lineTo(ex2, ey2 + dyp);
+                g.moveTo(ex2 - 3, ey2 - dyp); g.lineTo(ex2 + 3, ey2 - dyp);
+                g.moveTo(ex2 - 3, ey2 + dyp); g.lineTo(ex2 + 3, ey2 + dyp); g.stroke();
+              }
+            });
+          });
+        }
+        /* TRENDLINE: least-squares fit across the series, with the equation
+           and R-squared where the file asks for them */
+        if (isScat && s.trend) {
+          var X = [], Y = [];
+          s.vals.forEach(function (v, i) { var xv = (s.xs && s.xs[i] != null) ? s.xs[i] : i + 1;
+            if (isFinite(v) && isFinite(xv)) { X.push(xv); Y.push(v); } });
+          if (X.length >= 2) {
+            var nT = X.length;
+            var sx2 = X.reduce(function (a2, b2) { return a2 + b2; }, 0) / nT;
+            var sy2 = Y.reduce(function (a2, b2) { return a2 + b2; }, 0) / nT;
+            var sxy = 0, sxx = 0, syy = 0;
+            for (var q2 = 0; q2 < nT; q2++) { var dxq = X[q2] - sx2, dyq = Y[q2] - sy2;
+              sxy += dxq * dyq; sxx += dxq * dxq; syy += dyq * dyq; }
+            var slope = sxx ? sxy / sxx : 0, intercept = sy2 - slope * sx2;
+            var r2 = (sxx && syy) ? (sxy * sxy) / (sxx * syy) : 0;
+            var xa = Math.min.apply(null, X), xb = Math.max.apply(null, X);
+            var pxA = padL + plotW * (xa / xMaxS), pyA = H - padB - plotH * ((slope * xa + intercept) / axMax);
+            var pxB = padL + plotW * (xb / xMaxS), pyB = H - padB - plotH * ((slope * xb + intercept) / axMax);
+            g.strokeStyle = '#333333'; g.lineWidth = Math.max(1, F * 0.1);
+            g.beginPath(); g.moveTo(pxA, pyA); g.lineTo(pxB, pyB); g.stroke();
+            var lbl = [];
+            if (s.trend.dispEq) lbl.push('y = ' + (Math.round(slope * 10000) / 10000) + 'x + ' + (Math.round(intercept * 10000) / 10000));
+            if (s.trend.dispR2) lbl.push('R\u00b2 = ' + (Math.round(r2 * 10000) / 10000));
+            if (lbl.length) {
+              g.font = Math.round(F * 0.9) + 'px sans-serif'; g.fillStyle = '#333333'; g.textAlign = 'left';
+              lbl.forEach(function (tx2, li3) {
+                g.fillText(tx2, Math.min(W - padR - g.measureText(tx2).width, (pxA + pxB) / 2),
+                           (pyA + pyB) / 2 - F * (1.2 - li3 * 1.1));
+              });
+            }
+            s._trendName = 'Linear (' + (s.name || 'Series') + ')';
+          }
+        }
         if (isBub) { /* circles scaled by bubbleSize (area-proportional) */
           var rMax = Math.min(plotW, plotH) * 0.13;
           g.fillStyle = s.color;
@@ -3318,6 +4226,9 @@ async function renderSlideIR(slideIR, deckIR, fc) {
   for (var i = 0; i < slideIR.elements.length; i++) {
     if (fc.__ldRenderGen !== __gen) return; /* a newer page render owns the canvas — stop */
     var el = slideIR.elements[i];
+    /* a shape carrying a 3-D scene is drawn as the projected solid instead of
+       its flat silhouette (body, extrusion, contour and its label together) */
+    if ((el.type === 'shape' || el.type === 'text') && (el.sp3d || el.scene3d) && render3DElementIR(el, sx, sy, fc)) continue;
     if (el.type === 'shape') renderShapeElementIR(el, sx, sy, fc);
     else if (el.type === 'text') {
       /* A shape that carries text (styled boxes, numbered circles, step
@@ -3335,11 +4246,13 @@ async function renderSlideIR(slideIR, deckIR, fc) {
       var pSizes = paras.map(function (p) { return (p.runs[0] && p.runs[0].sizePt) || 18; });
       var hetero = paras.length > 1 && (Math.max.apply(null, pSizes) / Math.min.apply(null, pSizes) > 1.25);
       if (!hetero) {
-        fc.add(buildTextboxFromIR(el, sx, sy));
+        var _tbx = buildTextboxFromIR(el, sx, sy);
+        fc.add(_tbx);
+        ldDrawBullets(el, _tbx, sx, sy, fc);
       } else {
         var yCur = null;
         for (var pi2 = 0; pi2 < paras.length; pi2++) {
-          var sub = Object.assign({}, el, { paragraphs: [paras[pi2]], bodyAnchor: 't' });
+          var sub = Object.assign({}, el, { paragraphs: [paras[pi2]], bodyAnchor: 't', _noOutdent: true });
           var tbp = buildTextboxFromIR(sub, sx, sy);
           tbp.set({ irPara: pi2 });
           if (yCur == null) yCur = tbp.top; else tbp.set({ top: yCur });
@@ -3451,7 +4364,7 @@ function textIRFromFabric(o, S, orig) {
   if (orig) {
     el.insL = orig.insL; el.insR = orig.insR; el.insT = orig.insT; el.insB = orig.insB;
     el.wrapNone = orig.wrapNone; el.anchorCtr = orig.anchorCtr;
-    el.txWarp = orig.txWarp; el.txVert = orig.txVert;
+    el.txWarp = orig.txWarp; el.txVert = orig.txVert; el.txRot = orig.txRot;
     el.numCol = orig.numCol; el.spcCol = orig.spcCol;
     el.stroke = orig.stroke; el.shadow = orig.shadow;
     el.glow = orig.glow; el.reflection = orig.reflection;
@@ -3561,7 +4474,154 @@ async function rasterizeSvgElToPng(el) {
    deck carrying preset shapes died with 'PRESET_PATHS is not defined'
    (found via the first published template). The renderer must carry its
    own geometry — no host should have to provide it. */
+/* CLOUD / CLOUD CALLOUT: a scalloped outline — bumps pushed outward from an
+   ellipse — plus the two trailing bubbles on the callout. Neither preset was
+   in the table, so a speech cloud imported as a plain rectangle (slide 29 #58). */
+function ldCloudPath(w, h, withTail) {
+  var bh = h * (withTail ? 0.80 : 1);
+  var N = 11, pts = [], ctl = [], i;
+  for (i = 0; i < N; i++) {
+    var t = i / N * Math.PI * 2 - Math.PI / 2;
+    pts.push([Math.cos(t), Math.sin(t) * (bh / w)]);          /* unit-ish ellipse */
+  }
+  for (i = 0; i < N; i++) {
+    var p1 = pts[i], p2 = pts[(i + 1) % N];
+    var mx = (p1[0] + p2[0]) / 2, my = (p1[1] + p2[1]) / 2;
+    var oL = Math.sqrt(mx * mx + my * my) || 1;
+    var seg = Math.sqrt((p2[0]-p1[0]) * (p2[0]-p1[0]) + (p2[1]-p1[1]) * (p2[1]-p1[1]));
+    var push = seg * 0.60;
+    ctl.push([mx + mx / oL * push, my + my / oL * push]);
+  }
+  /* FIT: a quadratic curve never leaves the hull of its points and controls,
+     so scaling that hull into the box keeps the whole cloud inside it. */
+  var all = pts.concat(ctl);
+  var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  all.forEach(function (p) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]);
+                             y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); });
+  var kx = w / Math.max(1e-6, x1 - x0), ky = bh / Math.max(1e-6, y1 - y0);
+  function FX(p) { return ((p[0] - x0) * kx).toFixed(1); }
+  function FY(p) { return ((p[1] - y0) * ky).toFixed(1); }
+  var d = 'M ' + FX(pts[0]) + ' ' + FY(pts[0]);
+  for (i = 0; i < N; i++) d += ' Q ' + FX(ctl[i]) + ' ' + FY(ctl[i]) + ' ' + FX(pts[(i + 1) % N]) + ' ' + FY(pts[(i + 1) % N]);
+  d += ' Z';
+  if (withTail) {
+    var m = Math.min(w, h);
+    [[w * 0.30, h * 0.875, m * 0.060], [w * 0.255, h * 0.960, m * 0.036]].forEach(function (c) {
+      d += ' M ' + (c[0] - c[2]).toFixed(1) + ' ' + c[1].toFixed(1) +
+           ' A ' + c[2].toFixed(1) + ' ' + c[2].toFixed(1) + ' 0 1 0 ' + (c[0] + c[2]).toFixed(1) + ' ' + c[1].toFixed(1) +
+           ' A ' + c[2].toFixed(1) + ' ' + c[2].toFixed(1) + ' 0 1 0 ' + (c[0] - c[2]).toFixed(1) + ' ' + c[1].toFixed(1) + ' Z';
+    });
+  }
+  return d;
+}
+/* PowerPoint's curved block arrows: a "C" ring opening right (or left).
+   adj1 = body thickness, adj2 = full arrow-head width, adj3 = head length,
+   each as a fraction of the shorter side. */
+function _curvedArrowPath(w, h, adj, mirror) {
+  var ss = Math.min(w, h);
+  var a1 = (adj && adj.adj1 != null ? adj.adj1 : 25000) / 100000;
+  var a2 = (adj && adj.adj2 != null ? adj.adj2 : 50000) / 100000;
+  var a3 = (adj && adj.adj3 != null ? adj.adj3 : 25000) / 100000;
+  var th = Math.max(1, Math.min(h * 0.9, ss * a1));
+  var aw = Math.max(th, Math.min(h, ss * a2));
+  var ah = Math.max(1, Math.min(w * 0.9, ss * a3));
+  var ycb = h - aw / 2, Ryo = (ycb + th / 2) / 2, cy = Ryo, Rxo = w;
+  var Ryi = Math.max(0.5, Ryo - th), Rxi = Math.max(1, w - th), xh = w - ah;
+  var yo = cy + Ryo * Math.sqrt(Math.max(0, 1 - Math.pow(ah / Rxo, 2)));
+  var yi = cy + Ryi * Math.sqrt(Math.max(0, 1 - Math.pow(Math.min(1, ah / Rxi), 2)));
+  var X = mirror ? function (v) { return w - v; } : function (v) { return v; };
+  var so = mirror ? 1 : 0, si = mirror ? 0 : 1;
+  var body = 'M ' + X(w) + ' 0' +
+    ' A ' + Rxo + ' ' + Ryo + ' 0 0 ' + so + ' ' + X(0) + ' ' + cy +
+    ' A ' + Rxo + ' ' + Ryo + ' 0 0 ' + so + ' ' + X(xh) + ' ' + yo +
+    ' L ' + X(xh) + ' ' + (ycb + aw / 2) +
+    ' L ' + X(w) + ' ' + ycb +
+    ' L ' + X(xh) + ' ' + (ycb - aw / 2) +
+    ' L ' + X(xh) + ' ' + yi +
+    ' A ' + Rxi + ' ' + Ryi + ' 0 0 ' + si + ' ' + X(th) + ' ' + cy +
+    ' A ' + Rxi + ' ' + Ryi + ' 0 0 ' + si + ' ' + X(w) + ' ' + th + ' Z';
+  var shade = 'M ' + X(w) + ' 0' +
+    ' A ' + Rxo + ' ' + Ryo + ' 0 0 ' + so + ' ' + X(0) + ' ' + cy +
+    ' L ' + X(th) + ' ' + cy +
+    ' A ' + Rxi + ' ' + Ryi + ' 0 0 ' + si + ' ' + X(w) + ' ' + th + ' Z';
+  return { body: body, shade: shade };
+}
 var PRESET_PATHS = {
+  /* a page with its bottom-right corner turned up */
+  foldedCorner: function (w, h, adj) {
+    var f = Math.min(w, h) * (adj && adj.adj != null ? adj.adj / 100000 : 0.16667);
+    return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + (h - f) + ' L ' + (w - f) + ' ' + h + ' L 0 ' + h + ' Z' +
+           ' M ' + (w - f) + ' ' + h + ' L ' + (w - f) + ' ' + (h - f) + ' L ' + w + ' ' + (h - f);
+  },
+  /* a comment box with a pointer. adj1/adj2 place the TIP relative to the
+     centre, as a fraction of the width and height, so the tail leaves through
+     whichever side the tip lies past. */
+  wedgeRectCallout: function (w, h, adj) {
+    var a1 = (adj && adj.adj1 != null ? adj.adj1 : -20833) / 100000;
+    var a2 = (adj && adj.adj2 != null ? adj.adj2 : 62500) / 100000;
+    var tx = w / 2 + a1 * w, ty = h / 2 + a2 * h;
+    var hw = w * 0.07, hh = h * 0.10;
+    if (Math.abs(a2) >= Math.abs(a1)) {
+      var bx = Math.max(hw * 1.2, Math.min(w - hw * 1.2, w / 2 + a1 * w));
+      if (a2 > 0) return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L ' + (bx + hw) + ' ' + h +
+                        ' L ' + tx + ' ' + ty + ' L ' + (bx - hw) + ' ' + h + ' L 0 ' + h + ' Z';
+      return 'M 0 0 L ' + (bx - hw) + ' 0 L ' + tx + ' ' + ty + ' L ' + (bx + hw) + ' 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z';
+    }
+    var by = Math.max(hh * 1.2, Math.min(h - hh * 1.2, h / 2 + a2 * h));
+    if (a1 > 0) return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + (by - hh) + ' L ' + tx + ' ' + ty +
+                       ' L ' + w + ' ' + (by + hh) + ' L ' + w + ' ' + h + ' L 0 ' + h + ' Z';
+    return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' L 0 ' + (by + hh) +
+           ' L ' + tx + ' ' + ty + ' L 0 ' + (by - hh) + ' Z';
+  },
+  cloud: function (w, h) { return ldCloudPath(w, h, false); },
+  cloudCallout: function (w, h) { return ldCloudPath(w, h, true); },
+  /* ── CORNER-TREATMENT RECTANGLES ── rounded or snipped on only some corners.
+     None were in the table, so they all drew as plain rectangles (slide 22
+     #44 is a round2SameRect: top corners round, bottom square). */
+  round1Rect: function (w, h) { var q = Math.min(w, h) * 0.16667;
+    return 'M 0 0 L ' + (w - q) + ' 0 Q ' + w + ' 0 ' + w + ' ' + q + ' L ' + w + ' ' + h + ' L 0 ' + h + ' Z'; },
+  round2SameRect: function (w, h) { var q = Math.min(w, h) * 0.16667;
+    return 'M ' + q + ' 0 L ' + (w - q) + ' 0 Q ' + w + ' 0 ' + w + ' ' + q + ' L ' + w + ' ' + h + ' L 0 ' + h + ' L 0 ' + q + ' Q 0 0 ' + q + ' 0 Z'; },
+  round2DiagRect: function (w, h) { var q = Math.min(w, h) * 0.16667;
+    return 'M ' + q + ' 0 L ' + w + ' 0 L ' + w + ' ' + (h - q) + ' Q ' + w + ' ' + h + ' ' + (w - q) + ' ' + h +
+           ' L 0 ' + h + ' L 0 ' + q + ' Q 0 0 ' + q + ' 0 Z'; },
+  snip1Rect: function (w, h) { var q = Math.min(w, h) * 0.16667;
+    return 'M 0 0 L ' + (w - q) + ' 0 L ' + w + ' ' + q + ' L ' + w + ' ' + h + ' L 0 ' + h + ' Z'; },
+  snip2SameRect: function (w, h) { var q = Math.min(w, h) * 0.16667;
+    return 'M ' + q + ' 0 L ' + (w - q) + ' 0 L ' + w + ' ' + q + ' L ' + w + ' ' + h + ' L 0 ' + h + ' L 0 ' + q + ' Z'; },
+  snip2DiagRect: function (w, h) { var q = Math.min(w, h) * 0.16667;
+    return 'M ' + q + ' 0 L ' + w + ' 0 L ' + w + ' ' + (h - q) + ' L ' + (w - q) + ' ' + h + ' L 0 ' + h + ' L 0 ' + q + ' Z'; },
+  snipRoundRect: function (w, h) { var q = Math.min(w, h) * 0.16667;
+    return 'M ' + q + ' 0 L ' + (w - q) + ' 0 L ' + w + ' ' + q + ' L ' + w + ' ' + h + ' L 0 ' + h + ' L 0 ' + q + ' Q 0 0 ' + q + ' 0 Z'; },
+  /* ── FLOWCHART FAMILY (missing set) ── these presets were not in the table,
+     so every one of them fell back to a plain RECTANGLE. flowChartManualInput
+     is a rectangle with a SLANTED top — left edge 4/5 of the right — which is
+     exactly what slide 20 #39 uses to make a lost flip visible; drawn as a
+     rectangle, the slant and the flips both disappeared. */
+  flowChartManualInput: function (w, h) { return 'M 0 ' + (h / 5) + ' L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z'; },
+  flowChartManualOperation: function (w, h) { return 'M 0 0 L ' + w + ' 0 L ' + (w * 4 / 5) + ' ' + h + ' L ' + (w / 5) + ' ' + h + ' Z'; },
+  flowChartPreparation: function (w, h) { return 'M ' + (w / 5) + ' 0 L ' + (w * 4 / 5) + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + (w * 4 / 5) + ' ' + h + ' L ' + (w / 5) + ' ' + h + ' L 0 ' + (h / 2) + ' Z'; },
+  flowChartCard: function (w, h) { return 'M ' + (w / 5) + ' 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' L 0 ' + (h / 5) + ' Z'; },
+  flowChartOffpageConnector: function (w, h) { return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + (h * 4 / 5) + ' L ' + (w / 2) + ' ' + h + ' L 0 ' + (h * 4 / 5) + ' Z'; },
+  flowChartExtract: function (w, h) { return 'M ' + (w / 2) + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z'; },
+  flowChartMerge: function (w, h) { return 'M 0 0 L ' + w + ' 0 L ' + (w / 2) + ' ' + h + ' Z'; },
+  flowChartSort: function (w, h) { return 'M ' + (w / 2) + ' 0 L ' + w + ' ' + (h / 2) + ' L ' + (w / 2) + ' ' + h + ' L 0 ' + (h / 2) + ' Z'; },
+  flowChartCollate: function (w, h) { return 'M 0 0 L ' + w + ' 0 L 0 ' + h + ' L ' + w + ' ' + h + ' Z'; },
+  flowChartAlternateProcess: function (w, h) { var r2 = Math.min(w, h) / 6;
+    return 'M ' + r2 + ' 0 L ' + (w - r2) + ' 0 Q ' + w + ' 0 ' + w + ' ' + r2 + ' L ' + w + ' ' + (h - r2) +
+           ' Q ' + w + ' ' + h + ' ' + (w - r2) + ' ' + h + ' L ' + r2 + ' ' + h + ' Q 0 ' + h + ' 0 ' + (h - r2) + ' L 0 ' + r2 + ' Q 0 0 ' + r2 + ' 0 Z'; },
+  flowChartDelay: function (w, h) { return 'M 0 0 L ' + (w / 2) + ' 0 A ' + (w / 2) + ' ' + (h / 2) + ' 0 0 1 ' + (w / 2) + ' ' + h + ' L 0 ' + h + ' Z'; },
+  flowChartDisplay: function (w, h) { return 'M ' + (w / 6) + ' 0 L ' + (w * 5 / 6) + ' 0 A ' + (w / 6) + ' ' + (h / 2) + ' 0 0 1 ' + (w * 5 / 6) + ' ' + h + ' L ' + (w / 6) + ' ' + h + ' L 0 ' + (h / 2) + ' Z'; },
+  flowChartDocument: function (w, h) { var b2 = h * 0.84;
+    return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + b2 + ' Q ' + (w * 0.75) + ' ' + (h * 1.05) + ' ' + (w / 2) + ' ' + b2 +
+           ' Q ' + (w * 0.25) + ' ' + (b2 - h * 0.16) + ' 0 ' + b2 + ' Z'; },
+  flowChartMagneticDisk: function (w, h) { var ry = h * 0.16;
+    return 'M 0 ' + ry + ' A ' + (w / 2) + ' ' + ry + ' 0 1 1 ' + w + ' ' + ry + ' L ' + w + ' ' + (h - ry) +
+           ' A ' + (w / 2) + ' ' + ry + ' 0 1 1 0 ' + (h - ry) + ' Z'; },
+  flowChartMagneticDrum: function (w, h) { var rx = w * 0.16;
+    return 'M ' + rx + ' 0 L ' + (w - rx) + ' 0 A ' + rx + ' ' + (h / 2) + ' 0 1 1 ' + (w - rx) + ' ' + h + ' L ' + rx + ' ' + h +
+           ' A ' + rx + ' ' + (h / 2) + ' 0 1 1 ' + rx + ' 0 Z'; },
+  flowChartProcess: function (w, h) { return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z'; },
   /* action buttons: face + glyph as even-odd cutout */
   actionButtonBackPrevious: function (w, h) {
     return 'M 0 0 L ' + w + ' 0 L ' + w + ' ' + h + ' L 0 ' + h + ' Z ' +
@@ -3630,15 +4690,30 @@ var PRESET_PATHS = {
   },
   /* speech bubble: rounded body filling the box, wedge tail dropping
      below-left (OOXML defaults adj1=-20833, adj2=62500, rad 16667) */
-  wedgeRoundRectCallout: function (w, h) {
-    var r = Math.min(w, h) * 0.16667;
-    var tipX = w * (0.5 - 0.20833), tipY = h * (0.5 + 0.625);
-    var b1 = Math.max(r, w * 0.18), b2 = Math.min(w - r, w * 0.35);
-    return 'M ' + r + ' 0 L ' + (w - r) + ' 0 Q ' + w + ' 0 ' + w + ' ' + r +
-           ' L ' + w + ' ' + (h - r) + ' Q ' + w + ' ' + h + ' ' + (w - r) + ' ' + h +
-           ' L ' + b2 + ' ' + h + ' L ' + tipX + ' ' + tipY + ' L ' + b1 + ' ' + h +
-           ' L ' + r + ' ' + h + ' Q 0 ' + h + ' 0 ' + (h - r) + ' L 0 ' + r + ' Q 0 0 ' + r + ' 0 Z';
+  wedgeRoundRectCallout: function (w, h, adj) {
+    var a1 = (adj && adj.adj1 != null ? adj.adj1 : -20833) / 100000;
+    var a2 = (adj && adj.adj2 != null ? adj.adj2 : 62500) / 100000;
+    var a3 = (adj && adj.adj3 != null ? adj.adj3 : 16667) / 100000;
+    var r = Math.min(w, h) * Math.max(0, Math.min(0.5, a3));
+    var tx = w / 2 + a1 * w, ty = h / 2 + a2 * h;
+    var hw = Math.min(w * 0.09, Math.max(1, (w - 2 * r) / 2));
+    var hh = Math.min(h * 0.12, Math.max(1, (h - 2 * r) / 2));
+    var TL = 'M ' + r + ' 0', TR = ' L ' + (w - r) + ' 0 Q ' + w + ' 0 ' + w + ' ' + r;
+    var RB = ' L ' + w + ' ' + (h - r) + ' Q ' + w + ' ' + h + ' ' + (w - r) + ' ' + h;
+    var BL = ' L ' + r + ' ' + h + ' Q 0 ' + h + ' 0 ' + (h - r);
+    var LT = ' L 0 ' + r + ' Q 0 0 ' + r + ' 0 Z';
+    var tip = ' L ' + tx + ' ' + ty;
+    if (Math.abs(a2) >= Math.abs(a1)) {
+      var bx = Math.max(r + hw, Math.min(w - r - hw, w / 2 + a1 * w));
+      if (a2 > 0) return TL + TR + RB + ' L ' + (bx + hw) + ' ' + h + tip + ' L ' + (bx - hw) + ' ' + h + BL + LT;
+      return 'M ' + r + ' 0 L ' + (bx - hw) + ' 0' + tip + ' L ' + (bx + hw) + ' 0' + TR + RB + BL + LT;
+    }
+    var by = Math.max(r + hh, Math.min(h - r - hh, h / 2 + a2 * h));
+    if (a1 > 0) return TL + TR + ' L ' + w + ' ' + (by - hh) + tip + ' L ' + w + ' ' + (by + hh) + RB + BL + LT;
+    return TL + TR + RB + BL + ' L 0 ' + (by + hh) + tip + ' L 0 ' + (by - hh) + LT;
   },
+  curvedRightArrow: function (w, h, adj) { return _curvedArrowPath(w, h, adj, false).body; },
+  curvedLeftArrow: function (w, h, adj) { return _curvedArrowPath(w, h, adj, true).body; },
   plus: function (w, h) { var t = 1 / 3; return 'M ' + (w * t) + ' 0 L ' + (w * (1 - t)) + ' 0 L ' + (w * (1 - t)) + ' ' + (h * t) + ' L ' + w + ' ' + (h * t) + ' L ' + w + ' ' + (h * (1 - t)) + ' L ' + (w * (1 - t)) + ' ' + (h * (1 - t)) + ' L ' + (w * (1 - t)) + ' ' + h + ' L ' + (w * t) + ' ' + h + ' L ' + (w * t) + ' ' + (h * (1 - t)) + ' L 0 ' + (h * (1 - t)) + ' L 0 ' + (h * t) + ' L ' + (w * t) + ' ' + (h * t) + ' Z'; },
   heart: function (w, h) {
     return 'M ' + (w / 2) + ' ' + (h * 0.25) +
