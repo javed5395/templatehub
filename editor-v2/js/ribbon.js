@@ -1041,6 +1041,36 @@
     tabstrip.insertBefore(b, flexNode);
   });
 
+  /* ── 02 Sep 2026 — HIGH-DPI TOP BAR (MS Store 10.1.2.10) ────────────
+     The strip is built as one flat flex row, so at 175–200% display
+     scaling everything after the spacer (Upgrade / Share / avatar) was
+     pushed past the right edge of the window. Re-home the same nodes —
+     no new buttons, no changed behaviour — into two zones:
+        .rb-tabzone  tabs, takes the leftover width, scrolls if it must
+        .rb-actzone  actions, pinned to the right corner, always visible
+     Styling lives in css/editor.css → "STAGE 6".                      */
+  (function splitTopBar() {
+    var actionNodes = [undoB, redoB, themeTog, fileB, uploadB, dlB, planB, shB, avatarB];
+    var tabZone = el('div', 'rb-tabzone');
+    var actZone = el('div', 'rb-actzone');
+    Array.prototype.slice.call(topbar.childNodes).forEach(function (n) {
+      if (actionNodes.indexOf(n) === -1) tabZone.appendChild(n);   /* tabs + hidden file input + spacer */
+    });
+    actionNodes.forEach(function (n) { actZone.appendChild(n); });
+    topbar.appendChild(tabZone);
+    topbar.appendChild(actZone);
+    /* keep the active tab in view when the zone has to scroll */
+    tabZone.addEventListener('wheel', function (e) {
+      if (e.deltaY && !e.deltaX && tabZone.scrollWidth > tabZone.clientWidth) {
+        tabZone.scrollLeft += e.deltaY; e.preventDefault();
+      }
+    }, { passive: false });
+    tabZone.addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest('.rb-tab');
+      if (t && t.scrollIntoView) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
+  })();
+
   /* cloud activity → toast (the Saved chip was removed from the bar) */
   if (window.Editor) Editor.on('busy', function (p) {
     if (p.on) upNote(p.kind === 'download' ? 'Preparing…' : 'Importing…');

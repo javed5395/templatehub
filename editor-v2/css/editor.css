@@ -756,16 +756,12 @@ body:not([data-theme="light"]) #ribbon-slot .rb-tab{ border-radius:8px; }
 #ribbon-slot .rb-onebar{
   height:48px; align-items:center; gap:4px; padding:0 12px;
   border-bottom:1px solid rgba(255,255,255,.09);
-  /* 01 Sep 2026 (Sonnet) — MS Store cert fix: at 200% Windows display
-     scaling the topbar had no overflow handling, so the Share/Avatar
-     buttons after the flex spacer got pushed off-screen and clipped.
-     Make the strip scrollable instead of silently cutting content off,
-     and stop its children from being squeezed to nothing. */
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
+  /* 02 Sep 2026 — overflow is handled by the two zones below (STAGE 6).
+     The strip itself must NOT scroll: scrolling it pushed the action
+     buttons out of the right corner and into the middle of the bar. */
+  overflow: visible;
+  flex-wrap: nowrap;
 }
-#ribbon-slot .rb-onebar::-webkit-scrollbar{ height:4px; }
 #ribbon-slot .rb-onebar > *{ flex-shrink: 0; }
 body[data-theme="light"] #ribbon-slot .rb-onebar{ border-bottom:1px solid var(--line-1); }
 #ribbon-slot .rb-onebar .rb-tab{ height:34px; display:flex; align-items:center; border-radius:8px; }
@@ -799,3 +795,68 @@ body:not([data-theme="light"]) :is(.sb-card,.sb-text,.sb-tpl-card,.sb-chart-card
 #ribbon-slot .rb-dl{ background:linear-gradient(180deg,#2E90FA,#1570EF); border:1px solid rgba(255,255,255,.16); color:#fff; box-shadow:0 8px 20px -8px rgba(46,144,250,.9), inset 0 1px 0 rgba(255,255,255,.28); }
 #ribbon-slot .rb-dl:hover{ background:linear-gradient(180deg,#3a99fb,#1f78f0); }
 #ribbon-slot .rb-dl .rb-act-ico{ color:#fff; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE 6 — HIGH-DPI / HIGH-ZOOM TOP BAR   (02 Sep 2026)
+   MS Store 10.1.2.10: at 2560x1600 @200% (and in the browser at 175%+)
+   the merged top strip ran wider than the window, so Upgrade / Share /
+   avatar fell off the right edge, and the Editing + Selection groups of
+   the ribbon body were silently clipped.
+
+   Fix, in three parts — scoped to #ribbon-slot, nothing else touched:
+     1. ribbon.js splits the strip into .rb-tabzone (tabs, elastic) and
+        .rb-actzone (actions, pinned to the RIGHT CORNER, never scrolls).
+     2. Below 1500px of layout width the action buttons drop their text
+        labels and become icon-only pills — that is what buys back the
+        room at 175–200%. Tooltips and menus are unchanged.
+     3. The ribbon body scrolls horizontally instead of clipping, so the
+        last group is always reachable at any scaling value.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. the two zones ── */
+#ribbon-slot .rb-tabzone{
+  flex:1 1 auto; min-width:0; height:100%;
+  display:flex; align-items:center; gap:4px;
+  overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:thin; overscroll-behavior-x:contain;
+}
+#ribbon-slot .rb-tabzone > *{ flex:0 0 auto; }
+#ribbon-slot .rb-tabzone::-webkit-scrollbar{ height:4px; }
+#ribbon-slot .rb-tabzone::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.22); border-radius:4px; }
+#ribbon-slot .rb-tabzone::-webkit-scrollbar-track{ background:transparent; }
+body[data-theme="light"] #ribbon-slot .rb-tabzone::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.20); }
+
+#ribbon-slot .rb-actzone{
+  flex:0 0 auto; margin-left:auto; height:100%;
+  display:flex; align-items:center;
+  padding-left:8px;
+}
+#ribbon-slot .rb-actzone > *{ flex:0 0 auto; }
+
+/* ── 2. compact the right corner before it can ever overflow ── */
+@media (max-width:1500px){
+  #ribbon-slot .rb-actzone .rb-action{
+    font-size:0;                 /* hides the label text node only */
+    gap:0; padding:0 10px; margin-left:6px;
+  }
+  #ribbon-slot .rb-actzone .rb-action .rb-act-ico{ font-size:18px; }
+  #ribbon-slot .rb-actzone .rb-theme-tog{ margin-left:6px; }
+  #ribbon-slot .rb-actzone .rb-tico{ width:32px; height:32px; }
+}
+/* very cramped (small window, 200%+ scaling): tighten the tabs too */
+@media (max-width:1180px){
+  #ribbon-slot .rb-onebar .rb-tab{ padding:0 9px; font-size:13px; }
+  #ribbon-slot .rb-actzone{ padding-left:4px; }
+  #ribbon-slot .rb-actzone .rb-action{ padding:0 8px; margin-left:4px; }
+}
+
+/* ── 3. ribbon body: scroll, never clip ── */
+#ribbon-slot .rb-body-inner{
+  overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:thin; overscroll-behavior-x:contain;
+}
+#ribbon-slot .rb-body-inner::-webkit-scrollbar{ height:4px; }
+#ribbon-slot .rb-body-inner::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.22); border-radius:4px; }
+#ribbon-slot .rb-body-inner::-webkit-scrollbar-track{ background:transparent; }
+body[data-theme="light"] #ribbon-slot .rb-body-inner::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.20); }
+#ribbon-slot .rb-body-inner > *{ flex-shrink:0; }
