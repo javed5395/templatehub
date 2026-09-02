@@ -1335,14 +1335,16 @@ function ldDrawBullets(el, tb, sx, sy, fc) {
       var by = tops[pi];
       if (by == null) by = (tb.top || 0) + pi * runPx * 1.16;
       if (p.bulletBlip) {
+        var _bfx = _ldFxTrack(fc);
         fabric.Image.fromURL(p.bulletBlip, function (im) {
-          if (!im || fc.__ldRenderGen !== gen) return;
+          if (!im || fc.__ldRenderGen !== gen) { _bfx.finish(); return; }
           var ih = im.height || bpx, iw = im.width || bpx;
           var k = bpx / Math.max(1, ih);
           im.set({ left: bx, top: by + (runPx - bpx) * 0.55, scaleX: k, scaleY: k,
                    irId: el.id, irOrigin: el.origin, irBody: true, selectable: false, evented: false });
           fc.add(im);
           if (fc.requestRenderAll) fc.requestRenderAll();
+          _bfx.finish();
         });
         return;
       }
@@ -2717,8 +2719,30 @@ function renderShapeElementIR(el, sx, sy, fc) {
   }
 }
 
+/* -- LATE ARTWORK TRACKER --------------------------------------------
+   Glow, reflection, soft edge and picture bullets are rasterised, so they
+   reach the canvas a moment AFTER the slide is finished. A host that keeps
+   the slide on screen (the brain) never noticed. A host that saves each
+   slide the instant it finishes and moves on (the site editor) lost them,
+   and whatever was still in flight landed on the NEXT slide instead - stray
+   glows and reflections on shapes that never asked for one, and a soft-edged
+   shape left invisible because its blurred copy never arrived.
+   Every late piece registers here, so renderSlideIR can wait for it and
+   drop it if the canvas has moved on. */
+function _ldFxTrack(fc) {
+  var gen = fc.__ldRenderGen, settled = false, done = function () {};
+  var pr = new Promise(function (res) { done = res; });
+  var t = setTimeout(function () { settled = true; done(); }, 4000); /* never hang a slide */
+  if (fc.__ldFx) fc.__ldFx.push(pr);
+  return {
+    ok: function () { return fc.__ldRenderGen === gen; },
+    finish: function () { if (settled) return; settled = true; clearTimeout(t); done(); }
+  };
+}
+
 function _makeSoftEdge(obj, params, fc) {
   var radPx = Math.max(1, params.radPx || 4), elId = params.id;
+  var _fx = _ldFxTrack(fc);
   var pg0 = (typeof state !== 'undefined' && typeof currentPageObj === 'function') ? currentPageObj() : null;
   var pageOk = function () { return !pg0 || (typeof currentPageObj === 'function' && currentPageObj() === pg0); };
   obj.clone(function (c) {
@@ -2734,7 +2758,7 @@ function _makeSoftEdge(obj, params, fc) {
       g.filter = 'blur(' + Math.round(radPx * MULT * 0.6) + 'px)';
       g.drawImage(img, padR, padR);
       fabric.Image.fromURL(cv.toDataURL('image/png'), function (mimg) {
-        if (!pageOk()) return;
+        if (!pageOk() || !_fx.ok()) { _fx.finish(); return; }
         var w = obj.getScaledWidth(), h = obj.getScaledHeight();
         var pad = padR / MULT;
         mimg.set({ left: obj.left - pad, top: obj.top - pad,
@@ -2745,8 +2769,10 @@ function _makeSoftEdge(obj, params, fc) {
         fc.add(mimg);
         mimg.moveTo(Math.max(0, fc.getObjects().indexOf(obj)));
         fc.renderAll();
+        _fx.finish();
       });
     };
+    img.onerror = function () { _fx.finish(); };
     img.src = src;
   }, FABRIC_JSON_PROPS);
 }
@@ -2755,6 +2781,7 @@ function _makeReflection(obj, el, sx, sy, fc) {
   var refl = el.reflection || {};
   var startA = Math.min(1, refl.alpha != null ? refl.alpha : 0.5);
   var gapPx = ((refl.dist || 0) * sy) + 2;
+  var _fx = _ldFxTrack(fc);
   /* the raster is built ASYNC — remember which page asked for it, and drop
      the result if the user has switched pages meanwhile (otherwise the
      reflection would land on the wrong slide's canvas) */
@@ -2789,7 +2816,7 @@ function _makeReflection(obj, el, sx, sy, fc) {
       if (enP < 0.999) grad.addColorStop(Math.min(1, enP + 0.001), 'rgba(0,0,0,0)');
       g.fillStyle = grad; g.fillRect(0, 0, cv.width, cv.height);
       fabric.Image.fromURL(cv.toDataURL('image/png'), function (mimg) {
-        if (!pageOk()) return; /* page changed while rasterizing — discard */
+        if (!pageOk() || !_fx.ok()) { _fx.finish(); return; } /* page changed while rasterizing — discard */
         var w = obj.getScaledWidth(), h = obj.getScaledHeight();
         mimg.set({ left: obj.left, top: obj.top + h + gapPx,
           scaleX: w / mimg.width, scaleY: h / mimg.height,
@@ -2799,8 +2826,10 @@ function _makeReflection(obj, el, sx, sy, fc) {
         fc.getObjects().slice().forEach(function (o2) { if (o2.irReflOf === el.id && o2 !== mimg) fc.remove(o2); });
         fc.add(mimg);
         fc.renderAll();
+        _fx.finish();
       });
     };
+    img.onerror = function () { _fx.finish(); };
     img.src = src;
   }, FABRIC_JSON_PROPS);
 }
@@ -2809,6 +2838,7 @@ function _makeGlow(obj, params, fc) {
   var radPx = Math.max(2, params.radPx || 8);
   var color = params.color || 'rgba(255,165,0,0.7)';
   var elId = params.id;
+  var _fx = _ldFxTrack(fc);
   var pg0 = (typeof state !== 'undefined' && typeof currentPageObj === 'function') ? currentPageObj() : null;
   var pageOk = function () { return !pg0 || (typeof currentPageObj === 'function' && currentPageObj() === pg0); };
   obj.clone(function (c) {
@@ -2833,7 +2863,7 @@ function _makeGlow(obj, params, fc) {
       g2.filter = 'blur(' + Math.round(radPx * MULT * 0.45) + 'px)';
       g2.drawImage(sil, 0, 0); g2.drawImage(sil, 0, 0); g2.drawImage(sil, 0, 0);
       fabric.Image.fromURL(cv.toDataURL('image/png'), function (mimg) {
-        if (!pageOk()) return;
+        if (!pageOk() || !_fx.ok()) { _fx.finish(); return; }
         var w = obj.getScaledWidth(), h = obj.getScaledHeight();
         var pad = padR / MULT; /* screen-space padding */
         mimg.set({ left: obj.left - pad, top: obj.top - pad,
@@ -2844,8 +2874,10 @@ function _makeGlow(obj, params, fc) {
         fc.add(mimg);
         mimg.moveTo(Math.max(0, fc.getObjects().indexOf(obj))); /* slide BEHIND the source */
         fc.renderAll();
+        _fx.finish();
       });
     };
+    img.onerror = function () { _fx.finish(); };
     img.src = src;
   }, FABRIC_JSON_PROPS);
 }
@@ -3032,6 +3064,12 @@ function pptAxisScale(maxV, axMaxFile) {
   var mx = Math.ceil(target / u) * u;
   return { max: Math.round(mx * 1e6) / 1e6, ticks: Math.max(1, Math.round(mx / u)) };
 }
+
+/* The chart's live edit context. The brain seeded this itself, so a host that
+   did not (the site editor) threw on the very first native chart and fell back
+   to a flat PNG - editable charts became pictures. Seeded here so every host
+   that loads the renderer gets real charts. */
+window._chartCtx = window._chartCtx || {};
 
 function renderChartFabric(el, sx, sy, fc) {
   if (el.chartType !== 'bar') return false;
@@ -3804,7 +3842,8 @@ function drawChartPng(el, pxW, pxH) {
   } else series.forEach(function (s) { s.vals.forEach(function (v) { if (isFinite(v)) allVals.push(v); }); });
   var maxV = Math.max.apply(null, allVals.concat([1]));
   /* PPT auto axis (5% headroom, nice major unit) — shared with the native renderer */
-  var axMax = pptAxisScale(maxV, el.axMaxFile).max;
+  var _axsPng = pptAxisScale(maxV, el.axMaxFile);
+  var axMax = _axsPng.max, axTicksPng = _axsPng.ticks;
   var axMax0_ = axMax;
   if (el.chartType === 'pie' || el.chartType === 'doughnut') {
     var s0 = series[0] || { vals: [] };
@@ -3978,7 +4017,9 @@ function drawChartPng(el, pxW, pxH) {
     var plotW = W - padL - padR, plotH = H - padT2 - padB;
     var n = Math.max(cats.length, series[0] ? series[0].vals.length : 0, 1);
     g.textAlign = 'right'; g.fillStyle = '#888888'; g.strokeStyle = '#E5E5E5'; g.lineWidth = 1;
-    var tickN = el.hasGrid ? 5 : 1;
+    /* PowerPoint's own interval count - a fixed 5 turned a 0..12 axis into
+       0,2,5,7,10,12 instead of 0,2,4,6,8,10,12. */
+    var tickN = el.hasGrid ? axTicksPng : 1;
     if (horiz) {
       /* VERTICAL gridlines for horizontal bars — value axis runs along X */
       if (el.hasGrid) for (var tv = 0; tv <= tickN; tv++) {
@@ -4001,13 +4042,13 @@ function drawChartPng(el, pxW, pxH) {
       var isBub = el.chartType === 'bubble';
       var maxSz = 1;
       if (isBub) series.forEach(function (s) { (s.sizes || []).forEach(function (z) { if (z > maxSz) maxSz = z; }); });
-      var xMaxS = 1;
+      var xMaxS = 1, xTicksS = 4;
       if (isScat) { /* numeric x-axis gets its own nice max */
         var allX = [];
         series.forEach(function (s) { (s.xs || []).forEach(function (x2) { if (isFinite(x2)) allX.push(x2); }); });
         var mxX = Math.max.apply(null, allX.concat([1]));
-        var magX = Math.pow(10, Math.floor(Math.log(mxX) / Math.LN10));
-        xMaxS = Math.ceil(mxX / magX * 2) / 2 * magX;
+        var _axX = pptAxisScale(mxX, null);
+        xMaxS = _axX.max; xTicksS = _axX.ticks;
       }
       var ptX = function (s, i) {
         if (isScat && s.xs) return padL + plotW * ((s.xs[i] || 0) / xMaxS);
@@ -4084,10 +4125,14 @@ function drawChartPng(el, pxW, pxH) {
             if (s.trend.dispEq) lbl.push('y = ' + (Math.round(slope * 10000) / 10000) + 'x + ' + (Math.round(intercept * 10000) / 10000));
             if (s.trend.dispR2) lbl.push('R\u00b2 = ' + (Math.round(r2 * 10000) / 10000));
             if (lbl.length) {
-              g.font = Math.round(F * 0.9) + 'px sans-serif'; g.fillStyle = '#333333'; g.textAlign = 'left';
+              /* PowerPoint parks the equation above the FAR END of the line, not
+                 across the middle of the plot where it sat on top of the points. */
+              g.font = Math.round(F * 0.9) + 'px sans-serif'; g.fillStyle = '#333333'; g.textAlign = 'right';
+              var _wMax = 0;
+              lbl.forEach(function (tx2) { _wMax = Math.max(_wMax, g.measureText(tx2).width); });
+              var _ex = Math.min(W - padR, Math.max(padL + _wMax, pxB));
               lbl.forEach(function (tx2, li3) {
-                g.fillText(tx2, Math.min(W - padR - g.measureText(tx2).width, (pxA + pxB) / 2),
-                           (pyA + pyB) / 2 - F * (1.2 - li3 * 1.1));
+                g.fillText(tx2, _ex, pyB - F * (1.4 + (lbl.length - 1 - li3) * 1.15));
               });
             }
             s._trendName = 'Linear (' + (s.name || 'Series') + ')';
@@ -4113,9 +4158,9 @@ function drawChartPng(el, pxW, pxH) {
       });
       if (isScat) { /* numeric x ticks in place of category labels */
         g.fillStyle = '#666666'; g.textAlign = 'center';
-        for (var tS = 0; tS <= 4; tS++) {
-          var xv = xMaxS * tS / 4;
-          g.fillText(String(Math.round(xv * 100) / 100), padL + plotW * tS / 4, H - padB + F * 1.2);
+        for (var tS = 0; tS <= xTicksS; tS++) {
+          var xv = xMaxS * tS / xTicksS;
+          g.fillText(String(Math.round(xv * 100) / 100), padL + plotW * tS / xTicksS, H - padB + F * 1.2);
         }
       }
     } else if (el.chartType === 'bar' && el.barDir === 'bar') {
@@ -4205,6 +4250,7 @@ async function renderSlideIR(slideIR, deckIR, fc) {
      sees the bump and stops adding — slide 1's late photos can no longer
      bleed onto slide 3. */
   var __gen = (fc.__ldRenderGen = (fc.__ldRenderGen || 0) + 1);
+  fc.__ldFx = [];   /* late artwork for THIS render (see _ldFxTrack) */
   fc.clear();
   var cw = fc._baseWidth || fc.getWidth();
   var ch = fc._baseHeight || fc.getHeight();
@@ -4285,6 +4331,9 @@ async function renderSlideIR(slideIR, deckIR, fc) {
      slideIRFromCanvas compares against irC0: untouched → the ORIGINAL file
      geometry is written back verbatim; moved/scaled → only the user's delta
      is applied to the original geometry. Export→reimport becomes a no-op. */
+  /* wait for the rasterised extras before the slide counts as finished -
+     otherwise a host that saves the slide here keeps none of them */
+  try { if (fc.__ldFx && fc.__ldFx.length) await Promise.all(fc.__ldFx); } catch (eFx) {}
   if (fc.__ldRenderGen !== __gen) return; /* stale render: skip stamp + renderAll */
   try {
     fc.getObjects().forEach(function (o) {
