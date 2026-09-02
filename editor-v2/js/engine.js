@@ -4136,9 +4136,15 @@ window.dissolveFlatFile = async function (file) {
     if (!base) return null;
     var blob = await (await fetch(el.src)).blob();
     var fd = new FormData(); fd.append('file', blob, 'chart.png');
+    /* The service wants a signed-in caller (or the shared token). This call
+       sent NEITHER, so every probe came back 401 and was swallowed by the
+       `if (!r.ok) return null` below - which is why Canva charts stayed flat
+       pictures even for an admin. Send what the rest of the editor sends. */
     var headers = {};
+    if (window.LD_AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
+    if (window.LD_DISSOLVE_TOKEN) headers['X-Dissolve-Token'] = window.LD_DISSOLVE_TOKEN;
     var r = await fetch(base + '/crack_chart', { method: 'POST', headers: headers, body: fd });
-    if (!r.ok) return null;
+    if (!r.ok) { if (r.status !== 422) console.warn('[crack] ' + r.status + ' from /crack_chart'); return null; }
     return await r.json();
   }
   window.ldAutoCrackCharts = async function () {
