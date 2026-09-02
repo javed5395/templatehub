@@ -4130,6 +4130,7 @@ function drawChartPng(el, pxW, pxH) {
   /* PPT auto axis (5% headroom, nice major unit) — shared with the native renderer */
   var _axsPng = pptAxisScale(maxV, el.axMaxFile);
   var axMax = _axsPng.max, axTicksPng = _axsPng.ticks;
+  if (el.grouping === 'percentStacked') { axMax = 100; axTicksPng = 5; } /* PPT pins 100% */
   var axMax0_ = axMax;
   if (el.chartType === 'pie' || el.chartType === 'doughnut') {
     var s0 = series[0] || { vals: [] };
@@ -4341,21 +4342,40 @@ function drawChartPng(el, pxW, pxH) {
         if (isArea) return padL + plotW * (n > 1 ? i / (n - 1) : 0.5); /* areas run edge-to-edge */
         return padL + plotW * (i + 0.5) / n;
       };
+      /* stacked areas ride on the running total, not on zero */
+      var _accA = null;
+      if (isArea && stacked) { _accA = []; for (var _qa = 0; _qa < n; _qa++) _accA.push(0); }
       series.forEach(function (s) {
+        var _prevA = null, _curA = null;
+        if (_accA) {
+          _prevA = _accA.slice();
+          _curA = _accA.map(function (v0, i0) { var q = s.vals[i0]; return v0 + (isFinite(q) ? q : 0); });
+          _accA = _curA.slice();
+        }
+        var _yv = function (i) {
+          var v = _curA ? _curA[i] : s.vals[i];
+          return H - padB - plotH * ((isFinite(v) ? v : 0) / axMax);
+        };
         if (isArea && s.vals.length) { /* filled body first, PPT solid style */
           g.beginPath();
           s.vals.forEach(function (v, i) {
-            var x = ptX(s, i), y = H - padB - plotH * (v / axMax);
+            var x = ptX(s, i), y = _yv(i);
             if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
           });
-          g.lineTo(ptX(s, s.vals.length - 1), H - padB);
-          g.lineTo(ptX(s, 0), H - padB);
+          if (_prevA) {
+            for (var _j = s.vals.length - 1; _j >= 0; _j--) {
+              g.lineTo(ptX(s, _j), H - padB - plotH * (_prevA[_j] / axMax));
+            }
+          } else {
+            g.lineTo(ptX(s, s.vals.length - 1), H - padB);
+            g.lineTo(ptX(s, 0), H - padB);
+          }
           g.closePath(); g.fillStyle = s.color; g.fill();
         }
         if (!isScat) {
           g.strokeStyle = s.color; g.lineWidth = Math.max(2, F * 0.18); g.beginPath();
           s.vals.forEach(function (v, i) {
-            var x = ptX(s, i), y = H - padB - plotH * (v / axMax);
+            var x = ptX(s, i), y = _yv(i);
             if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
           });
           g.stroke();
