@@ -205,8 +205,9 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .rb-action.is-primary:hover { background: #6D2FD6; }
 
 /* 6.3 ribbon body — Office density, fixed 96px */
-.rb-body { flex: 0 0 96px; background: var(--bg-chrome); overflow: hidden; }
-.rb-body-inner { height: 100%; display: flex; align-items: stretch; padding: 3px 8px 0; overflow: hidden; }
+.rb-body { flex: 0 0 96px; background: var(--bg-chrome); overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.rb-body-inner { height: 100%; display: flex; align-items: stretch; padding: 3px 8px 0; overflow-x: auto; overflow-y: hidden; }
+.rb-body-inner > * { flex-shrink: 0; }
 .rb-sep { flex: 0 0 1px; background: var(--line-1); margin: 6px 3px; }
 .rb-group { display: flex; flex-direction: column; padding: 0 4px; }
 .rb-group-body { flex: 1 1 auto; display: flex; align-items: stretch; gap: 2px; }
