@@ -1444,10 +1444,24 @@ function ld3DOutline(el) {
     case 'homePlate': return [[0,0],[w*0.75,0],[w,h/2],[w*0.75,h],[0,h]];
     case 'pentagon': pts = []; for (k = 0; k < 5; k++) { var ap = -Math.PI/2 + k*2*Math.PI/5;
       pts.push([w/2 + w/2*Math.cos(ap), h/2 + h/2*Math.sin(ap)]); } return pts;
-    case 'ellipse': case 'circle': case 'roundRect':
+    case 'roundRect': {
+      /* the corners were squared off, so a bevelled rounded box came back as a
+         hard-cornered slab (slide 12) */
+      var rr = Math.min(w, h) * ((g.adj && g.adj.adj != null) ? g.adj.adj / 100000 : 0.16667);
+      rr = Math.max(0, Math.min(Math.min(w, h) / 2, rr));
+      pts = [];
+      var corner = function (ccx, ccy, a0) { for (k = 0; k <= 6; k++) {
+        var aa = a0 + (k / 6) * Math.PI / 2; pts.push([ccx + rr * Math.cos(aa), ccy + rr * Math.sin(aa)]); } };
+      corner(rr, rr, Math.PI);                 /* top-left    */
+      corner(w - rr, rr, -Math.PI / 2);        /* top-right   */
+      corner(w - rr, h - rr, 0);               /* bottom-right*/
+      corner(rr, h - rr, Math.PI / 2);         /* bottom-left */
+      return pts;
+    }
+    case 'ellipse': case 'circle':
       pts = []; for (k = 0; k < 36; k++) { var ae = k/36*Math.PI*2;
         pts.push([w/2 + w/2*Math.cos(ae), h/2 + h/2*Math.sin(ae)]); }
-      return p === 'roundRect' ? [[0,0],[w,0],[w,h],[0,h]] : pts;
+      return pts;
     default: return [[0,0],[w,0],[w,h],[0,h]];
   }
 }
@@ -1525,13 +1539,19 @@ function ld3DProject(el, sx, sy) {
   var E = s3.extrusionH || 0;
   var fov = (sc && sc.fov) ? sc.fov : 45;
   var ob = ld3DObliqueDir(sc && sc.prst);
+  /* ORTHOGRAPHIC / ISOMETRIC cameras are PARALLEL projections - no vanishing
+     point. Running them through the perspective divide turned PowerPoint's
+     gently tilted, still-rectangular box into a hard trapezoid (slide 12:
+     orthographicFront with a 30 deg tilt). Only the perspective* family
+     converges. */
+  var _par = !!ob || /^(orthographic|isometric)/.test(String((sc && sc.prst) || ''));
   var d = Math.max(w, h) / (2 * Math.tan(Math.max(10, Math.min(120, fov)) * Math.PI / 360)) * 1.6;
   function proj(px, py, pz) {
     var x = px - w / 2, y = py - h / 2, z = pz;
     var X = M[0][0]*x + M[0][1]*y + M[0][2]*z;
     var Y = M[1][0]*x + M[1][1]*y + M[1][2]*z;
     var Z = M[2][0]*x + M[2][1]*y + M[2][2]*z;
-    var k = ob ? 1 : d / (d - Z);
+    var k = _par ? 1 : d / (d - Z);
     return { x: X * k, y: Y * k, z: Z };
   }
   var cx = (el.x + w / 2) * sx, cy = (el.y + h / 2) * sy;
@@ -1593,7 +1613,10 @@ function render3DElementIR(el, sx, sy, fc) {
     /* 3. the lit face — hue kept, lightness and saturation ramped */
     var gradAt = function (hiL, hiS, midL, midS, loL) {
       return new fabric.Gradient({ type: 'linear', gradientUnits: 'percentage',
-        coords: { x1: 0.5 - lx / 2, y1: 0.5 - ly / 2, x2: 0.5 + lx / 2, y2: 0.5 + ly / 2 },
+        /* the highlight belongs where the light IS: dir="t" must brighten the
+           TOP of the face. The ramp ran the other way, washing the BOTTOM to
+           white and darkening the lit edge (slide 12). */
+        coords: { x1: 0.5 + lx / 2, y1: 0.5 + ly / 2, x2: 0.5 - lx / 2, y2: 0.5 - ly / 2 },
         colorStops: [{ offset: 0, color: ld3DShade(baseCss, hiL, hiS) },
                      { offset: 0.55, color: ld3DShade(baseCss, midL, midS) },
                      { offset: 1, color: ld3DShade(baseCss, loL, 0) }] });
@@ -1748,6 +1771,22 @@ function buildTextboxFromIR(el, sx, sy) {
   var w = Math.max(4, Math.abs((el.w - insL - insR) * sx));
   var lines = [], styles = {};
   var firstRun = null, firstLineHeight = 1.16;
+  /* GRADIENT-FILLED TEXT: fabric only honours a gradient on the WHOLE object -
+     a Gradient handed to a per-character style is not a valid canvas fill, so
+     the glyphs painted BLACK (a WordArt line with gradient + outline + shadow
+     came in as plain black bold). When every run shares one gradient, put it
+     on the box and leave the character styles without a fill so they inherit
+     it; mixed runs keep the blended colour the parser already worked out. */
+  var _boxGradRun = null;
+  (function () {
+    var sig = null, same = true, any = false, first = null;
+    (el.paragraphs || []).forEach(function (p2) { (p2.runs || []).forEach(function (r2) {
+      var k = r2.gradStops ? JSON.stringify([r2.gradStops, r2.gradAngle]) : '';
+      if (k) { any = true; if (!first) first = r2; }
+      if (sig === null) sig = k; else if (sig !== k) same = false;
+    }); });
+    if (any && same) _boxGradRun = first;
+  })();
   el.paragraphs.forEach(function (para, li) {
     var bulletPrefix = (para.bullet && !_outd) ? (para.bullet + ' ') : '';
     var lineText = bulletPrefix + para.runs.map(function (r) { return ldRunText(r); }).join('');
@@ -1758,7 +1797,8 @@ function buildTextboxFromIR(el, sx, sy) {
       if (!firstRun) firstRun = r;
       /* Phase-1 proven formula: pt -> EMU (x12700) -> px (x sx) */
       var fpx = Math.max(2, r.sizePt * 12700 * sx);
-      var st = { fontSize: fpx, fontWeight: r.weight ? r.weight : (r.b ? 'bold' : 'normal'), fontStyle: r.i ? 'italic' : 'normal', underline: !!r.u, fill: runGradFill(r) || r.color, fontFamily: ldFF(r) };
+      var st = { fontSize: fpx, fontWeight: r.weight ? r.weight : (r.b ? 'bold' : 'normal'), fontStyle: r.i ? 'italic' : 'normal', underline: !!r.u, fill: r.color, fontFamily: ldFF(r) };
+      if (_boxGradRun) delete st.fill;   /* inherit the box gradient */
       if (r.strike) st.linethrough = true;                       /* struck through */
       if (r.highlight) st.textBackgroundColor = r.highlight;     /* marker pen behind the run */
       if (r.caps === 'small') st.fontSize = fpx * 0.8;           /* small caps: capitals at 80% */
@@ -1813,7 +1853,7 @@ function buildTextboxFromIR(el, sx, sy) {
     left: left, top: top + pitchDown - fabricDrop, width: w, textAlign: fabAlign,
     fontSize: Math.max(2, baseFontPt * 12700 * sx), /* Phase-1 proven formula */
     fontFamily: ldFF(firstRun),
-    fill: firstRun ? firstRun.color : '#000000',
+    fill: (_boxGradRun && runGradFill(_boxGradRun)) || (firstRun ? firstRun.color : '#000000'),
     angle: el.rot || 0, editable: true, styles: styles, lineHeight: firstLineHeight,
     irId: el.id, irOrigin: el.origin
   });
@@ -2596,6 +2636,32 @@ function applyCenterRotation(obj, el, sx, sy) {
   });
 }
 
+/* SmartArt nodes the author never filled in: PowerPoint paints a "[Text]"
+   prompt inside them so you can see where to type. Ours came in as blank
+   blue boxes with no hint at all. The prompt is a body twin - it is drawn,
+   never selected, and never written back to the file. */
+function ldDiagramPrompt(el, sx, sy, fc) {
+  var txt = (el.paragraphs || []).map(function (p) {
+    return (p.runs || []).map(function (r) { return r.text || ''; }).join('');
+  }).join('').trim();
+  if (txt) return;
+  var w = Math.abs(el.w * sx), h = Math.abs(el.h * sy);
+  if (w < 24 || h < 18) return;
+  var lum = 1;
+  var fc0 = (el.fill && el.fill.type === 'solid') ? String(el.fill.color || '') : '';
+  var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(fc0.replace('#', '') ? fc0.replace('#', '') : 'ffffff');
+  if (m) lum = (0.299 * parseInt(m[1], 16) + 0.587 * parseInt(m[2], 16) + 0.114 * parseInt(m[3], 16)) / 255;
+  var t = new fabric.Text('[Text]', {
+    left: (el.x + el.w / 2) * sx, top: (el.y + el.h / 2) * sy,
+    originX: 'center', originY: 'center',
+    fontSize: Math.max(9, Math.min(h * 0.42, w * 0.26)),
+    fontFamily: 'sans-serif', fill: lum < 0.6 ? '#FFFFFF' : '#7A7A7A',
+    selectable: false, evented: false, irBody: true,
+    irId: el.id, irOrigin: el.origin, irPrompt: true
+  });
+  fc.add(t);
+}
+
 function renderShapeElementIR(el, sx, sy, fc) {
   var left = el.x * sx, top = el.y * sy, w = Math.abs(el.w * sx), h = Math.abs(el.h * sy);
   /* same overscan for full-bleed unstroked cover shapes (see image renderer) */
@@ -3071,7 +3137,94 @@ function pptAxisScale(maxV, axMaxFile) {
    that loads the renderer gets real charts. */
 window._chartCtx = window._chartCtx || {};
 
+/* LIVE PIE / DOUGHNUT. Only bar charts were drawn as real objects; every
+   other type fell through to a flat picture, so a pie imported as a photo -
+   no editable slices, no data panel. Slices are real paths tagged like the
+   bars, so selection, the options panel and re-render all work unchanged. */
+function renderPieFabric(el, sx, sy, fc) {
+  var series = el.series || [], cats = el.cats || [];
+  var s0 = series[0];
+  if (!s0 || !s0.vals || !s0.vals.length) return false;
+  window._chartCtx[el.id] = { el: el, sx: sx, sy: sy };
+  var X = el.x * sx, Y = el.y * sy, W = Math.abs(el.w * sx), H = Math.abs(el.h * sy);
+  var F = el.txSzPt ? Math.max(6, el.txSzPt * 12700 * sx) : Math.max(7, H * 0.045);
+  var TXT = el.txColor || '#1A1A1A';
+  var tag = function (o, role, extra) { o.set(Object.assign({ irChart: el.id, irChartRole: role }, extra || {})); fc.add(o); return o; };
+  tag(new fabric.Rect({ left: X, top: Y, width: W, height: H, fill: 'rgba(255,255,255,0.01)', stroke: '', lockRotation: true }), 'frame');
+  var topY = Y + 4;
+  if (el.title && !el.titleDeleted) {
+    var FT = el.titleSzPt ? Math.max(6, el.titleSzPt * 12700 * sx) : F * 1.25;
+    tag(new fabric.IText(el.title, { left: X + W / 2, top: topY, originX: 'center', fontSize: FT,
+      fontWeight: 'bold', fontFamily: 'sans-serif', fill: TXT, editable: true }), 'title');
+    topY += FT * 1.55;
+  }
+  /* the legend on a pie names the CATEGORIES, each in its slice colour */
+  var pal = el.colors || [];
+  var colorOf = function (i) {
+    if (s0.ptColors && s0.ptColors[i]) return s0.ptColors[i];
+    if (pal.length) return pal[i % pal.length];
+    return s0.color || '#4472C4';
+  };
+  var botY = Y + H;
+  if (el.hasLegend !== false && cats.length) {
+    var items = cats.map(function (c) { return new fabric.Text(String(c), { fontSize: F, fontFamily: 'sans-serif', fill: TXT }); });
+    var lw = 0;
+    items.forEach(function (t) { lw += F + 6 + t.width + 14; });
+    var lx = X + (W - lw) / 2, ly = Y + H - F * 1.6;
+    items.forEach(function (t, i) {
+      tag(new fabric.Rect({ left: lx, top: ly, width: F, height: F, fill: colorOf(i) }), 'legendKey', { irChartCi: i });
+      t.set({ left: lx + F + 6, top: ly - 1 });
+      tag(t, 'legendLabel', { irChartCi: i });
+      lx += F + 6 + t.width + 14;
+    });
+    botY = ly - F * 0.5;
+  }
+  var tot = s0.vals.reduce(function (a, b) { return a + (isFinite(b) ? b : 0); }, 0) || 1;
+  var cx = X + W / 2, cy = (topY + botY) / 2;
+  var R = Math.max(6, Math.min(W / 2, (botY - topY) / 2) - 8);
+  var holeR = R * (el.chartType === 'doughnut' ? (el.holeSize != null ? el.holeSize : 0.5) : 0);
+  var a0 = -Math.PI / 2 + (el.firstAng || 0) * Math.PI / 180;
+  s0.vals.forEach(function (v, i) {
+    var frac = (isFinite(v) ? v : 0) / tot;
+    if (frac <= 0) { return; }
+    var a1 = a0 + frac * 2 * Math.PI, aM = (a0 + a1) / 2;
+    var ex = (s0.ptExplode && s0.ptExplode[i]) ? Math.min(0.5, s0.ptExplode[i]) * R : 0;
+    var ox = Math.cos(aM) * ex, oy = Math.sin(aM) * ex;
+    var big = (a1 - a0) > Math.PI ? 1 : 0;
+    /* absolute canvas coordinates: fabric derives each path's own left/top
+       from its bounds, so writing the slice where it really sits keeps the
+       ring a true circle (setting left/top by hand centres every slice on
+       its own bounding box and scatters them) */
+    var ccx = cx + ox, ccy = cy + oy;
+    var p1x = ccx + R * Math.cos(a0), p1y = ccy + R * Math.sin(a0);
+    var p2x = ccx + R * Math.cos(a1), p2y = ccy + R * Math.sin(a1);
+    var d;
+    if (holeR > 0) {
+      var h1x = ccx + holeR * Math.cos(a1), h1y = ccy + holeR * Math.sin(a1);
+      var h2x = ccx + holeR * Math.cos(a0), h2y = ccy + holeR * Math.sin(a0);
+      d = 'M ' + p1x + ' ' + p1y + ' A ' + R + ' ' + R + ' 0 ' + big + ' 1 ' + p2x + ' ' + p2y +
+          ' L ' + h1x + ' ' + h1y + ' A ' + holeR + ' ' + holeR + ' 0 ' + big + ' 0 ' + h2x + ' ' + h2y + ' Z';
+    } else {
+      d = 'M ' + ccx + ' ' + ccy + ' L ' + p1x + ' ' + p1y +
+          ' A ' + R + ' ' + R + ' 0 ' + big + ' 1 ' + p2x + ' ' + p2y + ' Z';
+    }
+    tag(new fabric.Path(d, { fill: colorOf(i), stroke: '#FFFFFF', strokeWidth: 1, lockRotation: true }),
+        'slice', { irChartSi: 0, irChartCi: i });
+    if (el.showPct || el.showVals) {
+      var lr = holeR > 0 ? (holeR + R) / 2 : R * 0.68;
+      var lbl = el.showPct ? (Math.round(frac * 100) + '%') : String(v);
+      tag(new fabric.Text(lbl, { left: cx + ox + Math.cos(aM) * lr, top: cy + oy + Math.sin(aM) * lr,
+        originX: 'center', originY: 'center', fontSize: F, fontWeight: 'bold',
+        fontFamily: 'sans-serif', fill: '#FFFFFF' }), 'valTag', { irChartSi: 0, irChartCi: i });
+    }
+    a0 = a1;
+  });
+  window._chartCtx[el.id].layout = { pie: true, cx: cx, cy: cy, R: R, holeR: holeR };
+  return true;
+}
+
 function renderChartFabric(el, sx, sy, fc) {
+  if (el.chartType === 'pie' || el.chartType === 'doughnut') return renderPieFabric(el, sx, sy, fc);
   if (el.chartType !== 'bar') return false;
   var horiz = el.barDir === 'bar';
   var series = el.series || [], cats = el.cats || [];
@@ -4275,7 +4428,7 @@ async function renderSlideIR(slideIR, deckIR, fc) {
     /* a shape carrying a 3-D scene is drawn as the projected solid instead of
        its flat silhouette (body, extrusion, contour and its label together) */
     if ((el.type === 'shape' || el.type === 'text') && (el.sp3d || el.scene3d) && render3DElementIR(el, sx, sy, fc)) continue;
-    if (el.type === 'shape') renderShapeElementIR(el, sx, sy, fc);
+    if (el.type === 'shape') { renderShapeElementIR(el, sx, sy, fc); if (el.fromDiagram) ldDiagramPrompt(el, sx, sy, fc); }
     else if (el.type === 'text') {
       /* A shape that carries text (styled boxes, numbered circles, step
          chevrons) must draw its BODY too — skipping it left white text
