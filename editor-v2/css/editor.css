@@ -774,10 +774,10 @@ body[data-theme="light"] #ribbon-slot .rb-onebar{ border-bottom:1px solid var(--
 #ribbon-slot .rb-onebar .rb-brand-name{ font-size:13.5px; }
 #ribbon-slot .rb-onebar .rb-file-btn{ margin-right:2px; }
 #ribbon-slot .rb-onebar .rb-saved{ margin-right:10px; }
-/* 02 Sep 2026 — MS cert fix: flex spacer was growing to push action buttons off-screen at high scaling; cap it so Upload/Download/Upgrade stay visible */
+/* 02 Sep 2026 — MS cert: stop flex spacer pushing action buttons off-screen */
 #ribbon-slot .rb-onebar .rb-flex{ flex-grow: 0; min-width: 8px; }
-/* 02 Sep 2026 — MS cert fix: tool body clips groups at narrow widths; allow horizontal scroll scoped to ribbon only */
-#ribbon-slot .rb-body{ overflow-x: auto; overflow-y: hidden; }
+/* 02 Sep 2026 — MS cert: tool body inner clips groups; rb-body-inner is the correct scroll target */
+#ribbon-slot .rb-body-inner{ overflow-x: auto; overflow-y: hidden; }
 #ribbon-slot .rb-body-inner > *{ flex-shrink: 0; }
 #ribbon-slot .rb-tab-ctx{ color:var(--accent); font-weight:600; }
 #ribbon-slot .rb-tab-ctx.is-active{ color:var(--accent); }
