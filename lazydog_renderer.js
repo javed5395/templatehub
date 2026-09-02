@@ -3245,6 +3245,7 @@ function renderXYFabric(el, sx, sy, fc) {
   var series = (el.series || []).filter(function (s2) { return !s2.hidden; });
   var s0 = series[0];
   if (!s0 || !s0.vals || s0.vals.length < 2) return false;
+  var multi = series.length > 1;
   var isScat = el.chartType === 'scatter';
   window._chartCtx[el.id] = { el: el, sx: sx, sy: sy };
   var X = el.x * sx, Y = el.y * sy, W = Math.abs(el.w * sx), H = Math.abs(el.h * sy);
@@ -3260,9 +3261,13 @@ function renderXYFabric(el, sx, sy, fc) {
     topY += FT * 1.55;
   }
   var padL = F * 3.2, padR = F * 1.6, padB = F * 2.4;
-  var plotL = X + padL, plotR = X + W - padR, plotT = topY + 2, plotB = Y + H - padB;
+  /* the top tick label sits ON the top gridline - without this headroom it was
+     clipped off the top of the chart box */
+  var plotL = X + padL, plotR = X + W - padR, plotT = topY + F * 0.9, plotB = Y + H - padB;
+  if (multi) plotT += F * 1.8;
   var plotW = Math.max(10, plotR - plotL), plotH = Math.max(10, plotB - plotT);
-  var vals = s0.vals.filter(function (v) { return isFinite(v); });
+  var vals = [];
+  series.forEach(function (s2) { (s2.vals || []).forEach(function (v) { if (isFinite(v)) vals.push(v); }); });
   var _ax = pptAxisScale(Math.max.apply(null, vals.concat([1])), el.axMaxFile);
   var axMax = _ax.max, tickN = Math.max(1, _ax.ticks);
   var xs = s0.xs || [];
@@ -3292,19 +3297,36 @@ function renderXYFabric(el, sx, sy, fc) {
       tag(new fabric.Text(String(c).slice(0, 14), { left: px(i), top: plotB + F * 0.4, originX: 'center',
         fontSize: F, fontFamily: 'sans-serif', fill: TXT, selectable: false, evented: false }), 'catLabel', { irChartCi: i });
     });
-    var pts = s0.vals.map(function (v, i) { return { x: px(i), y: py(v) }; });
-    tag(new fabric.Polyline(pts, { fill: '', stroke: s0.color || '#4472C4',
-      strokeWidth: Math.max(2, F * 0.22), strokeLineJoin: 'round', strokeLineCap: 'round',
-      objectCaching: false, selectable: false, evented: false }), 'lineBody');
+    series.forEach(function (s2, si) {
+      var pts = (s2.vals || []).map(function (v, i) { return { x: px(i), y: py(v) }; });
+      tag(new fabric.Polyline(pts, { fill: '', stroke: s2.color || '#4472C4',
+        strokeWidth: Math.max(2, F * 0.22), strokeLineJoin: 'round', strokeLineCap: 'round',
+        objectCaching: false, selectable: false, evented: false }), 'lineBody', { irChartSi: si });
+    });
   }
   var mr = Math.max(3, F * 0.30);
-  s0.vals.forEach(function (v, i) {
-    if (!isFinite(v)) return;
-    tag(new fabric.Circle({ left: px(i), top: py(v), radius: mr, originX: 'center', originY: 'center',
-      fill: s0.color || '#4472C4', stroke: '' }), 'point', { irChartSi: 0, irChartCi: i });
-    if (el.showVals) tag(new fabric.Text(String(v), { left: px(i), top: py(v) - F * 1.5, originX: 'center',
-      fontSize: F, fontFamily: 'sans-serif', fill: TXT, selectable: false, evented: false }), 'valTag', { irChartSi: 0, irChartCi: i });
+  series.forEach(function (s2, si) {
+    (s2.vals || []).forEach(function (v, i) {
+      if (!isFinite(v)) return;
+      tag(new fabric.Circle({ left: px(i), top: py(v), radius: mr, originX: 'center', originY: 'center',
+        fill: s2.color || '#4472C4', stroke: '' }), 'point', { irChartSi: si, irChartCi: i });
+      if (el.showVals) tag(new fabric.Text(String(v), { left: px(i), top: py(v) - F * 1.5, originX: 'center',
+        fontSize: F, fontFamily: 'sans-serif', fill: TXT, selectable: false, evented: false }), 'valTag', { irChartSi: si, irChartCi: i });
+    });
   });
+  if (multi && el.hasLegend !== false) {
+    var items = series.map(function (s2, i) { return new fabric.Text(s2.name || ('Series ' + (i + 1)),
+      { fontSize: F, fontFamily: 'sans-serif', fill: TXT }); });
+    var lw = 0; items.forEach(function (t2) { lw += F + 6 + t2.width + 14; });
+    var lx = X + (W - lw) / 2, ly = topY + 2;
+    items.forEach(function (t2, i) {
+      tag(new fabric.Rect({ left: lx, top: ly, width: F, height: F, fill: series[i].color || '#4472C4',
+        selectable: false, evented: false }), 'legendKey', { irChartSi: i });
+      t2.set({ left: lx + F + 6, top: ly - 1, selectable: false, evented: false });
+      tag(t2, 'legendLabel', { irChartSi: i });
+      lx += F + 6 + t2.width + 14;
+    });
+  }
   window._chartCtx[el.id].layout = { plotH: plotH, plotW: plotW, axMax: axMax, baseline: plotB, xy: true };
   return true;
 }
@@ -3315,8 +3337,8 @@ function renderChartFabric(el, sx, sy, fc) {
     var _s0 = (el.series || [])[0] || {};
     /* a trendline, error bars or several series still go the picture road,
        which already draws all of that correctly */
-    if ((el.series || []).length === 1 && !_s0.trend && !(_s0.errBars && _s0.errBars.length)
-        && renderXYFabric(el, sx, sy, fc)) return true;
+    var _plain = (el.series || []).every(function (q) { return !q.trend && !(q.errBars && q.errBars.length); });
+    if (_plain && renderXYFabric(el, sx, sy, fc)) return true;
     return false;
   }
   if (el.chartType !== 'bar') return false;
