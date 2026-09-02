@@ -171,6 +171,17 @@ function initFabric() {
   fc.on('object:modified', _glowRegen);
   fc.on('selection:created', _chartSelHook);
   fc.on('selection:updated', _chartSelHook);
+  fc.on('selection:cleared', closeChartOptions);
+  /* A chart is MANY objects sharing one irChart id. Deleting the selected one
+     took away only that piece - the frame went and the bars stayed. Remove
+     one, remove them all. */
+  fc.on('object:removed', function (ev) {
+    var o = ev && ev.target;
+    if (!o || !o.irChart || fc.__ldChartBusy) return;
+    _ldChartRemoveAll(o.irChart);
+    try { delete window._chartCtx[o.irChart]; } catch (e) {}
+    closeChartOptions();
+  });
   fc.on('object:modified', _chartBarModified);
   fc.on('text:editing:exited', _chartTitleEdited);
   fc.on('mouse:dblclick', function (opt) {
@@ -3356,9 +3367,25 @@ function renderChartFabric(el, sx, sy, fc) {
   return true;
 }
 
+function closeChartOptions() {
+  var p = document.getElementById('chart-opt-panel');
+  if (p) p.remove();
+}
+function _ldChartRemoveAll(id) {
+  if (!fc) return 0;
+  var n = 0;
+  fc.__ldChartBusy = true;
+  try { fc.getObjects().slice().forEach(function (o) { if (o.irChart === id) { fc.remove(o); n++; } }); }
+  finally { fc.__ldChartBusy = false; }
+  return n;
+}
 function rerenderChartById(id) {
   var ctx = window._chartCtx[id]; if (!ctx || !fc) return;
-  fc.getObjects().slice().forEach(function (o) { if (o.irChart === id) fc.remove(o); });
+  /* The panel used to survive a slide change, and then ANY edit re-drew that
+     chart onto whichever slide was on screen - a second chart appearing out
+     of nowhere. A chart is only redrawn on the canvas that already holds it. */
+  if (!fc.getObjects().some(function (o) { return o.irChart === id; })) { closeChartOptions(); return; }
+  _ldChartRemoveAll(id);
   renderChartFabric(ctx.el, ctx.sx, ctx.sy, fc);
   fc.renderAll(); if (typeof saveState === 'function') saveState();
 }
@@ -3366,6 +3393,7 @@ function rerenderChartById(id) {
 function _chartSelHook() {
   var o = fc && fc.getActiveObject();
   if (o && o.irChart) openChartOptions(o.irChart);
+  else closeChartOptions();
 }
 
 function _chartBarModified(opt) {
@@ -4403,6 +4431,7 @@ async function renderSlideIR(slideIR, deckIR, fc) {
      sees the bump and stops adding — slide 1's late photos can no longer
      bleed onto slide 3. */
   var __gen = (fc.__ldRenderGen = (fc.__ldRenderGen || 0) + 1);
+  try { closeChartOptions(); } catch (eC) {}   /* panel belongs to the old slide */
   fc.__ldFx = [];   /* late artwork for THIS render (see _ldFxTrack) */
   fc.clear();
   var cw = fc._baseWidth || fc.getWidth();
