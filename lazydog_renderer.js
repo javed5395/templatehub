@@ -3237,8 +3237,88 @@ function renderPieFabric(el, sx, sy, fc) {
   return true;
 }
 
+/* LIVE LINE / SCATTER. A single-series line or scatter with a plain numeric
+   axis is drawn as real objects, so the points can be selected and the data
+   panel edits them. Anything richer - several series, a trendline, error bars
+   - stays on the picture road, which already draws those properly. */
+function renderXYFabric(el, sx, sy, fc) {
+  var series = (el.series || []).filter(function (s2) { return !s2.hidden; });
+  var s0 = series[0];
+  if (!s0 || !s0.vals || s0.vals.length < 2) return false;
+  var isScat = el.chartType === 'scatter';
+  window._chartCtx[el.id] = { el: el, sx: sx, sy: sy };
+  var X = el.x * sx, Y = el.y * sy, W = Math.abs(el.w * sx), H = Math.abs(el.h * sy);
+  var F = el.txSzPt ? Math.max(6, el.txSzPt * 12700 * sx) : Math.max(7, H * 0.045);
+  var TXT = el.txColor || '#1A1A1A';
+  var tag = function (o, role, extra) { o.set(Object.assign({ irChart: el.id, irChartRole: role, lockRotation: true }, extra || {})); fc.add(o); return o; };
+  tag(new fabric.Rect({ left: X, top: Y, width: W, height: H, fill: 'rgba(255,255,255,0.01)', stroke: '' }), 'frame');
+  var topY = Y + 4;
+  if (el.title && !el.titleDeleted) {
+    var FT = el.titleSzPt ? Math.max(6, el.titleSzPt * 12700 * sx) : F * 1.25;
+    tag(new fabric.IText(el.title, { left: X + W / 2, top: topY, originX: 'center', fontSize: FT,
+      fontWeight: 'bold', fontFamily: 'sans-serif', fill: TXT, editable: true }), 'title');
+    topY += FT * 1.55;
+  }
+  var padL = F * 3.2, padR = F * 1.6, padB = F * 2.4;
+  var plotL = X + padL, plotR = X + W - padR, plotT = topY + 2, plotB = Y + H - padB;
+  var plotW = Math.max(10, plotR - plotL), plotH = Math.max(10, plotB - plotT);
+  var vals = s0.vals.filter(function (v) { return isFinite(v); });
+  var _ax = pptAxisScale(Math.max.apply(null, vals.concat([1])), el.axMaxFile);
+  var axMax = _ax.max, tickN = Math.max(1, _ax.ticks);
+  var xs = s0.xs || [];
+  var xMax = 1, xTick = 4;
+  if (isScat && xs.length) { var _axx = pptAxisScale(Math.max.apply(null, xs.concat([1])), null); xMax = _axx.max; xTick = Math.max(1, _axx.ticks); }
+  for (var t = 0; t <= tickN; t++) {
+    var gy = plotB - plotH * t / tickN;
+    tag(new fabric.Line([plotL, gy, plotR, gy], { stroke: '#E5E5E5', strokeWidth: 1, selectable: false, evented: false }), 'grid');
+    tag(new fabric.Text(String(Math.round(axMax * t / tickN * 100) / 100), { left: plotL - 5, top: gy - F * 0.55,
+      originX: 'right', fontSize: F, fontFamily: 'sans-serif', fill: TXT, selectable: false, evented: false }), 'valLabel');
+  }
+  tag(new fabric.Line([plotL, plotT, plotL, plotB], { stroke: '#AAAAAA', strokeWidth: 1, selectable: false, evented: false }), 'axis');
+  tag(new fabric.Line([plotL, plotB, plotR, plotB], { stroke: '#AAAAAA', strokeWidth: 1, selectable: false, evented: false }), 'axis');
+  var px = function (i) {
+    if (isScat) return plotL + plotW * ((xs[i] || 0) / Math.max(1e-9, xMax));
+    return plotL + plotW * (s0.vals.length > 1 ? i / (s0.vals.length - 1) : 0.5);
+  };
+  var py = function (v) { return plotB - plotH * ((isFinite(v) ? v : 0) / Math.max(1e-9, axMax)); };
+  if (isScat) {
+    for (var k = 0; k <= xTick; k++) {
+      var lx = plotL + plotW * k / xTick;
+      tag(new fabric.Text(String(Math.round(xMax * k / xTick * 100) / 100), { left: lx, top: plotB + F * 0.4,
+        originX: 'center', fontSize: F, fontFamily: 'sans-serif', fill: TXT, selectable: false, evented: false }), 'catLabel');
+    }
+  } else {
+    (el.cats || []).forEach(function (c, i) {
+      tag(new fabric.Text(String(c).slice(0, 14), { left: px(i), top: plotB + F * 0.4, originX: 'center',
+        fontSize: F, fontFamily: 'sans-serif', fill: TXT, selectable: false, evented: false }), 'catLabel', { irChartCi: i });
+    });
+    var pts = s0.vals.map(function (v, i) { return { x: px(i), y: py(v) }; });
+    tag(new fabric.Polyline(pts, { fill: '', stroke: s0.color || '#4472C4',
+      strokeWidth: Math.max(2, F * 0.22), strokeLineJoin: 'round', strokeLineCap: 'round',
+      objectCaching: false, selectable: false, evented: false }), 'lineBody');
+  }
+  var mr = Math.max(3, F * 0.30);
+  s0.vals.forEach(function (v, i) {
+    if (!isFinite(v)) return;
+    tag(new fabric.Circle({ left: px(i), top: py(v), radius: mr, originX: 'center', originY: 'center',
+      fill: s0.color || '#4472C4', stroke: '' }), 'point', { irChartSi: 0, irChartCi: i });
+    if (el.showVals) tag(new fabric.Text(String(v), { left: px(i), top: py(v) - F * 1.5, originX: 'center',
+      fontSize: F, fontFamily: 'sans-serif', fill: TXT, selectable: false, evented: false }), 'valTag', { irChartSi: 0, irChartCi: i });
+  });
+  window._chartCtx[el.id].layout = { plotH: plotH, plotW: plotW, axMax: axMax, baseline: plotB, xy: true };
+  return true;
+}
+
 function renderChartFabric(el, sx, sy, fc) {
   if (el.chartType === 'pie' || el.chartType === 'doughnut') return renderPieFabric(el, sx, sy, fc);
+  if (el.chartType === 'line' || el.chartType === 'scatter') {
+    var _s0 = (el.series || [])[0] || {};
+    /* a trendline, error bars or several series still go the picture road,
+       which already draws all of that correctly */
+    if ((el.series || []).length === 1 && !_s0.trend && !(_s0.errBars && _s0.errBars.length)
+        && renderXYFabric(el, sx, sy, fc)) return true;
+    return false;
+  }
   if (el.chartType !== 'bar') return false;
   var horiz = el.barDir === 'bar';
   var series = el.series || [], cats = el.cats || [];

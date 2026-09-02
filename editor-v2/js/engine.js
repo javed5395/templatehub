@@ -4122,7 +4122,14 @@ window.dissolveFlatFile = async function (file) {
             }
             var tot = 4096, dom = 0;
             for (var k2 in buckets) dom = Math.max(dom, buckets[k2]);
-            res(light / tot > 0.35 && dom / tot > 0.04 && dom / tot < 0.55 && dom / Math.max(1, sat) > 0.5);
+            /* A line or scatter chart is nearly all white with a thin stroke or a
+               few dots - its biggest colour blob is under 1% of the picture, so
+               the old 4% floor threw both away before the service ever saw them.
+               A second, flat-background rule lets those through; photos, which
+               are never this white, still do not qualify. */
+            var lf = light / tot, df = dom / tot, ds = dom / Math.max(1, sat);
+            res((lf > 0.35 && df > 0.04 && df < 0.55 && ds > 0.5) ||
+                (lf > 0.90 && df > 0.002 && df < 0.55 && ds > 0.35));
           } catch (e) { res(false); }
         };
         im.onerror = function () { res(false); };

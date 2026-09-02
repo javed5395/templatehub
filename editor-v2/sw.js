@@ -22,7 +22,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-var CACHE_SHELL = 'ld-editor-shell-202609021910';   /* stamped by STAMP_EDITOR_VERSION.py on every ship */
+var CACHE_SHELL = 'ld-editor-shell-202609021924';   /* stamped by STAMP_EDITOR_VERSION.py on every ship */
 var CACHE_ASSETS = 'ld-editor-assets-v1';
 
 var SHELL = [
