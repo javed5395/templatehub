@@ -4431,6 +4431,12 @@ function drawChartPng(el, pxW, pxH) {
       cats.forEach(function (c) { padL = Math.max(padL, g.measureText(String(c).slice(0, 14)).width); });
       padL += F * 1.2;
     } else padL = g.measureText(String(Math.round(axMax))).width + F * 1.2;
+    if (el.chartType === 'area' && cats.length) {
+      /* areas run edge-to-edge, so the first and last category labels sit ON
+         the plot corners — without their own gutter they were cut in half. */
+      padL = Math.max(padL, g.measureText(String(cats[0])).width / 2 + 4);
+      padR = Math.max(padR, g.measureText(String(cats[cats.length - 1])).width / 2 + 4);
+    }
     var padB = horiz ? F * 2.4 : F * 2, padT2 = topY + F * 0.8;
     var plotW = W - padL - padR, plotH = H - padT2 - padB;
     var n = Math.max(cats.length, series[0] ? series[0].vals.length : 0, 1);
@@ -4501,7 +4507,10 @@ function drawChartPng(el, pxW, pxH) {
             g.lineTo(ptX(s, s.vals.length - 1), H - padB);
             g.lineTo(ptX(s, 0), H - padB);
           }
-          g.closePath(); g.fillStyle = s.color; g.fill();
+          g.closePath(); g.fillStyle = s.color;
+          if (!stacked && series.length > 1) {   /* overlapping areas stay see-through */
+            var _ga = g.globalAlpha; g.globalAlpha = 0.55; g.fill(); g.globalAlpha = _ga;
+          } else g.fill();
         }
         if (!isScat) {
           g.strokeStyle = s.color; g.lineWidth = Math.max(2, F * 0.18); g.beginPath();
@@ -4629,6 +4638,8 @@ function drawChartPng(el, pxW, pxH) {
       /* value ticks along the bottom (same divisions as the gridlines) */
       g.textAlign = 'center'; g.fillStyle = '#888888';
       var tickNH = el.hasGrid ? 5 : 1;
+      var _lwH = g.measureText(String(Math.round(axMax))).width;
+      while (tickNH > 1 && plotW / tickNH < _lwH * 1.3) tickNH--;
       for (var tH = 0; tH <= tickNH; tH++) g.fillText(String(Math.round(axMax * tH / tickNH)), padL + plotW * tH / tickNH, H - padB + F * 1.2);
     } else {
       /* gapWidth (default 150) = gap as % of one bar: barW = group/(nSeries + gap/100) */
