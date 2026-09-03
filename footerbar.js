@@ -113,10 +113,6 @@
       <a href="mailto:support@lazydogtemplates.com" title="support@lazydogtemplates.com" class="ic-mail" aria-label="Email us">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M1.5 5.25A2.25 2.25 0 013.75 3h16.5a2.25 2.25 0 012.25 2.25v13.5A2.25 2.25 0 0120.25 21H3.75a2.25 2.25 0 01-2.25-2.25V5.25zm2.4-.75l7.494 6.017a1.05 1.05 0 001.312 0L20.2 4.5H3.9zM21 6.31l-7.31 5.87a2.55 2.55 0 01-3.19 0L3 6.31V18.75c0 .414.336.75.75.75h16.5a.75.75 0 00.75-.75V6.31z"/></svg>
       </a>
-      <a href="https://apps.microsoft.com/detail/XP8LW3QG971T8N" title="Get LazyDog Editor on Microsoft Store" target="_blank" rel="noopener" class="ms-store-badge" style="display:inline-flex;align-items:center;gap:8px;background:#000;color:#fff;padding:6px 12px;border-radius:6px;text-decoration:none;">
-        <svg width="16" height="16" viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="13" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="13" width="10" height="10" fill="#00a4ef"/><rect x="13" y="13" width="10" height="10" fill="#ffb900"/></svg>
-        <span style="font-size:12px;font-weight:600;font-family:'Inter',sans-serif;">Microsoft Store</span>
-      </a>
 <!-- YouTube icon removed 29 Jul 2026: href="#", no channel behind it. -->
     </div>
     <div class="footer-legal-row">
