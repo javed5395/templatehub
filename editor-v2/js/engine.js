@@ -2574,6 +2574,21 @@ window.ldComposeAppend = async function (sentence, opts) {
       state.pages.splice(at + i, 0, page);
       state.notes.splice(at + i, 0, '');
     });
+    /* 04 Sep 2026 - BLANK AI SLIDES. The step that paints a design onto the
+       canvas needs the deck's page size, and it returns in SILENCE when it has
+       none. A deck that was not itself made by the AI - a brand-new editor, or
+       one built by hand - has no deck record at all, so the design arrived,
+       the slide was added, it said "Slide added" and drew absolutely nothing.
+       Adopt the page size that came back with the design, expressed with the
+       shape of the canvas already open, so the slides already in the deck are
+       never reshaped. */
+    if (!window._deckIR) {
+      var _dw = (deck && deck.size && deck.size.w) ? deck.size.w : 12192000;
+      var _dh = (deck && deck.size && deck.size.h) ? deck.size.h : 6858000;
+      if (fc && fc._baseWidth && fc._baseHeight) _dh = Math.round(_dw * (fc._baseHeight / fc._baseWidth));
+      window._deckIR = { size: { w: _dw, h: _dh }, slides: [] };
+    }
+
     /* keep the deck IR in step so saving and exporting see the new slides */
     try {
       if (window._deckIR && window._deckIR.slides) {

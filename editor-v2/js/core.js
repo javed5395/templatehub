@@ -252,6 +252,18 @@ async function loadPageIntoCanvas(index) {
       });
     });
   } else if (page.ir && typeof renderSlideIR === 'function') {
+    /* 04 Sep 2026 - SAFETY NET FOR BLANK SLIDES. The painter needs the deck's
+       page size and draws nothing, silently, without it. Any slide that
+       carries a design now always gets one: if the deck has no record of its
+       own, build one shaped like the canvas that is already open. */
+    if (!window._deckIR || !window._deckIR.size || !window._deckIR.size.w) {
+      var _fw = 12192000;
+      var _fh = (fc._baseWidth && fc._baseHeight)
+        ? Math.round(_fw * (fc._baseHeight / fc._baseWidth)) : 6858000;
+      window._deckIR = window._deckIR || {};
+      window._deckIR.size = { w: _fw, h: _fh };
+      if (!window._deckIR.slides) window._deckIR.slides = [];
+    }
     if (window._deckIR && window._deckIR.size) setSlideAspect(window._deckIR.size.w, window._deckIR.size.h);
     await renderSlideIR(page.ir, window._deckIR, fc);
   } else {
