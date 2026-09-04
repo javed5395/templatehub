@@ -904,7 +904,7 @@
     ], 3));
     p.appendChild(subhead('Image — select a photo first'));
     p.appendChild(grid([
-      { matIcon: 'auto_fix_normal', label: 'Remove background', tip: 'Select a photo, then: cuts the background out (transparent PNG)', onClick: function () { run('ai', { kind: 'removeBg' }); } }
+      { matIcon: 'auto_fix_normal', label: 'Remove photo background', tip: 'Select a photo, then: cuts the background out of THAT PHOTO (transparent PNG). To clear the slide background use Backgrounds ▸ Remove background.', onClick: function () { run('ai', { kind: 'removeBg' }); } }
     ], 1));
     /* 01 Sep 2026 (Sonnet) — MS Store cert (11.16 Live Generative AI Content):
        always-visible way to flag AI-generated output for review. */
@@ -976,6 +976,15 @@
   }
   function panelBackground(p) {
     p.appendChild(head('Backgrounds'));
+
+    /* 04 Sep 2026 - take the background OFF again. This panel could only ever
+       put a background ON; the only "Remove background" in the app was the AI
+       photo tool, which is a different thing entirely. */
+    var rmBg = el('button', 'sb-primary'); rmBg.type = 'button';
+    rmBg.appendChild(mat('format_color_reset', 'sb-btn-i'));
+    rmBg.appendChild(document.createTextNode('Remove background'));
+    rmBg.addEventListener('click', function () { run('backgroundRemove'); });
+    p.appendChild(rmBg);
 
     p.appendChild(subhead('Colours'));
     var COLS = ['#FFFFFF', '#F8F9FB', '#F1F5F9', '#0F172A', '#1F2430', '#111827',

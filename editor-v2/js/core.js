@@ -284,7 +284,7 @@ function rehydrateFrames() {}
     'layerAction','ai','aiReport',
     'shapeFill','shapeOutline','shapeOutlineW','shapeOpacity','moveSlide','insert3D','insert3DText','insertMockup3D','threeAngle','threeAngleCustom','threeColorSet','threeLight','threeShadow','threeOrder','insertAsset3D',
     'publishElement','insertElement','deleteElement','componentSave','componentDelete','insertMockupLayout',
-    'mockupArea','mockupFill','signIn','signOut','backgroundImage'
+    'mockupArea','mockupFill','signIn','signOut','backgroundImage','backgroundRemove'
   ];
   var impl = {};
   /* commands that need the LazyDog cloud — named for the offline toast */
@@ -369,6 +369,32 @@ function rehydrateFrames() {}
 
   function sel() { return fc ? fc.getActiveObject() : null; }
   function isText(o) { return !!o && /text/.test(o.type || ''); }
+  /* 04 Sep 2026 - MULTI-SELECT FORMATTING.
+     A marquee / shift-click selection is one fabric "activeSelection" object,
+     not a text box, so every formatting command used to refuse it with
+     "Select a text box first". selAll() flattens the selection into the real
+     objects, and textTargets() picks out every text object inside it
+     (descending into groups), so one click on Bold / size / colour applies
+     to all of them at once. */
+  function selAll() {
+    var o = sel();
+    if (!o) return [];
+    return o.type === 'activeSelection' ? (o._objects || []).slice() : [o];
+  }
+  function collectText(o, out) {
+    if (!o) return out;
+    if (isText(o)) { out.push(o); return out; }
+    if (o.type === 'group' && o._objects) {
+      o._objects.forEach(function (x) { collectText(x, out); });
+      o.dirty = true;
+    }
+    return out;
+  }
+  function textTargets() {
+    var out = [];
+    selAll().forEach(function (o) { collectText(o, out); });
+    return out;
+  }
   function pxPerPt() { return (fc && fc._pxPerPt) || 2; }
   function effProp(o, prop, dflt) {
     if (!o) return dflt;
@@ -393,9 +419,16 @@ function rehydrateFrames() {}
     o.dirty = true;
   }
   function needText() {
-    var o = sel();
-    if (!isText(o)) { toast('Select a text box first'); return null; }
-    return o;
+    var list = textTargets();
+    if (!list.length) { toast('Select a text box first'); return null; }
+    return list[0];
+  }
+  /* run fn over EVERY text object in the selection (one or many) */
+  function eachText(fn) {
+    var list = textTargets();
+    if (!list.length) { toast('Select a text box first'); return false; }
+    list.forEach(fn);
+    return true;
   }
   function done(o) { fc.renderAll(); saveState(); emit('selection', Editor.query('selection')); }
 
@@ -498,36 +531,66 @@ function rehydrateFrames() {}
     },
 
     /* text */
-    bold: function () { var o = needText(); if (!o) return; var fw = effProp(o, 'fontWeight', 'normal'); var on = fw === 'bold' || +fw >= 600; applyTextProps(o, { fontWeight: on ? 'normal' : 'bold' }); done(); },
-    italic: function () { var o = needText(); if (!o) return; applyTextProps(o, { fontStyle: effProp(o, 'fontStyle', 'normal') === 'italic' ? 'normal' : 'italic' }); done(); },
-    underline: function () { var o = needText(); if (!o) return; applyTextProps(o, { underline: !effProp(o, 'underline', false) }); done(); },
-    strike: function () { var o = needText(); if (!o) return; applyTextProps(o, { linethrough: !effProp(o, 'linethrough', false) }); done(); },
-    clearFormat: function () {
+    /* toggles: the ON/OFF decision is taken once from the first selected text
+       box, then applied to every selected text box - so a mixed selection ends
+       up uniform instead of each box flipping its own way. */
+    bold: function () {
       var o = needText(); if (!o) return;
-      applyTextProps(o, { fontWeight: 'normal', fontStyle: 'normal', underline: false, linethrough: false, textBackgroundColor: '' });
-      o.set({ charSpacing: 0, lineHeight: 1.16 });
+      var fw = effProp(o, 'fontWeight', 'normal');
+      var want = (fw === 'bold' || +fw >= 600) ? 'normal' : 'bold';
+      eachText(function (x) { applyTextProps(x, { fontWeight: want }); }); done();
+    },
+    italic: function () {
+      var o = needText(); if (!o) return;
+      var want = effProp(o, 'fontStyle', 'normal') === 'italic' ? 'normal' : 'italic';
+      eachText(function (x) { applyTextProps(x, { fontStyle: want }); }); done();
+    },
+    underline: function () {
+      var o = needText(); if (!o) return;
+      var want = !effProp(o, 'underline', false);
+      eachText(function (x) { applyTextProps(x, { underline: want }); }); done();
+    },
+    strike: function () {
+      var o = needText(); if (!o) return;
+      var want = !effProp(o, 'linethrough', false);
+      eachText(function (x) { applyTextProps(x, { linethrough: want }); }); done();
+    },
+    clearFormat: function () {
+      if (!eachText(function (x) {
+        applyTextProps(x, { fontWeight: 'normal', fontStyle: 'normal', underline: false, linethrough: false, textBackgroundColor: '' });
+        x.set({ charSpacing: 0, lineHeight: 1.16 });
+      })) return;
       done(); toast('Formatting cleared');
     },
-    fontFamily: function (name) { var o = needText(); if (!o) return; applyTextProps(o, { fontFamily: name }); done(); },
+    fontFamily: function (name) { if (!eachText(function (x) { applyTextProps(x, { fontFamily: name }); })) return; done(); },
     fontSize: function (pt) {
-      var o = needText(); if (!o) return;
       pt = Math.max(1, Math.min(999, Math.round(pt)));
-      applyTextProps(o, { fontSize: pt * pxPerPt() });
+      if (!eachText(function (x) { applyTextProps(x, { fontSize: pt * pxPerPt() }); })) return;
       done();
     },
     fontStep: function (dir) {
-      var o = needText(); if (!o) return;
-      var cur = Math.round(effProp(o, 'fontSize', 36) / pxPerPt());
-      var next = null;
-      if (dir > 0) { for (var i = 0; i < SIZE_LADDER.length; i++) if (SIZE_LADDER[i] > cur) { next = SIZE_LADDER[i]; break; } if (next == null) next = cur + 8; }
-      else { for (var j = SIZE_LADDER.length - 1; j >= 0; j--) if (SIZE_LADDER[j] < cur) { next = SIZE_LADDER[j]; break; } if (next == null) next = Math.max(1, cur - 2); }
-      applyTextProps(o, { fontSize: next * pxPerPt() });
+      /* each box steps from ITS OWN size, so relative sizes inside a
+         multi-selection are preserved */
+      if (!eachText(function (x) {
+        var cur = Math.round(effProp(x, 'fontSize', 36) / pxPerPt());
+        var next = null;
+        if (dir > 0) { for (var i = 0; i < SIZE_LADDER.length; i++) if (SIZE_LADDER[i] > cur) { next = SIZE_LADDER[i]; break; } if (next == null) next = cur + 8; }
+        else { for (var j = SIZE_LADDER.length - 1; j >= 0; j--) if (SIZE_LADDER[j] < cur) { next = SIZE_LADDER[j]; break; } if (next == null) next = Math.max(1, cur - 2); }
+        applyTextProps(x, { fontSize: next * pxPerPt() });
+      })) return;
       done();
     },
-    textColour: function (hex) { var o = needText(); if (!o || !hex) return; applyTextProps(o, { fill: hex }); done(); },
-    highlight: function (hex) { var o = needText(); if (!o) return; o.set('textBackgroundColor', hex || ''); done(); },
+    textColour: function (hex) { if (!hex) return; if (!eachText(function (x) { applyTextProps(x, { fill: hex }); })) return; done(); },
+    highlight: function (hex) { if (!eachText(function (x) { x.set('textBackgroundColor', hex || ''); x.dirty = true; })) return; done(); },
     align: function (side) {
-      var o = needText(); if (!o) return;
+      var many = textTargets();
+      if (!many.length) { toast('Select a text box first'); return; }
+      if (many.length > 1) {
+        /* multi-selection: set the alignment on every selected text box */
+        many.forEach(function (x) { x.set('textAlign', side); x.dirty = true; });
+        done(); return;
+      }
+      var o = many[0];
       /* 21 Aug 2026 — a box exactly as wide as its text cannot show alignment;
          give it room (the slide width minus its left margin) so it does */
       if (o.type !== 'textbox') {
@@ -541,7 +604,7 @@ function rehydrateFrames() {}
     },
     bullets: function () { listify('bullet'); },
     numbering: function () { listify('number'); },
-    lineSpacing: function (v) { var o = needText(); if (!o) return; o.set('lineHeight', +v || 1.16); done(); },
+    lineSpacing: function (v) { if (!eachText(function (x) { x.set('lineHeight', +v || 1.16); x.dirty = true; })) return; done(); },
 
     /* insert */
     insertText: function (kind) { addText(kind || 'body'); emit('selection', Editor.query('selection')); },
@@ -716,8 +779,8 @@ function rehydrateFrames() {}
       done();
     },
     shapeOpacity: function (v) {
-      var o = sel(); if (!o) return toast('Select something first');
-      o.set('opacity', +v || 1);
+      var list = selAll(); if (!list.length) return toast('Select something first');
+      list.forEach(function (x) { x.set('opacity', +v || 1); x.dirty = true; });
       done();
     },
     moveSlide: function (a) { if (a) moveSlideTo(a.from, a.to); },
@@ -783,6 +846,29 @@ function rehydrateFrames() {}
         });
       }, { crossOrigin: 'anonymous' });
     },
+    /* 04 Sep 2026 - REMOVE THE SLIDE'S BACKGROUND. There was no way to take a
+       background off again - the Backgrounds panel could only put one on, and
+       the AI panel's "Remove background" is a photo tool, not a slide tool.
+       This clears the background picture AND the background colour, and also
+       deletes any full-bleed background object painted onto the slide
+       (imported and composed decks carry their background that way). */
+    backgroundRemove: function () {
+      var killed = 0;
+      (fc.getObjects() || []).slice().forEach(function (o) {
+        if (o.isBg) { fc.remove(o); killed++; }
+      });
+      fc.setBackgroundImage(null, function () {
+        fc.setBackgroundColor('#FFFFFF', function () {
+          fc.renderAll(); saveState();
+          if (typeof renderPageThumbs === 'function') {
+            var _p = state.pages[state.currentPage];
+            if (_p) { try { _p.thumb = fc.toDataURL({ format: 'jpeg', quality: 0.6, multiplier: 0.08 }); } catch (_e) { _p.thumb = null; } }
+            renderPageThumbs();
+          }
+          toast('Slide background removed');
+        });
+      });
+    },
     pageSize: function (ratio) { applyAspect(ratio); },
     zoom: function (pct) { setZoom(pct); state.zoom = pct; emit('zoom', { pct: pct }); },
     zoomFit: function () { var z = calculateFitZoom(); setZoom(z); state.zoom = z; emit('zoom', { pct: z }); },
@@ -814,11 +900,14 @@ function rehydrateFrames() {}
         : o.isFrame ? 'frame' : o.isIcon ? 'icon' : o.isIllo ? 'illustration'
         : o.type === 'image' ? 'image' : o.type === 'activeSelection' ? 'multi'
         : o.type === 'group' ? 'group' : 'shape';
-      return { kind: kind, locked: !!o.lockMovementX };
+      /* hasText: true when the selection holds ANY text (including a
+         multi-selection or a group) - the ribbon uses it to keep the text
+         controls live instead of dimming them */
+      return { kind: kind, locked: !!o.lockMovementX, hasText: textTargets().length > 0, count: selAll().length };
     },
     __qTextState: function () {
-      var o = sel();
-      if (!isText(o)) return null;
+      var o = textTargets()[0];
+      if (!o) return null;
       var fw = effProp(o, 'fontWeight', 'normal');
       var lines = String(o.text || '').split('\n').filter(function (l) { return l.trim(); });
       var list = null;
@@ -857,7 +946,12 @@ function rehydrateFrames() {}
   });
 
   function listify(kind) {
-    var o = needText(); if (!o) return;
+    var all = textTargets();
+    if (!all.length) { toast('Select a text box first'); return; }
+    all.forEach(function (x) { listifyOne(x, kind); });
+    done();
+  }
+  function listifyOne(o, kind) {
     var lines = String(o.text || '').split('\n');
     var filled = lines.filter(function (l) { return l.trim(); });
     var isB = filled.length && filled.every(function (l) { return /^\s*•\s/.test(l); });
@@ -876,7 +970,7 @@ function rehydrateFrames() {}
       });
     }
     o.set('text', out.join('\n'));
-    done();
+    o.dirty = true;
   }
 
   /* ═════════ boot ═════════ */

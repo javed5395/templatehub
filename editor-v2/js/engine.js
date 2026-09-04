@@ -1475,7 +1475,19 @@ Editor._register({
       p.canvasJSON = json;
       p.thumb = null;
     });
-    fc.renderAll(); saveState(); renderPageThumbs();
+    fc.renderAll(); saveState();
+    /* 04 Sep 2026 - THUMBNAIL STUCK ON THE OLD THEME. Every OTHER slide had
+       its saved picture cleared above (p.thumb = null) so the filmstrip
+       redraws it, but the slide you are looking at kept the picture that was
+       captured BEFORE the restyle - so its thumbnail stayed the old colour
+       until something unrelated forced a redraw. Recapture it from the live
+       canvas here, then repaint the strip. */
+    var _cp = state.pages[state.currentPage];
+    if (_cp) {
+      try { _cp.thumb = fc.toDataURL({ format: 'jpeg', quality: 0.6, multiplier: 0.08 }); }
+      catch (_e) { _cp.thumb = null; }
+    }
+    renderPageThumbs();
     showToast('Theme “' + T.name + '” applied to every slide');
   },
   themeFonts: function () { showToast('Pick a theme — its fonts ride along'); }
@@ -2446,17 +2458,32 @@ window.loadDeckFonts = function (names, done) {
 Editor._register({
   __qFonts: function () { return ALL_FONT_NAMES; },
   fontFamily: function (name) {
-    var o = fc.getActiveObject();
-    if (!o || !/text/.test(o.type || '')) { showToast('Select a text box first'); return; }
-    ensureFontLoadedV2(name, function () { fc.renderAll(); });
-    o.set('fontFamily', name);
-    if (o.styles) {
-      Object.keys(o.styles).forEach(function (li) {
-        Object.keys(o.styles[li]).forEach(function (ci) { o.styles[li][ci].fontFamily = name; });
+    /* 04 Sep 2026 - multi-select: apply the font to every text box in the
+       selection (a marquee selection is one activeSelection object, and
+       groups can hold text too). */
+    var act = fc.getActiveObject();
+    var roots = !act ? [] : (act.type === 'activeSelection' ? (act._objects || []).slice() : [act]);
+    var targets = [];
+    (function walk(list) {
+      list.forEach(function (x) {
+        if (!x) return;
+        if (/text/.test(x.type || '')) targets.push(x);
+        else if (x.type === 'group' && x._objects) { x.dirty = true; walk(x._objects); }
       });
-      if (o.initDimensions) o.initDimensions();
-    }
-    o.dirty = true; fc.renderAll(); saveState();
+    })(roots);
+    if (!targets.length) { showToast('Select a text box first'); return; }
+    ensureFontLoadedV2(name, function () { fc.renderAll(); });
+    targets.forEach(function (o) {
+      o.set('fontFamily', name);
+      if (o.styles) {
+        Object.keys(o.styles).forEach(function (li) {
+          Object.keys(o.styles[li]).forEach(function (ci) { o.styles[li][ci].fontFamily = name; });
+        });
+        if (o.initDimensions) o.initDimensions();
+      }
+      o.dirty = true;
+    });
+    fc.renderAll(); saveState();
     Editor._emit('selection', Editor.query('selection'));
   }
 });
@@ -2680,7 +2707,7 @@ function pageRefresh() { renderPageThumbs(); }
      service (/remove_bg, rembg) and comes back as a transparent PNG. */
   async function removeBackground() {
     var o = fc.getActiveObject();
-    if (!o || o.type !== 'image') { say('Click a photo on the slide first, then press Remove background'); return; }
+    if (!o || o.type !== 'image') { say('This tool cuts the background out of a PHOTO - click a photo on the slide first. To clear the slide background use Backgrounds ▸ Remove background.', 7000); return; }
     if (/^data:image\/svg/.test(o.src || '') || o.svgText) { say('That is a vector graphic — it has no background to remove'); return; }
     var base = String(window.LD_DISSOLVE_URL || '').replace(/\/$/, '');
     if (!base) { say('Background service not configured'); return; }
@@ -3349,11 +3376,15 @@ window.ldPrompt = function (message, placeholder, def, opts) {
       if (!dataUrl) return;
       if (photos.indexOf(dataUrl) === -1) photos.unshift(dataUrl);
       if (photos.length > 40) photos.pop();
+      /* 04 Sep 2026 - PICTURE SWALLOWED BY A FRAME. This used to hunt for the
+         first empty frame anywhere on the slide and drop the picture inside
+         it, so an ordinary "insert picture" landed in whatever frame-shaped
+         object happened to be on the slide instead of on the slide itself.
+         A picture now goes into a frame ONLY when the user has selected that
+         frame first. Dragging a picture onto a frame still fits it inside
+         (see the object:modified handler) - that path is unchanged. */
       var target = fc.getActiveObject();
-      if (!(target && target.isFrame)) {
-        /* no frame selected: fill the first EMPTY frame on the slide, Canva-style */
-        target = fc.getObjects().filter(function (g) { return g.isFrame && !g._frameImg && !g.frameSrc; })[0] || null;
-      }
+      if (!(target && target.isFrame)) target = null;
       fabric.Image.fromURL(dataUrl, function (img) {
         if (target) { fc.add(img); if (dropImageIntoFrame(img, target)) return; fc.remove(img); }
         var maxW = fc.getWidth() / fc.getZoom() * 0.5;

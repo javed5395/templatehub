@@ -1090,7 +1090,9 @@
   }
   function sync() {
     var sel = ask('selection');
-    var isText = !!(sel && sel.kind === 'text');
+    /* 04 Sep 2026 - a multi-selection (or a group) that contains text keeps
+       the text controls live, so Bold / size / colour work on all of it */
+    var isText = !!(sel && (sel.kind === 'text' || sel.hasText));
     /* contextual Format tab — appears when an object is selected (PPT-style) */
     if (tabBtns.format) {
       var show = !!sel;
