@@ -1084,17 +1084,20 @@ async function exportPptxFileV2() {
       var pt = null;
       try { if (ev.e) pt = fc.getPointer(ev.e); } catch (e) {}
       if (!pt) pt = o.getCenterPoint();
-      /* 04 Sep 2026 - A PICTURE MUST NOT BE SWALLOWED BY WHATEVER IT LANDS ON.
-         This used to absorb a dragged picture into ANY frame - including one
-         that already held a picture - and, below this, into any photo that
-         came with a composed or imported design. The effect was that moving a
-         newly inserted picture across a slide made it vanish into an existing
-         photo or shape. A picture is now only taken in by a frame the user
-         added and has NOT filled yet; finished photos and design artwork are
-         never drop targets. To put a picture into a frame that already has
-         one, select that frame first and then insert the picture. */
+      /* 04 Sep 2026 - A PICTURE MUST NOT BE SWALLOWED BY WHATEVER IT LANDS ON,
+         BUT A REAL FRAME MUST STILL CATCH IT.
+         Two different things in this editor both count as a "frame":
+           1. a frame YOU added from Insert > Frames - it carries frameKind;
+           2. a photo that came with an AI-made or imported design - the
+              renderer paints those as frames too, and they carry irId.
+         The old rule absorbed a dragged picture into BOTH, so moving a picture
+         across a designed slide made it vanish into the artwork. Telling them
+         apart by frameKind/irId fixes that without breaking the good case:
+         a frame you added always catches a picture and fits it (empty or
+         already filled - dropping a new photo replaces the old one, the way
+         it always did), and design artwork never swallows anything. */
       var frames = fc.getObjects().filter(function (g) {
-        return g.isFrame && !g._frameImg && !g.frameSrc;
+        return g.isFrame && g.frameKind && !g.irId;
       });
       for (var i = frames.length - 1; i >= 0; i--) {
         var b = frames[i].getBoundingRect(true, true);
