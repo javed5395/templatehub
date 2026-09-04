@@ -1063,13 +1063,13 @@
     { id: 'templates', label: 'Templates', ic: 'templates', build: panelTemplates },
     { id: 'elements', label: 'Elements', ic: 'elements', build: panelElements },
     { id: 'photos', label: 'Photos', ic: 'photos', build: panelPhotos },
-    { id: 'background', label: 'Bgrounds', ic: 'wallpaper', build: panelBackground },
+    { id: 'background', label: 'Backgrounds', ic: 'wallpaper', build: panelBackground },
     { id: 'layers', label: 'Layers', ic: 'layers-i', build: panelLayers },
     { id: 'brand', label: 'Brand', ic: 'brand-i', build: panelBrand },
     { id: 'effects', label: 'Effects', ic: 'effects-i', build: panelEffects },
     { id: 'data', label: 'Data', ic: 'data-i', build: panelData },
     { id: 'ai', label: 'AI', ic: 'ai-i', build: panelAI },
-    { id: 'components', label: 'Compon.', ic: 'components-i', build: panelComponents },
+    { id: 'components', label: 'Components', ic: 'components-i', build: panelComponents },
     { id: 'projects', label: 'Projects', ic: 'projects-i', build: panelProjects }
   ];
 

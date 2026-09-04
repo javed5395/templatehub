@@ -47,7 +47,11 @@
   /* metrics */
   --ribbon-h: 118px;          /* PowerPoint-style two-row ribbon */
   --filmstrip-h: 92px;
-  --sidebar-rail-w: 72px;     /* Canva-style icon rail */
+  /* 04 Sep 2026 - the rail was 72px but the words needed more, so
+     "Templates", "Elements", "Backgrounds", "Components" and "Projects" were
+     all sliced off and the rail grew a little sideways scrollbar. 92px plus a
+     slightly smaller label fits every word whole. */
+  --sidebar-rail-w: 100px;    /* Canva-style icon rail */
   --sidebar-panel-w: 312px;   /* Canva-style open drawer */
   --radius: 8px;
   --shadow-pop: 0 12px 40px rgba(15, 23, 42, 0.16);
@@ -294,13 +298,16 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 /* ── 7. Sidebar styles (Canva-style) — added with sidebar.js ── */
 
 /* 7.1 rail */
-.sb-rail { width: var(--sidebar-rail-w); display: flex; flex-direction: column; align-items: stretch; padding: 8px 6px; gap: 2px; overflow-y: auto; background: var(--bg-chrome); }
+.sb-rail { width: var(--sidebar-rail-w); display: flex; flex-direction: column; align-items: stretch; padding: 8px 6px; gap: 2px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; background: var(--bg-chrome); }
+.sb-rail::-webkit-scrollbar{ width:6px; }
+.sb-rail::-webkit-scrollbar-thumb{ background:rgba(128,128,128,.35); border-radius:4px; }
+.sb-rail::-webkit-scrollbar-track{ background:transparent; }
 .sb-rail-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 9px 2px 7px; border-radius: 9px; transition: background 100ms ease; }
 .sb-rail-btn:hover { background: var(--bg-inset); }
 .sb-rail-btn.is-active { background: var(--accent-soft); }
 .sb-rail-btn.is-active .sb-rail-lab { color: #0F172A; font-weight: 800; }
 .sb-rail-i, .sb-rail-i svg { width: 24px; height: 24px; }
-.sb-rail-lab { font-size: 12.5px; font-weight: 600; color: #0F172A; line-height: 1.1; }
+.sb-rail-lab { font-size: 11px; font-weight: 600; color: #0F172A; line-height: 1.1; white-space: nowrap; text-align: center; }
 .sb-svg { display: block; line-height: 0; }
 .sb-svg svg { display: block; }
 
