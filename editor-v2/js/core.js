@@ -83,25 +83,144 @@ function currentPageObjHost() { return state.pages[state.currentPage]; }
 var _historyLabel = null;
 function histLabel(l) { _historyLabel = l; }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   04 Sep 2026 - ONE USER ACTION = ONE UNDO STEP.
+   Every internal step used to write its own save point: the canvas fires
+   object:added for each piece, and each command saved again on top. So one
+   table (18 pieces) cost 19 undo clicks and showed broken half-tables on the
+   way, and one shape needed two clicks because the first landed on a
+   duplicate save point. Save points are now COALESCED - the saves fired by a
+   single action collapse into one entry - and flushed immediately whenever
+   the page is about to change or undo/redo runs, so nothing is ever written
+   to the wrong slide. Undo therefore steps through user actions, not through
+   the editor's internal bookkeeping.
+   ═══════════════════════════════════════════════════════════════════════ */
+var _slideRedo = [];          /* slides removed by undo, waiting for redo */
+var _saveTimer = null, _savePending = false;
+var SAVE_COALESCE_MS = 180;   /* a single action's saves all land inside this */
+
 function saveState() {
+  if (!fc || (typeof _restoring !== 'undefined' && _restoring) || window._bulkLoad || window._masterMode) return;
+  _savePending = true;
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(flushSaveNow, SAVE_COALESCE_MS);
+}
+
+function flushSaveNow() {
+  if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+  if (!_savePending) return;
+  _savePending = false;
   if (!fc || (typeof _restoring !== 'undefined' && _restoring) || window._bulkLoad || window._masterMode) return;
   var page = state.pages[state.currentPage];
   if (!page) return;
   var json = JSON.stringify(fc.toJSON(FABRIC_JSON_PROPS));
   var idx = page.historyIndex == null ? -1 : page.historyIndex;
   page.history = (page.history || []).slice(0, idx + 1);
-  page.history.push(json);
   page.historyMeta = (page.historyMeta || []).slice(0, idx + 1);
-  page.historyMeta.push({ t: Date.now(), n: (fc.getObjects() || []).length, label: _historyLabel });
+  var meta = { t: Date.now(), n: (fc.getObjects() || []).length, label: _historyLabel };
   _historyLabel = null;
+  /* a slide that was JUST created folds its first change (the layout the
+     editor drops in for you) into its opening state, so one Ctrl+Z removes
+     the whole slide instead of emptying it first and leaving a blank behind */
+  if (page._collapseUntil && Date.now() < page._collapseUntil && page.history.length === 1) {
+    page.history[0] = json; page.historyMeta[0] = meta;
+  } else {
+    page.history.push(json); page.historyMeta.push(meta);
+  }
+  page._collapseUntil = 0;
   if (page.history.length > 60) { page.history.shift(); page.historyMeta.shift(); }
   page.historyIndex = page.history.length - 1;
+  _slideRedo.length = 0;      /* a new change ends the redo trail */
   if (typeof updateUndoRedo === 'function') updateUndoRedo();
   Editor._emit('history', Editor.query('history'));
 }
+window.ldFlushSave = flushSaveNow;
+
+/* ═══ adding and removing a SLIDE is one undo step of its own ═══
+   Undo history is kept per slide, and adding a slide was recorded nowhere at
+   all - so Ctrl+Z could strip a new slide's contents one piece at a time but
+   could never remove the slide itself, leaving a junk blank behind with Undo
+   dead. These wrappers add the missing deck-level step. The renderer is left
+   untouched; its own functions still do the work. */
+(function () {
+  var origAdd  = window.addPage;
+  var origUndo = window.doUndo;
+  var origRedo = window.doRedo;
+
+  if (typeof origAdd === 'function') {
+    window.addPage = function () {
+      var r = origAdd.apply(this, arguments);
+      var p = state.pages[state.currentPage];
+      if (p) { p._undoAdd = true; p._collapseUntil = Date.now() + 1500; }
+      _slideRedo.length = 0;
+      return r;
+    };
+  }
+
+  if (typeof origUndo === 'function') {
+    window.doUndo = function () {
+      flushSaveNow();
+      var i = state.currentPage, p = state.pages[i];
+      if (p && p._undoAdd && (p.historyIndex == null || p.historyIndex <= 0) && state.pages.length > 1) {
+        /* bank what is actually ON this slide before taking it away, or redo
+           would bring the slide back empty */
+        captureCurrentPage();
+        _slideRedo.push({ index: i, page: p, note: state.notes[i] || '', undoneAt: Date.now() });
+        state.pages.splice(i, 1);
+        state.notes.splice(i, 1);
+        state.currentPage = Math.max(0, i - 1);
+        loadPageIntoCanvas(state.currentPage).then(function () {
+          renderPageThumbs();
+          if (typeof updateUndoRedo === 'function') updateUndoRedo();
+          Editor._emit('slides', Editor.query('slides'));
+          Editor._emit('history', Editor.query('history'));
+        });
+        if (typeof showToast === 'function') showToast('Slide removed');
+        return;
+      }
+      /* remember WHEN this slide was last stepped back, so redo can tell
+         which came last: a step inside a slide, or removing a whole slide */
+      var was = state.pages[state.currentPage];
+      var out = origUndo.apply(this, arguments);
+      if (was) was._lastUndoAt = Date.now();
+      return out;
+    };
+  }
+
+  if (typeof origRedo === 'function') {
+    window.doRedo = function () {
+      flushSaveNow();
+      var p = state.pages[state.currentPage];
+      var atEnd = !p || !p.history || p.historyIndex >= p.history.length - 1;
+      /* redo replays whatever was undone LAST. If removing a slide came after
+         the last step-back inside this slide, put the slide back first -
+         otherwise redo would silently rebuild something else. */
+      var top = _slideRedo[_slideRedo.length - 1];
+      var slideCameLast = !!top && (top.undoneAt || 0) > ((p && p._lastUndoAt) || 0);
+      if (_slideRedo.length && (atEnd || slideCameLast)) {
+        var rec = _slideRedo.pop();
+        var at = Math.min(rec.index, state.pages.length);
+        state.pages.splice(at, 0, rec.page);
+        state.notes.splice(at, 0, rec.note);
+        state.currentPage = at;
+        loadPageIntoCanvas(at).then(function () {
+          renderPageThumbs();
+          Editor._emit('slides', Editor.query('slides'));
+          Editor._emit('history', Editor.query('history'));
+        });
+        if (typeof showToast === 'function') showToast('Slide restored');
+        return;
+      }
+      return origRedo.apply(this, arguments);
+    };
+  }
+})();
 
 function captureCurrentPage() {
   if (!fc || window._masterMode) return;
+  /* the page is about to be written out or swapped - bank any save point that
+     is still waiting on the coalescing timer, so it lands on THIS slide */
+  if (typeof flushSaveNow === 'function') flushSaveNow();
   var page = state.pages[state.currentPage];
   if (!page) return;
   page.canvasJSON = fc.toJSON(FABRIC_JSON_PROPS);
@@ -479,6 +598,9 @@ function rehydrateFrames() {}
     var copy = makeBlankPage(Date.now());
     copy.canvasJSON = src.canvasJSON ? JSON.parse(JSON.stringify(src.canvasJSON)) : null;
     copy.thumb = src.thumb;
+    copy._undoAdd = true;          /* one Ctrl+Z removes the duplicate again */
+    copy._collapseUntil = Date.now() + 1500;
+    _slideRedo.length = 0;
     state.pages.splice(state.currentPage + 1, 0, copy);
     state.notes.splice(state.currentPage + 1, 0, state.notes[state.currentPage] || '');
     state.currentPage++;
