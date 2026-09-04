@@ -2488,8 +2488,17 @@ window.ldComposeAppend = async function (sentence, opts) {
     opts = opts || {};
     if (!window.LD_BACKEND) { say('Designer backend not reachable from here'); return 0; }
     /* 20 Aug 2026 (Fable) — same proper token wait as ldCompose. */
-    if (window.ldWaitAuthToken) await window.ldWaitAuthToken(30000);
-    else for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
+    /* 04 Sep 2026 - this used to wait THIRTY SECONDS in silence for a sign-in
+       token that may never arrive, then push on into a guaranteed refusal.
+       That silence is what made the AI buttons feel like a hang. Wait a
+       sensible 15 seconds, then say plainly what is wrong. */
+    if (window.ldWaitAuthToken) {
+      var _tok = await window.ldWaitAuthToken(3000);
+      if (!_tok) { say('Checking your sign-in...', 13000); _tok = await window.ldWaitAuthToken(12000); }
+      if (!_tok) { say('You need to be signed in to use the AI tools. Sign in on the main site, then try again.', 7000); return 0; }
+    } else {
+      for (var w = 0; w < 10 && !window.LD_AUTH_TOKEN; w++) await new Promise(function (r) { setTimeout(r, 500); });
+    }
 
     var r;
     try {
@@ -2589,8 +2598,31 @@ function pageRefresh() { renderPageThumbs(); }
 
 /* ── AI panel commands ── */
 (function () {
-  function busy(on, msg) { showToast(msg || (on ? 'Working…' : 'Done'), on ? 60000 : 1200); }
-  function say(m) { showToast(m, 4000); }
+  /* 04 Sep 2026 - THE AI TOOLS FAILED IN COMPLETE SILENCE.
+     ldComposeAppend - the engine behind One slide, Add slides and Mock-ups -
+     lives OUTSIDE this closure, but all eleven of its failure messages called
+     say(), which did not exist out there. So every failure threw "say is not
+     defined", the promise rejected, and the .catch called say() again and
+     threw a second time. Result: no slide, no error, no explanation - exactly
+     the "it just goes quiet after 20 seconds" report. say() is now shared, and
+     the "working" message is cleared the moment a real message arrives instead
+     of sitting on screen for a minute. */
+  var _busyEl = null;
+  function busy(on, msg) {
+    if (_busyEl && _busyEl.parentNode) _busyEl.parentNode.removeChild(_busyEl);
+    _busyEl = null;
+    if (!on) return;
+    var host = document.getElementById('toast-host');
+    if (!host) { showToast(msg || 'Working...', 60000); return; }
+    var t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg || 'Working...';
+    host.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add('show'); });
+    _busyEl = t;
+  }
+  function say(m, ms) { busy(false); showToast(m, ms || 4000); }
+  window.say = window.say || say;   /* so code outside this file can speak too */
   /* 01 Sep 2026 (Sonnet) — MS Store cert (11.16 Live Generative AI Content):
      remembers the most recent AI-generated output so the user can report it.
      Keep it small — a snippet, not the whole deck. */
