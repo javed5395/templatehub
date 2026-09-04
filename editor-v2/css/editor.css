@@ -834,7 +834,13 @@ body[data-theme="light"] #ribbon-slot .rb-tabzone::-webkit-scrollbar-thumb{ back
 #ribbon-slot .rb-actzone > *{ flex:0 0 auto; }
 
 /* ── 2. compact the right corner before it can ever overflow ── */
-@media (max-width:1500px){
+/* 04 Sep 2026 - THE TAB ROW NEEDED A SCROLLBAR ON A NORMAL SCREEN.
+   The action buttons on the right never shrink, so they were eating the room
+   the tabs needed: at a 1600px window the tabs wanted 771px and had 652px, so
+   Home / Insert / Draw slid out of sight behind a scrollbar. Dropping the
+   action labels earlier (1750px instead of 1500px) hands roughly 230px back
+   to the tabs - more than the shortfall at every normal window size. */
+@media (max-width:1750px){
   #ribbon-slot .rb-actzone .rb-action{
     font-size:0;                 /* hides the label text node only */
     gap:0; padding:0 10px; margin-left:6px;
@@ -843,6 +849,21 @@ body[data-theme="light"] #ribbon-slot .rb-tabzone::-webkit-scrollbar-thumb{ back
   #ribbon-slot .rb-actzone .rb-theme-tog{ margin-left:6px; }
   #ribbon-slot .rb-actzone .rb-tico{ width:32px; height:32px; }
 }
+/* 04 Sep 2026 - a gentle middle step, so the tabs give up a little padding
+   long before they are ever forced to scroll */
+@media (max-width:1450px){
+  #ribbon-slot .rb-onebar .rb-tab{ padding:0 11px; font-size:13.5px; }
+}
+
+/* smaller laptop windows: pull the right-hand icons in close so the tabs
+   still fit whole instead of hiding behind a scrollbar */
+@media (max-width:1400px){
+  #ribbon-slot .rb-onebar .rb-tab{ padding:0 8px; font-size:13px; }
+  #ribbon-slot .rb-actzone{ padding-left:4px; }
+  #ribbon-slot .rb-actzone .rb-action{ padding:0 6px; margin-left:3px; }
+  #ribbon-slot .rb-actzone .rb-tico{ width:29px; height:29px; }
+}
+
 /* very cramped (small window, 200%+ scaling): tighten the tabs too */
 @media (max-width:1180px){
   #ribbon-slot .rb-onebar .rb-tab{ padding:0 9px; font-size:13px; }
