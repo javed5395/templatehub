@@ -1084,27 +1084,22 @@ async function exportPptxFileV2() {
       var pt = null;
       try { if (ev.e) pt = fc.getPointer(ev.e); } catch (e) {}
       if (!pt) pt = o.getCenterPoint();
-      var frames = fc.getObjects().filter(function (g) { return g.isFrame; });
+      /* 04 Sep 2026 - A PICTURE MUST NOT BE SWALLOWED BY WHATEVER IT LANDS ON.
+         This used to absorb a dragged picture into ANY frame - including one
+         that already held a picture - and, below this, into any photo that
+         came with a composed or imported design. The effect was that moving a
+         newly inserted picture across a slide made it vanish into an existing
+         photo or shape. A picture is now only taken in by a frame the user
+         added and has NOT filled yet; finished photos and design artwork are
+         never drop targets. To put a picture into a frame that already has
+         one, select that frame first and then insert the picture. */
+      var frames = fc.getObjects().filter(function (g) {
+        return g.isFrame && !g._frameImg && !g.frameSrc;
+      });
       for (var i = frames.length - 1; i >= 0; i--) {
         var b = frames[i].getBoundingRect(true, true);
         if (pt.x >= b.left && pt.x <= b.left + b.width && pt.y >= b.top && pt.y <= b.top + b.height) {
           dropImageIntoFrame(o, frames[i]);
-          return;
-        }
-      }
-      /* 21 Aug 2026 — DESIGN frames too (the Brain's rule): a photo frame that
-         came with a composed/imported design is a group with an irId whose IR
-         element is an image with custom geometry. Dropping a photo on it
-         re-fits the photo into that shape, exactly like the Brain does. */
-      var irSlide = (state.pages[state.currentPage] || {}).irOrig || (state.pages[state.currentPage] || {}).ir ||
-                    (window._deckIR && window._deckIR.slides && window._deckIR.slides[state.currentPage]) || null;
-      if (!irSlide || !irSlide.elements) return;
-      var byId = {}; irSlide.elements.forEach(function (e) { byId[e.id] = e; });
-      var cands = fc.getObjects().filter(function (g) { return g !== o && g.irId && byId[g.irId] && byId[g.irId].type === 'image' && byId[g.irId].geom && byId[g.irId].geom.custom; });
-      for (var j = cands.length - 1; j >= 0; j--) {
-        var bb = cands[j].getBoundingRect(true, true);
-        if (pt.x >= bb.left && pt.x <= bb.left + bb.width && pt.y >= bb.top && pt.y <= bb.top + bb.height) {
-          dropImageIntoIRFrame(o, cands[j], byId[cands[j].irId]);
           return;
         }
       }
@@ -2707,23 +2702,65 @@ function pageRefresh() { renderPageThumbs(); }
      service (/remove_bg, rembg) and comes back as a transparent PNG. */
   async function removeBackground() {
     var o = fc.getActiveObject();
-    if (!o || o.type !== 'image') { say('This tool cuts the background out of a PHOTO - click a photo on the slide first. To clear the slide background use Backgrounds ▸ Remove background.', 7000); return; }
-    if (/^data:image\/svg/.test(o.src || '') || o.svgText) { say('That is a vector graphic — it has no background to remove'); return; }
+    /* 04 Sep 2026 - IT REFUSED REAL PHOTOS. The old check accepted only a
+       plain fabric image object, but every photo in an AI-made or imported
+       deck is painted as a pattern-filled group, and a photo sitting inside a
+       frame is a group too. So "click a photo on the slide first" appeared
+       even when a photo clearly WAS selected. frameImageOf() digs the actual
+       picture out of any of those shapes, and applyCutout() puts the cut-out
+       back in the right way for each shape. */
+    var natural = o ? frameImageOf(o) : null;
+    if (!natural) { say('This tool cuts the background out of a PHOTO - click a photo on the slide first. To clear the slide background use Backgrounds > Remove background.', 7000); return; }
+    if (/^data:image\/svg/.test(o.src || '') || o.svgText) { say('That is a vector graphic, it has no background to remove'); return; }
     var base = String(window.LD_DISSOLVE_URL || '').replace(/\/$/, '');
     if (!base) { say('Background service not configured'); return; }
-    say('Removing background…');
+
+    function finish() {
+      fc.renderAll(); saveState();
+      noteAI('removeBg', '(original photo)', '(background removed)');
+      say('Background removed - Ctrl+Z to undo');
+      if (window.ldRefreshTokens) window.ldRefreshTokens();
+    }
+    function applyCutout(obj, url) {
+      if (obj.type === 'image') {
+        obj.setSrc(url, function () { obj.src = url; delete obj.irId; finish(); }, { crossOrigin: 'anonymous' });
+        return;
+      }
+      var im = new Image();
+      im.onload = function () {
+        if (obj.isFrame || obj._frameImg || obj.frameSrc) {
+          obj._frameImg = im; obj.frameSrc = url;
+          if (typeof refreshFrame === 'function') refreshFrame(obj);
+        } else {
+          (obj._objects || []).forEach(function (k) {
+            if (k.type === 'image') { k.setSrc(url, function () { fc.renderAll(); }, { crossOrigin: 'anonymous' }); k.dirty = true; }
+            else if (k.fill && k.fill.source) { k.fill.source = im; k.dirty = true; }
+          });
+        }
+        delete obj.irId; obj.dirty = true; finish();
+      };
+      im.onerror = function () { say('The cut-out came back but could not be placed on the slide', 6000); };
+      im.crossOrigin = 'anonymous';
+      im.src = url;
+    }
+
+    say('Removing background...');
     try {
-      var el = o._originalElement || o._element;
       var blob;
       try {
-        var c = document.createElement('canvas'); c.width = el.naturalWidth || el.width; c.height = el.naturalHeight || el.height;
-        c.getContext('2d').drawImage(el, 0, 0);
+        var c = document.createElement('canvas');
+        c.width = natural.naturalWidth || natural.width;
+        c.height = natural.naturalHeight || natural.height;
+        c.getContext('2d').drawImage(natural, 0, 0);
         blob = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
       } catch (e) { blob = null; }
-      if (!blob) { var r0 = await fetch(o.getSrc ? o.getSrc() : o.src); blob = await r0.blob(); }
+      if (!blob) {
+        var u0 = natural.src || natural.currentSrc || (o.getSrc ? o.getSrc() : o.src);
+        var r0 = await fetch(u0); blob = await r0.blob();
+      }
       var fd = new FormData(); fd.append('file', blob, 'image.png');
       var headers = {};
-        if (window.ldWaitAuthToken) await window.ldWaitAuthToken(15000);
+      if (window.ldWaitAuthToken) await window.ldWaitAuthToken(15000);
       if (window.LD_AUTH_TOKEN) headers['Authorization'] = 'Bearer ' + window.LD_AUTH_TOKEN;
       var r = await fetch(base + '/remove_bg', { method: 'POST', headers: headers, body: fd });
       if (!r.ok) {
@@ -2732,11 +2769,7 @@ function pageRefresh() { renderPageThumbs(); }
       }
       var out = await r.blob();
       var url = await new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.readAsDataURL(out); });
-      o.setSrc(url, function () {
-        o.src = url; delete o.irId; /* a new picture — export it as such */
-        fc.renderAll(); saveState(); noteAI('removeBg', '(original photo)', '(background removed)'); say('Background removed ✓ — Ctrl+Z to undo');
-        if (window.ldRefreshTokens) window.ldRefreshTokens();
-      }, { crossOrigin: 'anonymous' });
+      applyCutout(o, url);
     } catch (e) { say('Background removal failed: ' + e.message, 6000); }
   }
   var _aiRunning = false;
