@@ -1057,7 +1057,7 @@
     .l30-bar{height:96px;margin-top:30px;background:repeating-linear-gradient(90deg,var(--l30-accent) 0 3px,transparent 3px 6px,var(--l30-accent) 6px 9px,transparent 9px 14px);}
     .l30-right{padding:34px 30px 28px;}
     .l30-word{font-size:52px;letter-spacing:.02em;text-align:right;line-height:1;}
-    .l30-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0 16px;font-size:12px;border-bottom:1px solid #C9A98F;padding-bottom:10px;}
+    .l30-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:20px 0 16px;font-size:12px;border-bottom:1px solid #C9A98F;padding-bottom:10px;}
     .l30-meta h5{font-size:13px;margin-bottom:4px;letter-spacing:.04em;}
     .l30-meta > div:last-child{text-align:right;}
     .l30-meta > div:last-child input{text-align:right;}
@@ -1923,7 +1923,7 @@
     + '<div class="l8-top"><div>'
     +   '<div class="js-logo-slot"><span class="logo-default">'+ldIn('from_0','Your Name')+'</span><img class="logo-up" alt="logo"/></div>'
     +   ldIn('from_3','123 Anywhere St.,')+ldIn('from_2','Any City, ST 12345')+'</div>'
-    +   '<div class="r">Invoice Date: '+ldDate('invDate')+'Invoice Number: '+ldIn('invNum','01234')+'Tax Number: '+ldIn('to_2','0123 4567')+'</div></div>'
+    +   '<div class="r">Invoice Date: '+ldDate('invDate')+'Due Date: '+ldDate('dueDate')+'Invoice Number: '+ldIn('invNum','01234')+'Tax Number: '+ldIn('to_2','0123 4567')+'</div></div>'
     + '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
     + '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
     + '<div class="l8-tot">'
@@ -1966,6 +1966,7 @@
       '<div class="l10-word">Invoice</div>'
     + '<div class="l10-top"><div>'
     +   '<div class="l10-f"><span>Date:</span>'+ldDate('invDate')+'</div>'
+    +   '<div class="l10-f"><span>Due:</span>'+ldDate('dueDate')+'</div>'
     +   '<div class="l10-f"><span>Invoice number:</span><input id="invNum" placeholder="" oninput="liveUpdate()"/></div>'
     +   '<div class="l10-f"><span>Billed to:</span><input id="to_0" placeholder="" oninput="liveUpdate()"/></div>'
     +   '<div class="l10-f"><span>Currency:</span>'+ldCur()+'</div></div>'
@@ -2006,7 +2007,7 @@
     ldPanel(
       '<div class="l12-bar"><div class="b"><div class="js-logo-slot"><span class="logo-default">'+ldIn('from_0','Company')+'</span><img class="logo-up" alt="logo"/></div></div>'
     + '<div class="w">INVOICE</div></div>'
-    + '<div class="l12-meta">Invoice Number: '+ldIn('invNum','#123456')+'Invoice Date: '+ldDate('invDate')+'</div>'
+    + '<div class="l12-meta">Invoice Number: '+ldIn('invNum','#123456')+'Invoice Date: '+ldDate('invDate')+'Due Date: '+ldDate('dueDate')+'</div>'
     + '<div class="l12-cols"><div><h4>FROM</h4>'+ldIn('from_3','123 Anywhere St., Any City, ST 12345')+ldIn('from_2','+123-456-7890')+ldIn('from_1','hello@yoursite.com')+'</div>'
     +   '<div><h4>BILL TO</h4>'+ldIn('to_0','Client Name')+ldIn('to_1','123 Anywhere St., Any City, ST 12345')+ldIn('to_2','+123-456-7890')+'</div></div>'
     + '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
@@ -2040,7 +2041,7 @@
     +   '<div class="l13-co">'+ldIn('to_0','Client Company')+'<div class="sm">'+ldIn('to_1','123 Anywhere st., Any City')+ldIn('to_2','123-456-7890')+'</div></div></div>'
     + '<div class="l13-card"><div class="l13-word">INVOICE</div>'
     +   '<div class="l13-two"><div><h4>Payable To</h4>'+ldIn('from_1','Mrs. Helene Paquet')+ldIn('from_3','123 Anywhere St., Any City')
-    +     '<div style="margin-top:8px;">No. '+ldIn('invNum','INV-001')+'Date '+ldDate('invDate')+'</div></div>'
+    +     '<div style="margin-top:8px;">No. '+ldIn('invNum','INV-001')+'Date '+ldDate('invDate')+'Due '+ldDate('dueDate')+'</div></div>'
     +     '<div><h4>Bank Details</h4>'+ldTa('notes','Salford & Co.\n0123 4567 8901 2345')+'</div></div>'
     +   '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
     +   '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
@@ -2071,7 +2072,7 @@
     + '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
     + '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
     + '<div class="l14-mid"><div class="l14-idbox">'
-    +   'CUSTOMER ID: <b>'+ldIn('invNum','3110-01')+'</b>DATE: <b>'+ldDate('invDate')+'</b>CLIENT: <b>'+ldIn('to_0','Salford & Co.')+'</b>'
+    +   'CUSTOMER ID: <b>'+ldIn('invNum','3110-01')+'</b>DATE: <b>'+ldDate('invDate')+'</b>DUE: <b>'+ldDate('dueDate')+'</b>CLIENT: <b>'+ldIn('to_0','Salford & Co.')+'</b>'
     +   '<div style="font-size:12px;">Currency '+ldCur()+'</div></div>'
     +   '<div class="l14-sums">'
     +     '<div class="ld-tot"><span>SUB TOTAL</span><span id="subtotalDisp">$0.00</span></div>'
@@ -2093,7 +2094,7 @@
       '<div class="l15-head"><div class="l15-brand">'
     +   '<div class="js-logo-slot" style="flex:0 0 auto;"><span class="logo-default" style="font-size:30px;">✿</span><img class="logo-up" alt="logo"/></div>'
     +   '<div><div class="nm">'+ldIn('from_0','Company Name')+'</div><div class="sub">'+ldIn('from_1','Studio Design')+'</div></div></div>'
-    + '<div class="l15-two"><div><h4>Date Order :</h4>'+ldDate('invDate')+'<div style="font-size:12px;margin-top:4px;">No. '+ldIn('invNum','INV-001')+'</div></div>'
+    + '<div class="l15-two"><div><h4>Date Order :</h4>'+ldDate('invDate')+'<div style="font-size:12px;margin-top:4px;">No. '+ldIn('invNum','INV-001')+'</div><h4 style="margin-top:10px;">Due Date :</h4>'+ldDate('dueDate')+'</div>'
     +   '<div class="r"><h4>Invoice to :</h4><div class="big">'+ldIn('to_0','Client Name')+'</div>'
     +   ldIn('to_1','+123-456-7890')+ldIn('to_2','123 Anywhere St., Any City, ST 12345')+'</div></div></div>'
     + '<div class="l15-pill"></div>'
@@ -2149,9 +2150,12 @@
   /* ── DESIGN 17 — black page, white cards ────────────────────────────── */
   window.LD_BUILDERS[17] = function(){
     ldPanel(
-      '<div class="l17-head"><div><div class="l17-word">INVOICE</div>'
+      '<div class="l17-head"><div><div class="js-logo-slot" style="margin-bottom:8px;"><span class="logo-default" style="font-size:11px;opacity:.55;">logo</span><img class="logo-up" alt="logo"/></div><div class="l17-word">INVOICE</div>'
     +   '<div class="l17-id">Invoice ID: '+ldIn('invNum','01234')+'</div></div>'
-    +   '<div style="text-align:right;font-size:12px;font-weight:700;">Date: '+ldDate('invDate')+'</div></div>'
+    +   '<div style="text-align:right;font-size:12px;font-weight:700;">'
+    +     '<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;white-space:nowrap;">Date: <span style="width:120px;display:inline-block;">'+ldDate('invDate')+'</span></div>'
+    +     '<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;white-space:nowrap;margin-top:6px;">Due: <span style="width:120px;display:inline-block;">'+ldDate('dueDate')+'</span></div>'
+    +   '</div></div>'
     + '<div class="l17-card"><div class="l17-two"><div><h4>Billed To</h4>'
     +   'Name: '+ldIn('to_0','Client Name')+'Address: '+ldIn('to_1','123 Anywhere St., Any City')+'</div>'
     +   '<div class="r"><h4>Payment Method</h4>'+ldTa('notes','Bank Number:\n0123 4567 8901 2345')+'</div></div></div>'
@@ -2172,9 +2176,12 @@
   /* ── DESIGN 18 — dark page, cream card ──────────────────────────────── */
   window.LD_BUILDERS[18] = function(){
     ldPanel(
-      '<div class="l18-head"><div><div class="l18-word">INVOICE</div>'
+      '<div class="l18-head"><div><div class="js-logo-slot" style="margin-bottom:8px;"><span class="logo-default" style="font-size:11px;opacity:.55;">logo</span><img class="logo-up" alt="logo"/></div><div class="l18-word">INVOICE</div>'
     +   '<div style="font-size:12px;font-weight:700;margin-top:6px;">Invoice ID: '+ldIn('invNum','01234')+'</div></div>'
-    +   '<div style="text-align:right;font-size:12px;font-weight:700;">Date: '+ldDate('invDate')+'</div></div>'
+    +   '<div style="text-align:right;font-size:12px;font-weight:700;">'
+    +     '<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;white-space:nowrap;">Date: <span style="width:120px;display:inline-block;">'+ldDate('invDate')+'</span></div>'
+    +     '<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;white-space:nowrap;margin-top:6px;">Due: <span style="width:120px;display:inline-block;">'+ldDate('dueDate')+'</span></div>'
+    +   '</div></div>'
     + '<div class="l18-card"><div class="l18-two"><div><h4>Billed To</h4>'
     +   'Name: '+ldIn('to_0','Client Name')+'Address: '+ldIn('to_1','123 Anywhere St., Any City')+'</div>'
     +   '<div class="r"><h4>Payment Method</h4>'+ldTa('notes','Bank Number:\n0123 4567 8901 2345')+'</div></div></div>'
@@ -2202,7 +2209,7 @@
     +   ldIn('to_1','123-456-7890')+ldIn('to_2','hello@client.com')+'</div>'
     +   '<div class="r">Payment Method:<div style="font-weight:800;">Bank Code: '+ldIn('from_1','0123 4567 8901')+'</div>'
     +   '<div class="big" id="grandDisp">$0.00</div>'
-    +   '<div style="font-weight:400;">Date '+ldDate('invDate')+'</div></div></div>'
+    +   '<div style="font-weight:400;">Date '+ldDate('invDate')+' Due '+ldDate('dueDate')+'</div></div></div>'
     + '<div class="l19-tblwrap"><div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
     +   '<button class="btn-add-item" onclick="addItem()">+ Add Item</button></div>'
     + '<div class="l19-low"><div><h4>Terms and Condition</h4>'+ldTa('terms','All invoices must be paid within 30 days from the date of the invoice unless otherwise agreed upon in writing.')+'</div>'
@@ -2253,7 +2260,8 @@
   /* ── DESIGN 21 — thin minimal ───────────────────────────────────────── */
   window.LD_BUILDERS[21] = function(){
     ldPanel(
-      '<div class="l21-word">INVOICE</div><div class="l21-rule"></div>'
+      '<div class="js-logo-slot" style="margin-bottom:10px;"><span class="logo-default" style="font-size:11px;opacity:.55;">logo</span><img class="logo-up" alt="logo"/></div>'
+    + '<div class="l21-word">INVOICE</div><div class="l21-rule"></div>'
     + '<div class="l21-meta">Invoice '+ldIn('invNum','001')+'Date: '+ldDate('invDate')+'Due Date: '+ldDate('dueDate')+'</div>'
     + '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
     + '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
@@ -2273,7 +2281,7 @@
     +   '<div class="js-logo-slot"><span class="logo-default" style="font-size:26px;color:#9d9893;">◎</span><img class="logo-up" alt="logo"/></div></div>'
     + '<div class="l22-rule"></div>'
     + '<div class="l22-two"><div>Issued to:<br/>'+ldIn('to_0','Client Name')+ldIn('to_1','hello@client.com')+'</div>'
-    +   '<div>Invoice No. '+ldIn('invNum','1234')+'Date: '+ldDate('invDate')
+    +   '<div>Invoice No. '+ldIn('invNum','1234')+'Date: '+ldDate('invDate')+'Due: '+ldDate('dueDate')
     +   '<div style="margin-top:6px;">Currency '+ldCur()+'</div></div></div>'
     + '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
     + '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
@@ -2312,7 +2320,7 @@
   window.LD_BUILDERS[24] = function(){
     ldPanel(
       '<div class="l24-grid"><div>'
-    +   '<div class="l24-brand"><div class="js-logo-slot"><span class="logo-default">'+ldIn('from_0','BORCELLE')+'</span><img class="logo-up" alt="logo"/></div></div>'
+    +   '<div class="l24-brand">'+ldIn('from_0','BORCELLE')+'</div>'
     +   '<div class="l24-word">Invoice</div>'
     +   '<div class="l24-no">INVOICE NO. '+ldIn('invNum','123/346')+'</div>'
     +   '<div class="l24-from">Invoice from<div class="nm">'+ldIn('from_1','MATT ZHANG')+'</div>'+ldIn('from_3','MANAGER')+'</div>'
@@ -2337,6 +2345,7 @@
   window.LD_BUILDERS[25] = function(){
     ldPanel(
       '<div class="l25-grid"><div>'
+    +   '<div class="js-logo-slot" style="margin-bottom:8px;"><span class="logo-default" style="font-size:11px;opacity:.55;">logo</span><img class="logo-up" alt="logo"/></div>'
     +   '<div class="l25-title">'+ldIn('from_0','ALDENAIRE & PARTNERS')+'</div>'
     +   '<div class="l25-no">INVOICE NO. '+ldIn('invNum','123/346')+'</div>'
     +   '<div class="l25-two"><div>Invoice from :<div class="nm">'+ldIn('from_1','JAMIE CHASTAIN')+'</div>'+ldIn('from_3','MANAGER')+'</div>'
@@ -2365,6 +2374,7 @@
     +   '<div class="lab">Invoice from</div><div class="nm">'+ldIn('from_1','JAMIE CHASTAIN')+'</div><div class="ro">'+ldIn('from_3','MANAGER')+'</div>'
     +   '<div class="lab">Invoice to</div><div class="nm">'+ldIn('to_0','DANI MARTINEZ')+'</div><div class="ro">'+ldIn('to_1','FINANCE')+'</div>'
     +   '<div class="lab">Date</div>'+ldDate('invDate')
+    +   '<div class="lab" style="margin-top:8px;">Due Date</div>'+ldDate('dueDate')
     + '</div><div class="l26-right">'
     +   '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
     +   '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
@@ -2467,7 +2477,8 @@
     + '</div><div class="l30-right">'
     +   '<div class="l30-word">INVOICE</div>'
     +   '<div class="l30-meta"><div><h5>INVOICE NO</h5>'+ldIn('invNum','INV-1234')+'</div>'
-    +     '<div><h5>DATE</h5>'+ldDate('invDate')+'</div></div>'
+    +     '<div><h5>DATE</h5>'+ldDate('invDate')+'</div>'
+    +     '<div><h5>DUE DATE</h5>'+ldDate('dueDate')+'</div></div>'
     +   '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
     +   '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
     +   '<div class="l30-sub"><span>SUBTOTAL</span><span id="subtotalDisp">$0.00</span></div>'
