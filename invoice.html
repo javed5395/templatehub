@@ -91,7 +91,7 @@
     .style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1100px;margin:0 auto;}
     .style-card{background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;cursor:pointer;transition:transform .2s,box-shadow .2s;overflow:hidden;}
     .style-card:hover{transform:translateY(-5px);box-shadow:0 14px 34px rgba(0,0,0,.13);}
-    .style-thumb{height:175px;background:#f2eee5;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;}
+    .style-thumb{height:230px;background:#f2eee5;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;}
     .style-thumb.blue{background:linear-gradient(135deg,#1a3a6b,#2a5aab);}
     /* Footer strip on each style card — replaces the blue/purple gradient pill.
        Label on the left, LazyDog roundel on the right, same as the journal
@@ -1250,8 +1250,13 @@
       for (var i = 1; i <= LAYOUTS; i++) {
         var hasReal = REAL_THUMBS.indexOf(i) !== -1;
         var thumbSrc = hasReal ? ('images/d' + i + '.png') : 'images/invoice_layout_1.png';
-        var fit = 'cover';
-        var pos = hasReal ? 'top' : 'center';
+        /* 6 Sep 2026 — real screenshots are portrait invoices (taller
+           than wide), same as the box now (230px vs the old 175px), so
+           "contain" shows the whole design with no empty side bars AND
+           no cropping — no longer torn between the two. The generic
+           placeholder still uses "cover" — unrelated, unaffected. */
+        var fit = hasReal ? 'contain' : 'cover';
+        var pos = 'center';
         html += '<div class="style-card" onclick="selectLayout(' + i + ')">'
               +   '<div class="style-thumb' + (hasReal ? '' : ' blue') + '">'
               +     '<img src="' + thumbSrc + '" alt="Invoice layout ' + i + '"'
