@@ -1242,7 +1242,7 @@
        this list once its real "dN.png" screenshot exists in images/;
        everything not yet in the list still falls back to the shared
        placeholder so nothing breaks while the rest are being done. */
-    var REAL_THUMBS = [2];
+    var REAL_THUMBS = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
     (function () {
       var LAYOUTS = 50;
       var grid = document.getElementById('styleGrid');
@@ -1250,11 +1250,12 @@
       for (var i = 1; i <= LAYOUTS; i++) {
         var hasReal = REAL_THUMBS.indexOf(i) !== -1;
         var thumbSrc = hasReal ? ('images/d' + i + '.png') : 'images/invoice_layout_1.png';
-        var fit = hasReal ? 'contain' : 'cover';
+        var fit = 'cover';
+        var pos = hasReal ? 'top' : 'center';
         html += '<div class="style-card" onclick="selectLayout(' + i + ')">'
               +   '<div class="style-thumb' + (hasReal ? '' : ' blue') + '">'
               +     '<img src="' + thumbSrc + '" alt="Invoice layout ' + i + '"'
-              +          ' loading="lazy" style="width:100%;height:100%;object-fit:' + fit + ';display:block;">'
+              +          ' loading="lazy" style="width:100%;height:100%;object-fit:' + fit + ';object-position:' + pos + ';display:block;">'
               +   '</div>'
               +   '<button class="btn-select">Layout #' + i + '</button>'
               + '</div>';
