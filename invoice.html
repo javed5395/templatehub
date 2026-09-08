@@ -88,7 +88,13 @@
        ═══════════════════════════════════════════════════════════════════ */
 
     /* STYLE GRID */
-    .style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1100px;margin:0 auto;}
+    /* 6 Sep 2026 — with the thumbnail box now 230px tall, the old
+       1100px grid width made each card noticeably wider than the
+       screenshots are (portrait invoices, roughly 0.85-0.9 width:height)
+       so "contain" still left empty bars on the sides. Narrower cards
+       here bring the card's own shape close to the screenshot's own
+       shape, so the image fills it with barely any empty space left. */
+    .style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:860px;margin:0 auto;}
     .style-card{background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;cursor:pointer;transition:transform .2s,box-shadow .2s;overflow:hidden;}
     .style-card:hover{transform:translateY(-5px);box-shadow:0 14px 34px rgba(0,0,0,.13);}
     .style-thumb{height:230px;background:#f2eee5;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;}
@@ -1242,7 +1248,7 @@
        this list once its real "dN.png" screenshot exists in images/;
        everything not yet in the list still falls back to the shared
        placeholder so nothing breaks while the rest are being done. */
-    var REAL_THUMBS = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+    var REAL_THUMBS = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
     (function () {
       var LAYOUTS = 50;
       var grid = document.getElementById('styleGrid');
