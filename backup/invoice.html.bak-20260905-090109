@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Free Invoice Generator — Create & Download Professional Invoices | LazyDogTemplates</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Use our free invoice generator to create and download professional invoices instantly. Fully customizable, no sign-up required — generate your free invoice in seconds with LazyDogTemplates." />
+  <meta name="keywords" content="free invoice generator, invoice generator, free invoice template, invoice maker online, generate invoice free, free invoice download, professional invoice template, create invoice online, LazyDogTemplates" />
+  <meta name="author" content="LazyDogTemplates" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.lazydogtemplates.com/invoice.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Free Invoice Generator — LazyDogTemplates" />
+  <meta property="og:description" content="Create and download professional invoices instantly. Simple, fast and fully customizable." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.lazydogtemplates.com/invoice.html" />
+  <meta property="og:image" content="https://www.lazydogtemplates.com/og-invoice.jpg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Free Invoice Generator — LazyDogTemplates" />
+  <meta name="twitter:description" content="Create and download professional invoices instantly. Free and fully customizable." />
+  <meta name="twitter:image" content="https://www.lazydogtemplates.com/og-invoice.jpg" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Free Invoice Generator — LazyDogTemplates",
+    "url": "https://www.lazydogtemplates.com/invoice.html",
+    "description": "Create and download professional invoices instantly. Free, fast and fully customizable.",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "LazyDogTemplates",
+      "url": "https://www.lazydogtemplates.com/"
+    }
+  }
+  </script>
+
+  <!-- watermark.js removed 29 Jul 2026 (owner): the invoice generator is
+       genuinely free and its output carries no branding. WATERMARK_ON is now
+       undefined, and the note below is already written with a typeof guard,
+       so it correctly shows "Clean download — no watermark". -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',sans-serif;background-color:#f8f8f8;background-image:repeating-linear-gradient(-52deg,transparent,transparent 38px,rgba(160,160,160,0.055) 38px,rgba(160,160,160,0.055) 39px);color:#1a1a2e;}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:16px 60px;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.08);position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,0.06);}
+    .logo{font-size:22px;font-weight:800;background:linear-gradient(90deg,#64c8ff,#b464ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+    .nav-back{color:#c8d2dc;text-decoration:none;font-size:13px;}
+    .hero{text-align:center;padding:50px 20px 24px;background:radial-gradient(ellipse at top,#1a1a4a 0%,#0a0a1e 70%);}
+    .hero h1{font-size:38px;font-weight:900;margin-bottom:8px;}
+    .hero h1 span{background:linear-gradient(90deg,#64c8ff,#b464ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .hero p{color:#8899aa;font-size:14px;}
+
+    /* STEPS */
+    .steps{display:flex;justify-content:center;margin:24px auto;max-width:700px;}
+    .step{flex:1;text-align:center;position:relative;}
+    .step-num{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;margin:0 auto 5px;border:2px solid #1e2a5a;background:#0d0d2b;color:#8899aa;transition:all 0.3s;}
+    .step-label{font-size:10px;color:#5f5a6b;font-weight:600;}   /* was #8899aa — unreadable on the light page */
+    .step.active .step-num{background:linear-gradient(135deg,#64c8ff,#b464ff);border-color:transparent;color:#0a0a1e;}
+    .step.active .step-label{color:#64c8ff;}
+    .step.done .step-num{background:#64c8ff;border-color:transparent;color:#0a0a1e;}
+    .step::after{content:'';position:absolute;top:17px;left:50%;width:100%;height:2px;background:#1e2a5a;z-index:-1;}
+    .step:last-child::after{display:none;}
+
+    /* SECTIONS */
+    .section{display:none;padding:36px 60px;}
+    .section.active{display:block;}
+    .sec-title{font-family:'Instrument Serif',serif;font-weight:400;font-size:29px;line-height:1.15;color:#1a1a2e;text-align:center;margin-bottom:6px;}
+    .sec-sub{color:#5f5a6b;font-size:13.5px;text-align:center;margin-bottom:30px;}   /* was #8899aa — too pale on the light page */
+
+    /* ═══════════════════════════════════════════════════════════════════
+       CARDS — 24 Aug 2026
+       These were dark navy (#0d0d2b) left over from when this page had a
+       dark body. The body is light now, and the card titles had no colour
+       of their own, so they inherited the dark body colour and became
+       near-invisible on the dark card. Rebuilt in the same journal card
+       style the CV/career section uses: bone paper, hairline inset border,
+       Instrument Serif titles, square corners, lift on hover.
+       Every text colour below is now explicit — nothing inherits.
+       ═══════════════════════════════════════════════════════════════════ */
+    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:700px;margin:0 auto;}
+    .type-card{position:relative;background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;padding:34px 30px;cursor:pointer;transition:transform .2s,box-shadow .2s;text-align:center;}
+    .type-card::before{content:"";position:absolute;inset:10px;border:1px solid rgba(0,0,0,.08);pointer-events:none;}
+    .type-card:hover{transform:translateY(-5px);box-shadow:0 14px 34px rgba(0,0,0,.13);}
+    .type-icon{font-size:46px;margin-bottom:14px;position:relative;}
+    .type-name{font-family:'Instrument Serif',serif;font-weight:400;font-size:24px;line-height:1.2;color:#1a1a2e;margin-bottom:8px;position:relative;}
+    .type-desc{font-size:13px;color:#4d4857;line-height:1.6;position:relative;}
+
+    /* INDUSTRY GRID */
+    .industry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1000px;margin:0 auto;}
+    .industry-card{position:relative;background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;padding:20px 16px;cursor:pointer;transition:transform .2s,box-shadow .2s;text-align:center;}
+    .industry-card::before{content:"";position:absolute;inset:8px;border:1px solid rgba(0,0,0,.08);pointer-events:none;}
+    .industry-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);}
+    .industry-icon{font-size:30px;margin-bottom:10px;position:relative;}
+    .industry-name{font-family:'Instrument Serif',serif;font-weight:400;font-size:17px;line-height:1.2;color:#1a1a2e;margin-bottom:4px;position:relative;}
+    .industry-desc{font-size:11.5px;color:#4d4857;position:relative;}
+
+    /* STYLE GRID */
+    .style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1160px;margin:0 auto;}
+    .design-card{background:#fff;border:1px solid #e2ddd0;border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.06);transition:transform .15s,box-shadow .15s;}
+    .design-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.14);}
+    .design-thumb{position:relative;width:100%;height:400px;background:#ffffff;overflow:hidden;border-bottom:1px solid #eee;}
+    .design-thumb .scaler{position:absolute;top:0;left:0;width:800px;transform-origin:top left;pointer-events:none;}
+    .design-card-foot{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;}
+    .design-card-name{font-family:'Instrument Serif',serif;font-size:19px;color:#1a1a2e;}
+    .design-card-sel{font-size:12px;font-weight:700;color:#7a2adc;letter-spacing:.04em;}
+    .style-card{background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;cursor:pointer;transition:transform .2s,box-shadow .2s;overflow:hidden;}
+    .style-card:hover{transform:translateY(-5px);box-shadow:0 14px 34px rgba(0,0,0,.13);}
+    .style-thumb{height:130px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;}
+    .style-thumb.blue{background:linear-gradient(135deg,#1a3a6b,#2a5aab);}
+    .style-thumb.dark{background:linear-gradient(135deg,#1a1a1a,#2a2a2a);}
+    .style-thumb.minimal{background:linear-gradient(135deg,#f0f0f0,#e0e0e0);}
+    .style-thumb.green{background:linear-gradient(135deg,#0d3b2e,#1a6b4a);}
+    .style-thumb.purple{background:linear-gradient(135deg,#2a1a4a,#5a2a9a);}
+    .style-thumb.red{background:linear-gradient(135deg,#3b1a1a,#8b2020);}
+    .style-thumb.orange{background:linear-gradient(135deg,#3b2a0a,#c47820);}
+    .style-thumb.teal{background:linear-gradient(135deg,#0a2a3b,#1a7a8b);}
+    .style-thumb.bw{background:linear-gradient(135deg,#fff,#e8e8e8);}
+    .style-thumb.beige{background:linear-gradient(135deg,#2a1f14,#8a6040);}
+    .style-thumb.bold{background:linear-gradient(135deg,#1a1a1a,#333);}
+    .style-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600;}
+    .style-info{padding:13px 15px;border-top:1px solid rgba(0,0,0,.08);}
+    .style-name{font-family:'Instrument Serif',serif;font-weight:400;font-size:17px;line-height:1.2;color:#1a1a2e;margin-bottom:3px;}
+    .style-desc{font-size:11px;color:#4d4857;}
+    /* Footer strip on each style card — replaces the blue/purple gradient pill.
+       Label on the left, LazyDog roundel on the right, same as the journal
+       cards. The logo is a ::after background so the 11 hard-coded cards in
+       the markup did not each need an <img> added. */
+    .btn-select{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin:0;
+      background:#faf7f0;border:0;border-top:1px solid #e2dccd;color:#1a1a2e;padding:11px 14px;border-radius:0;
+      font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+      cursor:pointer;transition:background .18s,color .18s;}
+    .btn-select::after{content:"";flex:0 0 26px;width:26px;height:26px;border-radius:50%;border:1px solid #d9d4c7;
+      background:url("images/site_logo_round.png") center/cover no-repeat;}
+    .style-card:hover .btn-select{background:#07071a;color:#fff;}
+
+    /* FORM */
+    .form-wrap{display:grid;grid-template-columns:1fr 400px;gap:32px;max-width:1320px;margin:0 auto;align-items:start;}
+    .preview-col{min-width:0;}
+    .big-preview{position:sticky;top:80px;}
+    .right-col{display:block;}
+    /* Step 4 panel — brought onto the same bone paper as the cards above.
+       It was the last dark-navy block on a light page. */
+    .form-panel{position:relative;background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;padding:30px 32px;}
+    .form-panel::before{content:"";position:absolute;inset:10px;border:1px solid rgba(0,0,0,.08);pointer-events:none;}
+    .form-panel > *{position:relative;}
+    .form-panel h2{font-family:'Instrument Serif',serif;font-size:25px;font-weight:400;color:#1a1a2e;margin-bottom:18px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+    .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+    .fg label{font-size:10px;color:#5f5a6b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+    .fg input,.fg textarea,.fg select{background:#fff;border:1px solid #d9d4c7;border-radius:0;color:#1a1a2e;padding:9px 11px;font-size:13px;outline:none;transition:border 0.2s;}
+    .fg input:focus,.fg textarea:focus{border-color:#7c5cbf;}
+    .fg textarea{resize:vertical;min-height:55px;}
+    .sec-label{font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:#b8442a;text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
+    .sec-label::after{content:'';flex:1;height:1px;background:#d9d4c7;}
+    .items-hdr{display:grid;gap:5px;font-size:9px;color:#5f5a6b;font-weight:700;text-transform:uppercase;padding:0 0 5px;border-bottom:1px solid #d9d4c7;margin-bottom:6px;}
+    .item-row{display:grid;gap:5px;margin-bottom:5px;align-items:center;}
+    .item-row input{background:#fff;border:1px solid #d9d4c7;border-radius:0;color:#1a1a2e;padding:7px 8px;font-size:11px;outline:none;width:100%;}
+    .item-row input:focus{border-color:#7c5cbf;}
+    .item-total-cell{font-size:11px;font-weight:700;color:#1a1a2e;text-align:right;}
+    .btn-remove-item{background:none;border:none;color:#b8442a;font-size:14px;cursor:pointer;}
+    .btn-add-item{background:transparent;border:1px dashed #c9c2b2;color:#5f5a6b;padding:8px;border-radius:0;width:100%;cursor:pointer;font-size:11px;margin-top:3px;transition:all 0.2s;}
+    .btn-add-item:hover{border-color:#7c5cbf;color:#7c5cbf;}
+    .totals-box{background:#faf7f0;border:1px solid #e2dccd;border-radius:0;padding:15px;margin-top:16px;}
+    .tot-row{display:flex;justify-content:space-between;font-size:12.5px;color:#4d4857;margin-bottom:7px;align-items:center;}
+    .tot-row input{width:55px;background:#fff;border:1px solid #d9d4c7;border-radius:0;color:#1a1a2e;padding:4px 7px;font-size:11px;outline:none;}
+    .tot-row.grand{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:#1a1a2e;border-top:1px solid #d9d4c7;padding-top:10px;margin-top:4px;}
+    .tot-row.grand span:last-child{color:#1a1a2e;}
+    .btn-generate{width:100%;background:#07071a;color:#fff;padding:14px;border-radius:0;border:none;font-family:'Poppins',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:20px;}
+    .btn-generate:hover{background:#161642;}
+    .btn-back{background:transparent;border:1px solid #d9d4c7;color:#5f5a6b;padding:8px 20px;border-radius:0;cursor:pointer;font-size:12px;margin-bottom:16px;transition:all 0.2s;}
+    .btn-back:hover{border-color:#7c5cbf;color:#7c5cbf;}
+    .mini-preview{position:sticky;top:80px;}
+    .mini-preview h3{font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#5f5a6b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+    .cust-card{position:sticky;top:80px;background:#fff;border:1px solid #d9d4c7;border-radius:14px;padding:18px;box-shadow:0 6px 24px rgba(0,0,0,0.06);}
+    .cust-card h3{font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:#5f5a6b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;}
+    .cust-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:13px;color:#3a3a4a;}
+    .cust-row label{font-weight:600;}
+    .cust-row input[type=color]{width:44px;height:28px;border:1px solid #ccc;border-radius:6px;background:none;cursor:pointer;padding:0;}
+    .cust-row select{padding:6px 8px;border:1px solid #ccc;border-radius:6px;font-size:12px;}
+    .cust-logo-btn{display:block;width:100%;padding:9px;border:1px dashed #b8b2a4;border-radius:8px;background:#faf8f3;color:#5f5a6b;font-size:12px;font-weight:600;text-align:center;cursor:pointer;margin-bottom:14px;}
+    .cust-reset{width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#888;font-size:12px;cursor:pointer;margin-top:4px;}
+    .cust-preview-wrap{margin-top:16px;}
+    .cust-preview-wrap h4{font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:#8a8596;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+    .dl-section{margin-top:10px;}
+    .btn-dl{background:linear-gradient(90deg,#64c8ff,#b464ff);color:#0a0a1e;padding:11px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;width:100%;}
+    .wm-note{font-size:10px;color:#8899aa;text-align:center;margin-top:5px;}
+
+    @media(max-width:900px){.style-grid,.industry-grid{grid-template-columns:repeat(2,1fr);}.type-grid{grid-template-columns:1fr;}.form-wrap{grid-template-columns:1fr;}.section{padding:24px 20px;}}
+  </style>
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "y89gq7098e");
+</script>
+</head>
+<body>
+
+<!-- NAVBAR injected by navbar.js -->
+
+<div class="hero">
+  <h1>🧾 <span>Invoice Generator</span></h1>
+  <p>Select a design → Fill &amp; Download. 100% Free.</p>
+</div>
+
+<!-- STEPS BAR -->
+<div class="steps">
+  <div class="step active" id="step1"><div class="step-num">1</div><div class="step-label">Design Style</div></div>
+  <div class="step" id="step2"><div class="step-num">2</div><div class="step-label">Fill & Download</div></div>
+</div>
+
+<!-- STEP 1: STYLE -->
+<div class="section active" id="sec1">
+  <div class="sec-title">Choose Your Design Style</div>
+  <div class="sec-sub">Pick a design — then fill in your details and download, free.</div>
+  <div class="style-grid" id="designGrid"></div>
+</div>
+
+<!-- STEP 2: FORM -->
+<div class="section" id="sec2">
+  <div class="form-wrap">
+    <div class="preview-col">
+      <div id="bigPreview" class="big-preview"></div>
+      <p style="text-align:center;font-size:12px;color:#8a8596;margin-top:10px;">✏️ Click any text on the invoice to edit it</p>
+    </div>
+    <div class="right-col">
+      <button class="btn-back" onclick="goTo(1)">← Change Style</button>
+      <button class="btn-generate" onclick="downloadInvoice()">⚡ Download Invoice — FREE</button>
+            <div class="cust-card">
+      <h3>🎨 Customize</h3>
+      <button class="cust-logo-btn" onclick="document.getElementById('logoInput').click()">⬆ Upload Logo</button>
+      <input id="logoInput" type="file" accept="image/*" style="display:none" onchange="uploadLogo(this)"/>
+      <div class="cust-row"><label>Main colour</label><input type="color" id="cstPrimary" oninput="setCust('primary',this.value)"/></div>
+      <div class="cust-row"><label>Strip colour</label><input type="color" id="cstStrip" oninput="setCust('strip',this.value)"/></div>
+      <div class="cust-row"><label>Accent colour</label><input type="color" id="cstAccent" oninput="setCust('accent',this.value)"/></div>
+      <div class="cust-row"><label>Text colour</label><input type="color" id="cstText" oninput="setCust('text',this.value)"/></div>
+      <div class="cust-row"><label>Font</label>
+        <select id="cstFont" onchange="setCust('font',this.value)">
+          <option value="'Segoe UI',sans-serif">Segoe UI</option>
+          <option value="'Poppins',sans-serif">Poppins</option>
+          <option value="Georgia,serif">Georgia</option>
+          <option value="'Courier New',monospace">Courier</option>
+          <option value="Arial,sans-serif">Arial</option>
+          <option value="'Times New Roman',serif">Times</option>
+        </select>
+      </div>
+      <button class="cust-reset" onclick="resetCust()">↺ Reset to style default</button>
+      <p class="wm-note" id="wmNote" style="font-size:11px;color:#2a9d5a;margin-top:12px;text-align:center;"></p>
+    </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── STATE ──
+  let invoiceType = 'generic';
+  let selectedIndustry = 'generic';
+  let selectedStyle = 'blue';
+  let selectedLayout = 'design1';
+  let settings = { primary:null, strip:null, accent:null, text:null, font:null, logo:null };
+  let items = [];
+  const today = new Date().toISOString().split('T')[0];
+  const due14 = new Date(); due14.setDate(due14.getDate()+14);
+
+  // ── INDUSTRY CONFIGS ──
+  const INDUSTRIES = {
+    generic: {
+      title:'📋 Invoice Details',
+      from:['Business / Your Name','Email','Phone','Address'],
+      to:['Client Name','Client Email','Client Address'],
+      cols:['Description','Qty','Rate'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    freelancer: {
+      title:'💻 Freelancer Invoice',
+      from:['Your Full Name / Company','Email','Phone','Portfolio / Website'],
+      to:['Client Name','Client Company','Client Email'],
+      cols:['Project / Task','Hours','Hourly Rate'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    medical: {
+      title:'🏥 Medical Invoice',
+      from:['Clinic / Hospital Name','Doctor Name','Email','Address'],
+      to:['Patient Name','Patient ID','Insurance Provider'],
+      cols:['Treatment / Service','Diagnosis Code','Fee'],
+      defaultItem:{c1:'',c2:'',c3:'0'}
+    },
+    restaurant: {
+      title:'🍽️ Restaurant Invoice',
+      from:['Restaurant Name','Email','Phone','Address'],
+      to:['Customer Name','Table No.','Waiter Name'],
+      cols:['Item / Dish','Qty','Price'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    construction: {
+      title:'🏗️ Construction Invoice',
+      from:['Company Name','Contractor Name','Email','License No.'],
+      to:['Client Name','Site Address','Project Name'],
+      cols:['Description (Materials/Labor)','Unit','Rate'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    legal: {
+      title:'⚖️ Legal Invoice',
+      from:['Law Firm Name','Attorney Name','Email','Bar No.'],
+      to:['Client Name','Case Number','Court / Jurisdiction'],
+      cols:['Service / Activity','Billable Hrs','Rate'],
+      defaultItem:{c1:'',c2:'1',c3:'0'}
+    },
+    realestate: {
+      title:'🏠 Real Estate Invoice',
+      from:['Agency Name','Agent Name','Email','License No.'],
+      to:['Client Name','Property Address','Transaction Type'],
+      cols:['Service','Sale Price / Value','Commission %'],
+      defaultItem:{c1:'',c2:'0',c3:'0'}
+    },
+    retail: {
+      title:'🛍️ Retail Invoice',
+      from:['Store Name','Email','Phone','Address'],
+      to:['Customer Name','Customer Email','Customer Phone'],
+      cols:['Product','SKU / Code','Unit Price'],
+      defaultItem:{c1:'',c2:'',c3:'0'}
+    },
+    event: {
+      title:'🎪 Event Invoice',
+      from:['Event Company Name','Contact Person','Email','Phone'],
+      to:['Client Name','Event Name','Event Date'],
+      cols:['Service / Package','Details','Fee'],
+      defaultItem:{c1:'',c2:'',c3:'0'}
+    }
+  };
+
+  // ── COLORS ──
+  const COLORS = {
+    blue:{bg:'#1a3a6b',accent:'#2a5aab',light:'#e8f0fb',bodyBg:'#fff',text:'#1a1a2e',th:'#1a3a6b',thText:'#fff',border:'#d0ddf0'},
+    dark:{bg:'#1a1a1a',accent:'#f0c040',light:'#222',bodyBg:'#1a1a1a',text:'#ccc',th:'#111',thText:'#f0c040',border:'#2a2a2a'},
+    minimal:{bg:'#111',accent:'#ff4757',light:'#f8f8f8',bodyBg:'#fff',text:'#111',th:'#111',thText:'#fff',border:'#eee'},
+    green:{bg:'#0d3b2e',accent:'#1a8b5a',light:'#e8f5ee',bodyBg:'#fff',text:'#1a2e1a',th:'#0d3b2e',thText:'#fff',border:'#c8e8d8'},
+    purple:{bg:'#2a1a4a',accent:'#7a2adc',light:'#f0e8ff',bodyBg:'#fff',text:'#1a1a2e',th:'#2a1a4a',thText:'#fff',border:'#d8c8f0'},
+    red:{bg:'#8b2020',accent:'#c83030',light:'#fde8e8',bodyBg:'#fff',text:'#1a1a1a',th:'#8b2020',thText:'#fff',border:'#f0c8c8'},
+    orange:{bg:'#c47820',accent:'#e09030',light:'#fff3e0',bodyBg:'#fff',text:'#1a1a1a',th:'#c47820',thText:'#fff',border:'#f0d8a8'},
+    teal:{bg:'#0a5a6b',accent:'#1a8a9b',light:'#e0f5f8',bodyBg:'#fff',text:'#1a2a2e',th:'#0a5a6b',thText:'#fff',border:'#b0dde8'},
+    bw:{bg:'#111',accent:'#111',light:'#f5f5f5',bodyBg:'#fff',text:'#111',th:'#111',thText:'#fff',border:'#eee'},
+    beige:{bg:'#2a1f14',accent:'#d4b896',light:'#f0e8d8',bodyBg:'#faf7f2',text:'#2a1f14',th:'#2a1f14',thText:'#d4b896',border:'#e0d4c0'},
+    bold:{bg:'#111',accent:'#555',light:'#f5f5f5',bodyBg:'#fff',text:'#111',th:'#111',thText:'#fff',border:'#eee'}
+  };
+
+  // ── CUSTOMIZE ENGINE ──
+  const DESIGN_BASE = {
+    design1:{bg:'#1a3a6b',accent:'#2a5aab',light:'#e8f0fb',bodyBg:'#ffffff',text:'#1a1a2e',th:'#1a3a6b',thText:'#ffffff',border:'#d0ddf0'},
+    design2:{bg:'#141414',accent:'#f5c518',light:'#f4f4f4',bodyBg:'#ffffff',text:'#1a1a1a',th:'#141414',thText:'#ffffff',border:'#ededed'},
+    design3:{bg:'#3b4fd8',accent:'#f4632e',light:'#fbeee8',bodyBg:'#ffffff',text:'#1a1a2e',th:'#f4632e',thText:'#ffffff',border:'#eeeeee'},
+    design4:{bg:'#3b4149',accent:'#1c6ea4',light:'#eceef0',bodyBg:'#ffffff',text:'#2a2f38',th:'#eceef0',thText:'#2a2f38',border:'#e2e5e9'},
+    design5:{bg:'#2b2b2b',accent:'#6b6b6b',light:'#eceae1',bodyBg:'#f4f2ec',text:'#2b2b2b',th:'transparent',thText:'#2b2b2b',border:'#c9c6bb'},
+    design6:{bg:'#2b2b2b',accent:'#6b6b6b',light:'#e6e2db',bodyBg:'#efece6',text:'#2b2b2b',th:'transparent',thText:'#2b2b2b',border:'#cfccc4'},
+    design7:{bg:'#2e3440',accent:'#b1503f',light:'#f3f0ec',bodyBg:'#ffffff',text:'#2a2f38',th:'#b1503f',thText:'#ffffff',border:'#ececec'},
+    design8:{bg:'#0f3d2e',accent:'#d4f500',light:'rgba(255,255,255,0.06)',bodyBg:'#123f30',text:'#eafff4',th:'#d4f500',thText:'#0f3d2e',border:'rgba(255,255,255,0.18)'},
+    design9:{bg:'#1b1b1b',accent:'#e8542a',light:'#262626',bodyBg:'#1b1b1b',text:'#e9e9e9',th:'#e8542a',thText:'#ffffff',border:'#333333'},
+    design10:{bg:'#1f2f8f',accent:'#e0553f',light:'#eef1fb',bodyBg:'#ffffff',text:'#1f2f8f',th:'transparent',thText:'#1f2f8f',border:'#1f2f8f'},
+    design11:{bg:'#f4a9a0',accent:'#ef5a4c',light:'#fdecea',bodyBg:'#ffffff',text:'#3a3a3a',th:'transparent',thText:'#3a3a3a',border:'#eeeeee'},
+    design12:{bg:'#2b2b2b',accent:'#2b2b2b',light:'#e9e5dd',bodyBg:'#ece8e0',text:'#2b2b2b',th:'transparent',thText:'#2b2b2b',border:'#2b2b2b'},
+    design13:{bg:'#1b3a8f',accent:'#1b3a8f',light:'#eaf0fb',bodyBg:'#ffffff',text:'#333333',th:'#1b3a8f',thText:'#ffffff',border:'#cccccc'},
+    design14:{bg:'#111111',accent:'#ffd21e',light:'#fff7cc',bodyBg:'#ffffff',text:'#111111',th:'#ffd21e',thText:'#111111',border:'#222222'},
+    design15:{bg:'#111111',accent:'#111111',light:'#f5f5f5',bodyBg:'#ffffff',text:'#111111',th:'transparent',thText:'#111111',border:'#111111'},
+    design16:{bg:'#2020c0',accent:'#2020c0',light:'#e9e9fb',bodyBg:'#ffffff',text:'#1a1a2e',th:'#2020c0',thText:'#ffffff',border:'#eeeeee'}
+  };
+  function effColors(){
+    const base = DESIGN_BASE[selectedLayout]||DESIGN_BASE.design1;
+    return {
+      bg: settings.primary||base.bg,
+      accent: settings.accent||base.accent,
+      light: settings.strip||base.light,
+      bodyBg: base.bodyBg,
+      text: settings.text||base.text,
+      th: settings.primary||base.th,
+      thText: base.thText,
+      border: base.border,
+      font: settings.font||"'Segoe UI',sans-serif"
+    };
+  }
+  function hex6(x){ if(!x)return null; if(/^#([0-9a-f]{3})$/i.test(x)){return '#'+x[1]+x[1]+x[2]+x[2]+x[3]+x[3];} return x; }
+  function initCustomize(){
+    const base = DESIGN_BASE[selectedLayout]||DESIGN_BASE.design1;
+    settings = { primary:null, strip:null, accent:null, text:null, font:null, logo:null };
+    const set=(id,val)=>{const el=document.getElementById(id); if(el&&val)el.value=hex6(val);};
+    set('cstPrimary',base.bg); set('cstStrip',base.light); set('cstAccent',base.accent); set('cstText',base.text);
+    const F=document.getElementById('cstFont'); if(F)F.value="'Segoe UI',sans-serif";
+  }
+  function setCust(k,val){
+    settings[k]=val;
+    const card=document.querySelector('#bigPreview .inv-vars'); if(!card)return;
+    if(k==='font'){ card.style.setProperty('--font',val); card.style.fontFamily=val; return; }
+    const map={primary:['--bg','--th'],strip:['--light'],accent:['--accent'],text:['--text']};
+    (map[k]||[]).forEach(vn=>card.style.setProperty(vn,val));
+  }
+  function uploadLogo(inp){
+    const f=inp.files&&inp.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{ settings.logo=e.target.result; updateMiniPreview(getValues()); };
+    r.readAsDataURL(f);
+  }
+  function resetCust(){ settings.logo=null; initCustomize(); updateMiniPreview(getValues()); }
+
+  // ── NAVIGATION ──
+  function navBack(){
+    var active = document.querySelector('.section.active');
+    if(!active || active.id === 'sec1') { window.location.href='index.html'; return; }
+    var n = parseInt(active.id.replace('sec',''));
+    if(n === 2) goTo(1);
+    else window.location.href='index.html';
+  }
+
+  function goTo(n, fromPopState){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec'+n).classList.add('active');
+    for(let i=1;i<=2;i++){
+      const s=document.getElementById('step'+i);
+      s.classList.remove('active','done');
+      if(i<n) s.classList.add('done');
+      if(i===n) s.classList.add('active');
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(!fromPopState) history.pushState({step:n}, '', '#step'+n);
+  }
+
+  window.addEventListener('popstate', function(e){
+    if(e.state && e.state.step) goTo(e.state.step, true);
+    else goTo(1, true);
+  });
+
+  function chooseType(type){
+    invoiceType = type;
+    selectedIndustry='generic';
+    goTo(2);
+  }
+
+  function chooseIndustry(ind){
+    selectedIndustry = ind;
+    goTo(2);
+  }
+
+  function goBackFromStyle(){
+    goTo(1);
+  }
+
+  function selectDesign(id){
+    selectedLayout = id;
+    if(!items || !items.length){ items=[{c1:'Item description',c2:'1',rate:'100'},{c1:'Item description',c2:'1',rate:'100'},{c1:'Item description',c2:'1',rate:'100'}]; }
+    initCustomize();
+    goTo(2);
+    updateMiniPreview(getValues());
+  }
+  function selectStyle(id){ selectDesign(id); }
+
+  // ── FORM BUILDER ──
+  function buildForm(){
+    const cfg = INDUSTRIES[selectedIndustry];
+    document.getElementById('formTitle').textContent = cfg.title;
+    // Dynamic from/to fields
+    let html = `<div class="sec-label">Your Details</div>`;
+    html += `<div class="form-row">`;
+    cfg.from.forEach((lbl,i)=>{
+      html+=`<div class="fg"><label>${lbl}</label><input id="from_${i}" type="text" placeholder="${lbl}" oninput="liveUpdate()"/></div>`;
+      if(i%2===1) html+=`</div><div class="form-row">`;
+    });
+    html+=`</div>`;
+    html+=`<div class="sec-label">Client Details</div><div class="form-row">`;
+    cfg.to.forEach((lbl,i)=>{
+      html+=`<div class="fg"><label>${lbl}</label><input id="to_${i}" type="text" placeholder="${lbl}" oninput="liveUpdate()"/></div>`;
+      if(i%2===1) html+=`</div><div class="form-row">`;
+    });
+    html+=`</div>`;
+    document.getElementById('dynamicFields').innerHTML=html;
+    // Items header
+    document.getElementById('itemsHdr').style.gridTemplateColumns=`2.5fr 1fr 1fr 1fr 28px`;
+    document.getElementById('itemsHdr').innerHTML=cfg.cols.map(c=>`<span>${c}</span>`).join('')+`<span>Total</span><span></span>`;
+    // Reset items
+    items=[{...cfg.defaultItem,qty:1,rate:0}];
+    renderItems();
+  }
+
+  function getFromTo(){
+    const cfg=INDUSTRIES[selectedIndustry];
+    const from=cfg.from.map((_,i)=>document.getElementById('from_'+i)?.value||'').filter(Boolean);
+    const to=cfg.to.map((_,i)=>document.getElementById('to_'+i)?.value||'').filter(Boolean);
+    return {from,to};
+  }
+
+  function addItem(){
+    const cfg=INDUSTRIES[selectedIndustry];
+    items.push({...cfg.defaultItem,qty:1,rate:0});
+    renderItems(); liveUpdate();
+  }
+  function removeItem(i){ if(items.length>1){items.splice(i,1);renderItems();liveUpdate();} }
+
+  function renderItems(){
+    const cur=document.getElementById('currency')?.value||'$';
+    const el=document.getElementById('itemsList'); if(!el)return;
+    el.innerHTML='';
+    items.forEach((item,i)=>{
+      const t=((parseFloat(item.qty)||0)*(parseFloat(item.rate)||0)).toFixed(2);
+      const row=document.createElement('div');
+      row.className='item-row';
+      row.style.gridTemplateColumns='2.5fr 1fr 1fr 1fr 28px';
+      row.innerHTML=`<input type="text" placeholder="Description" value="${item.c1||''}" oninput="items[${i}].c1=this.value;liveUpdate()"/>
+        <input type="text" placeholder="${INDUSTRIES[selectedIndustry].cols[1]}" value="${item.c2||''}" oninput="items[${i}].c2=this.value;liveUpdate()"/>
+        <input type="number" placeholder="0.00" value="${item.rate||0}" min="0" step="0.01" oninput="items[${i}].rate=this.value;liveUpdate()"/>
+        <div class="item-total-cell">${cur}${t}</div>
+        <button class="btn-remove-item" onclick="removeItem(${i})" aria-label="Remove item">✕</button>`;
+      el.appendChild(row);
+    });
+  }
+
+  function getValues(){
+    const cur=document.getElementById('currency')?.value||'$';
+    const sub=items.reduce((s,it)=>s+(parseFloat(it.c2)||parseFloat(it.qty)||0)*(parseFloat(it.rate)||0),0);
+    // For non-qty industries, use c2 as qty where numeric, else 1
+    const realSub=items.reduce((s,it)=>{
+      const q=parseFloat(it.c2)||1;
+      const r=parseFloat(it.rate)||0;
+      return s+q*r;
+    },0);
+    const tax=realSub*(parseFloat(document.getElementById('taxRate')?.value)||0)/100;
+    const ft=getFromTo();
+    return {cur,sub:realSub,tax,grand:realSub+tax,
+      fromName:ft.from[0]||'Your Business',fromDetails:ft.from.slice(1).join(' | '),
+      toName:ft.to[0]||'Client',toDetails:ft.to.slice(1).join(' | '),
+      invNum:document.getElementById('invNum')?.value||'INV-001',
+      invDate:document.getElementById('invDate')?.value||today,
+      dueDate:document.getElementById('dueDate')?.value||'',
+      notes:document.getElementById('notes')?.value||''
+    };
+  }
+
+  function liveUpdate(){
+    const v=getValues();
+    if(document.getElementById('subtotalDisp')) document.getElementById('subtotalDisp').textContent=v.cur+v.sub.toFixed(2);
+    if(document.getElementById('taxDisp')) document.getElementById('taxDisp').textContent=v.cur+v.tax.toFixed(2);
+    if(document.getElementById('grandDisp')) document.getElementById('grandDisp').textContent=v.cur+v.grand.toFixed(2);
+    renderItems();
+    updateMiniPreview(v);
+  }
+
+  function updateMiniPreview(v){
+    const el=document.getElementById('bigPreview'); if(!el)return;
+    el.innerHTML=invoiceCardHTML(v);
+    const card=el.querySelector('.inv-vars');
+    if(card){ card.setAttribute('contenteditable','true'); card.style.outline='none'; }
+  }
+
+  function classicHTML(v,its,c){
+    const cfg=INDUSTRIES[selectedIndustry];
+    const footer=`<div style="background:var(--bg);color:rgba(255,255,255,0.5);text-align:center;padding:12px;font-size:11px;">LazyDogTemplates.com — Free Invoice Generator</div>`;
+    const itemRows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);">${it.c1||''}</td><td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;text-align:center;color:var(--text);">${it.c2||1}</td><td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;text-align:center;color:var(--text);">${v.cur}${r.toFixed(2)}</td><td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;text-align:right;font-weight:700;color:var(--text);">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;font-family:var(--font);background:var(--bodyBg);box-shadow:0 4px 30px rgba(0,0,0,0.12);">
+  <div style="background:var(--bg);color:#fff;padding:36px 50px;display:flex;justify-content:space-between;align-items:center;">
+    <div>${settings.logo?`<img src="${settings.logo}" style="max-height:48px;display:block;margin-bottom:8px;"/>`:``}<div style="font-size:22px;font-weight:900;">${v.fromName}</div><div style="font-size:11px;opacity:0.7;margin-top:4px;">${v.fromDetails}</div></div>
+    <div style="text-align:right;"><div style="font-size:28px;font-weight:900;letter-spacing:3px;">INVOICE</div><div style="font-size:12px;opacity:0.7;margin-top:4px;">${v.invNum}</div></div>
+  </div>
+  <div style="background:var(--light);padding:14px 50px;display:flex;justify-content:space-between;border-bottom:2px solid var(--bg);">
+    <div><div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;">Date</div><div style="font-size:13px;font-weight:700;margin-top:2px;color:var(--text);">${v.invDate}</div></div>
+    <div><div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;">Due Date</div><div style="font-size:13px;font-weight:700;margin-top:2px;color:var(--text);">${v.dueDate}</div></div>
+    <div><div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;">Invoice #</div><div style="font-size:13px;font-weight:700;margin-top:2px;color:var(--text);">${v.invNum}</div></div>
+  </div>
+  <div style="padding:34px 50px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-bottom:32px;">
+      <div><div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;border-bottom:2px solid var(--bg);padding-bottom:5px;margin-bottom:8px;">${cfg.from[0]||'From'}</div><div style="font-size:13px;line-height:1.8;color:var(--text);"><strong>${v.fromName}</strong><br/>${v.fromDetails}</div></div>
+      <div><div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;border-bottom:2px solid var(--bg);padding-bottom:5px;margin-bottom:8px;">${cfg.to[0]||'Bill To'}</div><div style="font-size:13px;line-height:1.8;color:var(--text);"><strong>${v.toName}</strong><br/>${v.toDetails}</div></div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
+      <thead><tr style="background:var(--th);">${cfg.cols.map(col=>`<th style="padding:10px 14px;font-size:10px;color:var(--thText);text-transform:uppercase;text-align:left;">${col}</th>`).join('')}<th style="padding:10px 14px;font-size:10px;color:var(--thText);text-transform:uppercase;text-align:right;">Total</th></tr></thead>
+      <tbody>${itemRows}</tbody>
+    </table>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:26px;">
+      <div style="width:230px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--text);"><span>Subtotal</span><span>${v.cur}${v.sub.toFixed(2)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--text);"><span>Tax</span><span>${v.cur}${v.tax.toFixed(2)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;padding:11px 14px;background:var(--bg);color:#fff;margin-top:2px;"><span>Total Due</span><span>${v.cur}${v.grand.toFixed(2)}</span></div>
+      </div>
+    </div>
+    ${v.notes?`<div style="background:var(--light);border-left:4px solid var(--accent);padding:12px 16px;font-size:12px;line-height:1.7;color:var(--text);">${v.notes}</div>`:''}
+  </div>
+  ${footer}
+</div>`;
+  }
+
+  function fluppyHTML(v,its,c){
+    const rows=its.map((it,i)=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);const bg=(i%2)?c.light:'#ffffff';return `<tr style="background:${bg};"><td style="padding:9px 16px;font-size:11px;font-weight:700;color:var(--text);">${it.c1||''}</td><td style="padding:9px 16px;font-size:11px;text-align:center;color:var(--text);">${it.c2||1}</td><td style="padding:9px 16px;font-size:11px;text-align:center;color:var(--text);">${v.cur}${r.toFixed(2)}</td><td style="padding:9px 16px;font-size:11px;text-align:right;font-weight:700;color:var(--text);">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="position:relative;max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);overflow:hidden;padding-bottom:60px;box-shadow:0 4px 30px rgba(0,0,0,0.12);">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div style="background:var(--bg);color:#fff;padding:26px 40px 46px;min-width:200px;clip-path:polygon(0 0,100% 0,100% 76%,0 100%);">
+      ${settings.logo?`<img src="${settings.logo}" style="max-height:46px;display:block;margin-bottom:8px;"/>`:``}
+      <div style="font-size:20px;font-weight:800;letter-spacing:.5px;">${v.fromName||'Your Company'}</div>
+      <div style="font-size:9px;letter-spacing:3px;opacity:.75;margin-top:3px;text-transform:uppercase;">Creative Company</div>
+    </div>
+    <div style="padding:44px 50px 0;text-align:right;"><div style="font-size:46px;font-weight:900;letter-spacing:2px;color:var(--text);">INVOICE</div></div>
+  </div>
+  <div style="padding:6px 50px 0;display:flex;justify-content:space-between;align-items:flex-start;">
+    <div><div style="font-size:9px;font-weight:700;letter-spacing:1px;">INVOICE TO :</div><div style="font-size:15px;font-weight:800;margin-top:4px;border-bottom:2px solid var(--bg);display:inline-block;">${v.toName||'Client Name'}</div><div style="font-size:10px;margin-top:5px;line-height:1.6;">${v.toDetails||''}</div></div>
+    <div style="font-size:10px;line-height:2;">Date : ${v.invDate}<br/>Invoice No : ${v.invNum}</div>
+    <div style="text-align:right;"><div style="font-size:9px;font-weight:700;letter-spacing:1px;">TOTAL DUE :</div><div style="font-size:18px;font-weight:900;margin-top:4px;">${v.cur}${v.grand.toFixed(2)}</div></div>
+  </div>
+  <div style="padding:22px 50px 0;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr style="background:var(--bg);color:#fff;"><th style="text-align:left;padding:10px 16px;font-size:11px;">Description</th><th style="text-align:center;padding:10px 16px;font-size:11px;">Qty</th><th style="text-align:center;padding:10px 16px;font-size:11px;">Price</th><th style="text-align:right;padding:10px 16px;font-size:11px;">Total</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+  <div style="padding:20px 50px 0;display:flex;justify-content:space-between;align-items:flex-start;">
+    <div style="font-size:11px;line-height:1.7;"><div style="font-weight:800;margin-bottom:4px;">Payment Method</div><div>${v.fromDetails||''}</div></div>
+    <div style="width:250px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span>Sub-total :</span><span>${v.cur}${v.sub.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;"><span>Tax :</span><span>${v.cur}${v.tax.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;background:var(--accent);color:#1a1a1a;padding:8px 14px;margin-top:6px;"><span>Total :</span><span>${v.cur}${v.grand.toFixed(2)}</span></div>
+    </div>
+  </div>
+  <div style="padding:24px 50px 0;display:flex;justify-content:space-between;align-items:flex-end;">
+    <div style="font-size:10px;max-width:320px;"><div style="font-weight:800;margin-bottom:4px;">Terms and Conditions</div><div style="line-height:1.6;">${v.notes||'Please send payment within 30 days of receiving this invoice.'}</div></div>
+    <div style="text-align:center;font-size:11px;"><div style="font-weight:800;border-top:1px solid #999;padding-top:4px;">${v.fromName||'Authorized'}</div><div style="opacity:.7;">Administrator</div></div>
+  </div>
+  <div style="position:absolute;left:0;bottom:0;width:230px;height:36px;background:var(--accent);clip-path:polygon(0 100%,0 0,100% 100%);"></div>
+  <div style="position:absolute;right:0;bottom:0;width:120px;height:120px;background:var(--accent);clip-path:polygon(100% 0,100% 100%,0 100%);"></div>
+</div>`;
+  }
+
+  function design3HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:10px 14px;border-bottom:1px solid #eee;font-size:11px;color:var(--text);">${it.c1||''}</td><td style="padding:10px 14px;border-bottom:1px solid #eee;font-size:11px;text-align:right;color:var(--text);">${v.cur}${r.toFixed(2)}</td><td style="padding:10px 14px;border-bottom:1px solid #eee;font-size:11px;text-align:center;color:var(--accent);">${it.c2||1}</td><td style="padding:10px 14px;border-bottom:1px solid #eee;font-size:11px;text-align:right;font-weight:700;color:var(--text);">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="position:relative;max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);overflow:hidden;padding-bottom:54px;box-shadow:0 4px 30px rgba(0,0,0,0.12);">
+  <div style="background:linear-gradient(90deg,var(--bg),#6a3ff0);height:46px;display:flex;align-items:center;justify-content:flex-end;padding:0 26px;"><span style="color:#fff;font-size:12px;font-weight:700;">Minimalist Simple Business Invoice</span></div>
+  <div style="position:absolute;right:0;top:72px;width:30px;height:118px;background:var(--accent);"></div>
+  <div style="padding:34px 50px 0;display:flex;justify-content:space-between;align-items:center;">
+    <div>${settings.logo?`<img src="${settings.logo}" style="max-height:40px;display:block;margin-bottom:6px;"/>`:``}<div style="font-size:20px;font-weight:800;">${v.fromName||'Rimberio'}</div></div>
+    <div style="font-size:40px;font-weight:900;letter-spacing:1px;">INVOICE</div>
+  </div>
+  <div style="padding:20px 50px 0;font-size:11px;line-height:1.9;"><div>Invoice Number: #${v.invNum}</div><div>Invoice Date: ${v.invDate}</div></div>
+  <div style="padding:12px 50px 0;display:flex;justify-content:space-between;">
+    <div style="font-size:11px;line-height:1.7;max-width:250px;"><div style="font-weight:800;">${(v.fromName||'STUDIO SHODWE').toUpperCase()}</div><div>${v.fromDetails||''}</div></div>
+    <div style="font-size:11px;line-height:1.7;max-width:250px;"><div style="font-weight:800;">BILL TO</div><div style="font-weight:700;">${v.toName}</div><div>${v.toDetails||''}</div></div>
+  </div>
+  <div style="padding:22px 50px 0;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr style="background:var(--accent);color:#fff;"><th style="text-align:left;padding:10px 14px;font-size:11px;">Item &amp; Description</th><th style="text-align:right;padding:10px 14px;font-size:11px;">Unit Price</th><th style="text-align:center;padding:10px 14px;font-size:11px;">Qty</th><th style="text-align:right;padding:10px 14px;font-size:11px;">Amount</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+  <div style="padding:18px 50px 0;display:flex;justify-content:space-between;align-items:flex-start;">
+    <div style="font-size:11px;max-width:280px;"><div style="font-weight:800;">NOTES / TERMS:</div><div style="line-height:1.6;margin-top:5px;">${v.notes||'Payment is due within 15 days of receiving this invoice.'}</div></div>
+    <div style="width:250px;border:1px solid #e5e5e5;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 14px;border-bottom:1px solid #eee;"><span>Sub-Total</span><span>${v.cur}${v.sub.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 14px;border-bottom:1px solid #eee;"><span>Tax</span><span>${v.cur}${v.tax.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;padding:9px 14px;background:var(--accent);color:#fff;"><span>Total</span><span>${v.cur}${v.grand.toFixed(2)}</span></div>
+    </div>
+  </div>
+  <div style="padding:40px 50px 0;display:flex;justify-content:space-between;font-size:11px;line-height:1.7;">
+    <div><div style="font-weight:800;">PAYMENT METHOD:</div><div>${v.fromDetails||''}</div></div>
+    <div><div style="font-weight:800;">PREPARED BY:</div><div>${v.fromName||''}</div></div>
+  </div>
+  <div style="position:absolute;left:0;bottom:0;width:26px;height:150px;background:var(--accent);"></div>
+</div>`;
+  }
+
+  function design4HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<div style="display:grid;grid-template-columns:2.5fr .7fr 1fr 1fr;font-size:11px;padding:12px 0;border-bottom:1px solid var(--border);color:var(--text);"><span>${it.c1||''}</span><span style="text-align:center;">${it.c2||1}</span><span style="text-align:right;">${v.cur}${r.toFixed(2)}</span><span style="text-align:right;">${v.cur}${t}</span></div>`;}).join('');
+    return `<div style="position:relative;max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);padding-bottom:36px;box-shadow:0 4px 30px rgba(0,0,0,0.12);">
+  <div style="background:var(--bg);color:#fff;padding:22px 40px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="display:flex;align-items:center;gap:8px;">${settings.logo?`<img src="${settings.logo}" style="max-height:26px;"/>`:`<span style="font-size:20px;">&#9686;</span>`}<span style="font-weight:700;">${v.fromName||'Larana, Inc.'}</span></div>
+    <div style="font-size:12px;">NO. ${v.invNum}</div>
+  </div>
+  <div style="background:var(--accent);color:#fff;padding:12px 40px;font-size:30px;font-weight:900;letter-spacing:8px;">INVOICE</div>
+  <div style="padding:22px 40px 0;">
+    <div style="font-size:12px;"><b>Date:</b> ${v.invDate}</div>
+    <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;line-height:1.7;">
+      <div style="max-width:250px;"><b>Billed to:</b><br/>${v.toName}<br/>${v.toDetails||''}</div>
+      <div style="max-width:250px;"><b>From:</b><br/>${v.fromName}<br/>${v.fromDetails||''}</div>
+    </div>
+  </div>
+  <div style="background:var(--light);margin-top:18px;padding:12px 40px;display:grid;grid-template-columns:2.5fr .7fr 1fr 1fr;font-size:11px;font-weight:700;letter-spacing:2px;"><span>SERVICE</span><span style="text-align:center;">QTY</span><span style="text-align:right;">PRICE</span><span style="text-align:right;">TOTAL</span></div>
+  <div style="padding:0 40px;">${rows}</div>
+  <div style="padding:14px 40px 0;display:flex;justify-content:space-between;align-items:center;"><span style="width:40px;height:3px;background:var(--accent);display:inline-block;"></span><div><b style="letter-spacing:2px;">TOTAL</b>&nbsp;&nbsp;<b style="font-size:16px;">${v.cur}${v.grand.toFixed(2)}</b></div></div>
+  <div style="padding:16px 40px 0;font-size:11px;line-height:1.7;"><b>Payment method:</b> Cash<br/><b>Note:</b> ${v.notes||'Thank you for choosing us!'}</div>
+  <div style="margin:16px 40px 0;border-top:1px solid #eee;padding-top:12px;font-size:10px;color:var(--accent);">${v.fromDetails||''}</div>
+</div>`;
+  }
+
+  function design5HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:9px 0;border-bottom:1px solid var(--border);font-size:11px;color:var(--text);">${it.c1||''}</td><td style="padding:9px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:center;color:var(--text);">${v.cur}${r.toFixed(2)}</td><td style="padding:9px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:center;color:var(--text);">${it.c2||1}</td><td style="padding:9px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:right;color:var(--text);">${v.cur}${t}</td></tr>`;}).join('');
+    const font=(settings.font)||'Georgia, "Times New Roman", serif';
+    return `<div style="position:relative;max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:${font};color:var(--text);padding:46px 56px 60px 90px;box-shadow:0 4px 30px rgba(0,0,0,0.12);overflow:hidden;">
+  <div style="position:absolute;left:26px;top:150px;font-size:88px;font-style:italic;font-family:'Brush Script MT','Segoe Script',cursive;transform:rotate(180deg);writing-mode:vertical-rl;color:var(--text);opacity:.85;">invoice</div>
+  <div style="text-align:right;"><span style="display:inline-block;width:78px;height:78px;border:1px solid var(--accent);border-radius:50%;text-align:center;line-height:78px;font-size:22px;">N</span></div>
+  <div style="display:flex;justify-content:space-between;margin-top:50px;font-size:11px;">
+    <div><div style="font-weight:800;letter-spacing:1px;">ISSUED TO:</div><div style="margin-top:5px;line-height:1.7;">${v.toName}<br/>${v.toDetails||''}</div></div>
+    <div style="text-align:left;font-size:11px;line-height:1.9;"><div><b>INVOICE NO:</b> ${v.invNum}</div><div><b>DATE:</b> ${v.invDate}</div><div><b>DUE DATE:</b> ${v.dueDate}</div></div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin-top:44px;">
+    <thead><tr style="border-bottom:1px solid var(--border);"><th style="text-align:left;padding:6px 0;font-size:10px;letter-spacing:2px;font-weight:700;">DESCRIPTION</th><th style="text-align:center;padding:6px 0;font-size:10px;letter-spacing:2px;font-weight:700;">UNIT PRICE</th><th style="text-align:center;padding:6px 0;font-size:10px;letter-spacing:2px;font-weight:700;">QTY</th><th style="text-align:right;padding:6px 0;font-size:10px;letter-spacing:2px;font-weight:700;">TOTAL</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div style="display:flex;justify-content:flex-end;margin-top:18px;"><div style="width:230px;font-size:11px;">
+    <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="letter-spacing:1px;">SUBTOTAL</span><span>${v.cur}${v.sub.toFixed(2)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Tax</span><span>${v.cur}${v.tax.toFixed(2)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);font-weight:800;letter-spacing:1px;"><span>TOTAL</span><span>${v.cur}${v.grand.toFixed(2)}</span></div>
+  </div></div>
+  <div style="display:flex;justify-content:space-between;margin-top:60px;font-size:11px;">
+    <div><div style="font-weight:800;letter-spacing:1px;">BANK DETAILS</div><div style="margin-top:4px;line-height:1.7;">${v.fromDetails||''}</div></div>
+    <div style="text-align:center;"><div style="font-weight:800;letter-spacing:1px;">THANK YOU</div></div>
+  </div>
+</div>`;
+  }
+
+  const LAYOUTS={design1:classicHTML, design2:fluppyHTML};
+  LAYOUTS.design3=design3HTML; LAYOUTS.design4=design4HTML; LAYOUTS.design5=design5HTML;
+  LAYOUTS.design6=design6HTML; LAYOUTS.design7=design7HTML; LAYOUTS.design8=design8HTML; LAYOUTS.design9=design9HTML; LAYOUTS.design10=design10HTML;
+  LAYOUTS.design11=design11HTML; LAYOUTS.design12=design12HTML; LAYOUTS.design13=design13HTML; LAYOUTS.design14=design14HTML; LAYOUTS.design15=design15HTML; LAYOUTS.design16=design16HTML;
+  function _rows_lines(its,v,c){return its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:10px 0;border-bottom:1px solid var(--border);font-size:11px;">${it.c1||''}</td><td style="padding:10px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:right;">${v.cur}${r.toFixed(2)}</td><td style="padding:10px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:center;">${it.c2||1}</td><td style="padding:10px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');}
+
+  function design6HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:11px 0;border-bottom:1px solid var(--border);font-size:11px;">${it.c1||''}</td><td style="padding:11px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:center;">${v.cur}${r.toFixed(2)}</td><td style="padding:11px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:center;">${it.c2||1}</td><td style="padding:11px 0;border-bottom:1px solid var(--border);font-size:11px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding-bottom:54px;">
+  <div style="background:var(--light);padding:38px 0 30px;text-align:center;">
+    ${settings.logo?`<img src="${settings.logo}" style="max-height:56px;"/>`:`<div style="font-family:Georgia,serif;font-size:42px;letter-spacing:1px;">D/G</div>`}
+    <div style="font-size:20px;letter-spacing:5px;margin-top:8px;">${(v.fromName||'DANIEL GALLEGO').toUpperCase()}</div>
+    <div style="font-style:italic;font-size:12px;letter-spacing:3px;opacity:.7;margin-top:3px;">real estate agent</div>
+  </div>
+  <div style="padding:34px 56px 0;display:flex;justify-content:space-between;font-size:11px;">
+    <div><div style="font-weight:800;letter-spacing:1px;">ISSUED TO:</div><div style="margin-top:5px;line-height:1.7;">${v.toName}<br/>${v.toDetails||''}</div></div>
+    <div style="text-align:left;line-height:1.9;"><div><b>INVOICE NO:</b> ${v.invNum}</div><div><b>DATE:</b> ${v.invDate}</div><div><b>DUE DATE:</b> ${v.dueDate}</div></div>
+  </div>
+  <div style="padding:18px 56px 0;font-size:11px;"><div style="font-weight:800;letter-spacing:1px;">PAY TO:</div><div style="margin-top:4px;line-height:1.7;">${v.fromDetails||''}</div></div>
+  <div style="padding:30px 56px 0;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr style="border-bottom:1px solid var(--text);"><th style="text-align:left;padding:6px 0;font-size:10px;letter-spacing:1px;">DESCRIPTION</th><th style="text-align:center;padding:6px 0;font-size:10px;letter-spacing:1px;">UNIT PRICE</th><th style="text-align:center;padding:6px 0;font-size:10px;letter-spacing:1px;">QTY</th><th style="text-align:right;padding:6px 0;font-size:10px;letter-spacing:1px;">TOTAL</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:12px;font-weight:800;letter-spacing:1px;"><span>SUBTOTAL</span><span>${v.cur}${v.sub.toFixed(2)}</span></div>
+    <div style="display:flex;justify-content:flex-end;gap:40px;font-size:11px;margin-top:4px;"><span>Tax</span><span>${v.cur}${v.tax.toFixed(2)}</span></div>
+    <div style="display:flex;justify-content:flex-end;gap:40px;font-size:13px;font-weight:800;margin-top:4px;"><span>TOTAL</span><span>${v.cur}${v.grand.toFixed(2)}</span></div>
+    <div style="text-align:right;margin-top:44px;font-family:'Brush Script MT',cursive;font-size:26px;opacity:.8;">${v.fromName||'Signature'}</div>
+  </div>
+</div>`;
+  }
+
+  function design7HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:10px 16px;font-size:11px;font-weight:700;">${it.c1||''}</td><td style="padding:10px 16px;font-size:11px;text-align:center;">${it.c2||1}</td><td style="padding:10px 16px;font-size:11px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);position:relative;padding-bottom:0;">
+  <div style="display:flex;">
+    <div style="flex:1;padding:30px 40px;">${settings.logo?`<img src="${settings.logo}" style="max-height:44px;"/>`:``}<div style="font-size:20px;font-weight:800;line-height:1.1;margin-top:6px;">${v.fromName||'Everyday Market'}</div><div style="font-size:10px;text-align:right;margin-top:16px;line-height:1.9;">${v.fromDetails||''}</div></div>
+    <div style="width:300px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;letter-spacing:2px;">INVOICE</div>
+  </div>
+  <div style="background:var(--bg);color:#fff;margin:0 40px;padding:9px 16px;display:flex;justify-content:space-between;font-size:10px;font-weight:700;"><span>Invoice No : ${v.invNum}</span><span>Invoice Date : ${v.invDate}</span><span>Due Date : ${v.dueDate}</span></div>
+  <div style="padding:16px 40px 0;display:flex;justify-content:space-between;">
+    <div style="font-size:11px;"><div style="font-weight:700;">Invoice to:</div><div style="font-size:18px;font-weight:800;color:var(--accent);margin-top:2px;">${v.toName}</div><div style="margin-top:4px;line-height:1.6;">${v.toDetails||''}</div></div>
+    <div style="font-size:10px;line-height:1.7;"><div style="font-weight:800;">PAYMENT INFO</div><div>${v.fromDetails||''}</div></div>
+  </div>
+  <div style="padding:18px 40px 0;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr><th style="background:var(--accent);color:#fff;text-align:left;padding:11px 16px;font-size:12px;">Item Description</th><th style="background:var(--bg);color:#fff;text-align:center;padding:11px 16px;font-size:12px;">Quantity</th><th style="background:var(--bg);color:#fff;text-align:right;padding:11px 16px;font-size:12px;">Amount (USD)</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;"><div style="text-align:right;font-size:12px;line-height:1.9;"><div>Subtotal &nbsp; ${v.cur}${v.sub.toFixed(2)}</div><div>Tax &nbsp; ${v.cur}${v.tax.toFixed(2)}</div></div></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;"><div style="background:var(--bg);color:#fff;padding:12px 22px;font-size:12px;font-weight:700;">Total</div><div style="background:var(--accent);color:#fff;padding:12px 26px;font-size:20px;font-weight:900;">${v.cur}${v.grand.toFixed(2)}</div></div>
+  </div>
+  <div style="margin-top:26px;background:var(--bg);color:#fff;padding:18px 40px;font-size:10px;"><div style="font-weight:800;margin-bottom:6px;">TERMS &amp; CONDITIONS</div><div style="line-height:1.6;">${v.notes||'Payment is required within 7 days from the invoice date.'}</div></div>
+</div>`;
+  }
+
+  function design8HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:11px;">${it.c1||''}</td><td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:11px;text-align:center;">${it.c2||1}</td><td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:11px;text-align:center;">${v.cur}${r.toFixed(2)}</td><td style="padding:11px 14px;border-bottom:1px solid var(--border);font-size:11px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:linear-gradient(135deg,#0f3d2e,#1b6b4a);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding:0 0 40px;overflow:hidden;">
+  <div style="padding:20px 40px;font-size:9px;color:#fff;opacity:.8;text-align:right;">${v.fromDetails||''}</div>
+  <div style="font-size:60px;font-weight:900;color:#fff;letter-spacing:2px;padding:0 0 8px 40px;white-space:nowrap;overflow:hidden;">INVOICE INVOICE INVOI</div>
+  <div style="padding:20px 40px 0;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr style="background:var(--accent);color:var(--thText);"><th style="text-align:left;padding:10px 14px;font-size:11px;">DESCRIPTION</th><th style="text-align:center;padding:10px 14px;font-size:11px;">QTY</th><th style="text-align:center;padding:10px 14px;font-size:11px;">RATE</th><th style="text-align:right;padding:10px 14px;font-size:11px;">AMOUNT</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:20px 40px 0;">
+    <div style="font-size:12px;color:var(--accent);line-height:1.8;"><div>Subtotal. ${v.cur}${v.sub.toFixed(2)}</div><div>Tax. ${v.cur}${v.tax.toFixed(2)}</div><div>Total Amount Due. ${v.cur}${v.grand.toFixed(2)}</div></div>
+    <div style="font-size:26px;color:var(--accent);font-weight:800;">NO. ${v.invNum}</div>
+  </div>
+  <div style="display:flex;margin-top:24px;">
+    <div style="flex:1;padding:0 40px;">${settings.logo?`<img src="${settings.logo}" style="max-height:40px;"/>`:`<div style="color:var(--accent);font-size:34px;font-weight:900;">&#9670;</div>`}<div style="color:var(--accent);font-weight:800;margin-top:6px;">${v.fromName||'Impact Inc'}</div></div>
+    <div style="width:340px;background:var(--accent);color:#0f3d2e;padding:22px 26px;font-size:11px;line-height:1.7;"><div style="font-weight:800;">BILLED TO</div><div style="margin-top:6px;">${v.toName}<br/>${v.toDetails||''}</div></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;padding:24px 40px 0;color:#fff;font-size:10px;">
+    <div><div style="font-weight:800;">PAYMENT</div><div style="margin-top:4px;line-height:1.7;opacity:.9;">${v.fromDetails||''}</div></div>
+    <div style="max-width:320px;"><div style="font-weight:800;">TERMS &amp; CONDITIONS</div><div style="margin-top:4px;line-height:1.6;opacity:.9;">${v.notes||'Payment is due within the agreed payment period.'}</div></div>
+  </div>
+</div>`;
+  }
+
+  function design9HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr style="background:var(--light);"><td style="padding:11px 16px;border-bottom:2px solid var(--bodyBg);font-size:11px;">${it.c1||''}</td><td style="padding:11px 16px;border-bottom:2px solid var(--bodyBg);font-size:11px;text-align:center;">${it.c2||1}</td><td style="padding:11px 16px;border-bottom:2px solid var(--bodyBg);font-size:11px;text-align:right;">${v.cur}${r.toFixed(2)}</td><td style="padding:11px 16px;border-bottom:2px solid var(--bodyBg);font-size:11px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding-bottom:0;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:34px 40px 26px;">
+    <div style="font-size:48px;font-weight:900;color:var(--accent);">Invoice</div>
+    <div style="display:flex;align-items:center;gap:8px;">${settings.logo?`<img src="${settings.logo}" style="max-height:30px;"/>`:`<span style="color:#fff;font-size:22px;">&#9776;</span>`}<span style="color:#fff;font-weight:700;line-height:1.1;">${v.fromName||'Impact Inc'}</span></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;padding:0 40px 26px;font-size:10px;color:#cfcfcf;line-height:1.8;">
+    <div style="max-width:170px;"><div style="color:#fff;font-weight:800;">INVOICE</div><div>No. ${v.invNum}<br/>Date. ${v.invDate}<br/>Due. ${v.dueDate}</div></div>
+    <div style="max-width:170px;"><div style="color:#fff;font-weight:800;">BILLED TO</div><div>${v.toName}<br/>${v.toDetails||''}</div></div>
+    <div style="max-width:220px;"><div style="color:#fff;font-weight:800;">PAYMENT METHOD</div><div>${v.fromDetails||''}</div></div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;">
+    <thead><tr style="background:var(--accent);color:#fff;"><th style="text-align:left;padding:11px 16px;font-size:11px;">DESCRIPTION</th><th style="text-align:center;padding:11px 16px;font-size:11px;">HOURS</th><th style="text-align:right;padding:11px 16px;font-size:11px;">RATE</th><th style="text-align:right;padding:11px 16px;font-size:11px;">AMOUNT</th></tr></thead>
+    <tbody>${rows}
+      <tr style="background:var(--light);"><td style="padding:11px 16px;border-bottom:2px solid var(--bodyBg);font-size:11px;">Subtotal</td><td colspan="2" style="border-bottom:2px solid var(--bodyBg);"></td><td style="padding:11px 16px;border-bottom:2px solid var(--bodyBg);font-size:11px;text-align:right;">${v.cur}${v.sub.toFixed(2)}</td></tr>
+      <tr style="background:var(--light);"><td style="padding:11px 16px;border-bottom:2px solid var(--bodyBg);font-size:11px;">Tax</td><td colspan="2" style="border-bottom:2px solid var(--bodyBg);"></td><td style="padding:11px 16px;border-bottom:2px solid var(--bodyBg);font-size:11px;text-align:right;">${v.cur}${v.tax.toFixed(2)}</td></tr>
+      <tr style="background:var(--light);"><td style="padding:11px 16px;font-size:12px;color:var(--accent);font-weight:800;">Total</td><td colspan="2"></td><td style="padding:11px 16px;font-size:12px;color:var(--accent);font-weight:800;text-align:right;">${v.cur}${v.grand.toFixed(2)}</td></tr>
+    </tbody>
+  </table>
+  <div style="padding:26px 40px;font-size:10px;color:#cfcfcf;line-height:1.7;">${v.notes||'Thank you for your business. Payment is appreciated by the due date.'}</div>
+  <div style="background:var(--accent);color:#fff;padding:14px 40px;font-size:10px;">${v.fromDetails||''}</div>
+</div>`;
+  }
+
+  function design10HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:9px 0;font-size:11px;">${it.c1||''}</td><td style="padding:9px 0;font-size:11px;text-align:center;">${it.c2||1}</td><td style="padding:9px 0;font-size:11px;text-align:center;">${v.cur}${r.toFixed(2)}</td><td style="padding:9px 0;font-size:11px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding-bottom:40px;">
+  <div style="background:linear-gradient(120deg,var(--bg),var(--accent));color:#fff;padding:34px 44px 30px;display:flex;justify-content:space-between;align-items:flex-start;">
+    <div><div style="font-size:44px;font-weight:900;letter-spacing:1px;">INVOICE</div><div style="font-size:13px;font-weight:700;margin-top:4px;">INVOICE NO: ${v.invNum}</div><div style="font-size:11px;opacity:.85;">${v.invDate}</div></div>
+    <div style="text-align:right;font-size:20px;font-weight:700;line-height:1.2;">${settings.logo?`<img src="${settings.logo}" style="max-height:40px;"/>`:(v.fromName||'Company Name')}</div>
+  </div>
+  <div style="margin:22px 40px 0;background:#fff;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,0.08);padding:20px 26px;">
+    <div style="font-size:12px;font-weight:700;">Invoice to:</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:24px;font-weight:900;">${v.toName}</div><div style="font-size:11px;text-align:right;line-height:1.6;">${v.toDetails||''}</div></div>
+  </div>
+  <div style="padding:24px 44px 0;">
+    <table style="width:100%;border-collapse:collapse;border-top:2px solid var(--bg);border-bottom:2px solid var(--bg);">
+      <thead><tr><th style="text-align:left;padding:10px 0;font-size:13px;font-weight:800;">Description</th><th style="text-align:center;padding:10px 0;font-size:13px;font-weight:800;">Qty</th><th style="text-align:center;padding:10px 0;font-size:13px;font-weight:800;">Cost</th><th style="text-align:right;padding:10px 0;font-size:13px;font-weight:800;">Subtotal</th></tr></thead>
+      <tbody>${rows}
+        <tr><td colspan="2"></td><td style="padding:10px 0;font-size:11px;font-weight:700;">Subtotal</td><td style="padding:10px 0;font-size:11px;text-align:right;">${v.cur}${v.sub.toFixed(2)}</td></tr>
+        <tr><td colspan="2"></td><td style="padding:2px 0;font-size:11px;font-weight:700;">Tax</td><td style="padding:2px 0;font-size:11px;text-align:right;">${v.cur}${v.tax.toFixed(2)}</td></tr>
+      </tbody>
+    </table>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;">
+      <div style="font-size:11px;"><div style="font-weight:800;">Payment Details:</div><div style="margin-top:4px;line-height:1.6;">${v.fromDetails||''}</div></div>
+      <div style="font-size:16px;font-weight:900;">Total &nbsp; ${v.cur}${v.grand.toFixed(2)}</div>
+    </div>
+  </div>
+  <div style="margin:26px 40px 0;background:#fff;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,0.08);padding:20px 26px;display:flex;justify-content:space-between;">
+    <div style="font-size:11px;"><div style="font-size:16px;font-weight:800;">Contact Us</div><div style="margin-top:8px;line-height:1.6;">${v.fromDetails||''}</div></div>
+    <div style="text-align:center;font-size:16px;font-weight:800;">Thank You!<div style="font-family:'Brush Script MT',cursive;font-size:22px;font-weight:400;margin-top:10px;opacity:.7;">${v.fromName||''}</div><div style="font-size:11px;font-weight:700;">Administrator</div></div>
+  </div>
+</div>`;
+  }
+
+  function design11HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:11px 0;border-bottom:1px solid #eee;font-size:11px;">${it.c1||''}</td><td style="padding:11px 0;border-bottom:1px solid #eee;font-size:11px;text-align:center;">${it.c2||1}</td><td style="padding:11px 0;border-bottom:1px solid #eee;font-size:11px;text-align:center;">${v.cur}${r.toFixed(2)}</td><td style="padding:11px 0;border-bottom:1px solid #eee;font-size:11px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding-bottom:20px;">
+  <div style="background:var(--bg);padding:34px 40px 22px;text-align:center;"><div style="font-size:64px;font-weight:900;color:#fff;letter-spacing:2px;">INVOICE</div></div>
+  <div style="background:var(--accent);color:#fff;padding:8px 40px;font-size:10px;text-align:center;">${v.fromDetails||''}</div>
+  <div style="display:flex;justify-content:space-between;padding:24px 40px 0;font-size:10px;line-height:1.7;">
+    <div style="max-width:170px;"><div style="font-weight:800;">INVOICE</div><div>No. ${v.invNum}<br/>Date. ${v.invDate}<br/>Due. ${v.dueDate}</div></div>
+    <div style="max-width:220px;"><div style="font-weight:800;">BILLED TO</div><div>${v.toName}<br/>${v.toDetails||''}</div></div>
+    <div style="text-align:right;color:var(--accent);font-weight:800;">${settings.logo?`<img src="${settings.logo}" style="max-height:32px;"/>`:`<span style="font-size:26px;">&#9670;</span>`}<div>${v.fromName||'Company'}</div></div>
+  </div>
+  <div style="padding:24px 40px 0;"><table style="width:100%;border-collapse:collapse;"><thead><tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:8px 0;font-size:11px;">DESCRIPTION</th><th style="text-align:center;padding:8px 0;font-size:11px;">QTY</th><th style="text-align:center;padding:8px 0;font-size:11px;">RATE</th><th style="text-align:right;padding:8px 0;font-size:11px;">AMOUNT</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px;font-size:12px;line-height:1.9;text-align:right;"><div><div>Subtotal &nbsp; ${v.cur}${v.sub.toFixed(2)}</div><div>Tax &nbsp; ${v.cur}${v.tax.toFixed(2)}</div><div style="font-weight:800;">Total &nbsp; ${v.cur}${v.grand.toFixed(2)}</div></div></div></div>
+  <div style="display:flex;justify-content:space-between;padding:20px 40px 0;font-size:10px;line-height:1.6;"><div style="max-width:230px;"><div style="font-weight:800;">PAYMENT</div><div>${v.fromDetails||''}</div></div><div style="max-width:280px;"><div style="font-weight:800;">TERMS &amp; CONDITIONS</div><div>${v.notes||'Payment is due within the agreed payment period.'}</div></div></div>
+  <div style="padding:18px 40px 0;font-size:42px;font-weight:900;color:var(--accent);">thank<span style="font-weight:400;">you</span></div>
+</div>`;
+  }
+
+  function design12HTML(v,its,c){
+    const cell='border:1px solid '+c.border+';padding:13px;font-size:12px;';
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="${cell}text-align:center;">${it.c2||1}</td><td style="${cell}">${it.c1||''}</td><td style="${cell}">${v.cur}${r.toFixed(2)}</td><td style="${cell}">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:Georgia,'Times New Roman',serif;color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding:46px 56px 40px;">
+  <div style="font-size:52px;letter-spacing:1px;">INVOICE</div>
+  <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:12px;line-height:1.6;">
+    <div>${v.fromName||''}<br/>${v.fromDetails||''}</div>
+    <div style="text-align:right;">Invoice Date: ${v.invDate}<br/>Invoice Number: ${v.invNum}</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin-top:26px;">
+    <thead><tr><th style="${cell}text-align:center;font-weight:400;">No.</th><th style="${cell}font-weight:400;">Description</th><th style="${cell}font-weight:400;">Price</th><th style="${cell}font-weight:400;">Total</th></tr></thead>
+    <tbody>${rows}
+      <tr><td style="${cell}"></td><td style="${cell}"></td><td style="${cell}">SUBTOTAL</td><td style="${cell}">${v.cur}${v.sub.toFixed(2)}</td></tr>
+      <tr><td style="${cell}"></td><td style="${cell}"></td><td style="${cell}">TAX</td><td style="${cell}">${v.cur}${v.tax.toFixed(2)}</td></tr>
+      <tr><td style="${cell}"></td><td style="${cell}"></td><td style="${cell}">TOTAL</td><td style="${cell}">${v.cur}${v.grand.toFixed(2)}</td></tr>
+    </tbody>
+  </table>
+  <div style="display:flex;justify-content:space-between;margin-top:30px;font-size:12px;line-height:1.6;"><div>${v.fromDetails||''}</div><div style="text-align:right;">${v.fromName||''}</div></div>
+</div>`;
+  }
+
+  function design13HTML(v,its,c){
+    const cell='border:1px solid '+c.border+';padding:9px 12px;font-size:11px;';
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="${cell}">${it.c1||'Your Description'}</td><td style="${cell}text-align:center;">${it.c2||1}</td><td style="${cell}text-align:center;">${v.cur}${r.toFixed(2)}</td><td style="${cell}text-align:center;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding-bottom:40px;">
+  <div style="background:var(--bg);color:#fff;padding:30px 40px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:34px;font-weight:900;">INVOICE</div><div style="font-weight:700;">NO: ${v.invNum}</div></div>
+  <div style="display:flex;justify-content:space-between;padding:26px 40px 0;font-size:12px;line-height:1.7;"><div><b style="font-size:16px;">Bill To:</b><br/>${v.toName}<br/>${v.toDetails||''}</div><div style="text-align:right;"><b style="font-size:16px;">From:</b><br/>${v.fromName}<br/>${v.fromDetails||''}</div></div>
+  <div style="padding:14px 40px 0;font-size:12px;">Date: ${v.invDate}</div>
+  <div style="padding:16px 40px 0;"><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:var(--bg);color:#fff;"><th style="padding:10px 12px;font-size:11px;text-align:left;">Description</th><th style="padding:10px 12px;font-size:11px;text-align:center;">Qty</th><th style="padding:10px 12px;font-size:11px;text-align:center;">Price</th><th style="padding:10px 12px;font-size:11px;text-align:center;">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div style="display:flex;justify-content:flex-end;padding:12px 40px 0;"><div style="background:var(--bg);color:#fff;padding:10px 22px;font-size:12px;font-weight:700;">Sub Total &nbsp;&nbsp; ${v.cur}${v.grand.toFixed(2)}</div></div>
+  <div style="padding:18px 40px 0;font-size:12px;">Note: ${v.notes||''}</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:18px 40px 0;"><div style="font-size:11px;line-height:1.7;"><b>Payment Information:</b><br/>${v.fromDetails||''}</div><div style="font-size:26px;color:var(--bg);font-weight:700;">Thank You!</div></div>
+</div>`;
+  }
+
+  function design14HTML(v,its,c){
+    const cell='border:1px solid '+c.text+';padding:12px;font-size:12px;';
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="${cell}">${it.c1||''}</td><td style="${cell}text-align:center;">${it.c2||1}</td><td style="${cell}text-align:right;">${v.cur}${r.toFixed(2)}</td><td style="${cell}text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding:40px 44px;">
+  <div style="font-size:44px;font-weight:900;">${settings.logo?`<img src="${settings.logo}" style="max-height:44px;vertical-align:middle;"/> `:''}Invoice</div>
+  <div style="display:flex;justify-content:space-between;margin-top:20px;font-size:12px;line-height:2.1;">
+    <div>Date: ${v.invDate}<br/>Invoice number: ${v.invNum}<br/>Billed to: ${v.toName}</div>
+    <div><b>Payment Method:</b><br/>${v.fromDetails||''}</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin-top:26px;"><thead><tr><th style="${cell}background:var(--accent);">Description</th><th style="${cell}background:var(--accent);">Qty</th><th style="${cell}background:var(--accent);">Price</th><th style="${cell}background:var(--accent);">Total</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="display:flex;justify-content:flex-end;"><div style="${cell}background:var(--accent);font-weight:800;">total :</div><div style="${cell}min-width:120px;text-align:right;">${v.cur}${v.grand.toFixed(2)}</div></div>
+  <div style="margin-top:40px;font-size:26px;font-weight:900;">THANK YOU</div>
+  <div style="font-size:11px;margin-top:8px;line-height:1.9;">${v.fromDetails||''}</div>
+</div>`;
+  }
+
+  function design15HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:11px 0;font-size:12px;">${it.c1||''}</td><td style="padding:11px 0;font-size:12px;text-align:center;">${it.c2||1}</td><td style="padding:11px 0;font-size:12px;text-align:center;">${v.cur}${r.toFixed(2)}</td><td style="padding:11px 0;font-size:12px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding:44px 50px;">
+  <div style="display:flex;justify-content:space-between;">
+    <div style="font-size:30px;font-weight:900;line-height:1.05;">${settings.logo?`<img src="${settings.logo}" style="max-height:44px;"/>`:'+ '}${v.fromName||'Studio Salford'}</div>
+    <div style="font-size:12px;line-height:1.6;"><div style="font-size:22px;font-weight:800;">Invoice</div>Invoice No. ${v.invNum}<br/>Date: ${v.invDate}<div style="margin-top:12px;"><b>Billed to:</b><br/>${v.toName}<br/>${v.toDetails||''}</div></div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin-top:44px;"><thead><tr style="border-bottom:1px solid var(--text);"><th style="text-align:left;padding:8px 0;font-size:12px;">Description</th><th style="text-align:center;padding:8px 0;font-size:12px;">Hours</th><th style="text-align:center;padding:8px 0;font-size:12px;">Rate</th><th style="text-align:right;padding:8px 0;font-size:12px;">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="border-top:1px solid var(--text);margin-top:30px;padding-top:14px;display:flex;justify-content:space-between;">
+    <div style="font-size:12px;">Due Date: ${v.dueDate}</div>
+    <div style="font-size:12px;line-height:1.9;text-align:right;"><div>Sub-Total &nbsp;&nbsp; ${v.cur}${v.sub.toFixed(2)}</div><div>Tax &nbsp;&nbsp; ${v.cur}${v.tax.toFixed(2)}</div><div style="font-weight:800;">Total &nbsp;&nbsp; ${v.cur}${v.grand.toFixed(2)}</div></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-top:54px;font-size:12px;line-height:1.7;"><div><b style="font-size:16px;">Contact</b><br/>${v.fromDetails||''}</div><div><b style="font-size:16px;">Payment Info</b><br/>${v.fromName||''}<br/>${v.fromDetails||''}</div></div>
+</div>`;
+  }
+
+  function design16HTML(v,its,c){
+    const rows=its.map(it=>{const q=parseFloat(it.c2)||1;const r=parseFloat(it.rate)||0;const t=(q*r).toFixed(2);return `<tr><td style="padding:12px 14px;border:1px solid #e5e5e5;font-size:11px;">${it.c1||''}</td><td style="padding:12px 14px;border:1px solid #e5e5e5;font-size:11px;text-align:right;">${v.cur}${r.toFixed(2)}</td><td style="padding:12px 14px;border:1px solid #e5e5e5;font-size:11px;text-align:center;">${it.c2||1}</td><td style="padding:12px 14px;border:1px solid #e5e5e5;font-size:11px;text-align:right;">${v.cur}${t}</td></tr>`;}).join('');
+    return `<div style="max-width:800px;margin:0 auto;background:var(--bodyBg);font-family:var(--font);color:var(--text);box-shadow:0 4px 30px rgba(0,0,0,0.12);padding-bottom:34px;">
+  <div style="background:var(--bg);color:#fff;padding:22px 50px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;">${settings.logo?`<img src="${settings.logo}" style="max-height:34px;"/>`:`<span style="font-size:22px;">&#128167;</span>`}<span style="font-size:20px;font-weight:800;">${v.fromName||'Rimberio'}</span></div><div style="font-size:34px;font-weight:900;letter-spacing:1px;">INVOICE</div></div>
+  <div style="padding:22px 50px 0;font-size:11px;line-height:1.9;"><div>Invoice Number: #${v.invNum}</div><div>Invoice Date: ${v.invDate}</div></div>
+  <div style="padding:14px 50px 0;display:flex;justify-content:space-between;">
+    <div style="font-size:11px;line-height:1.7;max-width:250px;"><div style="font-weight:800;color:var(--bg);">${(v.fromName||'STUDIO SHODWE').toUpperCase()}</div><div>${v.fromDetails||''}</div></div>
+    <div style="font-size:11px;line-height:1.7;max-width:250px;"><div style="font-weight:800;color:var(--bg);">BILL TO</div><div>${v.toName}<br/>${v.toDetails||''}</div></div>
+  </div>
+  <div style="padding:22px 50px 0;"><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:var(--bg);color:#fff;"><th style="text-align:left;padding:11px 14px;font-size:11px;">Item &amp; Description</th><th style="text-align:right;padding:11px 14px;font-size:11px;">Unit Price</th><th style="text-align:center;padding:11px 14px;font-size:11px;">Qty</th><th style="text-align:right;padding:11px 14px;font-size:11px;">Amount</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div style="padding:18px 50px 0;display:flex;justify-content:space-between;align-items:flex-start;">
+    <div style="font-size:11px;max-width:280px;"><div style="font-weight:800;color:var(--bg);">NOTES / TERMS:</div><div style="margin-top:5px;line-height:1.6;">${v.notes||'Payment is due within 15 days of receiving this invoice.'}</div></div>
+    <div style="width:250px;border:1px solid #e5e5e5;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 14px;border-bottom:1px solid #eee;"><span>Sub-Total</span><span>${v.cur}${v.sub.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 14px;border-bottom:1px solid #eee;"><span>Tax</span><span>${v.cur}${v.tax.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;padding:9px 14px;background:var(--bg);color:#fff;"><span>Total</span><span>${v.cur}${v.grand.toFixed(2)}</span></div>
+    </div>
+  </div>
+  <div style="padding:36px 50px 0;display:flex;justify-content:space-between;font-size:11px;"><div><span style="background:var(--bg);color:#fff;padding:3px 12px;font-weight:800;">PAYMENT METHOD:</span><div style="margin-top:7px;line-height:1.7;">${v.fromDetails||''}</div></div><div><span style="background:var(--bg);color:#fff;padding:3px 12px;font-weight:800;">PREPARED BY:</span><div style="margin-top:7px;line-height:1.7;">${v.fromName||''}</div></div></div>
+</div>`;
+  }
+
+  function layoutRender(id,v,its,c){ return (LAYOUTS[id]||classicHTML)(v,its,c); }
+  function styleVars(c){return `--bg:${c.bg};--accent:${c.accent};--light:${c.light};--bodyBg:${c.bodyBg};--text:${c.text};--th:${c.th};--thText:${c.thText};--border:${c.border};--font:${c.font};`;}
+  function invoiceCardHTML(v){ const c=effColors(); return `<div class="inv-vars" style="${styleVars(c)}font-family:var(--font);">${layoutRender(selectedLayout, v, items, c)}</div>`; }
+
+  function buildInvoiceHTML(v){
+    const c=effColors();
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Invoice ${v.invNum}</title></head>
+<body style="margin:0;padding:0;font-family:var(--font);background:#f0f4f8;">
+<div style="padding:30px 16px;">${invoiceCardHTML(v)}</div>
+</body></html>`;
+  }
+
+  // ── DESIGN GALLERY (Canva-style cards with auto thumbnails) ──
+  const _sampleV={cur:'$',fromName:'Your Company',fromDetails:'hello@company.com<br/>+1 234 567 890',toName:'Diluc Steiner',toDetails:'123 Anywhere St., Any City',invNum:'123456789',invDate:'12/07/2026',dueDate:'26/07/2026',notes:'',sub:1510,tax:10,grand:1500};
+  const _sampleIts=[{c1:'Item description',c2:'2',rate:'120'},{c1:'Item description',c2:'4',rate:'100'},{c1:'Item description',c2:'2',rate:'120'},{c1:'Item description',c2:'3',rate:'130'}];
+  const DESIGNS=[{id:'design1',name:'Design 1'},{id:'design2',name:'Design 2'},{id:'design3',name:'Design 3'},{id:'design4',name:'Design 4'},{id:'design5',name:'Design 5'},{id:'design6',name:'Design 6'},{id:'design7',name:'Design 7'},{id:'design8',name:'Design 8'},{id:'design9',name:'Design 9'},{id:'design10',name:'Design 10'},{id:'design11',name:'Design 11'},{id:'design12',name:'Design 12'},{id:'design13',name:'Design 13'},{id:'design14',name:'Design 14'},{id:'design15',name:'Design 15'},{id:'design16',name:'Design 16'}];
+  function renderDesignGrid(){
+    const grid=document.getElementById('designGrid'); if(!grid)return;
+    grid.innerHTML=DESIGNS.map(d=>{
+      const base=DESIGN_BASE[d.id]||DESIGN_BASE.design1;
+      const c=Object.assign({},base,{font:"'Segoe UI',sans-serif"});
+      const inner=layoutRender(d.id,_sampleV,_sampleIts,c);
+      return `<div class="design-card" onclick="selectDesign('${d.id}')"><div class="design-thumb"><div class="scaler">${inner}</div></div><div class="design-card-foot"><span class="design-card-name">${d.name}</span><span class="design-card-sel">Select →</span></div></div>`;
+    }).join('');
+    scaleThumbs();
+  }
+  function scaleThumbs(){
+    document.querySelectorAll('.design-thumb').forEach(th=>{
+      const sc=th.querySelector('.scaler'); if(!sc)return;
+      const cw=th.clientWidth, chh=th.clientHeight;
+      const contentH=sc.scrollHeight||1000;
+      const scale=Math.min(cw/800, chh/contentH);
+      const left=Math.max(0,(cw-800*scale)/2);
+      sc.style.transform='translateX('+left+'px) scale('+scale+')';
+    });
+  }
+  window.addEventListener('load',renderDesignGrid);
+  window.addEventListener('resize',scaleThumbs);
+
+  function downloadInvoice(){
+    /* 4 Sep 2026 — invoice download now requires sign-in.
+       ldSignedIn()/openAuth() come from navbar.js, loaded at the bottom of
+       this page; by the time someone has filled the form and clicked
+       Download that script has long since run. */
+    if (typeof window.ldSignedIn === 'function' && !window.ldSignedIn()) {
+      alert('Please sign in first to download your invoice — it only takes a moment.');
+      if (typeof window.openAuth === 'function') { try { window.openAuth('signin'); } catch(e){} }
+      return;
+    }
+    const card=document.querySelector('#bigPreview .inv-vars');
+    let html;
+    if(card){
+      const clean=card.outerHTML.replace(/ contenteditable="true"/g,'');
+      html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Invoice</title></head><body style="margin:0;padding:0;background:#f0f4f8;"><div style="padding:30px 16px;">${clean}</div></body></html>`;
+    } else { html=buildInvoiceHTML(getValues()); }
+    /* 29 Jul 2026: window.open() returns null when a popup blocker is active,
+       and blockers fire on exactly this pattern — a new window opened with no
+       URL. The next line then threw on null, the error went to a console no
+       visitor ever opens, and the button simply appeared to do nothing. On the
+       free tool that brings people to the site. */
+    const w=window.open('','_blank');
+    if(!w){
+      alert('Your browser blocked the invoice window.\n\n' +
+            'Allow pop-ups for lazydogtemplates.com, then press Download again.');
+      return;
+    }
+    try{
+      w.document.write(html);
+      w.document.close();
+      setTimeout(()=>{ try{ w.print(); }catch(e){} },800);
+    }catch(e){
+      alert('Could not build the invoice. Please try again, or use a different browser.');
+    }
+  }
+
+  // Set watermark note
+  window.addEventListener('load',()=>{
+    const n=document.getElementById('wmNote');
+    if(n) n.textContent=(typeof WATERMARK_ON!=='undefined'&&WATERMARK_ON)?'* Includes LazyDogTemplates branding':'✅ Clean download — no watermark';
+  });
+</script>
+<!-- ══ COLOUR PICKER ══ -->
+<style>
+.colour-panel{display:none;position:fixed;top:70px;right:20px;background:rgba(10,10,30,0.96);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:14px;z-index:100000;box-shadow:0 20px 60px rgba(0,0,0,0.7);backdrop-filter:blur(20px);}
+.colour-panel.open{display:block!important;}
+.colour-panel-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Segoe UI',sans-serif;}
+.colour-panel canvas{display:block;border-radius:10px;cursor:crosshair;border:1px solid rgba(255,255,255,0.1);}
+.colour-panel-preview{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.colour-swatch{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);flex-shrink:0;}
+.colour-hex{font-size:13px;font-weight:700;color:#fff;font-family:'Segoe UI',sans-serif;}
+.colour-reset{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.4);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;transition:all 0.2s;}
+</style>
+<!-- Colour panel removed — handled centrally by navbar.js (#nbCPicker) -->
+<!-- Page-local colour-picker script removed — colour handled centrally by navbar.js (#nbCPicker) -->
+
+<!-- 24 Aug 2026 — the white link strip (Home / Store Hub / Pitch Decks /
+     Media Kits / Website Kits) was removed. It duplicated the main navbar
+     directly above it and the footer directly below, and cut the page in
+     half right under the generator. -->
+
+<!-- Top navbar + Hexa assistant (shared across the site) -->
+<script src="va_dictionary.js"></script>
+<script src="navbar.js"></script>
+<script src="footerbar.js"></script>
+</body>
+</html>
