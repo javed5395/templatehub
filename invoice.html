@@ -1083,6 +1083,74 @@
     .l30-sig input{text-align:right;}
     .l30-sig input:first-of-type{font-family:'Brush Script MT','Segoe Script',cursive;font-size:34px!important;}
 
+    /* ═══ LAYOUT 31 — Kumar Coffee Shop, brown frame ═══════════════════
+       Cream page inside a thick coffee-brown frame; bold black "INVOICE"
+       top-left, a cup mark + shop name top-right, a two-column contact/
+       meta strip, a bordered items table, and Terms/Signature footer. */
+    body.layout31 .form-panel{background:#F7F1E6;border:10px solid var(--l31-main);padding:26px 28px 24px;color:var(--l31-text);font-family:var(--l31-font);}
+    .l31-head{display:grid;grid-template-columns:1fr auto;align-items:start;gap:16px;padding-bottom:16px;border-bottom:2px solid var(--l31-main);}
+    .l31-word{font-size:40px;font-weight:800;letter-spacing:-.5px;color:#1a1410;}
+    .l31-brand{text-align:center;}
+    .l31-cup{font-size:34px;line-height:1;color:var(--l31-accent);}
+    .l31-brand .nm{font-size:12px;font-weight:800;letter-spacing:.12em;margin-top:4px;color:var(--l31-main);}
+    .l31-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:14px 0 16px;border-bottom:2px solid var(--l31-main);font-size:12.5px;}
+    .l31-meta .r{text-align:right;}
+    .l31-meta .r input{text-align:right;}
+    .l31-meta .lab{font-weight:800;}
+    body.layout31 .items-hdr{grid-template-columns:2.2fr 1fr 90px 1fr 20px!important;background:var(--l31-main);color:#fff;margin:16px 0 0;padding:9px 12px;font-size:11px;font-weight:700;letter-spacing:.08em;}
+    body.layout31 .items-hdr span:nth-child(2),body.layout31 .items-hdr span:nth-child(3),body.layout31 .items-hdr span:nth-child(4){text-align:center;}
+    body.layout31 .items-hdr span:nth-child(5){display:none;}
+    body.layout31 .item-row{grid-template-columns:2.2fr 1fr 90px 1fr 20px!important;margin:0;padding:12px;border:1px solid var(--l31-main);border-top:0;}
+    body.layout31 .item-row > *{grid-row:1;border-right:1px solid var(--l31-main);padding-right:8px;}
+    body.layout31 .item-row > *:nth-child(1){grid-column:1;}
+    body.layout31 .item-row > *:nth-child(2){grid-column:2;text-align:center;}
+    body.layout31 .item-row > *:nth-child(3){grid-column:3;text-align:center;}
+    body.layout31 .item-row > *:nth-child(4){grid-column:4;text-align:center;border-right:0;}
+    body.layout31 .item-row > *:nth-child(5){grid-column:5;border:0;padding:0;}
+    body.layout31 .item-row input,body.layout31 .item-total-cell{font-size:12px;color:var(--l31-text);border:0;background:transparent;font-family:inherit;}
+    body.layout31 .btn-add-item{border:1px solid var(--l31-main);border-top:0;margin:0;color:var(--l31-main);}
+    .l31-tot{display:flex;justify-content:flex-end;margin-top:2px;}
+    .l31-tot .b{width:55%;}
+    .l31-tot .ld-tot{display:flex;justify-content:space-between;border:1px solid var(--l31-main);border-top:0;padding:9px 12px;font-size:12.5px;}
+    .l31-tot .grand{font-weight:800;}
+    .l31-foot{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;margin-top:26px;align-items:end;font-size:12px;}
+    .l31-foot h4{font-size:13px;font-weight:800;margin-bottom:6px;}
+    .l31-sig{text-align:center;}
+    .l31-sig .ln{border-top:1px solid var(--l31-text);margin-bottom:6px;padding-top:6px;font-weight:800;font-size:12px;letter-spacing:.06em;}
+
+    /* ═══ LAYOUT 32 — Salford & Co, pastel gradient ════════════════════
+       Soft rainbow-gradient banner with a script "invoice" title, then
+       a two-column recipient/sender + amount-due layout, and a
+       peach/blue alternating items table. */
+    body.layout32 .form-panel{background:#fff;border:1px solid #eee;padding:0;color:var(--l32-text);font-family:var(--l32-font);}
+    .l32-head{background:linear-gradient(120deg,#f6d9e6,#d7e3ef,#e9dcef,#f3d9c8);padding:34px 30px 22px;text-align:center;}
+    .l32-word{font-family:'Brush Script MT','Segoe Script',cursive;font-size:52px;color:#2b2b2b;line-height:1;}
+    .l32-sub{font-size:14px;letter-spacing:.06em;margin-top:6px;color:#555;}
+    .l32-body{padding:26px 30px 6px;display:grid;grid-template-columns:1fr 1fr;gap:20px;border-bottom:1px solid #e4e4e4;padding-bottom:22px;}
+    .l32-body h4{font-size:11px;font-weight:800;letter-spacing:.1em;margin-bottom:6px;color:#777;}
+    .l32-body .blk{margin-bottom:16px;font-size:12.5px;line-height:1.7;}
+    .l32-due{background:var(--l32-accent);padding:12px 16px;font-size:12px;}
+    .l32-due .amt{font-weight:800;font-size:15px;margin-top:2px;}
+    .l32-note{background:var(--l32-accent);opacity:.6;padding:12px 16px;font-size:12px;font-style:italic;margin-top:10px;line-height:1.6;}
+    .l32-thanks{font-family:'Brush Script MT','Segoe Script',cursive;font-size:30px;text-align:right;margin-top:10px;color:#2b2b2b;}
+    body.layout32 .items-hdr{grid-template-columns:2.4fr 70px 90px 20px!important;background:var(--l32-main);margin:0 30px;padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.06em;color:#3a2a20;}
+    body.layout32 .items-hdr span:nth-child(2),body.layout32 .items-hdr span:nth-child(3){text-align:center;}
+    body.layout32 .items-hdr span:nth-child(4){display:none;}
+    body.layout32 .item-row{grid-template-columns:2.4fr 70px 90px 20px!important;margin:0 30px;padding:10px 14px;}
+    body.layout32 .item-row:nth-child(odd){background:var(--l32-accent);opacity:1;}
+    body.layout32 .item-row > *{grid-row:1;}
+    body.layout32 .item-row > *:nth-child(1){grid-column:1;}
+    body.layout32 .item-row > *:nth-child(2){grid-column:2;text-align:center;}
+    body.layout32 .item-row > *:nth-child(3){grid-column:3;text-align:center;}
+    body.layout32 .item-row > *:nth-child(4){grid-column:4;}
+    body.layout32 .item-row input,body.layout32 .item-total-cell{font-size:12px;color:var(--l32-text);border:0;background:transparent;font-family:inherit;}
+    body.layout32 .btn-add-item{margin:6px 30px 0;width:calc(100% - 60px);color:#777;}
+    .l32-tot{margin:16px 30px 26px;}
+    .l32-tot .ld-tot{display:flex;justify-content:space-between;padding:9px 14px;font-size:12.5px;}
+    .l32-tot .ld-tot:nth-child(odd){background:var(--l32-accent);}
+    .l32-tot .ld-tot:nth-child(even){background:var(--l32-main);}
+    .l32-tot .grand{font-weight:800;}
+
     /* ═══ SHARED LOGO SLOT ═════════════════════════════════════════════
        Every design marks its logo position with .js-logo-slot. Uploading a
        logo swaps the placeholder for the picture; removing it puts the
@@ -1421,7 +1489,7 @@
   const DESIGN_TEXT = {4:'#fff',5:'#fff',6:'#222',7:'#fff',8:'#1A1A1A',9:'#222',10:'#111',11:'#111',
     12:'#111',13:'#fff',14:'#222',15:'#222',16:'#2b2b2b',17:'#fff',18:'#fff',19:'#2c2c33',
     20:'#1E1B16',21:'#1A1A1A',22:'#2B2B2B',23:'#111',24:'#EDE7DC',25:'#EFE9DD',26:'#2b2118',
-    27:'#2E2A25',28:'#20143A',29:'#141414',30:'#5A1220'};
+    27:'#2E2A25',28:'#20143A',29:'#141414',30:'#5A1220',31:'#2B2118',32:'#2B2B2B'};
   /* 6 Sep 2026 — the Font dropdown used to just guess Times New Roman
      vs Segoe UI (DESIGN_SERIF's old binary list). Replaced with each
      design's REAL default font-family, read straight from that
@@ -1447,7 +1515,8 @@
     23:"'Segoe UI',Arial,sans-serif", 24:"'Segoe UI',Arial,sans-serif",
     25:"Georgia,'Times New Roman',serif", 26:"'Segoe UI',Arial,sans-serif",
     27:"Georgia,'Times New Roman',serif", 28:"'Segoe UI',Arial,sans-serif",
-    29:"'Segoe UI',Arial,sans-serif", 30:"Georgia,'Times New Roman',serif"
+    29:"'Segoe UI',Arial,sans-serif", 30:"Georgia,'Times New Roman',serif",
+    31:"'Segoe UI',Arial,sans-serif", 32:"'Segoe UI',Arial,sans-serif"
   };
   /* 6 Sep 2026 — designs 2 and 3 build their invoice by hand (not through
      the shared ldSkin() system the other designs use), so their default
@@ -1536,7 +1605,7 @@
   let selectedLayout = 1;
   /* layouts that have a real design get the full invoice form;
      the rest are blank starters and show only the Customize card */
-  const DESIGNED_LAYOUTS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
+  const DESIGNED_LAYOUTS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32];
 
   /* ── LAYOUT 2 — the invoice itself, editable in place ───────────────── */
   let _panelOriginal = null;
@@ -1774,7 +1843,8 @@
     23:{main:'#111111',accent:'#F5A15A'},24:{main:'#1C1A19',accent:'#D9CBB3'},
     25:{main:'#1E1E1E',accent:'#B2A06A'},26:{main:'#7A3B2E',accent:'#7A3B2E'},
     27:{main:'#2E2A25',accent:'#D9CFC4'},28:{main:'#5B1FA8',accent:'#A56BFF'},
-    29:{main:'#141414',accent:'#E8F03A'},30:{main:'#5A1220',accent:'#E4CDB8'}
+    29:{main:'#141414',accent:'#E8F03A'},30:{main:'#5A1220',accent:'#E4CDB8'},
+    31:{main:'#5B3A2E',accent:'#5B3A2E'},32:{main:'#EFAF97',accent:'#C6DBE7'}
   };
   /* 6 Sep 2026 — designs whose header/stripe area isn't the only
      colour block: they also have a genuine second stripe (a footer
@@ -2493,13 +2563,65 @@
       ['ITEM','QTY','RATE','AMOUNT']);
   };
 
+  window.LD_BUILDERS[31] = function(){
+    ldPanel(
+      '<div class="l31-head"><div>'
+    +   '<div class="js-logo-slot" style="display:inline-block;margin-bottom:6px;"><span class="logo-default" style="font-size:11px;opacity:.55;">logo</span><img class="logo-up" alt="logo"/></div>'
+    +   '<div class="l31-word">INVOICE</div></div>'
+    +   '<div class="l31-brand"><div class="l31-cup">☕</div><div class="nm">'+ldIn('from_0','KUMAR COFFEE SHOP')+'</div></div></div>'
+    + '<div class="l31-meta"><div>'
+    +   '<div><span class="lab">Billed to:</span> '+ldIn('to_0','Deepak Kumar')+'</div>'
+    +   '<div>Phone: '+ldIn('to_2','123-456-7890')+'</div>'
+    +   '<div>Email: '+ldIn('to_1','hello@reallygreatsite.com')+'</div></div>'
+    +   '<div class="r">'
+    +   '<div><span class="lab">Date :</span> '+ldDate('invDate')+'</div>'
+    +   '<div><span class="lab">Due Date :</span> '+ldDate('dueDate')+'</div>'
+    +   '<div><span class="lab">Invoice No :</span> '+ldIn('invNum','123456789')+'</div></div></div>'
+    + '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
+    + '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
+    + '<div class="l31-tot"><div class="b">'
+    +   '<div class="ld-tot"><span>Tax (<input id="taxRate" type="number" value="0" oninput="liveUpdate()"/>%)</span><span id="taxDisp">$0.00</span></div>'
+    +   '<div class="ld-tot grand"><span>Grand Total</span><span id="grandDisp">$0.00</span></div>'
+    +   '<div style="margin-top:6px;font-size:11.5px;"><span id="subtotalDisp" style="display:none;"></span>Currency '+ldCur()+'</div></div></div>'
+    + '<div class="l31-foot"><div><h4>Term and Conditions:</h4>'+ldTa('terms','Lorem ipsum dolor sit amet, consectetur adipiscing elit,')+'</div>'
+    +   '<div class="l31-sig"><div class="ln">'+ldIn('sigName','SIGNATURE')+'</div></div></div>',
+      ['DESCRIPTION','PRICE','QTY.','AMOUNT']);
+  };
+
+  window.LD_BUILDERS[32] = function(){
+    ldPanel(
+      '<div class="l32-head">'
+    +   '<div class="js-logo-slot" style="margin-bottom:8px;"><span class="logo-default" style="font-size:11px;opacity:.55;">logo</span><img class="logo-up" alt="logo"/></div>'
+    +   '<div class="l32-word">invoice</div>'
+    +   '<div class="l32-sub">'+ldIn('from_0','Salford & Co')+'</div></div>'
+    + '<div class="l32-body"><div>'
+    +   '<div class="blk"><h4>Recipient</h4><div class="nm" style="font-weight:800;margin-bottom:2px;">'+ldIn('to_0','Olivia Wilson')+'</div>'
+    +     ldIn('to_1','123 Anywhere St.,')+ldIn('to_2','Any City, ST 12345')+ldIn('to_3','hello@reallygreatsite.com')+'</div>'
+    +   '<div class="blk"><h4>Sender</h4><div class="nm" style="font-weight:800;margin-bottom:2px;">'+ldIn('from_1','Salford & Co.')+'</div>'
+    +     ldIn('from_3','123 Anywhere St.,')+ldIn('from_4','Any City, ST 12345')+ldIn('from_2','hello@reallygreatsite.com')+'</div>'
+    +   '<div class="blk">DATE: '+ldDate('invDate')+'<br/>INVOICE NO: '+ldIn('invNum','2022-03-1294')+'</div>'
+    + '</div><div>'
+    +   '<div class="l32-due">AMOUNT DUE BY '+ldDate('dueDate')+'<div class="amt grand-echo">$0.00</div></div>'
+    +   '<div class="l32-note">Thank you for your custom<br/>We accept payment by bank transfer or credit card</div>'
+    +   '<div class="l32-thanks">thanks</div>'
+    + '</div></div>'
+    + '<div class="items-hdr" id="itemsHdr"></div><div id="itemsList"></div>'
+    + '<button class="btn-add-item" onclick="addItem()">+ Add Item</button>'
+    + '<div class="l32-tot">'
+    +   '<div class="ld-tot"><span>Subtotal</span><span id="subtotalDisp">$0.00</span></div>'
+    +   '<div class="ld-tot"><span>Tax (<input id="taxRate" type="number" value="0" oninput="liveUpdate()"/>%)</span><span id="taxDisp">$0.00</span></div>'
+    +   '<div class="ld-tot grand"><span>Total</span><span id="grandDisp">$0.00</span></div>'
+    +   '<div style="margin-top:8px;font-size:11.5px;padding:0 14px;">Currency '+ldCur()+'</div></div>',
+      ['Description','Qty','Price']);
+  };
+
   function selectLayout(n){
     selectedLayout = n;
     var designed = DESIGNED_LAYOUTS.indexOf(n) !== -1;
     document.body.classList.toggle('blank-layout', !designed);
     document.body.classList.toggle('no-cream', designed && n !== 1);
     document.body.classList.toggle('layout1', n === 1);
-    for (var q = 2; q <= 30; q++) document.body.classList.toggle('layout' + q, n === q);
+    for (var q = 2; q <= 32; q++) document.body.classList.toggle('layout' + q, n === q);
     selectStyle('blue');
   }
 
@@ -2613,6 +2735,12 @@
     if(document.getElementById('discDisp')) document.getElementById('discDisp').textContent=v.cur+v.disc.toFixed(2);
     if(document.getElementById('grandDisp2')) document.getElementById('grandDisp2').textContent=v.cur+v.grand.toFixed(2);
     if(document.getElementById('grandDisp')) document.getElementById('grandDisp').textContent=v.cur+v.grand.toFixed(2);
+    /* 6 Sep 2026 — a couple of designs (e.g. 32) show the grand total
+       twice — once up top in an "amount due" box, once in the totals
+       block. Only one element can own the id="grandDisp" the core
+       calculation writes to, so any second display uses this class
+       instead and gets the same value mirrored to it here. */
+    document.querySelectorAll('.grand-echo').forEach(function(el){ el.textContent=v.cur+v.grand.toFixed(2); });
     if (selectedLayout === 2) l2Sync();
     if (selectedLayout === 3) l3Sync();
     if (typeof ldSkin === 'function') ldSkin();
@@ -2729,6 +2857,16 @@
       + '<style>html,body{margin:0;padding:0;background:#fff;}'
       + '.form-panel{max-width:820px;margin:0 auto;border:0!important;box-shadow:none;}'
       + '.js-logo-slot .logo-up{display:block;}'
+      /* 8 Sep 2026 — Chrome/Edge strip every background colour, gradient
+         and border tint out of a print/PDF by default unless the
+         person manually opens "More settings" in the print dialog and
+         ticks "Background graphics" — almost nobody does, so every
+         download came out plain black-and-white even though the on-
+         screen design was fully coloured. print-color-adjust:exact
+         overrides that default and forces the colours to print
+         regardless of that checkbox. */
+      + '*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}'
+      + '@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}}'
       + '@page{margin:0;}</style>'
       + '</head><body class="' + document.body.className + '">'
       + node.outerHTML
@@ -2756,7 +2894,14 @@
     const L = window.LD_INVOICE_LAYOUTS || {};
     const fn = L[selectedLayout] || L[1];
     if (typeof fn !== 'function') { alert('Invoice layouts failed to load. Please refresh the page.'); return ''; }
-    return fn(v, c, x);
+    /* 8 Sep 2026 — Design 1's markup lives in the separate invoice_layouts.js
+       file, not here, so the print-colour-adjust fix above can't be added
+       to it directly. Patching it into whatever that file returns instead
+       — same effect, without needing to touch a file this project doesn't
+       control from here. */
+    const printFix = '<style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}</style>';
+    const out = fn(v, c, x);
+    return out.indexOf('</head>') !== -1 ? out.replace('</head>', printFix + '</head>') : (printFix + out);
   }
 
   function downloadInvoice(){

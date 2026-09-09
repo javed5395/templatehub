@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<!--
+  deployment/quote.html — "Get it deployed" quote request
+  LazyDogTemplates · 13 Aug 2026
+
+  WHAT THIS IS
+    A web kit sells at a fixed price on Whop — the buyer downloads the files and
+    does the rest themselves. Some buyers don't want the files, they want the
+    finished site live on their own domain. That work is negotiated per client,
+    so it has NO price in the store. This page collects the enquiry.
+
+  DELIBERATELY NO SIGN-IN
+    The person asking for a quote is usually not a customer yet. Forcing an
+    account here would lose enquiries. Anyone may create a request; only an
+    admin may read them (see firestore.rules).
+
+  WHAT HAPPENS NEXT (manual on purpose)
+    request lands in  deployment_requests/{auto}  with status 'new'
+      -> admin sees it in admin-local/deployment_requests.html
+      -> admin agrees a price with the client by email
+      -> admin sends a DEPOSIT invoice from the Whop dashboard
+      -> work is done, shown on a preview link we control
+      -> admin sends the FINAL invoice
+      -> only after that does the client's domain get pointed at the site
+
+    No money code runs on this page. Nothing here touches Whop.
+
+  ?kit= PARAMETER
+    Linked from a web kit page as quote.html?kit=<docId>&name=<title> so the
+    request records which kit it came from. Both are optional — the page works
+    as a plain enquiry form if opened directly.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="robots" content="noindex"/>
+<title>Request a Deployment Quote — LazyDog Templates</title>
+<link rel="icon" type="image/png" href="../images/site_logo_round.png"/>
+<link rel="shortcut icon" type="image/png" href="../images/site_logo_round.png"/>
+<link rel="apple-touch-icon" href="../images/site_logo_round.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root { --accent:#d4af37; --bg:#070714; --card:#0d0d2b; --text:#e8eaf0; --muted:#8899aa; --border:rgba(212,175,55,0.2); --green:#22c55e; --red:#ef4444; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .wrap { max-width:760px; margin:0 auto; padding:48px 20px 80px; }
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .brand img { width:42px; height:42px; border-radius:50%; }
+  .brand b { font-size:15px; font-weight:700; }
+  .brand b i { color:var(--accent); font-style:normal; }
+  h1 { font-size:28px; font-weight:700; margin-bottom:8px; }
+  h1 span { color:var(--accent); }
+  .subtitle { color:var(--muted); font-size:14px; margin-bottom:28px; line-height:1.7; }
+  .section { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:20px; }
+  .section h2 { font-size:15px; font-weight:700; color:var(--accent); margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; }
+  .field { margin-bottom:20px; }
+  .field:last-child { margin-bottom:0; }
+  label { display:block; font-size:13px; font-weight:600; color:var(--muted); margin-bottom:8px; }
+  input, select, textarea { width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:0; padding:12px 16px; color:var(--text); font-family:'Poppins',sans-serif; font-size:14px; outline:none; transition:border .2s; }
+  input:focus, select:focus, textarea:focus { border-color:var(--accent); }
+  select option { background:#0d0d2b; color:var(--text); }
+  textarea { resize:vertical; min-height:110px; }
+  .required { color:var(--accent); }
+  .hint { font-size:11px; color:var(--muted); margin-top:6px; line-height:1.5; }
+  .chips { display:flex; flex-wrap:wrap; gap:10px; }
+  .chip { display:flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--border); cursor:pointer; font-size:13px; user-select:none; }
+  .chip input { width:16px; height:16px; accent-color:var(--accent); cursor:pointer; }
+  .chip:has(input:checked) { border-color:var(--accent); color:var(--accent); }
+  .note { background:rgba(212,175,55,0.06); border:1px solid var(--border); padding:18px; font-size:13px; line-height:1.85; color:var(--muted); }
+  .note b { color:var(--accent); }
+  .btn { width:100%; padding:16px; background:var(--accent); color:#070714; border:none; font-family:'Poppins',sans-serif; font-weight:700; font-size:15px; cursor:pointer; letter-spacing:.5px; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .msg { padding:14px 18px; font-size:13px; margin-bottom:20px; line-height:1.7; display:none; }
+  .msg.err { background:rgba(239,68,68,.12); border:1px solid var(--red); color:#ffb4b4; }
+  .msg.ok  { background:rgba(34,197,94,.12); border:1px solid var(--green); color:#b6f0c8; }
+  .kitbadge { display:none; font-size:12px; color:var(--accent); border:1px solid var(--border); padding:8px 14px; margin-bottom:20px; }
+  .done { display:none; text-align:center; padding:20px 0; }
+  .done h2 { font-size:22px; color:var(--green); margin-bottom:14px; text-transform:none; letter-spacing:0; }
+  .done p { color:var(--muted); font-size:14px; line-height:1.8; margin-bottom:10px; }
+  .back { display:inline-block; margin-top:22px; color:var(--accent); text-decoration:none; font-size:13px; font-weight:600; }
+  .back:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <img src="../images/site_logo_round.png" alt="LazyDog Templates"/>
+    <b>LazyDog <i>Templates</i></b>
+  </div>
+
+  <h1>Get your site <span>built and deployed</span></h1>
+  <p class="subtitle">
+    Buying the kit gives you the files. This is the other option — we take the kit,
+    put your content in it, and hand you a finished website live on your own domain.
+    Every job is different, so there is no fixed price. Tell us what you need and
+    we'll come back with a quote.
+  </p>
+
+  <div class="msg err" id="errBox"></div>
+  <div class="msg ok"  id="okBox"></div>
+
+  <div id="doneBox" class="done">
+    <h2>Request received</h2>
+    <p>Thank you — we have your enquiry and we'll reply to your email, usually within one working day.</p>
+    <p>Nothing has been charged and you have not committed to anything.</p>
+    <a class="back" href="../web_kit_folder_file.html">← Back to web kits</a>
+  </div>
+
+  <form id="quoteForm">
+
+    <div class="kitbadge" id="kitBadge"></div>
+
+    <div class="section">
+      <h2>Who you are</h2>
+
+      <div class="field">
+        <label>Your name <span class="required">*</span></label>
+        <input type="text" id="fName" maxlength="80" required autocomplete="name"/>
+      </div>
+
+      <div class="field">
+        <label>Email <span class="required">*</span></label>
+        <input type="email" id="fEmail" maxlength="120" required autocomplete="email"/>
+        <div class="hint">This is where the quote will be sent. Please check it carefully.</div>
+      </div>
+
+      <div class="field">
+        <label>WhatsApp or phone <span style="opacity:.6">(optional)</span></label>
+        <input type="text" id="fPhone" maxlength="40" autocomplete="tel"/>
+        <div class="hint">Only used if email bounces. We will not call unprompted.</div>
+      </div>
+
+      <div class="field">
+        <label>Business or project name <span style="opacity:.6">(optional)</span></label>
+        <input type="text" id="fCompany" maxlength="100"/>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>The job</h2>
+
+      <div class="field">
+        <label>Which web kit <span style="opacity:.6">(optional)</span></label>
+        <input type="text" id="fKitName" maxlength="120" placeholder="e.g. Modern Agency Web Kit — or leave blank"/>
+        <div class="hint">If you came from a kit page this is filled in for you. Not sure yet? Leave it blank.</div>
+      </div>
+
+      <div class="field">
+        <label>Your domain <span style="opacity:.6">(optional)</span></label>
+        <input type="text" id="fDomain" maxlength="120" placeholder="yourbusiness.com"/>
+        <div class="hint">Don't have one yet? Leave this blank — we can help you get one.</div>
+      </div>
+
+      <div class="field">
+        <label>What do you need? <span class="required">*</span></label>
+        <div class="chips" id="needChips">
+          <label class="chip"><input type="checkbox" value="Deploy on my domain"/> Deploy on my domain</label>
+          <label class="chip"><input type="checkbox" value="Replace text and images with mine"/> My text &amp; images</label>
+          <label class="chip"><input type="checkbox" value="Change colours, fonts and logo"/> Colours, fonts, logo</label>
+          <label class="chip"><input type="checkbox" value="Add extra pages"/> Extra pages</label>
+          <label class="chip"><input type="checkbox" value="Working contact form"/> Working contact form</label>
+          <label class="chip"><input type="checkbox" value="Business email on my domain"/> Business email</label>
+          <label class="chip"><input type="checkbox" value="Basic SEO setup"/> Basic SEO setup</label>
+          <label class="chip"><input type="checkbox" value="Buy a domain for me"/> Buy a domain for me</label>
+          <label class="chip"><input type="checkbox" value="Something else"/> Something else</label>
+        </div>
+        <div class="hint">Tick everything that applies. This is only to size the job — nothing is fixed yet.</div>
+      </div>
+
+      <div class="field">
+        <label>Roughly what budget did you have in mind? <span style="opacity:.6">(optional)</span></label>
+        <select id="fBudget">
+          <option value="">Prefer not to say / not sure</option>
+          <option value="Under $250">Under $250</option>
+          <option value="$250 – $500">$250 – $500</option>
+          <option value="$500 – $1,000">$500 – $1,000</option>
+          <option value="$1,000 – $2,500">$1,000 – $2,500</option>
+          <option value="Over $2,500">Over $2,500</option>
+        </select>
+        <div class="hint">Saying a range helps us propose something realistic. It is not a commitment.</div>
+      </div>
+
+      <div class="field">
+        <label>Tell us about it <span style="opacity:.6">(optional)</span></label>
+        <textarea id="fNotes" maxlength="2000" placeholder="What is the site for? Any deadline? Anything you already have — logo, photos, text?"></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>How this works</h2>
+      <div class="note">
+        <b>1.</b> You send this form. Nothing is charged.<br/>
+        <b>2.</b> We reply with a price and what's included.<br/>
+        <b>3.</b> If you're happy, we take a deposit and start work.<br/>
+        <b>4.</b> You get a private preview link — open it any time, ask for changes.<br/>
+        <b>5.</b> Final payment, then we point your domain at it and it goes live.
+      </div>
+      <div class="field" style="margin-top:20px">
+        <button type="submit" class="btn" id="submitBtn">Send my request</button>
+        <div class="hint" style="text-align:center; margin-top:12px">
+          No payment details are asked for on this page.
+        </div>
+      </div>
+    </div>
+
+  </form>
+
+  <div style="text-align:center">
+    <a class="back" href="../web_kit_folder_file.html">← Back to web kits</a>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+  authDomain: "templatehub-16cd7.firebaseapp.com",
+  projectId: "templatehub-16cd7",
+  storageBucket: "templatehub-16cd7.firebasestorage.app",
+  messagingSenderId: "143000893683",
+  appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+const COLLECTION = 'deployment_requests';
+const $ = id => document.getElementById(id);
+
+function showErr(m){
+  const b = $('errBox'); b.textContent = m; b.style.display = 'block';
+  $('okBox').style.display = 'none';
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function clearMsgs(){ $('errBox').style.display='none'; $('okBox').style.display='none'; }
+
+/* ---- prefill from the kit page that linked here ---------------------- */
+const params  = new URLSearchParams(location.search);
+const kitId   = (params.get('kit')  || '').slice(0, 120);
+const kitName = (params.get('name') || '').slice(0, 120);
+if (kitName) {
+  $('fKitName').value = kitName;
+  const badge = $('kitBadge');
+  badge.textContent = 'Asking about: ' + kitName;
+  badge.style.display = 'block';
+}
+
+/* ---- submit ---------------------------------------------------------- */
+$('quoteForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearMsgs();
+
+  const name  = $('fName').value.trim();
+  const email = $('fEmail').value.trim();
+  const needs = [...document.querySelectorAll('#needChips input:checked')].map(c => c.value);
+
+  if (name.length < 2)                 return showErr('Please enter your name.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
+                                       return showErr('That email address does not look right. Please check it.');
+  if (needs.length === 0)              return showErr('Please tick at least one thing you need.');
+
+  const btn = $('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    await addDoc(collection(db, COLLECTION), {
+      name,
+      email,
+      phone:    $('fPhone').value.trim().slice(0, 40),
+      company:  $('fCompany').value.trim().slice(0, 100),
+      kitId,
+      kitName:  $('fKitName').value.trim().slice(0, 120),
+      domain:   $('fDomain').value.trim().slice(0, 120),
+      needs,
+      budget:   $('fBudget').value,
+      notes:    $('fNotes').value.trim().slice(0, 2000),
+      status:   'new',
+      source:   location.pathname,
+      createdAt: serverTimestamp()
+    });
+
+    $('quoteForm').style.display = 'none';
+    $('doneBox').style.display   = 'block';
+    window.scrollTo({ top:0, behavior:'smooth' });
+
+  } catch (err) {
+    console.error('[quote] submit failed', err);
+    btn.disabled = false;
+    btn.textContent = 'Send my request';
+    showErr('Could not send your request. Please check your connection and try again — or email us directly at support@lazydogtemplates.com.');
+  }
+});
+</script>
+</body>
+</html>
