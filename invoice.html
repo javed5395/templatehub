@@ -94,7 +94,11 @@
        so "contain" still left empty bars on the sides. Narrower cards
        here bring the card's own shape close to the screenshot's own
        shape, so the image fills it with barely any empty space left. */
-    .style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:860px;margin:0 auto;}
+    /* 9 Sep 2026 — 4 cards per row -> 6 per row. Widened max-width from
+       860px to 1300px so each card keeps roughly the same ~200px width
+       (and the same portrait aspect-ratio fit) instead of getting
+       squeezed narrower by the extra 2 columns. */
+    .style-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;max-width:1300px;margin:0 auto;}
     .style-card{background:#f2eee5;border:1px solid #d9d4c7;border-radius:0;cursor:pointer;transition:transform .2s,box-shadow .2s;overflow:hidden;}
     .style-card:hover{transform:translateY(-5px);box-shadow:0 14px 34px rgba(0,0,0,.13);}
     .style-thumb{height:230px;background:#f2eee5;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;}
