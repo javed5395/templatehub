@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tools | LazyDogTemplates</title>
+<meta name="description" content="Small apps and engines built by LazyDog Studios — the LazyDog Editor, and more tools on the way."/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" href="https://www.lazydogtemplates.com/tools.html"/>
+<link rel="icon" type="image/png" href="images/site_logo_round.png"/>
+<link rel="shortcut icon" type="image/png" href="images/site_logo_round.png"/>
+<link rel="apple-touch-icon" href="images/site_logo_round.png"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="LazyDogTemplates"/>
+<meta property="og:title" content="Tools — LazyDogTemplates"/>
+<meta property="og:description" content="Small apps and engines built by LazyDog Studios."/>
+<meta property="og:url" content="https://www.lazydogtemplates.com/tools.html"/>
+<meta property="og:image" content="https://www.lazydogtemplates.com/images/site_logo_round.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bone:#f2eee5;--ink:#1a1a2e;--navy:#07071a;--gold:#d4af37;--oxblood:#b8442a;--violet:#7c5cbf;--muted:#8a8496;--line:#e2dccd}
+  body{background:var(--bone);font-family:'Inter',sans-serif;color:var(--ink);line-height:1.6}
+
+  .tl-hero{background:var(--navy);color:#fff;padding:64px 24px 52px;text-align:center;position:relative;overflow:hidden}
+  .tl-hero::before{content:"";position:absolute;top:-120px;right:-80px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(212,175,55,0.16),transparent 70%)}
+  .tl-tag{position:relative;display:inline-block;font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--navy);background:var(--gold);padding:7px 15px;border-radius:5px;margin-bottom:20px}
+  .tl-title{position:relative;font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(32px,5.4vw,58px);line-height:1.08;margin:0 auto;max-width:760px}
+  .tl-sub{position:relative;margin:18px auto 0;max-width:560px;font-size:15px;color:#c9cede}
+
+  main{max-width:980px;margin:0 auto;padding:56px 24px 80px}
+
+  .tl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px}
+
+  .tl-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:14px;position:relative;transition:transform .15s ease,box-shadow .15s ease}
+  .tl-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(20,15,40,0.08)}
+
+  .tl-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;background:linear-gradient(135deg,var(--violet),#5b7fff);color:#fff}
+  .tl-card.coming .tl-icon{background:linear-gradient(135deg,#c9c3d8,#a8a2bd)}
+
+  .tl-name{font-family:'Poppins',sans-serif;font-weight:800;font-size:18px;color:var(--ink)}
+  .tl-desc{font-size:13.5px;color:var(--muted);flex:1}
+
+  .tl-badge{position:absolute;top:22px;right:22px;font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;border-radius:20px}
+  .tl-badge.live{background:rgba(22,163,74,0.12);color:#16a34a}
+  .tl-badge.soon{background:rgba(138,132,150,0.14);color:var(--muted)}
+
+  .tl-item{display:flex;flex-direction:column;gap:12px}
+
+  .tl-shot{width:100%;display:block;border-radius:12px;border:1px solid var(--line);margin-bottom:2px}
+
+  .tl-btn-row{display:flex;flex-wrap:wrap;gap:10px;padding:0 2px}
+  .tl-btn{align-self:flex-start;font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;text-decoration:none;transition:opacity .15s ease}
+  .tl-btn.live{background:var(--navy);color:#fff}
+  .tl-btn.live:hover{opacity:.85}
+  .tl-btn.soon{background:var(--bone);color:var(--muted);border:1px solid var(--line);cursor:default}
+  .tl-btn.ms{background:#000;color:#fff;display:inline-flex;align-items:center;gap:8px}
+  .tl-btn.ms:hover{opacity:.85}
+
+  .tl-more{margin-top:40px;text-align:center;font-size:13.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<section class="tl-hero">
+  <span class="tl-tag">LazyDog Studios</span>
+  <h1 class="tl-title">Tools</h1>
+  <p class="tl-sub">Small apps and engines we've built, for anyone to use — starting with our own products, more on the way.</p>
+</section>
+
+<main>
+  <div class="tl-grid">
+
+    <div class="tl-item">
+      <div class="tl-card">
+        <span class="tl-badge live">Live</span>
+        <img class="tl-shot" src="images/editor%20card.png" alt="LazyDog Editor app preview"/>
+        <div class="tl-name">LazyDog Editor</div>
+      </div>
+      <div class="tl-btn-row">
+        <a class="tl-btn live" href="editor.html">Open Editor</a>
+        <a class="tl-btn ms" href="https://apps.microsoft.com/detail/XP8LW3QG971T8N" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" style="flex-shrink:0;"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="13" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="13" width="10" height="10" fill="#00a4ef"/><rect x="13" y="13" width="10" height="10" fill="#ffb900"/></svg>
+          Get it on Microsoft Store
+        </a>
+      </div>
+    </div>
+
+    <div class="tl-card coming">
+      <span class="tl-badge soon">Coming Soon</span>
+      <div class="tl-icon">🔍</div>
+      <div class="tl-name">SEO Fix Engine</div>
+      <div class="tl-desc">Crawls a website, finds real technical SEO problems, and safely fixes the ones it's sure about — with backups and before/after verification built in.</div>
+      <a class="tl-btn soon">Notify me</a>
+    </div>
+
+  </div>
+
+  <p class="tl-more">More tools are on the way. Check back soon.</p>
+</main>
+
+<script src="navbar.js"></script>
+<script src="footerbar.js"></script>
+</body>
+</html>
