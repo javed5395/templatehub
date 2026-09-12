@@ -24,7 +24,7 @@
   <!-- Open Graph -->
   <meta property="og:title" content="Digital Keynote Templates — LazyDogTemplates" />
   <meta property="og:description" content="Download free digital keynote templates for speakers, startups and businesses. Showcase your ideas and impress your audience." />
-  <meta property="og:type" content="website" />
+  <meta property="og:type" content="product" />
   <meta property="og:url" content="https://www.lazydogtemplates.com/digital_keynote_slides.html" />
   <meta property="og:image" content="https://www.lazydogtemplates.com/og-digital-keynotes.jpg" />
 
@@ -672,7 +672,12 @@ function getDkUrl(k, n, transform) {
       designDocUrl: t.designDocUrl || null,
       designNotes:  t.designNotes || null,
       industry:     industryLabels[t.industry] || t.industry || null,
-      extraFiles:   t.extraFiles || []
+      extraFiles:   t.extraFiles || [],
+      /* 12 Sep 2026 (Javed) -- carried through from Firestore so the SEO
+         engine's Auto-Apply (which writes template.metaTitle) actually
+         reaches the page. Without this line the field was written to
+         Firestore correctly but silently never read back here. */
+      metaTitle:    t.metaTitle || null
     };
     loadKeynote(currentKeynoteData);
   } catch(err) {
@@ -814,7 +819,13 @@ function loadKeynote(k) {
       if (cat && nm.toLowerCase().indexOf(cat.toLowerCase()) === -1) {
         nm = nm + ' ' + cat + ' Template';
       }
-      document.title = nm + ' - LazyDogTemplates';
+      /* 12 Sep 2026 (Javed) -- meta title (what Google/social shows) is
+         independent of the kit's own visible name. When metaTitle is set
+         for this kit (written by the SEO engine's Auto-Apply), it is used
+         exactly as given -- no suffix, no category text added -- and the
+         on-page product name (kit.name) is never touched. */
+      var ldtTitle = (kit.metaTitle && String(kit.metaTitle).trim()) ? String(kit.metaTitle).trim() : (nm + ' - LazyDogTemplates');
+      document.title = ldtTitle;
       var ds = String(kit.desc || '').replace(/\s+/g, ' ').trim();
       if (!ds) ds = nm + ' - editable ' + (kit.slideCount || '') + ' slide template, instant download from LazyDogTemplates.';
       if (ds.length > 158) ds = ds.slice(0, 155) + '...';
@@ -823,7 +834,7 @@ function loadKeynote(k) {
 
       setMeta('name', 'description', ds);
       setMeta('property', 'og:type', 'product');
-      setMeta('property', 'og:title', nm + ' - LazyDogTemplates');
+      setMeta('property', 'og:title', ldtTitle);
       setMeta('property', 'og:description', ds);
       setMeta('property', 'og:image', img);
       setMeta('property', 'og:url', url);
