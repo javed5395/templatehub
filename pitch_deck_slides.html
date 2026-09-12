@@ -747,7 +747,7 @@ buildCatPanel();
       whopCommercialPlanId: t.whopCommercialPlanId || '',
       whopCommercialPrice:  t.whopCommercialPrice  || null,
       name:         t.name || 'Untitled Deck',
-      titleHTML:    (t.name || 'Untitled Deck') + '<br/><span>Pitch Deck</span>',
+      titleHTML:    (t.name || 'Untitled Deck'),
       desc:         t.designNotes || t.description || 'A professional pitch deck template. Fully editable in Microsoft PowerPoint.',
       style:        catLabels[t.category] || t.style || 'Pitch Deck',
       category:     industryLabels[t.industry] || t.category || 'General',
@@ -891,11 +891,7 @@ function loadDesign(d) {
          The indexOf guard means that if a kit IS named "... Pitch Deck" one
          day, the words are not doubled up. */
       var nm = kit.name || 'Template';
-      var cat = '';
-      try {
-        var cm = String(kit.titleHTML || '').match(/<span>([^<]+)<\/span>/i);
-        if (cm) cat = cm[1].trim();
-      } catch (e) {}
+      var cat = kit.style || '';
       if (cat && nm.toLowerCase().indexOf(cat.toLowerCase()) === -1) {
         nm = nm + ' ' + cat + ' Template';
       }

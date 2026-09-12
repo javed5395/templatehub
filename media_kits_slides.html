@@ -677,7 +677,7 @@ function getMkUrl(k, n, transform) {
       whopCommercialPlanId: t.whopCommercialPlanId || '',
       whopCommercialPrice:  t.whopCommercialPrice  || null,
       name:         t.name || 'Untitled Media Kit',
-      titleHTML:    (t.name || 'Untitled Media Kit') + '<br/><span>Media Kit</span>',
+      titleHTML:    (t.name || 'Untitled Media Kit'),
       desc:         t.designNotes || t.description || 'A professional media kit template.',
       type:         catLabels[t.category] || t.type || 'Media Kit',
       style:        industryLabels[t.industry] || t.style || 'Professional',
@@ -828,11 +828,7 @@ function loadKit(k) {
          The indexOf guard means that if a kit IS named "... Pitch Deck" one
          day, the words are not doubled up. */
       var nm = kit.name || 'Template';
-      var cat = '';
-      try {
-        var cm = String(kit.titleHTML || '').match(/<span>([^<]+)<\/span>/i);
-        if (cm) cat = cm[1].trim();
-      } catch (e) {}
+      var cat = kit.type || '';
       if (cat && nm.toLowerCase().indexOf(cat.toLowerCase()) === -1) {
         nm = nm + ' ' + cat + ' Template';
       }
