@@ -408,6 +408,13 @@
 <!-- ══ HERO SECTION ══ -->
 <section class="hero-section"></section>
 
+<!-- ══ DECK CARDS GRID ══ -->
+<section class="deck-grid-section">
+  <div class="deck-grid" id="deckGrid">
+    <!-- Cards injected dynamically from DECKS array -->
+  </div>
+</section>
+
 <section style="max-width:840px;margin:28px auto 44px;padding:0 24px;position:relative;z-index:2;clear:both;">
   <div class="seo-more" id="wkIntro" style="max-height:56px;overflow:hidden;transition:max-height .35s ease;">
     <p style="font-size:14.5px;line-height:1.8;opacity:.85;margin-top:0;">
@@ -426,12 +433,6 @@
   <button type="button" onclick="var el=document.getElementById('wkIntro');var open=el.style.maxHeight!=='56px';el.style.maxHeight=open?'56px':'900px';this.textContent=open?'Read more':'Show less';" style="margin-top:10px;background:none;border:0;color:#d4af37;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Read more</button>
 </section>
 
-<!-- ══ DECK CARDS GRID ══ -->
-<section class="deck-grid-section">
-  <div class="deck-grid" id="deckGrid">
-    <!-- Cards injected dynamically from DECKS array -->
-  </div>
-</section>
 
 <style>
   .deck-grid-section {
