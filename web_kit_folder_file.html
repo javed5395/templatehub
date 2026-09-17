@@ -408,30 +408,22 @@
 <!-- ══ HERO SECTION ══ -->
 <section class="hero-section"></section>
 
-<section style="max-width:840px;margin:0 auto;padding:6px 24px 40px;">
-  <p style="font-size:15.5px;line-height:1.8;">
-    Websites is LazyDog's collection of modern, component-based website kits — landing pages,
-    about, pricing, blog, and contact layouts built to ship this week, not to be untangled
-    first. Every layout here is responsive out of the box, with a strong first screen, readable
-    sections, and a mobile view that actually holds together.
-  </p>
-  <p style="font-size:15.5px;line-height:1.8;margin-top:16px;">
-    Each kit is standalone, code-based, and yours to keep — there's no builder platform to get
-    locked into and no subscription attached to the layout itself. Good structure and clean
-    spacing matter more here than another hero animation, so the kits prioritise the parts that
-    actually convert: a clear path down the page and obvious calls to action.
-  </p>
-  <p style="font-size:15.5px;line-height:1.8;margin-top:16px;">
-    Use the search card above to filter by industry and style, and both personal and commercial
-    licences are available on every kit, ready to hand to a developer for deeper customisation
-    if you need it. More layouts and industries are added as this section continues to grow.
-  </p>
-  <p style="font-size:15.5px;line-height:1.8;margin-top:16px;">
-    Unlike a builder platform, nothing here locks you into ongoing fees or a proprietary editor
-    just to change a headline. You get the actual files — HTML, CSS, and the component
-    structure underneath — so a developer can extend the kit, wire it up to a backend, or bolt
-    on new sections without fighting a black box.
-  </p>
+<section style="max-width:840px;margin:28px auto 44px;padding:0 24px;position:relative;z-index:2;clear:both;">
+  <div class="seo-more" id="wkIntro" style="max-height:56px;overflow:hidden;transition:max-height .35s ease;">
+    <p style="font-size:14.5px;line-height:1.8;opacity:.85;margin-top:0;">
+      Websites is LazyDog's collection of modern, component-based website kits — landing pages, about, pricing, blog, and contact layouts built to ship this week, not to be untangled first. Every layout here is responsive out of the box, with a strong first screen, readable sections, and a mobile view that actually holds together.
+    </p>
+    <p style="font-size:14.5px;line-height:1.8;opacity:.85;margin-top:14px;">
+      Each kit is standalone, code-based, and yours to keep — there's no builder platform to get locked into and no subscription attached to the layout itself. Good structure and clean spacing matter more here than another hero animation, so the kits prioritise the parts that actually convert: a clear path down the page and obvious calls to action.
+    </p>
+    <p style="font-size:14.5px;line-height:1.8;opacity:.85;margin-top:14px;">
+      Use the search card above to filter by industry and style, and both personal and commercial licences are available on every kit, ready to hand to a developer for deeper customisation if you need it. More layouts and industries are added as this section continues to grow.
+    </p>
+    <p style="font-size:14.5px;line-height:1.8;opacity:.85;margin-top:14px;">
+      Unlike a builder platform, nothing here locks you into ongoing fees or a proprietary editor just to change a headline. You get the actual files — HTML, CSS, and the component structure underneath — so a developer can extend the kit, wire it up to a backend, or bolt on new sections without fighting a black box.
+    </p>
+  </div>
+  <button type="button" onclick="var el=document.getElementById('wkIntro');var open=el.style.maxHeight!=='56px';el.style.maxHeight=open?'56px':'900px';this.textContent=open?'Read more':'Show less';" style="margin-top:10px;background:none;border:0;color:#d4af37;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Read more</button>
 </section>
 
 <!-- ══ DECK CARDS GRID ══ -->
