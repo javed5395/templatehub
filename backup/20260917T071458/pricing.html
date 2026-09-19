@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LazyDog Editor Pricing — Free Editing, Paid Tokens</title>
+<meta name="description" content="Editing in the LazyDog Editor is free. Only automated AI work costs tokens. Pro from $19/month, Studio $39/month, or a one-off Flex pack. 40 free tokens on signup."/>
+<meta name="keywords" content="LazyDog Editor pricing, presentation AI tokens, deck automation cost, free presentation editor"/>
+<meta name="author" content="LazyDog Team"/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" href="https://www.lazydogtemplates.com/pricing.html"/>
+<link rel="icon" type="image/png" href="images/site_logo_round.png"/>
+<link rel="shortcut icon" type="image/png" href="images/site_logo_round.png"/>
+<link rel="apple-touch-icon" href="images/site_logo_round.png"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="LazyDogTemplates"/>
+<meta property="og:title" content="Pricing — LazyDog Editor"/>
+<meta property="og:description" content="Editing is free. Only automation costs tokens."/>
+<meta property="og:url" content="https://www.lazydogtemplates.com/pricing.html"/>
+<meta property="og:image" content="https://www.lazydogtemplates.com/images/site_logo_round.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<!--
+  pricing.html — the only place on the site that sells the editor subscription.
+  20 Aug 2026.
+
+  EVERY NUMBER ON THIS PAGE IS READ FROM billing_config/main AT LOAD TIME.
+  Nothing is typed into the HTML. That is deliberate: the prices here and the
+  prices Whop charges come from the same document, so they cannot disagree.
+  Change a price with admin_billing and this page follows on the next refresh
+  — no deploy, no edit, no chance of the page advertising $19 while the
+  checkout takes $29.
+
+  The checkout links come from billing_config.whopPlanMap, which is written by
+  the subplans backfill when the plans are created on Whop. If a plan has no
+  mapping yet its button says "Coming soon" and is inert, rather than sending a
+  buyer to a broken checkout.
+-->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bone:#f2eee5;--ink:#1a1a2e;--navy:#07071a;--gold:#d4af37;--oxblood:#b8442a;
+        --violet:#7c5cbf;--muted:#8a8496;--line:#e2dccd;--green:#2f7d3f}
+  body{background:var(--bone);font-family:'Inter',sans-serif;color:var(--ink);line-height:1.7}
+
+  .hero{background:var(--navy);color:#fff;padding:54px 24px 44px;text-align:center;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;top:-120px;right:-80px;width:340px;height:340px;border-radius:50%;
+                background:radial-gradient(circle,rgba(212,175,55,.16),transparent 70%)}
+  .hero img{position:absolute;top:18px;right:22px;width:44px;height:44px;border-radius:50%;
+            border:1px solid rgba(212,175,55,.4)}
+  .hero__tag{position:relative;display:inline-block;font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;
+             letter-spacing:.26em;text-transform:uppercase;color:var(--navy);background:var(--gold);
+             padding:7px 15px;border-radius:5px;margin-bottom:18px}
+  .hero h1{position:relative;font-family:'Instrument Serif',serif;font-weight:400;
+           font-size:clamp(30px,5.2vw,52px);line-height:1.08;max-width:760px;margin:0 auto}
+  .hero p{position:relative;margin:18px auto 0;max-width:560px;font-size:16px;color:#c9cede}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:34px 22px 60px}
+  .back{display:inline-block;color:var(--violet);text-decoration:none;font-family:'Poppins',sans-serif;
+        font-size:13px;font-weight:600;margin-bottom:22px}
+  .back:hover{text-decoration:underline}
+
+  .toggle{display:flex;justify-content:center;margin:0 0 10px}
+  .toggle__in{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:100px;padding:5px}
+  .toggle__btn{border:0;background:transparent;font-family:'Poppins',sans-serif;font-size:13.5px;font-weight:700;
+               color:#6b6577;padding:9px 22px;border-radius:100px;cursor:pointer;transition:.15s}
+  .toggle__btn.on{background:var(--navy);color:#fff}
+  .saving{display:inline-block;background:#e8f5ea;color:#256b33;font-family:'Poppins',sans-serif;
+          font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:6px;margin-bottom:14px}
+
+  /* Four across on one row — the site's journal-card look, not a generic
+     SaaS pricing table. Same bone panel, inset hairline, mono eyebrow,
+     Instrument Serif title and the site-name footer as blog.html. */
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:stretch}
+  @media(max-width:1040px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}}
+
+  .card{position:relative;background:var(--bone);border:1px solid #d9d4c7;padding:26px 22px;
+        display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
+  .card::before{content:"";position:absolute;inset:11px;border:1px solid rgba(0,0,0,.09);pointer-events:none}
+  .card:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.13)}
+  .card--best{border-color:var(--gold);box-shadow:0 6px 24px rgba(212,175,55,.16)}
+  .card--best::before{border-color:rgba(212,175,55,.4)}
+  .card>*{position:relative}
+
+  .badge{font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-size:9.5px;font-weight:700;
+         letter-spacing:.2em;text-transform:uppercase;color:var(--oxblood);
+         padding-bottom:5px;border-bottom:1.5px solid var(--oxblood);
+         display:inline-block;width:max-content;margin-bottom:13px}
+  .badge--flex{color:#4b3a86;border-bottom-color:#4b3a86}
+  .card h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:29px;line-height:1.1;
+           color:var(--ink);margin:0 0 4px}
+  .card__sub{font-size:12.5px;color:#46414d;line-height:1.5;margin-bottom:14px;min-height:38px}
+  .price{display:flex;align-items:baseline;gap:5px;margin-bottom:3px}
+  .price b{font-family:'Instrument Serif',serif;font-size:40px;font-weight:400;line-height:1;color:var(--ink)}
+  .price span{font-size:13px;color:var(--muted)}
+  .price__note{font-size:11.5px;color:var(--muted);min-height:17px;margin-bottom:10px;line-height:1.45}
+  .saving{display:inline-block;font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-size:10px;
+          font-weight:700;letter-spacing:.08em;color:#256b33;background:#e8f2e9;
+          padding:4px 9px;margin-bottom:12px}
+
+  .tokens{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:14px}
+  .tokens b{font-family:'Instrument Serif',serif;font-size:23px;font-weight:400;display:block;line-height:1.2;color:var(--ink)}
+  .tokens span{font-size:11.5px;color:var(--muted);line-height:1.45;display:block;margin-top:2px}
+
+  .lst{list-style:none;margin:0 0 14px;padding:0}
+  .lst li{font-size:12.5px;color:#3d3a49;padding:4px 0 4px 17px;position:relative;line-height:1.5}
+  .lst li::before{content:"✓";position:absolute;left:0;top:4px;color:var(--green);font-weight:700;font-size:12px}
+  .lst li.cost{padding-left:0;display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted #ddd6c6}
+  .lst li.cost::before{content:none}
+  .lst li.cost b{font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-weight:700;
+                 white-space:nowrap;color:var(--ink)}
+  .lbl{font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-size:9.5px;font-weight:700;
+       letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:2px 0 6px}
+
+  .btn{display:block;text-align:center;text-decoration:none;font-family:'Poppins',sans-serif;font-size:13.5px;
+       font-weight:700;padding:12px;margin-top:auto;transition:.15s;background:var(--navy);color:#fff}
+  .btn:hover{background:#161642}
+  .btn--gold{background:var(--gold);color:var(--navy)}
+  .btn--gold:hover{background:#c39f2f}
+  .btn--off{background:#e8e3d7;color:#8a8496;cursor:not-allowed}
+  .fair{font-size:10.5px;color:var(--muted);text-align:center;margin-top:9px;line-height:1.45}
+
+  .foot{border-top:1px solid var(--line);margin-top:12px;padding-top:11px;
+        display:flex;align-items:center;justify-content:space-between}
+  .foot span{font-family:'Consolas','SFMono-Regular',Menlo,monospace;font-size:9px;font-weight:700;
+             letter-spacing:.1em;color:var(--ink);text-transform:uppercase}
+  .foot img{width:30px;height:30px;border-radius:50%;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+
+  .note{max-width:700px;margin:28px auto 0;font-size:13px;color:var(--muted);text-align:center;line-height:1.75}
+  .note a{color:var(--violet);text-decoration:none}.note a:hover{text-decoration:underline}
+  .err{background:#fdeceb;border:1px solid #f0b8b3;border-radius:11px;padding:16px 18px;
+       color:#8c2f26;font-size:14px;text-align:center}
+  @media(max-width:640px){.wrap{padding:26px 16px 46px}.card{padding:22px 19px}}
+</style>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Pricing — LazyDog Editor | LazyDogTemplates",
+  "url": "https://www.lazydogtemplates.com/pricing.html",
+  "description": "Type, restyle, rearrange and export as much as you like — that never costs\n     anything. You only spend tokens when you ask the editor to do the work for you."
+}
+</script>
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://www.lazydogtemplates.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Pricing",
+      "item": "https://www.lazydogtemplates.com/pricing.html"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<header class="hero">
+  <img src="images/site_logo_round.png" alt="LazyDog Templates" width="512" height="512" />
+  <div><span class="hero__tag">LazyDog Editor</span></div>
+  <h1>Editing is free. Only automation costs tokens.</h1>
+  <p>Type, restyle, rearrange and export as much as you like — that never costs
+     anything. You only spend tokens when you ask the editor to do the work for you.</p>
+  <p style="max-width:640px;">Most everyday editing -- typing, restyling, rearranging layout, swapping colors and fonts, and exporting your finished file -- is completely free, for as long as you like. Tokens only come into play for the optional automation features: Hexa writing or rewriting copy for you, AI-assisted layout generation, and one-click design variations. Buy tokens as you need them or subscribe monthly for a bundle at a lower rate -- either way, nothing is charged until you actually ask the editor to do work on your behalf.</p>
+</header>
+
+<div class="wrap">
+  <section style="max-width:760px;margin:0 auto 8px;padding:0 4px;">
+    <div class="seo-more" id="prIntro" style="max-height:50px;overflow:hidden;transition:max-height .35s ease;">
+      <p style="font-size:15px;line-height:1.8;color:#c6d0e0;">
+        The split is simple: anything you do by hand in the editor is free, forever, no matter how
+        many decks, resumes, or media kits you build. That includes typing your own copy, dragging
+        elements around, resizing, recolouring, changing fonts, adding pages, and exporting a
+        finished PPTX, PDF, or PNG. None of that touches your token balance.
+      </p>
+      <p style="font-size:15px;line-height:1.8;color:#c6d0e0;margin-top:14px;">
+        Tokens are spent only when Hexa does the work instead of you — writing or rewriting slide
+        copy, generating a full layout from a description, producing one-click design variations,
+        or filling an existing template with your content automatically. If you never touch those
+        features, the desktop and browser editor cost you nothing.
+      </p>
+      <p style="font-size:15px;line-height:1.8;color:#c6d0e0;margin-top:14px;">
+        Below, choose a plan that fits how much automation you actually use, or buy tokens as a
+        one-off top-up if your needs are occasional rather than regular. Every plan is billed
+        through Whop, and switching between monthly and yearly is reflected instantly in the prices
+        shown here.
+      </p>
+    </div>
+    <button type="button" onclick="var el=document.getElementById('prIntro');var open=el.style.maxHeight!=='50px';el.style.maxHeight=open?'50px':'700px';this.textContent=open?'Read more':'Show less';" style="margin-top:8px;background:none;border:0;color:#d4af37;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Read more</button>
+  </section>
+  <a class="back" href="index.html">← Back to LazyDogTemplates</a>
+
+  <div class="toggle">
+    <div class="toggle__in">
+      <button class="toggle__btn on" id="tabM" type="button">Monthly</button>
+      <button class="toggle__btn"    id="tabY" type="button">Yearly</button>
+    </div>
+  </div>
+  <div style="height:22px"></div>
+
+  <div class="grid" id="grid">
+    <div class="err" style="grid-column:1/-1">Loading plans…</div>
+  </div>
+
+  <p class="note">
+    Payments are processed by <b>Whop</b>. Card details never reach LazyDogTemplates.
+    All prices are in US dollars. Unused tokens carry over at
+    <b id="carryPct">50%</b> and a lapsed plan keeps its balance for
+    <b id="graceDays">30</b> days. Cancelling never takes back tokens you have
+    already paid for. A subscription does not include templates — those remain a
+    separate one-time purchase.
+    <br/><a href="terms.html">Full terms</a> ·
+    <a href="terms.html#privacy">Privacy</a> ·
+    <a href="blogs/editor-subscription-and-tokens.html">How tokens work</a>
+  </p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+  authDomain: "auth.lazydogtemplates.com",
+  projectId: "templatehub-16cd7",
+  storageBucket: "templatehub-16cd7.firebasestorage.app",
+  messagingSenderId: "143000893683",
+  appId: "1:143000893683:web:fd694de96f8c0fa6569f86"
+});
+const db = getFirestore(app);
+
+/* Defaults mirror _BILLING_DEFAULTS in functions/main.py. They are a fallback
+   for the seconds before the config loads, or if the read fails — never the
+   source of truth. */
+const FALLBACK = {
+  costs: { composePerSlide:5, fillPerSlide:12, pngDecompose:25, pdfDecomposePerPage:20 },
+  plans: {
+    pro:          { priceUsd:19,  tokens:1500, periodDays:31 },
+    studio:       { priceUsd:39,  tokens:3750, periodDays:31 },
+    proAnnual:    { priceUsd:192, tokens:1500, periodDays:31, billedAnnually:true },
+    studioAnnual: { priceUsd:408, tokens:3750, periodDays:31, billedAnnually:true },
+    annualFlex:   { priceUsd:50,  tokens:6000, periodDays:366, oneTime:true }
+  },
+  carryForwardPct: 50, graceDays: 30, whopPlanMap: {}
+};
+
+const LABEL = { pro:'Pro', studio:'Studio', proAnnual:'Pro', studioAnnual:'Studio', annualFlex:'Flex' };
+const SUB   = {
+  pro:'For steady, regular work',
+  studio:'For heavy use and teams',
+  proAnnual:'For steady, regular work',
+  studioAnnual:'For heavy use and teams',
+  annualFlex:'For work that comes in bursts'
+};
+
+let CFG = FALLBACK, MODE = 'monthly';
+const $ = id => document.getElementById(id);
+const n = v => Number(v || 0).toLocaleString();
+
+/* plan key -> checkout url, inverted from whopPlanMap (planId -> key) */
+function checkoutFor(key){
+  const map = CFG.whopPlanMap || {};
+  for (const [planId, k] of Object.entries(map)) {
+    if (k === key) return 'https://whop.com/checkout/' + planId;
+  }
+  return '';
+}
+
+function card(key, best){
+  const p  = (CFG.plans || {})[key];
+  if (!p) return '';
+  const c  = CFG.costs || {};
+  const tk = Number(p.tokens || 0);
+  const url = checkoutFor(key);
+  const oneTime = !!p.oneTime;
+
+  /* What the allowance actually buys, computed from the live rates rather
+     than written by hand — so it can never drift from what is charged. */
+  const perDeck = (Number(c.composePerSlide||0) + Number(c.fillPerSlide||0)) * 10;
+  const decks   = perDeck > 0 ? Math.floor(tk / perDeck) : 0;
+
+  /* Each annual card states ITS OWN saving. A single line above the grid could
+     only ever describe one plan, so a customer reading the Studio card saw a
+     figure calculated from Pro. Computed against the matching monthly plan, so
+     if a price changes the saving follows — and if annual ever stops being
+     cheaper the line simply disappears rather than claiming a saving. */
+  let saveLine = '';
+  if (p.billedAnnually) {
+    const monthlyKey = key === 'proAnnual' ? 'pro'
+                     : key === 'studioAnnual' ? 'studio' : '';
+    const m = (CFG.plans || {})[monthlyKey];
+    if (m && m.priceUsd) {
+      const save = (Number(m.priceUsd) * 12) - Number(p.priceUsd);
+      if (save > 0) saveLine =
+        `<div class="saving">Save $${n(Math.round(save))} a year vs $${n(m.priceUsd)}/month</div>`;
+    }
+  }
+
+  return `
+  <div class="card ${best ? 'card--best' : ''}">
+    ${best ? '<span class="badge">Most popular</span>'
+           : (oneTime ? '<span class="badge badge--flex">One-time</span>' : '')}
+    <h2>${LABEL[key] || key}</h2>
+    <div class="card__sub">${SUB[key] || ''}</div>
+
+    <div class="price">
+      <b>$${n(p.priceUsd)}</b>
+      <span>${oneTime ? 'once' : (p.billedAnnually ? '/year' : '/month')}</span>
+    </div>
+    <div class="price__note">${
+      oneTime      ? 'No renewal. Never charged again.'
+      : p.billedAnnually ? 'Billed once a year, tokens arrive monthly'
+      : 'Cancel any time'}</div>
+    ${saveLine}
+
+    <div class="tokens">
+      <b>${n(tk)} tokens</b>
+      <span>${oneTime ? 'valid for one year' : 'every month'}${decks ? ` · about ${decks} full decks` : ''}</span>
+    </div>
+
+    <div class="lbl">Free on this plan</div>
+    <ul class="lst">
+      <li>Uploading and downloading</li>
+      <li>All editing and exporting</li>
+      <li>40 tokens free when you sign up</li>
+    </ul>
+
+    <div class="lbl">What tokens are spent on</div>
+    <ul class="lst">
+      <li class="cost">Design one slide <b>${n(c.composePerSlide)}</b></li>
+<!-- 29 Aug 2026 — "Write one slide from your content" removed: not launched yet,
+     so it must not be advertised or priced. Restore this line when it ships. -->
+      <li class="cost">Turn one PDF page into slides <b>${n(c.pdfDecomposePerPage)}</b></li>
+      <li class="cost">Turn one PNG into an editable slide <b>${n(c.pngDecompose)}</b></li>
+    </ul>
+
+    ${url
+      ? `<a class="btn ${best ? 'btn--gold' : ''}" href="${url}" target="_blank" rel="noopener">
+           ${oneTime ? 'Buy once' : 'Subscribe'}</a>`
+      : `<span class="btn btn--off">Coming soon</span>`}
+    <div class="fair">We use fair counting — charged for work actually done.</div>
+    <div class="foot"><span>www.lazydogtemplates.com</span>
+      <img src="images/site_logo_round.png" alt="LazyDog Templates" width="512" height="512" /></div>
+  </div>`;
+}
+
+/* The fourth card is not a plan and never comes from billing_config — there is
+   no price to read, because every deployment is quoted individually. It is
+   built by hand so that it can say so plainly instead of showing a number the
+   customer would then be argued out of. Shown in both monthly and yearly
+   views, because a quoted job has no billing period. */
+function customCard(){
+  return `
+  <div class="card">
+    <span class="badge badge--flex">Quoted per job</span>
+    <h2>Custom</h2>
+    <div class="card__sub">We build it and put it live for you</div>
+
+    <div class="price"><b>Let's talk</b></div>
+    <div class="price__note">No fixed price. Asking costs nothing.</div>
+
+    <div class="tokens">
+      <b>Done for you</b>
+      <span>you supply the content, we deliver the finished site</span>
+    </div>
+
+    <div class="lbl">Free on this plan</div>
+    <ul class="lst">
+      <li>Telling us what you need</li>
+      <li>A fixed written quote</li>
+      <li>Preview link before it goes live</li>
+    </ul>
+
+    <div class="lbl">What this covers</div>
+    <ul class="lst">
+      <li class="cost">Your text and images placed <b>yes</b></li>
+      <li class="cost">Colours, fonts and logo applied <b>yes</b></li>
+      <li class="cost">Live on your own domain <b>yes</b></li>
+      <li class="cost">Contact form and basic SEO <b>yes</b></li>
+    </ul>
+
+    <a class="btn" href="deployment/quote.html">Request a quote</a>
+    <div class="fair">Scope and price agreed in writing first.</div>
+    <div class="foot"><span>www.lazydogtemplates.com</span>
+      <img src="images/site_logo_round.png" alt="LazyDog Templates" width="512" height="512" /></div>
+  </div>`;
+}
+
+function paint(){
+  const keys = MODE === 'monthly'
+    ? ['pro', 'studio', 'annualFlex']
+    : ['proAnnual', 'studioAnnual', 'annualFlex'];
+  const best = MODE === 'monthly' ? 'pro' : 'proAnnual';
+  $('grid').innerHTML = (keys.map(k => card(k, k === best)).join('') || '') + customCard();
+
+  $('tabM').classList.toggle('on', MODE === 'monthly');
+  $('tabY').classList.toggle('on', MODE === 'yearly');
+}
+
+$('tabM').onclick = () => { MODE = 'monthly'; paint(); };
+$('tabY').onclick = () => { MODE = 'yearly';  paint(); };
+
+(async () => {
+  try {
+    const snap = await getDoc(doc(db, 'billing_config', 'main'));
+    if (snap.exists()) {
+      const d = snap.data() || {};
+      CFG = {
+        ...FALLBACK, ...d,
+        costs: { ...FALLBACK.costs, ...(d.costs || {}) },
+        plans: { ...FALLBACK.plans, ...(d.plans || {}) }
+      };
+    }
+  } catch (e) {
+    console.warn('[pricing] using fallback prices:', e && e.message);
+  }
+  $('carryPct').textContent  = (CFG.carryForwardPct ?? 50) + '%';
+  $('graceDays').textContent = (CFG.graceDays ?? 30);
+  paint();
+})();
+</script>
+<script src="navbar.js"></script>
+<script src="footerbar.js"></script>
+<p style="text-align:center;font-size:13.5px;color:var(--muted);margin:14px 0 0;font-family:'Inter',sans-serif;">Related: <a href="blogs/meet-the-editor.html" style="color:var(--gold);text-decoration:none;font-weight:600;">meet the editor</a></p>
+</body>
+</html>

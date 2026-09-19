@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Designs — LazyDogStudios</title>
+<meta name="robots" content="noindex"/>
+<link rel="stylesheet" href="shared-styles.css"/>
+<style>
+  :root { --ink:#12172b; --muted:#6b7280; --line:#e6e8f0; --green:#1b7f3e; --red:#b23a3a; }
+  body { font-family:Poppins, system-ui, sans-serif; color:var(--ink); background:#fbfbfe; margin:0; }
+  .wrap { max-width:960px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  .sub { color:var(--muted); font-size:14px; margin:0 0 26px; }
+  .card { border:1px solid var(--line); border-radius:14px; background:#fff; padding:16px 18px; margin-bottom:12px; }
+  .row { display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+  .grow { flex:1 1 320px; min-width:0; }
+  .order { font-size:14px; line-height:1.5; word-break:break-word; }
+  .meta { color:var(--muted); font-size:12px; margin-top:6px; }
+  .pill { font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+  .queued  { background:#eef2ff; color:#3730a3; }
+  .running { background:#fff7ed; color:#9a3412; }
+  .done    { background:#ecfdf5; color:var(--green); }
+  .failed, .rejected { background:#fef2f2; color:var(--red); }
+  .btn { display:inline-block; background:var(--ink); color:#fff; text-decoration:none;
+         padding:9px 16px; border-radius:10px; font-size:13px; font-weight:600; }
+  .reason { color:var(--red); font-size:13px; margin-top:8px; }
+  .empty { border:1px dashed var(--line); border-radius:14px; padding:40px; text-align:center; color:var(--muted); }
+  a.plain { color:var(--ink); }
+</style>
+  <link rel="canonical" href="https://www.lazydogtemplates.com/my_designs.html">
+  <meta name="description" content="Designs you ordered from the “Want us to make a design?” card. They are built on our servers — you can close the tab and come back. This page refreshes…">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "My Designs — LazyDogStudios",
+  "url": "https://www.lazydogtemplates.com/my_designs.html",
+  "description": "Designs you ordered from the “Want us to make a design?” card. They are built on our\n     servers — you can close the tab and come back. This page refreshes itself."
+}
+</script>
+  <meta property="og:title" content="My Designs — LazyDogStudios">
+  <meta property="og:description" content="Designs you ordered from the “Want us to make a design?” card. They are built on our servers — you can close the tab and come back. This page refreshes itself.">
+  <meta property="og:url" content="https://www.lazydogtemplates.com/my_designs.html">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://www.lazydogtemplates.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "My Designs",
+      "item": "https://www.lazydogtemplates.com/my_designs.html"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<div id="navbarMount"></div>
+<div class="wrap">
+  <h1>My Designs</h1>
+  <p class="sub">Designs you ordered from the “Want us to make a design?” card. They are built on our
+     servers — you can close the tab and come back. This page refreshes itself.</p>
+  <div id="list"><div class="empty">Loading…</div></div>
+
+  <!-- OWNER ONLY. Hidden for everyone else; firestore.rules is the real gate. -->
+  <div id="schedBlock" style="display:none;margin-top:44px">
+    <h2 style="font-size:19px;margin:0 0 4px">Repeating designs</h2>
+    <p class="sub" style="margin-bottom:16px">Set it once and it runs every day on its own —
+       the finished deck lands in the list above. No email, nothing to click.</p>
+
+    <div class="card">
+      <div class="row" style="align-items:flex-end">
+        <div class="grow">
+          <label class="meta" style="display:block;margin-bottom:4px">What to make, every day</label>
+          <input id="scSentence" type="text" autocomplete="off" placeholder="e.g. pitch deck, saas, navy, minimal, for investors"
+                 style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px"/>
+        </div>
+        <div>
+          <label class="meta" style="display:block;margin-bottom:4px">Slides</label>
+          <input id="scSlides" type="number" min="1" max="100" value="5" autocomplete="off"
+                 style="width:90px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px"/>
+        </div>
+        <div>
+          <label class="meta" style="display:block;margin-bottom:4px">At (your time)</label>
+          <span style="display:inline-flex;gap:6px;align-items:center">
+            <select id="scHour" autocomplete="off"
+                    style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px"></select>
+            <select id="scMinute" autocomplete="off"
+                    style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px"></select>
+          </span>
+        </div>
+        <button id="scAdd" class="btn" style="border:0;cursor:pointer">Add routine</button>
+      </div>
+      <div id="scNote" class="meta" style="margin-top:10px"></div>
+    </div>
+
+    <div id="schedList"></div>
+  </div>
+</div>
+
+<script src="navbar.js"></script>
+<script type="module">
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, query, where, orderBy, limit, onSnapshot,
+         addDoc, updateDoc, deleteDoc, doc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const CONF = { apiKey: "AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes",
+               authDomain: "auth.lazydogtemplates.com",
+               projectId: "templatehub-16cd7" };
+const app  = getApps().length ? getApp() : initializeApp(CONF);
+const db   = getFirestore(app);
+const list = document.getElementById('list');
+
+const LABEL = {
+  queued:  ['queued',   'In the queue'],
+  running: ['running',  'Being built now'],
+  done:    ['done',     'Ready'],
+  failed:  ['failed',   'Did not finish'],
+  rejected:['rejected', 'Not built']
+};
+
+function when(ts) {
+  try { const d = ts && ts.toDate ? ts.toDate() : null;
+        return d ? d.toLocaleString() : ''; } catch (e) { return ''; }
+}
+
+function card(id, o) {
+  const st  = String(o.status || 'queued');
+  const lab = LABEL[st] || ['queued', st];
+  const bits = [];
+  if (o.slides) bits.push(o.slides + ' slides');
+  if (o.tier)   bits.push(o.tier + ' plan');
+  const stamp = when(o.finishedAt) || when(o.createdAt);
+  if (stamp)    bits.push(stamp);
+
+  return '<div class="card"><div class="row">' +
+      '<div class="grow">' +
+        '<div class="order">' + (o.sentence ? escapeHtml(o.sentence) : '(no description)') + '</div>' +
+        '<div class="meta">' + bits.join(' · ') + '</div>' +
+        (o.reason ? '<div class="reason">' + escapeHtml(o.reason) + '</div>' : '') +
+      '</div>' +
+      '<span class="pill ' + lab[0] + '">' + lab[1] + '</span>' +
+      (st === 'done' && o.pptx_url
+        ? '<a class="btn" href="' + o.pptx_url + '" download>Download .pptx</a>' : '') +
+    '</div></div>';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+// ── REPEATING DESIGNS (owner only) ─────────────────────────────────────────
+const ADMINS = ['javed5395@gmail.com', 'lazydogtemplates@gmail.com'];
+
+function hourLabel(h, m) {
+  const ampm = h < 12 ? 'am' : 'pm';
+  const hh = (h % 12) || 12;
+  const mm = String(parseInt(m, 10) || 0).padStart(2, '0');
+  return hh + ':' + mm + ' ' + ampm;
+}
+
+function initSchedules(user) {
+  const block = document.getElementById('schedBlock');
+  if (ADMINS.indexOf(String(user.email || '').toLowerCase()) === -1) return;
+  block.style.display = 'block';
+
+  const hourSel = document.getElementById('scHour');
+  hourSel.innerHTML = Array.from({length: 24}, (_, h) =>
+    '<option value="' + h + '"' + (h === 9 ? ' selected' : '') + '>' + hourLabel(h, 0) + '</option>').join('');
+  // five-minute steps — the scheduler ticks every 5 minutes, so anything finer
+  // would be a promise the clock cannot keep.
+  const minSel = document.getElementById('scMinute');
+  minSel.innerHTML = Array.from({length: 12}, (_, i) => i * 5)
+    .map(m => '<option value="' + m + '">:' + String(m).padStart(2, '0') + '</option>').join('');
+
+  const note = document.getElementById('scNote');
+  document.getElementById('scAdd').addEventListener('click', async () => {
+    const sentence = document.getElementById('scSentence').value.trim();
+    const slides   = parseInt(document.getElementById('scSlides').value, 10) || 5;
+    const hour     = parseInt(hourSel.value, 10) || 0;
+    const minute   = parseInt(minSel.value, 10) || 0;
+    if (sentence.length < 4) { note.style.color = 'var(--red)'; note.textContent = 'Describe what to make first.'; return; }
+    note.style.color = ''; note.textContent = 'Saving…';
+    try {
+      await addDoc(collection(db, 'design_schedules'), {
+        uid: user.uid, email: String(user.email || ''),
+        sentence, slides, hour, minute, active: true,
+        label: '', createdAt: serverTimestamp()
+      });
+      document.getElementById('scSentence').value = '';
+      note.style.color = 'var(--green)';
+      note.textContent = 'Saved — it will run every day at ' + hourLabel(hour, minute) + '.';
+    } catch (e) {
+      note.style.color = 'var(--red)';
+      note.textContent = 'Could not save: ' + (e && e.message ? e.message : e);
+    }
+  });
+
+  onSnapshot(query(collection(db, 'design_schedules'), where('uid', '==', user.uid)), (snap) => {
+    const box = document.getElementById('schedList');
+    if (snap.empty) { box.innerHTML = ''; return; }
+    let html = '';
+    snap.forEach(d => {
+      const s = d.data() || {};
+      const on = s.active !== false;
+      html += '<div class="card"><div class="row">' +
+        '<div class="grow"><div class="order">' + escapeHtml(s.sentence || '') + '</div>' +
+        '<div class="meta">' + (s.slides || 5) + ' slides · every day at ' +
+        hourLabel(parseInt(s.hour, 10) || 0, parseInt(s.minute, 10) || 0) +
+        (s.lastRunDate ? ' · last run ' + escapeHtml(s.lastRunDate) : ' · not run yet') + '</div></div>' +
+        '<span class="pill ' + (on ? 'done' : 'queued') + '">' + (on ? 'On' : 'Paused') + '</span>' +
+        '<button data-act="toggle" data-id="' + d.id + '" class="btn" style="border:0;cursor:pointer;background:#eef2ff;color:#3730a3">' +
+          (on ? 'Pause' : 'Resume') + '</button>' +
+        '<button data-act="del" data-id="' + d.id + '" class="btn" style="border:0;cursor:pointer;background:#fef2f2;color:var(--red)">Remove</button>' +
+      '</div></div>';
+    });
+    box.innerHTML = html;
+    box.querySelectorAll('button[data-act]').forEach(b => {
+      b.addEventListener('click', async () => {
+        const id = b.getAttribute('data-id');
+        try {
+          if (b.getAttribute('data-act') === 'del') {
+            await deleteDoc(doc(db, 'design_schedules', id));
+          } else {
+            const cur = snap.docs.find(x => x.id === id);
+            await updateDoc(doc(db, 'design_schedules', id),
+                            { active: !((cur.data() || {}).active !== false) });
+          }
+        } catch (e) { alert('Could not update: ' + (e && e.message ? e.message : e)); }
+      });
+    });
+  });
+}
+
+onAuthStateChanged(getAuth(app), (user) => {
+  if (!user) {
+    list.innerHTML = '<div class="empty">Please <a class="plain" href="upload_form.html">sign in</a> ' +
+                     'to see the designs you ordered.</div>';
+    return;
+  }
+  initSchedules(user);
+
+  // Live: the row updates itself the moment the server finishes the build.
+  const q = query(collection(db, 'design_orders'),
+                  where('uid', '==', user.uid),
+                  orderBy('createdAt', 'desc'),
+                  limit(50));
+  onSnapshot(q, (snap) => {
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty">Nothing here yet. Order one from the ' +
+                       '<strong>“Want us to make a design?”</strong> card on any store page.</div>';
+      return;
+    }
+    let html = '';
+    snap.forEach(d => { html += card(d.id, d.data() || {}); });
+    list.innerHTML = html;
+  }, (err) => {
+    // An index-missing error is the usual first-run cause; say so plainly.
+    list.innerHTML = '<div class="empty">Could not load your designs: ' +
+                     escapeHtml(err && err.message ? err.message : String(err)) + '</div>';
+  });
+});
+</script>
+</body>
+</html>
