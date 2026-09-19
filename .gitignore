@@ -81,3 +81,17 @@ firebase/functions/ai_fill.py
 # Word source of va_dictionary.js — reference only, keep off public site
 va_dictionary.docx
 lazydog-editor.html
+
+# Local backups folder — never belongs on the public site, and its many
+# small files bloat the repo for nothing. (19 Sep 2026 — accidentally
+# committed once via `git add -A`, caught immediately and removed.)
+backup/
+
+# Firebase CLI's own local cache — machine-specific, never needed in git.
+firebase/.firebase/
+
+# Downloadable app files (e.g. the FX bot .zip) — these deploy straight to
+# Firebase Hosting via `firebase deploy --only hosting`, never through git.
+# Keeping a 30MB binary out of the repo on purpose.
+firebase/hosting_public/downloads/*
+!firebase/hosting_public/downloads/README.txt
