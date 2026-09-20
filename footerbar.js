@@ -67,15 +67,15 @@
          Covered". Bring it back when there are real industry pages to open. -->
     <div class="footer-links">
       <h4>Company</h4>
-      <!-- These three stay (owner). No dedicated pages exist yet, so rather than
-           href="#" — which looks live and does nothing — each points somewhere
-           real. Swap in proper pages when they are built.
-             About Us  -> the Studio page already tells the LazyDog story
-             Affiliate -> the freelancer programme is launching; collect interest
-             Careers   -> same, straight to the inbox -->
+      <!-- No dedicated pages exist yet, so rather than href="#" — which looks
+           live and does nothing — each points somewhere real. Swap in proper
+           pages when they are built.
+             About Us -> the Studio page already tells the LazyDog story
+             Careers  -> straight to the inbox
+           20 Sep 2026: the "Affiliate Program" link was removed. We do not run
+           one, and this footer is on every page of the site. -->
       <a href="about.html">About Us</a>
       <a href="blog.html">Blog</a>
-      <a href="mailto:support@lazydogtemplates.com?subject=Affiliate%20%2F%20Freelancer%20Programme">Affiliate Program</a>
       <a href="mailto:support@lazydogtemplates.com?subject=Careers%20at%20LazyDog">Careers</a>
       <a href="mailto:support@lazydogtemplates.com">Contact Us</a>
       <a href="faq.html">FAQ</a>

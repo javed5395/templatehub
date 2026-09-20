@@ -339,7 +339,7 @@ function liveBand(type){
     <div class="band">
       <div class="bhead">
         <span class="btag new">NEW</span>
-        <h3>Latest Uploads</h3><i></i><b>${arr.length} live from contributors</b>
+        <h3>Latest Uploads</h3><i></i><b>${arr.length} live</b>
       </div>
       <div class="row">
         ${arr.map(x => `
@@ -425,7 +425,7 @@ function go(id){
 draw();
 </script>
 
-<!-- ══ live contributor uploads — same Firestore query the old page used ══ -->
+<!-- ══ latest live uploads — same Firestore query the old page used ══ -->
 <script type="module">
 (async function loadCareerUploads(){
   try{

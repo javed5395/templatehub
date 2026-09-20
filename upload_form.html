@@ -191,10 +191,10 @@
       <div style="font-size:46px;margin-bottom:16px" id="gateIcon">🎨</div>
       <h2 style="font-size:20px;color:var(--text);margin-bottom:12px;text-transform:none;letter-spacing:0" id="gateTitle"></h2>
       <p style="color:var(--muted);font-size:14px;line-height:1.7;max-width:520px;margin:0 auto 26px" id="gateText"></p>
-      <!-- Path corrected 10 Aug 2026: the application moved into /contributor/
-           when the pages were reorganised, and this link was left behind
-           pointing at a page that no longer exists. -->
-      <a href="contributor/apply.html" id="gateCta"
+      <!-- 20 Sep 2026 — this used to link to the contributor application.
+           The programme has ended, so every gate state now leaves the CTA
+           label blank and nothing is rendered here. -->
+      <a href="#" id="gateCta"
          style="display:inline-block;padding:14px 28px;background:var(--accent);color:#070714;font-weight:700;font-size:14px;text-decoration:none"></a>
       <p style="color:var(--muted);font-size:12px;margin-top:26px">
         Signed in as <b id="gateWho"></b> —
@@ -983,14 +983,17 @@ onAuthStateChanged(auth, async (user) => {
 
 function renderGate(right, user){
   const T = {
-    noapp: ['🎨','Contributors only',
-      'This page is for approved contributors. Apply to join the programme and, once we have reviewed your portfolio, you can submit templates here.',
-      'Apply to become a contributor'],
-    pending: ['⏳','Application under review',
-      'We have your application and are reviewing it. You will be able to upload as soon as you are approved — we will email you.',
+    /* 20 Sep 2026 — the contributor programme has ended, so none of these
+       states invites anyone to apply. All three now say the same thing: this
+       page is not open. The CTA is blank so no apply button is rendered. */
+    noapp: ['🔒','Not available',
+      'Uploading is not open on this account. Every template on LazyDogTemplates is produced in-house.',
       ''],
-    rejected: ['—','Not approved',
-      'Your contributor application was not accepted, so uploading is not available on this account.',
+    pending: ['🔒','Not available',
+      'Uploading is not open on this account. Every template on LazyDogTemplates is produced in-house.',
+      ''],
+    rejected: ['🔒','Not available',
+      'Uploading is not open on this account. Every template on LazyDogTemplates is produced in-house.',
       '']
   };
   const [icon, title, text, cta] = T[right] || T.noapp;
