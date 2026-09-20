@@ -88,9 +88,9 @@
      basket is ONE basket across the whole site (same localStorage key). This
      page previously had a private array that was written to and never read. -->
 <script defer src="commerce-loader.js"></script>
-<!-- Whop embedded checkout, exactly as whop-checkout.js loads it on the slide
-     pages: the payment card opens ON this site instead of redirecting away. -->
-<script async defer id="whop-loader" src="https://js.whop.com/static/checkout/loader.js"></script>
+<!-- 20 Sep 2026 — the embedded checkout loader was removed. Card payments are
+     paused while we move to a new provider; ldsOpenCheckout() below explains
+     that instead. Add the new provider's script here when it is ready. -->
 <!-- 11 Aug 2026 — a buyer can now pay AND download here, so this page needs the
      same two builders the slide pages use: jsPDF assembles the PDF from the
      slide images, JSZip bundles the PNGs into one archive. Both are deferred;
@@ -1776,7 +1776,7 @@ button.feature__tag{background:none;font-family:var(--font-mono);font-size:9px;c
                Shown for WebKits only — you cannot "deploy" a pitch deck.
                ldsOpenPackage() reveals it when catKey === 'webkit' and hides
                it for every other category. No price here on purpose: each
-               deployment is quoted individually and never goes through Whop
+               deployment is quoted individually and never goes through checkout
                from this page. -->
           <div class="deploy-box" id="ldsDeployBox" style="display:none">
             <div class="deploy-box__t">Want it built and deployed for you?</div>
@@ -2540,11 +2540,11 @@ animateRing();</pre>
         <div class="faq-item">
           <div class="faq-item__q">4. Payments and Billing <span class="faq-item__icon"><i class="fa-solid fa-plus"></i></span></div>
           <div class="faq-item__a">
-            All payments — one-time template purchases, editor subscriptions, and invoiced services — are processed by <strong>Whop</strong> (Whop Inc.), our third-party payment provider, identified as the transaction provider at the point of payment. By making a purchase you authorise Whop to charge your selected payment method for the amount shown at checkout, and you agree to Whop's own terms and privacy policy in addition to these Terms.
+            All payments — one-time template purchases, editor subscriptions, and invoiced services — are processed by a third-party payment provider, identified as the transaction provider at the point of payment. By making a purchase you authorise that provider to charge your selected payment method for the amount shown at checkout, and you agree to the provider's own terms and privacy policy in addition to these Terms.
             <ul style="margin-top:12px;padding-left:20px;line-height:2">
-              <li><strong>We never receive or store your card details.</strong> Payment data is collected and handled by Whop under the Payment Card Industry Data Security Standard (PCI DSS). LazyDogTemplates has no access to full card numbers, security codes, or banking credentials.</li>
+              <li><strong>We never receive or store your card details.</strong> Payment data is collected and handled by our payment provider under the Payment Card Industry Data Security Standard (PCI DSS). LazyDogTemplates has no access to full card numbers, security codes, or banking credentials.</li>
               <li><strong>All prices are quoted and charged in US Dollars.</strong> If your card is in another currency, your bank may apply a conversion rate and fees outside our control.</li>
-              <li><strong>Receipts</strong> are issued by Whop to the email address supplied at checkout.</li>
+              <li><strong>Receipts</strong> are issued by our payment provider to the email address supplied at checkout.</li>
               <li><strong>Recurring charges.</strong> Where you buy a subscription you authorise a recurring charge at the interval shown at checkout until cancelled. You may cancel at any time.</li>
               <li><strong>Taxes.</strong> Any sales tax, VAT or similar charge applicable in your jurisdiction may be added at checkout and is shown before you confirm.</li>
             </ul>
@@ -2577,7 +2577,7 @@ animateRing();</pre>
             We may, on request, provide additional services such as building, configuring or deploying a website from a purchased template, or other custom design work. These are separate from any template purchase or subscription.
             <ul style="margin-top:12px;padding-left:20px;line-height:2">
               <li>Each engagement is quoted individually. No price is published, and requesting a quote does not create a contract.</li>
-              <li>Scope, price, payment schedule and deliverables are agreed in writing before work begins, and are billed by invoice through Whop.</li>
+              <li>Scope, price, payment schedule and deliverables are agreed in writing before work begins, and are billed by invoice.</li>
               <li>Deposits and staged payments may be required. Unless expressly agreed otherwise in writing, deposits are non-refundable once work has commenced.</li>
               <li>Final delivery — including transfer of a completed site to your domain or hosting — takes place after the agreed balance has been received in cleared funds.</li>
               <li>You are responsible for supplying content, domain access, hosting credentials and any third-party licences required, and for the lawfulness of material you supply.</li>
@@ -2633,7 +2633,7 @@ animateRing();</pre>
             <ul style="padding-left:20px;line-height:2;margin-bottom:16px">
               <li>Email address (when you create an account or subscribe)</li>
               <li>Name (optional, for account personalisation)</li>
-              <li><strong>Payment information — handled by Whop, not by us.</strong> All payments are processed by <strong>Whop</strong> (Whop Inc.) under the Payment Card Industry Data Security Standard (PCI DSS). Card numbers, security codes and banking credentials are entered on Whop's systems. LazyDogTemplates never receives or stores them — we receive only confirmation that a payment succeeded, the amount, the currency, and the checkout email address.</li>
+              <li><strong>Payment information — handled by our payment provider, not by us.</strong> All payments are processed by a third-party payment provider under the Payment Card Industry Data Security Standard (PCI DSS). Card numbers, security codes and banking credentials are entered on the provider's systems. LazyDogTemplates never receives or stores them — we receive only confirmation that a payment succeeded, the amount, the currency, and the checkout email address.</li>
               <li><strong>Contributor application details</strong> — if you apply to the Contributor Program: name, contact email, portfolio link, chosen payout method, and a photograph of a government-issued identity document (see section 4).</li>
               <li><strong>Service enquiry details</strong> — if you request a deployment or custom-work quote: name, email, optional phone number, domain name, and your description of what you need.</li>
             </ul>
@@ -2670,7 +2670,7 @@ animateRing();</pre>
           <div class="faq-item__a">
             <strong>We do not sell your personal data.</strong> We share information only with the service providers needed to run the service, and only for that purpose:
             <ul style="margin-top:12px;padding-left:20px;line-height:2">
-              <li><strong>Whop</strong> — payment processing, subscriptions, invoices and contributor payouts. Whop acts as the transaction provider and handles your payment details directly under its own privacy policy.</li>
+              <li><strong>Our payment provider</strong> — payment processing, subscriptions, invoices and contributor payouts. The provider acts as the transaction provider and handles your payment details directly under its own privacy policy.</li>
               <li><strong>Google Firebase</strong> — account sign-in, database and file storage.</li>
               <li><strong>AI service providers</strong> — where you use an automated processing feature, the content you submit is sent to the provider performing it, solely to generate your result and return it to you.</li>
               <li><strong>Email and analytics providers</strong> — to send account and download notifications and to understand site usage.</li>
@@ -3724,7 +3724,7 @@ function ldsRenderCart(){
   foot.innerHTML=
     '<div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:0.9rem"><span>Total</span><strong>'+esc(ldsMoney(total))+'</strong></div>'+
     '<button id="ldsCartCheckout" style="width:100%;padding:13px;border:1px solid var(--ink);background:var(--ink);color:var(--bone);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer">Checkout</button>'+
-    '<p style="margin-top:10px;font-size:0.72rem;line-height:1.5;color:var(--whisper)">One payment for the whole basket, through Whop. You will need to be signed in.</p>';
+    '<p style="margin-top:10px;font-size:0.72rem;line-height:1.5;color:var(--whisper)">Payments are being moved to a new provider. Your basket is saved — checkout will be back shortly.</p>';
   body.querySelectorAll('[data-lds-cart-remove]').forEach(b=>{
     b.addEventListener('click',()=>{
       if(cart.removeItem) cart.removeItem(b.dataset.ldsCartRemove);
@@ -3734,18 +3734,16 @@ function ldsRenderCart(){
   const co=foot.querySelector('#ldsCartCheckout');
   if(co) co.addEventListener('click',ldsCartCheckout);
 }
-/* REAL BASKET CHECKOUT (9 Aug 2026).
-   Was a "coming soon" alert. Now does exactly what nbCartCheckout() does on the
-   main site: sends only WHICH kits and WHICH licence to a Cloud Function, which
-   re-prices every line from the database and creates one Whop checkout for the
-   total. The browser never sends a price — a total computed in the page could
-   be edited by the buyer.
+/* BASKET CHECKOUT — PAUSED, 20 Sep 2026.
+   This used to post the basket to a Cloud Function which re-priced every line
+   from the database and created one checkout for the total. Card payments are
+   paused while we move to a new provider, so the button now explains that.
 
-   This page has no sign-in of its own, but Firebase auth is shared across the
-   whole domain, so someone signed in on the main site is signed in here too.
-   If they are not, we say so plainly rather than failing. */
-const LDS_CART_CHECKOUT_URL =
-  'https://us-central1-templatehub-16cd7.cloudfunctions.net/whop_cart_checkout_http';
+   The basket itself still works — items can be added, reviewed and removed —
+   so nobody loses their selection while the change is made.
+
+   ldsGetToken() is kept below: the new provider will need the same signed-in
+   check, and nothing else on the page calls it. */
 
 async function ldsGetToken(){
   try{
@@ -3778,37 +3776,7 @@ async function ldsGetToken(){
 async function ldsCartCheckout(){
   const items=(ldsCart()&&ldsCart().getItems)?(ldsCart().getItems()||[]):[];
   if(!items.length){ alert('Your cart is empty.'); return; }
-
-  const btn=document.getElementById('ldsCartCheckout');
-  const token=await ldsGetToken();
-  if(!token){
-    alert('Please sign in first — your purchase is saved to your account.\n\n'+
-          'Sign in on the main site, then come back to this page.');
-    return;
-  }
-
-  if(btn){ btn.disabled=true; btn.textContent='Starting checkout…'; }
-  try{
-    const res=await fetch(LDS_CART_CHECKOUT_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({ items: items.map(i=>({
-        kitId: i.productId,
-        licence: (i.licence==='commercial') ? 'commercial' : 'personal'
-      })) })
-    });
-    const out=await res.json().catch(()=>({}));
-    if(!res.ok || !out.url){
-      alert(out.error || 'Checkout could not be started. Please try again.');
-      return;
-    }
-    window.location.href=out.url;
-  }catch(e){
-    console.error('[lds-checkout]', e);
-    alert('Checkout could not be started.\n\nReason: '+((e&&e.message)||e));
-  }finally{
-    if(btn){ btn.disabled=false; btn.textContent='Checkout'; }
-  }
+  ldsOpenCheckout('', 'your basket');
 }
 function ldsOpenCart(){
   ldsBuildCartPanel();
@@ -3822,48 +3790,39 @@ function ldsCloseCart(){
   if(p){ p.style.display='none'; p.dataset.open='0'; }
 }
 
-/* ══════════ WHOP — 13 ══════════════════════════════════════════════════
-   Was: window.open('https://whop.com/checkout/plan_x') — the buyer was thrown
-   off the site to a full page. The slide pages on the main site open Whop's
-   payment card in a modal ON the page (whop-checkout.js). Same here now, with
-   the same loader script and the same data-whop-checkout-plan-id embed. If the
-   Whop script is blocked or slow, it falls back to the old redirect rather
-   than leaving the buyer with a dead button.                              */
-function ldsOpenWhop(planRaw, productName){
-  const m=String(planRaw||'').match(/plan_[A-Za-z0-9]+/);
-  const plan=m?m[0]:'';
-  const fallback='https://whop.com/checkout/'+plan;
-  if(!plan){ alert('This item is being set up for sale — please check back shortly.'); return; }
+/* ══════════ CHECKOUT — PAUSED, 20 Sep 2026 ═══════════════════════════════
+   This used to open a payment card in a modal on the page. Card payments are
+   paused while we move to a new payment provider, so the button now explains
+   that instead of opening a checkout that cannot take money.
 
+   Nothing is charged and nothing is unlocked here. Anything already bought is
+   unaffected — My Purchases and the download endpoint are server-side.
+
+   When the new provider is live, open its checkout from this one function and
+   the rest of the page needs no edit. The signature is kept as it was so every
+   existing caller keeps working.                                           */
+function ldsOpenCheckout(planRaw, productName){
   const ov=document.createElement('div');
-  ov.className='lds-whop';
+  ov.className='lds-checkout-paused';
   ov.style.cssText='position:fixed;inset:0;z-index:100002;background:rgba(22,19,15,.62);display:flex;align-items:center;justify-content:center;padding:16px';
   const box=document.createElement('div');
-  box.style.cssText='background:#fff;border-radius:12px;max-width:460px;width:100%;max-height:92vh;overflow:auto;position:relative';
+  box.style.cssText='background:#fff;border-radius:12px;max-width:420px;width:100%;position:relative;padding:30px 26px 24px;text-align:center';
   const x=document.createElement('button');
   x.textContent='✕';
-  x.setAttribute('aria-label','Close checkout');
-  x.style.cssText='position:absolute;top:8px;right:10px;z-index:2;border:0;background:transparent;font-size:20px;cursor:pointer';
+  x.setAttribute('aria-label','Close');
+  x.style.cssText='position:absolute;top:8px;right:10px;border:0;background:transparent;font-size:20px;cursor:pointer';
   x.onclick=()=>ov.remove();
-  const co=document.createElement('div');
-  co.setAttribute('data-whop-checkout-plan-id',plan);
-  co.setAttribute('data-whop-checkout-theme','light');
-  const note=document.createElement('div');
-  note.style.cssText='padding:10px 14px 14px;font:400 12px/1.5 system-ui,sans-serif;color:#555;text-align:center';
-  note.innerHTML='Secure payment by Whop'+(productName?(' · '+String(productName).replace(/[<>]/g,'')):'')+
-                 '<br><a href="'+fallback+'" target="_blank" rel="noopener" style="color:#7A2E1F">Card not loading? Open checkout in a new tab</a>';
-  box.appendChild(x); box.appendChild(co); box.appendChild(note);
+  const h=document.createElement('div');
+  h.style.cssText='font:600 17px/1.3 Georgia,serif;color:#16130f;margin-bottom:8px';
+  h.textContent='Coming soon';
+  const p=document.createElement('div');
+  p.style.cssText='font:400 13.5px/1.6 system-ui,sans-serif;color:#555';
+  p.textContent='We are moving to a new payment provider'+
+                (productName?(' — '+String(productName).replace(/[<>]/g,'')):'')+
+                '. This will be available to buy again shortly.';
+  box.appendChild(x); box.appendChild(h); box.appendChild(p);
   ov.appendChild(box); document.body.appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-
-  if(window.wco && window.wco.mount){ try{ window.wco.mount(co); }catch(e){} }
-  // If Whop never renders anything, don't strand the buyer.
-  setTimeout(()=>{
-    if(document.body.contains(ov) && co.childElementCount===0 && !co.querySelector('iframe')){
-      ov.remove();
-      window.open(fallback,'_blank','noopener');
-    }
-  },3500);
 }
 
 /* Wire the header cart button + keep the badge live. */
@@ -4490,7 +4449,7 @@ document.addEventListener('keydown',e=>{
 
       /* Swap the three "Unlocks after purchase" chips for live download
          buttons once ownership is confirmed. Runs after the block is drawn and
-         again whenever the signed-in user changes, so buying in the Whop modal
+         again whenever the signed-in user changes, so buying in the checkout modal
          and coming back leaves the buyer with working buttons. */
       async function ldsPaintEntitlement(){
         const host = document.getElementById('productFeatures');
@@ -4695,32 +4654,20 @@ document.addEventListener('keydown',e=>{
         } catch(e){ /* upsell is optional — never block the product view */ }
 
         // ── CHECKOUT ──────────────────────────────────────────────────
-        // ensure_whop_plan() writes template.whopPurchaseUrl back onto every
-        // approved PAID kit, so the buy button is a real Whop checkout.
-        // Free kits, and paid kits whose plan has not been created yet, fall
-        // back to the on-site cart rather than opening a broken link.
-        const planId = String(t.whopPlanId || '').match(/plan_[A-Za-z0-9]+/);
-        const plan    = planId ? planId[0] : '';
-        const whopUrl = t.whopPurchaseUrl || (plan ? 'https://whop.com/checkout/' + plan : '');
+        // 20 Sep 2026 — card payments are paused while we move to a new
+        // provider. A PAID kit now shows "Coming soon" and opens the short
+        // explanation instead of a checkout. A FREE kit is untouched and still
+        // downloads through the basket exactly as before.
         const esc1 = v => String(v).replace(/'/g, "\\'");
         const pid  = t.__docId   || '';
         const sid  = t.__sellerId || 'lazydogtemplates';
 
-        /* 9 Aug 2026 — was window.open(whopUrl): the buyer was thrown off the
-           site onto a full Whop page. Now the Whop payment card opens in a
-           modal ON this page, the same way the main site's slide pages do.
-           ldsOpenWhop() falls back to the old redirect if Whop fails to load. */
         if(productEl.addP){
-          if(price>0 && plan){
+          if(price>0){
             productEl.addP.style.display='';
-            productEl.addP.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Buy Personal · ' + personal;
+            productEl.addP.innerHTML = '<i class="fa-solid fa-clock"></i> Coming soon · ' + personal;
             productEl.addP.setAttribute('onclick',
-              "ldsOpenWhop('" + esc1(plan) + "','" + esc1(name) + " — Personal License')");
-          } else if(price>0 && whopUrl){
-            productEl.addP.style.display='';
-            productEl.addP.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Buy Personal · ' + personal;
-            productEl.addP.setAttribute('onclick',
-              "window.open('" + esc1(whopUrl) + "','_blank','noopener')");
+              "ldsOpenCheckout('','" + esc1(name) + " — Personal License')");
           } else {
             productEl.addP.style.display='';
             productEl.addP.innerHTML = '<i class="fa-solid fa-download"></i> Download · Free';
@@ -4728,15 +4675,15 @@ document.addEventListener('keydown',e=>{
               "addToCart('" + esc1(name) + "','" + personal + "','" + esc1(pid) + "','" + esc1(sid) + "')");
           }
         }
-        /* Commercial has no Whop plan of its own, so it stays a basket action —
-           but it is now labelled honestly as such instead of looking like a
-           second, equal buy button. */
+        /* Commercial was always a basket action rather than a direct buy.
+           With payments paused it shows the same Coming soon state as
+           Personal, so nothing lands in a basket that cannot be checked out. */
         if(productEl.addC){
           if(price>0){
             productEl.addC.style.display='';
-            productEl.addC.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Add Commercial · ' + commercial;
+            productEl.addC.innerHTML = '<i class="fa-solid fa-clock"></i> Coming soon · ' + commercial;
             productEl.addC.setAttribute('onclick',
-              "addToCart('" + esc1(name) + " — Commercial License','" + commercial + "','" + esc1(pid) + "-commercial','" + esc1(sid) + "')");
+              "ldsOpenCheckout('','" + esc1(name) + " — Commercial License')");
           } else {
             productEl.addC.style.display='none';
           }

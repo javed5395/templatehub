@@ -13,7 +13,7 @@
 // failure can only leave checkout/ownership inert — it can never blank a page.
 //
 // ── FASTSPRING REMOVED, 29 Jul 2026 ─────────────────────────────────────────
-// Whop is the only payment provider. FastSpring's Store Builder Library used to
+// There is one payment provider. FastSpring's Store Builder Library used to
 // be loaded here, which caused three problems on every page of the site:
 //
 //   1. TWO checkout systems were bound to the same "Buy it now" button. Which
@@ -25,14 +25,15 @@
 //      the site opened that same $7.99 product regardless of what the buyer had
 //      clicked — wrong item, wrong price.
 //
-// Whop checkout now lives entirely in whop-checkout.js, which overrides
-// buyItNow(), verifies the buyer is signed in, locks the checkout email to
-// their account, and only unlocks a file once the SERVER has recorded the
-// purchase via the Whop webhook.
+// 20 Sep 2026 — card payments are PAUSED while we move to a new provider.
+// checkout-paused.js now overrides buyItNow() and shows a short "coming soon"
+// message for paid kits. Free kits are untouched and still download normally.
+// Purchases already recorded are unaffected: ownership and downloads are
+// decided by the server, not by anything in this file.
 //
 // Apple Pay note: the .well-known/apple-developer-merchantid-domain-association
-// file at the site root belongs to WHOP, not FastSpring. Do not delete it — it
-// is what makes Apple Pay work on the live Whop checkout.
+// file at the site root belongs to the payment provider, not FastSpring. Leave
+// it until the new provider's own file replaces it.
 // ============================================================================
 (function () {
   if (typeof window === "undefined" || !document || !document.head) return;
@@ -50,7 +51,7 @@
   // -- 2. Full engine: auth, purchase library (ownership), Commerce->Finance
   //       bridge, checkout, finance recording. Loaded as a module, non-blocking.
   //       The fastspring* options are gone; the engine simply has no provider
-  //       configured here, because Whop handles checkout in whop-checkout.js.
+  //       configured here, because checkout is handled outside this file.
   if (!document.getElementById("lazyCommerceEngine")) {
     var em = document.createElement("script");
     em.type = "module";

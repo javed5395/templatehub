@@ -344,36 +344,21 @@
                padding:10px 12px;border:1px solid var(--border);border-radius:0;"></div>
           <p style="font-size:11px;color:var(--muted);margin-top:6px">
             Set a percentage of the sale, or a fixed dollar amount — whichever
-            you think in. Marketers on Whop choose what to promote based on what
+            you think in. Affiliates choose what to promote based on what
             it pays: a higher rate means more people push your kit but you keep
             less per sale. Set 0 and nobody promotes it. Capped at 40% of the
             price either way.
           </p>
         </div>
 
-        <!-- ── LIST ON THE WHOP STORE ──────────────────────────────────────
-             Ticked = the kit gets its own product page on the Whop store and
-             is submitted to the Whop Discover marketplace.
-             Unticked = it still sells normally on this site (it always gets a
-             Whop plan behind the scenes, because checkout needs one) but the
-             product stays hidden from the Whop shop window.
-             Free kits are skipped entirely — Whop needs a price.        -->
-        <div class="field" id="whopField">
-          <label>Whop Store</label>
-          <label class="app-check-label"
-                 style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;
-                        padding:12px;border:1px solid var(--border);border-radius:0;">
-            <input type="checkbox" id="listOnWhop" checked style="margin-top:2px"/>
-            <span style="font-size:13px;line-height:1.5;">
-              <strong>List this kit on the Whop store</strong><br/>
-              <span style="color:var(--muted);font-size:11px;">
-                Shows it on our Whop shop page and submits it to the Whop
-                marketplace. Untick to keep it for this site only — it still
-                sells here either way.
-              </span>
-            </span>
-          </label>
-        </div>
+        <!-- ── EXTERNAL MARKETPLACE LISTING — REMOVED 20 Sep 2026 ───────────
+             This used to offer listing the kit on an outside marketplace as
+             well as this site. We no longer list anywhere but our own store,
+             so the choice is gone and every kit is simply sold here.
+
+             The hidden input below is kept so the submit handler, which reads
+             it, keeps working without change. It is always false.        -->
+        <input type="checkbox" id="listExternally" style="display:none" />
       </div>
     </div>
 
@@ -580,59 +565,22 @@
         </div>
       </div>
 
-      <!-- ══ PAYOUT DETAILS ══ -->
-      <div class="section" id="payoutSection" style="margin-top:16px;">
-        <div class="payout-section-toggle" onclick="togglePayoutPanel()">
-          <h2 style="margin-bottom:0;font-size:15px;">💳 Payout Details</h2>
-          <span class="payout-toggle-arrow open" id="payoutArrow">∨</span>
-        </div>
-        <div id="payoutBody" style="margin-top:14px;">
-          <!-- ── WHOP ONLY (9 Aug 2026) ──────────────────────────────────────
-               PayPal / Bank / Stripe tabs removed. Two reasons:
+      <!-- ══ PAYOUT DETAILS — REMOVED 20 Sep 2026 ══════════════════════════
+           The contributor programme has been discontinued, so there is nobody
+           to pay out and nothing to collect. The whole panel is gone rather
+           than left asking for an account we would never send money to.
 
-               1. We cannot fund them. Sales settle in Whop; sending to PayPal
-                  or a bank means converting USD to local currency and back,
-                  losing 3-8% that belonged to the contributor.
-               2. The bank tab collected IBAN and SWIFT numbers. We told
-                  contributors we would not hold their account details, and a
-                  field that stores them makes that untrue. The safest place
-                  for data like that is nowhere.
-
-               A Whop payout is internal: no withdrawal fee, no conversion, and
-               all we need is a username.                                    -->
-          <div class="payout-status payout-status-warn" id="payoutStatus">
-            ⚠️ Not set yet — only needed when you withdraw. Add it now or later.
-          </div>
-          <div id="payoutWhop">
-            <div class="field">
-              <label>Place your Whop account ID for payments</label>
-              <input type="text" id="whopAccount" placeholder="Your Whop username or account email" autocomplete="off"/>
-              <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
-                We pay through Whop — free, fast, and nothing lost to bank charges
-                or currency conversion. You can add this later.
-              </p>
-              <!-- Opens in a NEW TAB on purpose: this form holds unsaved work,
-                   and navigating away from it would lose an upload in progress. -->
-              <a href="https://whop.com/" target="_blank" rel="noopener noreferrer"
-                 style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;
-                        padding:10px 16px;border:1px solid var(--accent);border-radius:0;
-                        color:var(--accent);text-decoration:none;font-weight:700;
-                        font-size:12.5px;font-family:Poppins,sans-serif;">
-                Open a free Whop account ↗
-              </a>
-              <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">
-                Takes about two minutes — an email and a password. Whop only asks
-                for ID when you withdraw your money, not to receive it.
-              </p>
-            </div>
-          </div>
-          <div class="payout-actions">
-            <button class="btn" onclick="savePayoutDetails()" style="margin-top:0;font-size:13px;padding:10px 16px;">💾 Save Payout Details</button>
-            <button class="payout-skip" onclick="togglePayoutPanel()">Do this later ↑</button>
-          </div>
-          <div class="auth-error"   id="payoutError"   style="margin-top:10px;"></div>
-          <div class="auth-success" id="payoutSuccess" style="margin-top:10px;"></div>
-        </div>
+           The empty elements below are kept because savePayoutDetails() and
+           the sign-in code still reference them by id. They are never shown.
+           Remove them together with those functions when the contributor code
+           is cleared out for good.                                        -->
+      <div id="payoutSection" style="display:none">
+        <div id="payoutBody"></div>
+        <div id="payoutStatus"></div>
+        <div id="payoutArrow"></div>
+        <input type="text" id="whopAccount" />
+        <div id="payoutError"></div>
+        <div id="payoutSuccess"></div>
       </div>
 
       <!-- My Submissions panel -->
@@ -852,14 +800,14 @@ let sellerProfile  = null;
    chosen. Without this people pick a number blind and feel misled when the
    first payout arrives.
 
-   The Whop fee shown is the standard domestic-card rate (2.7% + $0.30). It is
+   The processing fee shown is the standard domestic-card rate (2.7% + $0.30). It is
    labelled as approximate on purpose — an international card or a currency
    conversion costs more, and the real figure is read from the payment itself
    when earnings are calculated. Better to show a slightly optimistic estimate
    and say so than to show nothing.                                          */
 window._ldtAffMode = 'percent';           // 'percent' | 'amount'
 
-/* Turns whatever was typed into the percentage Whop will actually store.
+/* Turns whatever was typed into the percentage that will actually be stored.
    Used by BOTH the preview and the save, so the number shown is provably the
    number written — they cannot drift apart. */
 function ldtAffResolve() {
@@ -869,7 +817,7 @@ function ldtAffResolve() {
 
   var pct;
   if (window._ldtAffMode === 'amount') {
-    // Whop has no flat-amount affiliate setting, so an amount becomes a
+    // There is no flat-amount affiliate setting, so an amount becomes a
     // percentage of THIS price. Recomputed on the server too, so changing the
     // price later keeps the marketer on the amount that was promised.
     pct = (isFinite(price) && price > 0) ? (val / price * 100) : 0;
@@ -883,7 +831,7 @@ function ldtAffResolve() {
 
 /* Shows what the commercial licence will actually be charged at — including
    the automatic figure when the box is left empty, so nobody has to guess what
-   "automatic" means. Mirrors _commercial_price() in whop_store_sync.py. */
+   "automatic" means. Mirrors the commercial-price rule used on the server. */
 function ldtPaintCommercial() {
   var hint = document.getElementById('commHint');
   if (!hint) return;
@@ -923,7 +871,7 @@ function ldtPaintAffiliate() {
   /* THE SPLIT — must match contributor_ledger.py exactly:
        site takes 25% at or below $5, otherwise 20%, of the SALE PRICE;
        the marketer is paid from the CONTRIBUTOR's side;
-       Whop's processing fees come out of the SITE's share, never theirs.     */
+       processing fees come out of the SITE's share, never theirs.            */
   var sitePct  = (r.price <= 5) ? 25 : 20;
   var siteCut  = r.price * sitePct / 100;
   var yours    = isContributor ? Math.max(r.price - siteCut - marketer, 0)
@@ -933,7 +881,7 @@ function ldtPaintAffiliate() {
       'Sale <b>' + money(r.price) + '</b>'
     + (isContributor
         ? '<br/>Site commission (' + sitePct + '%) ' + money(siteCut)
-        : '<br/>Whop fees about ' + money(r.price * 0.027 + 0.30))
+        : '<br/>Processing fees about ' + money(r.price * 0.027 + 0.30))
     + '<br/>Marketer takes ' + (r.capped ? '<b>' + money(marketer) + '</b> ('
         + (Math.round(r.capped * 10) / 10) + '%)' : '<b>nothing</b>')
     + '<br/><b style="color:var(--accent)">You keep ' + money(yours) + '</b>'
@@ -2320,16 +2268,14 @@ window.submitForm = async function() {
         designDocUrl,
         designNotes,
 
-        // ── WHOP STORE VISIBILITY ─────────────────────────────────────────
-        // Read by whop_store_sync (firebase functions). It controls the SHOP
-        // WINDOW only: false hides the product on Whop's store page. A Whop
-        // product + plan is still created either way, because this site's own
-        // checkout needs that plan id — so unticking never makes a kit
-        // unsellable here. Free kits never reach Whop at all (no price).
-        listOnWhop:  !!document.getElementById('listOnWhop')?.checked,
+        // ── EXTERNAL MARKETPLACE LISTING — ALWAYS FALSE, 20 Sep 2026 ──────
+        // We no longer list kits on any outside marketplace, so this is kept
+        // only so existing records keep the same shape. The control that set
+        // it has been removed from the form.
+        listExternally: false,
 
         // ── MARKETER COMMISSION ───────────────────────────────────────────
-        // Read by whop_store_sync._affiliate_percent_for. Clamped again on the
+        // Clamped again on the
         // server — this value arrives from a browser, so it is a request, not
         // a fact. Missing/blank falls back to the account default, never to 0.
         // What was MEANT (mode + the number typed) is stored alongside the
@@ -2344,7 +2290,7 @@ window.submitForm = async function() {
                             ? ldtAffResolve().capped : 40),
 
         // ── COMMERCIAL LICENCE PRICE ──────────────────────────────────────
-        // Read by whop_store_sync._commercial_price. Null (not 0) when left
+        // Read by the server's commercial-price rule. Null (not 0) when left
         // blank, so the backend can tell "not set" from "set to nothing" and
         // fall back to 1.5x rather than skipping the commercial plan entirely.
         commercialPrice: (function(){
@@ -2764,71 +2710,15 @@ window.resetForm = function() {
   showSection('form');
 };
 
-// ── PAYOUT DETAILS ───────────────────────────────────────────────────────────
+// ── PAYOUT DETAILS — DISCONTINUED 20 Sep 2026 ───────────────────────────────
+// The contributor programme has ended, so we no longer collect payout details
+// and nothing writes to sellers/{uid}.payout. Both functions are kept as no-ops
+// because the sign-in code and an onclick still call them; existing payout data
+// in Firestore is left untouched and is simply never read or overwritten.
 
-// Load payout details from Firestore and pre-fill form on login
-async function loadPayoutDetails(uid) {
-  try {
-    const snap = await getDoc(doc(db, 'sellers', uid));
-    if (!snap.exists()) return;
-    const payout = (snap.data() || {}).payout || {};
-    /* whopAccount is the only field now. Older records may still hold
-       paypalEmail / bank* / stripeEmail from before 9 Aug 2026 — those are NOT
-       read back into the form, so they quietly stop being used and nothing
-       re-saves them. */
-    if (payout.whopAccount) {
-      const el = document.getElementById('whopAccount');
-      if (el) el.value = payout.whopAccount;
-      const statusEl = document.getElementById('payoutStatus');
-      if (statusEl) {
-        statusEl.className = 'payout-status payout-status-ok';
-        statusEl.textContent = `✅ We'll pay you through Whop (${payout.whopAccount}). You can change this any time.`;
-      }
-    }
-  } catch(err) {
-    console.error('Could not load payout details:', err);
-  }
-}
+async function loadPayoutDetails(uid) { /* no longer used */ }
 
-// Save payout details to Firestore
-window.savePayoutDetails = async function() {
-  const errEl = document.getElementById('payoutError');
-  const sucEl = document.getElementById('payoutSuccess');
-  errEl.style.display = 'none';
-  sucEl.style.display = 'none';
-
-  if (!currentUser) { errEl.textContent = 'Please sign in first.'; errEl.style.display = 'block'; return; }
-
-  const account = (document.getElementById('whopAccount') || {}).value || '';
-  const acct = account.trim();
-  if (!acct) {
-    errEl.textContent = 'Enter your Whop username or account email — or press "Do this later".';
-    errEl.style.display = 'block'; return;
-  }
-  /* Refuse anything that looks like a card or bank number. We promised not to
-     hold those, and a promise that depends on nobody pasting the wrong thing
-     into the wrong box is not a promise. */
-  if (/\d[\d\s-]{10,}/.test(acct)) {
-    errEl.textContent = 'That looks like an account or card number. Enter your Whop username or the email on your Whop account instead — we never store bank details.';
-    errEl.style.display = 'block'; return;
-  }
-
-  const payoutData = { method: 'whop', whopAccount: acct, updatedAt: serverTimestamp() };
-
-  try {
-    await setDoc(doc(db, 'sellers', currentUser.uid), { payout: payoutData }, { merge: true });
-    const statusEl = document.getElementById('payoutStatus');
-    statusEl.className = 'payout-status payout-status-ok';
-    statusEl.textContent = `✅ We'll pay you through Whop (${acct}). You can change this any time.`;
-    sucEl.textContent = '✅ Payout details saved.';
-    sucEl.style.display = 'block';
-    setTimeout(() => { sucEl.style.display = 'none'; }, 4000);
-  } catch(err) {
-    console.error(err);
-    errEl.textContent = 'Failed to save. Please try again.';
-    errEl.style.display = 'block';
-  }
-};
+window.savePayoutDetails = async function() { /* no longer used */ };
 
 /* switchPayoutMethod removed 9 Aug 2026 — there is only one method now. Kept as
    a harmless no-op because older cached copies of this page may still call it,

@@ -4,7 +4,7 @@
   LazyDogTemplates · 13 Aug 2026
 
   WHAT THIS IS
-    A web kit sells at a fixed price on Whop — the buyer downloads the files and
+    A web kit sells at a fixed price in the store — the buyer downloads the files and
     does the rest themselves. Some buyers don't want the files, they want the
     finished site live on their own domain. That work is negotiated per client,
     so it has NO price in the store. This page collects the enquiry.
@@ -18,12 +18,12 @@
     request lands in  deployment_requests/{auto}  with status 'new'
       -> admin sees it in admin-local/deployment_requests.html
       -> admin agrees a price with the client by email
-      -> admin sends a DEPOSIT invoice from the Whop dashboard
+      -> admin sends a DEPOSIT invoice
       -> work is done, shown on a preview link we control
       -> admin sends the FINAL invoice
       -> only after that does the client's domain get pointed at the site
 
-    No money code runs on this page. Nothing here touches Whop.
+    No money code runs on this page. Nothing here touches any payment provider.
 
   ?kit= PARAMETER
     Linked from a web kit page as quote.html?kit=<docId>&name=<title> so the

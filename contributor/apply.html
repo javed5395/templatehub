@@ -21,10 +21,14 @@
     can approve themselves. Approval is an admin-only update.
 
   WHY PAYOUT COUNTRY IS ASKED UP FRONT
-    Paying a designer is the one part with real-world limits. We pay through
-    Whop (free, no conversion loss), but not every country can open a Whop
-    account, and some restrict crypto. Better to know BEFORE approving someone
-    than to approve them and then be unable to pay them.
+    Paying a designer is the one part with real-world limits. Not every country
+    can use every payout rail, and some restrict crypto. Better to know BEFORE
+    approving someone than to approve them and then be unable to pay them.
+
+  20 Sep 2026 — DELINKED. The store no longer runs a contributor programme.
+  This page is no longer reachable from the site: the navbar button is admin
+  only, the blog card and sitemap entry are gone. The file is left in place,
+  not deleted, and nothing in Firestore has been touched.
 -->
 <html lang="en">
 <head>
@@ -83,15 +87,15 @@
   "@type": "WebPage",
   "name": "Become a Contributor — LazyDog Templates",
   "url": "https://www.lazydogtemplates.com/contributor/apply.html",
-  "description": "Sell your templates through LazyDog Templates. Approved contributors earn\n    80% of the sale price on every sale of their own designs — on our site\n    and on the Whop marketplace."
+  "description": "Sell your templates through LazyDog Templates. Approved contributors earn\n    80% of the sale price on every sale of their own designs — on our site\n    and in our store."
 }
 </script>
   <meta property="og:title" content="Become a Contributor — LazyDog Templates">
-  <meta property="og:description" content="Sell your templates through LazyDog Templates. Approved contributors earn 80% of the sale price on every sale of their own designs — on our site and on the Whop marketplace.">
+  <meta property="og:description" content="Sell your templates through LazyDog Templates. Approved contributors earn 80% of the sale price on every sale of their own designs — on our site and in our store.">
   <meta property="og:url" content="https://www.lazydogtemplates.com/contributor/apply.html">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Become a Contributor — LazyDog Templates">
-  <meta name="twitter:description" content="Sell your templates through LazyDog Templates. Approved contributors earn 80% of the sale price on every sale of their own designs — on our site and on the Whop marketplace.">
+  <meta name="twitter:description" content="Sell your templates through LazyDog Templates. Approved contributors earn 80% of the sale price on every sale of their own designs — on our site and in our store.">
   <meta name="twitter:image" content="https://www.lazydogtemplates.com/images/site_logo_round.png">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <script type="application/ld+json">
@@ -128,7 +132,7 @@
   <p class="subtitle">
     Sell your templates through LazyDog Templates. Approved contributors earn
     <b>80%</b> of the sale price on every sale of their own designs — on our site
-    and on the Whop marketplace.
+    and in our store.
   </p>
 
   <div class="msg err" id="errBox"></div>
@@ -258,24 +262,17 @@
         </div>
         <div class="field">
           <label>Preferred payout method <span class="required">*</span></label>
-          <!-- 9 Aug 2026: Whop first and recommended. A Whop-to-Whop transfer
-               costs nothing and converts nothing, so more of the money reaches
-               the contributor. Every other rail loses 3-8% to withdrawal fees
-               and double currency conversion. PayPal/Wise removed — we cannot
-               fund them without converting twice. -->
+          <!-- 20 Sep 2026 — the named payment provider was removed from these
+               options. The payout rail is agreed individually. -->
           <select id="fPayout">
             <option value="">Select…</option>
-            <option value="whop">Whop account — recommended, free and fastest</option>
             <option value="crypto">Crypto (USDT)</option>
             <option value="other">Other / not sure — let's discuss</option>
           </select>
         </div>
       </div>
       <p class="hint">
-        <b>We pay through Whop.</b> It is free, it arrives quickly, and none of it
-        is lost to bank charges or currency conversion — so more of your money
-        reaches you. If you don't have a Whop account yet you can open one free
-        when you're approved.<br/><br/>
+        We agree the payout method with you directly before your first payment.<br/><br/>
         Don't send any account numbers or wallet addresses here. We ask for those
         only when your first payment is due.
       </p>

@@ -160,19 +160,19 @@
     const eb = document.getElementById('nbEarnBtn');   // My Earnings
     if (ub) ub.style.display = 'none';
     if (eb) eb.style.display = 'none';
-    /* ── ONE BUTTON, FOUR STATES (10 Aug 2026, Javed's design) ────────────
-       Previously this button was simply absent until someone was approved,
-       so a designer who signed in saw nothing at all and had no idea the
-       programme existed. Now it changes with where they are:
+    /* ── CONTRIBUTOR PROGRAMME — DELINKED, 20 Sep 2026 ────────────────────
+       The store no longer runs a contributor programme. This button used to
+       have four states — Become a Contributor / Application under review /
+       Upload / hidden — and was the only way into the application form.
 
-         never applied  ->  "Become a Contributor"    -> the application
-         applied        ->  "Application under review" -> their status
-         approved       ->  "Upload"                   -> the upload form
-         declined       ->  hidden
+       It is now ADMIN ONLY, and says just "Upload". No visitor is invited to
+       apply, and no signed-in user is shown the programme at all.
 
-       The middle state matters most. Without it, someone who has applied
-       still sees "Become a Contributor", clicks it, and reasonably concludes
-       their application was lost. */
+       DELINKED, NOT DELETED. contributor/apply.html, contributor/terms.html
+       and contributor/earnings.html still exist and still work if opened
+       directly, and nothing in Firestore has been touched — so any existing
+       contributor's records and earnings are intact. Only the way in from the
+       site has been taken away. Deleting comes later, if at all. */
     function ldSetContribBtn(label, href, dim){
       if (!ub) return;
       ub.textContent = label;
@@ -182,39 +182,9 @@
       ub.style.cursor  = dim ? 'default' : '';
     }
 
-    if (user && ub) {
-      if (window.ldIsAdmin()) {
-        ldSetContribBtn('Upload', 'upload_form.html', false);
-        if (eb) eb.style.display = 'inline-flex';
-      } else {
-        // Firestore is not otherwise needed by the navbar, so it is imported
-        // lazily — signed-out visitors never pay for this.
-        (async () => {
-          try {
-            const { getFirestore, doc, getDoc } =
-              await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
-            const snap = await getDoc(doc(getFirestore(app), 'contributor_applications', user.uid));
-            const status = snap.exists() ? (snap.data().status || '') : '';
-
-            if (status === 'approved') {
-              ldSetContribBtn('Upload', 'upload_form.html', false);
-              if (eb) eb.style.display = 'inline-flex';
-            } else if (status === 'pending') {
-              ldSetContribBtn('Application under review', 'contributor/apply.html', true);
-            } else if (status === 'rejected') {
-              /* Say nothing. Repeating a refusal in the navigation on every
-                 page they visit would be unkind and serves no purpose. */
-              ub.style.display = 'none';
-            } else {
-              ldSetContribBtn('Become a Contributor', 'contributor/apply.html', false);
-            }
-          } catch (e) {
-            /* Fail closed on UPLOAD, but still offer the way in: the worst a
-               stranger can do with the application form is apply. */
-            ldSetContribBtn('Become a Contributor', 'contributor/apply.html', false);
-          }
-        })();
-      }
+    if (user && ub && window.ldIsAdmin()) {
+      ldSetContribBtn('Upload', 'upload_form.html', false);
+      if (eb) eb.style.display = 'inline-flex';
     }
 
     if(user) {
@@ -394,7 +364,7 @@
          "Become a Contributor", "Application under review" or "Upload"
          depending on where the signed-in user has got to. Ships hidden so
          nothing flashes before we know which. -->
-    <a href="upload_form.html" id="nbUploadBtn" class="nb-wn-tab" title="Contributor programme" style="background:#fff;color:#2e9e6b;border:1.5px solid #4fbf8b;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Upload</a>
+    <a href="upload_form.html" id="nbUploadBtn" class="nb-wn-tab" title="Upload a template" style="background:#fff;color:#2e9e6b;border:1.5px solid #4fbf8b;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Upload</a>
     <!-- Same gate as Upload: admins and approved contributors only. Hidden by
          default; the real protection is the earnings rule in firestore.rules,
          which only ever returns a contributor their own rows. -->
@@ -549,71 +519,25 @@
         nbRenderCart();
       }
     };
-    /* ── REAL CART CHECKOUT (9 Aug 2026) ────────────────────────────────────
-       Whop charges one plan per payment, so a basket is sent to a Cloud
-       Function which re-prices every line from the database, stores the basket,
-       and creates a single Whop checkout for the total. The browser never sends
-       a price — only which kit and which licence. That is deliberate: a total
-       computed in the page could be edited by the buyer.
+    /* ── CART CHECKOUT — PAUSED, 20 Sep 2026 ────────────────────────────────
+       This used to post the basket to a Cloud Function which re-priced every
+       line from the database and created a single checkout for the total. Card
+       payments are paused while we move to a new payment provider, so the
+       button now says so instead of starting a checkout that cannot take money.
 
-       Sign-in is required because the payment is matched back to the account by
-       email. Paying while signed out would take money we could not deliver. */
-    /* Same address style as download_url_http / chat_http elsewhere on the
-       site: project + region + function name. Stable, unlike the hashed
-       *.run.app form which changes if the function is ever recreated. */
-    var NB_CART_CHECKOUT_URL =
-      'https://us-central1-templatehub-16cd7.cloudfunctions.net/whop_cart_checkout_http';
+       The basket is untouched: items can still be added, reviewed and removed,
+       so nobody loses their selection. Purchases already made are unaffected —
+       My Purchases and downloads are server-side and were never part of this.
+
+       To bring checkout back: post the same {kitId, licence} list to the new
+       provider's endpoint here. Nothing else in this file needs to change. */
 
     window.nbCartCheckout = async function(){
-      var btn = document.querySelector('#nbCartFoot button');
       var cart = (window.Commerce && window.Commerce.cart) ? window.Commerce.cart : null;
       var items = (cart && cart.getItems) ? cart.getItems() : [];
       if (!items.length) { alert('Your cart is empty.'); return; }
-
-      /* Use this file's own auth helpers. Commerce.auth.getCurrentUser() returns
-         a plain {email, uid} object with NO getIdToken method — calling it threw
-         and surfaced as "check your connection", which sent us hunting for a
-         network fault that did not exist (9 Aug 2026). ldGetToken talks to the
-         real Firebase auth instance created at the top of this file. */
-      var token = null;
-      try { token = (typeof window.ldGetToken === 'function') ? await window.ldGetToken() : null; } catch(e){ token = null; }
-      if (!token) {
-        alert('Please sign in first — your purchase is saved to your account.');
-        if (window.openAuth) { try { openAuth('signin'); } catch(e){} }
-        return;
-      }
-
-      if (btn) { btn.disabled = true; btn.textContent = 'Starting checkout…'; }
-      try {
-        var res = await fetch(NB_CART_CHECKOUT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json',
-                     'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({
-            items: items.map(function(i){
-              return { kitId: i.productId,
-                       licence: (i.licence === 'commercial') ? 'commercial' : 'personal' };
-            })
-          })
-        });
-        var out = await res.json().catch(function(){ return {}; });
-        if (!res.ok || !out.url) {
-          alert(out.error || 'Checkout could not be started. Please try again.');
-          return;
-        }
-        /* Send the buyer to Whop's hosted checkout. A redirect rather than an
-           embedded box: the basket total is a one-off plan, and the hosted page
-           is the flow Whop supports for it. */
-        window.location.href = out.url;
-      } catch (e) {
-        /* Say WHAT failed. A generic "check your connection" cost us a whole
-           debugging round chasing a network problem that never existed. */
-        try { console.error('[cart-checkout]', e); } catch(_){}
-        alert('Checkout could not be started.\n\nReason: ' + ((e && e.message) || e)
-              + '\n\nPlease tell support if this keeps happening.');
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Checkout'; }
-      }
+      alert('Payments are being moved to a new provider.\n\n' +
+            'Your basket is saved — checkout will be back shortly.');
     };
 
     // Close the panel when clicking outside it (but not on the cart button).

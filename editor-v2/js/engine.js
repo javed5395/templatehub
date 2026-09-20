@@ -764,23 +764,29 @@ window.addEventListener('load', function () {
 });
 
 /* ═════════ PLANS MODAL (21 Aug 2026, Javed) — Canva-style, inside the editor ═════════
-   Live prices from billing_config/main (the same doc pricing.html reads), the
-   Subscribe buttons open Whop checkout in the browser (never in-app). */
+   Live prices from billing_config/main (the same doc pricing.html reads).
+   20 Sep 2026: payments are paused while we move provider, so the buttons
+   read "Coming soon" — see checkoutFor() below. */
 window.ldPlansModal = async function () {
   var old = document.getElementById('ld-plans-overlay'); if (old) old.remove();
   var FALLBACK = { costs: { composePerSlide: 5, fillPerSlide: 12, pngDecompose: 25, pdfDecomposePerPage: 20 },
     plans: { pro: { priceUsd: 19, tokens: 1500 }, studio: { priceUsd: 39, tokens: 3750 },
              proAnnual: { priceUsd: 192, tokens: 1500, billedAnnually: true }, studioAnnual: { priceUsd: 408, tokens: 3750, billedAnnually: true },
-             annualFlex: { priceUsd: 50, tokens: 6000, oneTime: true } }, carryForwardPct: 50, graceDays: 30, whopPlanMap: {} };
+             annualFlex: { priceUsd: 50, tokens: 6000, oneTime: true } }, carryForwardPct: 50, graceDays: 30 };
   var CFG = FALLBACK;
   try {
     var appMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
     var fsMod = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
     var app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp({ apiKey: 'AIzaSyDIiOl6apoPuzpHxcamNsUQcDrt1AIVOes', authDomain: 'templatehub-16cd7.firebaseapp.com', projectId: 'templatehub-16cd7', storageBucket: 'templatehub-16cd7.firebasestorage.app' });
     var snap = await fsMod.getDoc(fsMod.doc(fsMod.getFirestore(app), 'billing_config', 'main'));
-    if (snap.exists()) { var d = snap.data() || {}; CFG = { costs: Object.assign({}, FALLBACK.costs, d.costs || {}), plans: Object.assign({}, FALLBACK.plans, d.plans || {}), carryForwardPct: d.carryForwardPct != null ? d.carryForwardPct : 50, graceDays: d.graceDays != null ? d.graceDays : 30, whopPlanMap: d.whopPlanMap || {} }; }
+    if (snap.exists()) { var d = snap.data() || {}; CFG = { costs: Object.assign({}, FALLBACK.costs, d.costs || {}), plans: Object.assign({}, FALLBACK.plans, d.plans || {}), carryForwardPct: d.carryForwardPct != null ? d.carryForwardPct : 50, graceDays: d.graceDays != null ? d.graceDays : 30 }; }
   } catch (e) { /* fallback prices */ }
-  function checkoutFor(key) { var m = CFG.whopPlanMap || {}; for (var id in m) if (m[id] === key) return 'https://whop.com/checkout/' + id; return 'https://www.lazydogtemplates.com/pricing.html'; }
+  /* 20 Sep 2026 — card payments are paused while we move to a new payment
+     provider, so no plan has a checkout link right now. The buttons below read
+     "Coming soon" and do nothing. When the new provider is live, return its
+     checkout URL from here and the cards start working again unchanged. */
+  var CHECKOUT_PAUSED = true;
+  function checkoutFor(key) { return ''; }
   /* 24 Aug 2026 (Javed) — the modal now wears the pricing.html skin: bone
      paper, navy ink, Instrument Serif headings, Poppins buttons, mono for the
      small labels. Same palette and type as the website so the two never look
@@ -836,7 +842,8 @@ window.ldPlansModal = async function () {
             cost('Design one slide', c.composePerSlide) +
             cost('PDF page → slides', c.pdfDecomposePerPage) + cost('PNG → editable slide', c.pngDecompose) +
           '</ul>' +
-          '<a data-buy="' + k + '" href="' + checkoutFor(k) + '" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:20px;padding:12px;font-family:' + UI + ';font-weight:700;font-size:13.5px;cursor:pointer;' + (i === 0 ? 'background:' + GOLD + ';color:' + NAVY + ';' : 'background:' + NAVY + ';color:#fff;') + '">' + (p.oneTime ? 'Buy once' : 'Subscribe') + '</a>' +
+          /* 20 Sep 2026 — payments paused: a disabled label, not a link. */
+          '<span data-buy="' + k + '" style="display:block;text-align:center;margin-top:20px;padding:12px;font-family:' + UI + ';font-weight:700;font-size:13.5px;cursor:default;background:#e7e2d6;color:' + MUTED + ';border:1px solid ' + LINE + ';">Coming soon</span>' +
         '</div>';
       }).join('') +
       /* 4th card — Custom / done-for-you, quoted per job (same as pricing.html) */
@@ -856,7 +863,7 @@ window.ldPlansModal = async function () {
         '</ul>' +
         '<a href="https://www.lazydogtemplates.com/deployment/quote.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:20px;padding:12px;font-family:' + UI + ';font-weight:700;font-size:13.5px;cursor:pointer;background:' + NAVY + ';color:#fff;">Request a quote</a>' +
       '</div></div>' +
-      '<div style="font-size:11.5px;color:' + MUTED + ';margin-top:18px;line-height:1.7;border-top:1px solid ' + LINE + ';padding-top:14px;">Payments are processed by Whop in your browser — card details never reach LazyDog. A lapsed plan keeps its balance for ' + CFG.graceDays + ' days. Cancelling never takes back tokens you have paid for. Templates are sold separately.</div>';
+      '<div style="font-size:11.5px;color:' + MUTED + ';margin-top:18px;line-height:1.7;border-top:1px solid ' + LINE + ';padding-top:14px;">We are moving to a new payment provider, so plans cannot be bought at the moment. Any tokens already in your account stay exactly as they are. A lapsed plan keeps its balance for ' + CFG.graceDays + ' days. Templates are sold separately.</div>';
     box.querySelector('#ld-plans-x').onclick = close;
     box.querySelectorAll('[data-mode]').forEach(function (b) { b.onclick = function () { mode = b.getAttribute('data-mode'); render(); }; });
     box.querySelectorAll('a[target=_blank]').forEach(function (a) {

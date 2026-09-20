@@ -23,7 +23,7 @@ service cloud.firestore {
     // Admin SDK, which bypasses these rules entirely. So `allow write: if false`
     // on those collections is CORRECT, not an oversight — the browser's job is
     // only to READ its own records. This is why F04 alone does not make sales
-    // work: it needs the Whop webhook (F06) to do the writing.
+    // work: it needs the payment webhook (F06) to do the writing.
     // ════════════════════════════════════════════════════════════════════════
 
     function isSignedIn() {
@@ -192,9 +192,9 @@ service cloud.firestore {
     }
 
     // ── earnings (CONTRIBUTOR REVENUE SHARE, 9 Aug 2026) ──────────────────
-    // One row per contributor line per paid order: gross, the real Whop fees,
+    // One row per contributor line per paid order: gross, the real processing fees,
     // net, and the 75% share. Written ONLY by the Cloud Function that reads
-    // Whop's fee data — never by a browser, or a contributor could write
+    // the provider's fee data — never by a browser, or a contributor could write
     // their own earnings. A contributor may read their own rows and nothing
     // else, which is what the earnings dashboard needs and no more.
     match /earnings/{docId} {
@@ -221,8 +221,8 @@ service cloud.firestore {
     //   signed in — that is the whole point of a pricing page. The alternative
     //   is typing the prices into the HTML, which guarantees that one day the
     //   page and the checkout disagree about what something costs. Nothing in
-    //   here is secret: every value is published on the page and on the Whop
-    //   checkout the moment anyone looks.
+    //   here is secret: every value is published on the page and at checkout
+    //   the moment anyone looks.
     //
     // WHY WRITE IS CLOSED
     //   These numbers decide what customers are charged and how many tokens
@@ -372,7 +372,7 @@ service cloud.firestore {
     // Buyer's own orders. Powers "My Purchases" and the download gate.
     match /orders/{orderId} {
       allow read:  if isAdmin() || ownsDoc('buyerId');
-      allow write: if false;      // Whop webhook only (F06)
+      allow write: if false;      // payment webhook only (F06)
     }
 
     // Per-download record: buyer uid + email, kit id, timestamp, licence tier.
@@ -383,11 +383,11 @@ service cloud.firestore {
     }
 
     // Subscription state. The 5-free-slides gate and the deck-maker lock both
-    // read from here once the Whop subscription plan exists (F34).
+    // read from here once the subscription plan exists (F34).
     // Doc id = the subscriber's uid.
     match /subscribers/{uid} {
       allow read:  if isAdmin() || (isSignedIn() && request.auth.uid == uid);
-      allow write: if false;      // Whop subscription webhook only
+      allow write: if false;      // subscription webhook only
     }
 
     // Seller-side accounting. Not buyer-facing — admin reads only.

@@ -31,15 +31,15 @@
 
   EVERY NUMBER ON THIS PAGE IS READ FROM billing_config/main AT LOAD TIME.
   Nothing is typed into the HTML. That is deliberate: the prices here and the
-  prices Whop charges come from the same document, so they cannot disagree.
+  prices charged come from the same document, so they cannot disagree.
   Change a price with admin_billing and this page follows on the next refresh
   — no deploy, no edit, no chance of the page advertising $19 while the
   checkout takes $29.
 
-  The checkout links come from billing_config.whopPlanMap, which is written by
-  the subplans backfill when the plans are created on Whop. If a plan has no
-  mapping yet its button says "Coming soon" and is inert, rather than sending a
-  buyer to a broken checkout.
+  20 Sep 2026 — card payments are paused while we move to a new payment
+  provider. checkoutFor() returns an empty string for every plan, so every
+  button falls through to the "Coming soon" state that was already built in
+  for plans with no checkout. Prices still display and stay accurate.
 -->
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
@@ -196,9 +196,10 @@
       </p>
       <p style="font-size:15px;line-height:1.8;color:#c6d0e0;margin-top:14px;">
         Below, choose a plan that fits how much automation you actually use, or buy tokens as a
-        one-off top-up if your needs are occasional rather than regular. Every plan is billed
-        through Whop, and switching between monthly and yearly is reflected instantly in the prices
-        shown here.
+        one-off top-up if your needs are occasional rather than regular. Switching between monthly
+        and yearly is reflected instantly in the prices shown here. We are currently moving to a
+        new payment provider, so plans cannot be bought for the moment — the prices below are the
+        ones that will apply when checkout returns.
       </p>
     </div>
     <button type="button" onclick="var el=document.getElementById('prIntro');var open=el.style.maxHeight!=='50px';el.style.maxHeight=open?'50px':'700px';this.textContent=open?'Read more':'Show less';" style="margin-top:8px;background:none;border:0;color:#d4af37;font-size:13px;font-weight:600;cursor:pointer;padding:0;">Read more</button>
@@ -218,7 +219,7 @@
   </div>
 
   <p class="note">
-    Payments are processed by <b>Whop</b>. Card details never reach LazyDogTemplates.
+    Payments are handled by our payment provider — card details never reach LazyDogTemplates.
     All prices are in US dollars. Unused tokens carry over at
     <b id="carryPct">50%</b> and a lapsed plan keeps its balance for
     <b id="graceDays">30</b> days. Cancelling never takes back tokens you have
@@ -257,7 +258,7 @@ const FALLBACK = {
     studioAnnual: { priceUsd:408, tokens:3750, periodDays:31, billedAnnually:true },
     annualFlex:   { priceUsd:50,  tokens:6000, periodDays:366, oneTime:true }
   },
-  carryForwardPct: 50, graceDays: 30, whopPlanMap: {}
+  carryForwardPct: 50, graceDays: 30
 };
 
 const LABEL = { pro:'Pro', studio:'Studio', proAnnual:'Pro', studioAnnual:'Studio', annualFlex:'Flex' };
@@ -273,12 +274,11 @@ let CFG = FALLBACK, MODE = 'monthly';
 const $ = id => document.getElementById(id);
 const n = v => Number(v || 0).toLocaleString();
 
-/* plan key -> checkout url, inverted from whopPlanMap (planId -> key) */
+/* 20 Sep 2026 — card payments are paused while we move to a new payment
+   provider, so no plan has a checkout link. Returning an empty string makes
+   every card fall through to the "Coming soon" state below. When the new
+   provider is live, return its checkout URL from here. */
 function checkoutFor(key){
-  const map = CFG.whopPlanMap || {};
-  for (const [planId, k] of Object.entries(map)) {
-    if (k === key) return 'https://whop.com/checkout/' + planId;
-  }
   return '';
 }
 
