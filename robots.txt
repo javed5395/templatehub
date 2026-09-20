@@ -6,5 +6,7 @@ Disallow: /editor.html
 Disallow: /compose.html
 Disallow: /my_designs.html
 Disallow: /upload_form.html
+Disallow: /contributor/
+Disallow: /blogs/contributor-program-is-live.html
 
 Sitemap: https://www.lazydogtemplates.com/sitemap.xml

@@ -1017,8 +1017,13 @@ function loadDesign(d) {
   var docRowEl    = document.getElementById('designDocRow');
   if (docRowEl) docRowEl.style.display = 'none';
   if (briefCardEl) {
-    if (k.designDocUrl) {
-      briefCardEl.href = k.designDocUrl;
+    /* 20 Sep 2026 — was k.designDocUrl. On the other four slide pages the
+       loader is loadKit(k), so `k` is correct there. This page's loader is
+       loadDesign(d): `k` does not exist here, so the line threw
+       "k is not defined", the catch below redirected, and EVERY pitch deck
+       card bounced straight back to the folder page. */
+    if (d.designDocUrl) {
+      briefCardEl.href = d.designDocUrl;
       briefCardEl.style.display = 'block';
     } else {
       briefCardEl.style.display = 'none';

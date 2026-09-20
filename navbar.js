@@ -157,9 +157,7 @@
        hiding a link stops nobody who knows the URL. Firestore is what refuses
        the write. */
     const ub = document.getElementById('nbUploadBtn');
-    const eb = document.getElementById('nbEarnBtn');   // My Earnings
     if (ub) ub.style.display = 'none';
-    if (eb) eb.style.display = 'none';
     /* ── CONTRIBUTOR PROGRAMME — DELINKED, 20 Sep 2026 ────────────────────
        The store no longer runs a contributor programme. This button used to
        have four states — Become a Contributor / Application under review /
@@ -167,6 +165,9 @@
 
        It is now ADMIN ONLY, and says just "Upload". No visitor is invited to
        apply, and no signed-in user is shown the programme at all.
+
+       The Earnings button went with it — earnings only ever meant contributor
+       revenue share, so there is nothing for it to show.
 
        DELINKED, NOT DELETED. contributor/apply.html, contributor/terms.html
        and contributor/earnings.html still exist and still work if opened
@@ -184,7 +185,6 @@
 
     if (user && ub && window.ldIsAdmin()) {
       ldSetContribBtn('Upload', 'upload_form.html', false);
-      if (eb) eb.style.display = 'inline-flex';
     }
 
     if(user) {
@@ -357,18 +357,21 @@
     </div>
     <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="background:#fff;color:#c79a20;border:1.5px solid #dcb43f;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">What's New</a>
     <a href="coming_soon.html" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Coming Soon</a>
-    <a href="pricing.html" class="nb-wn-tab" title="Editor plans and token pricing" style="background:#fff;color:#2f7d3f;border:1.5px solid #7cc08c;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Pricing</a>
+    <!-- 20 Sep 2026 — the Pricing button was removed. It pointed at
+         pricing.html, the editor token-plan page. With card payments paused
+         there is nothing to buy there, so sending people to it only shows
+         prices they cannot act on. pricing.html itself is untouched and still
+         opens directly; put this link back when checkout returns. -->
     <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Generate Designs</a>
     <a href="editor.html" class="nb-wn-tab" title="LazyDog Designer" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:1.5px solid #7d6bf0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Editor</a>
-    <!-- Label and destination are set at runtime by ldSetContribBtn() — it is
-         "Become a Contributor", "Application under review" or "Upload"
-         depending on where the signed-in user has got to. Ships hidden so
-         nothing flashes before we know which. -->
+    <!-- Upload. Admin only now — see ldSetContribBtn() above. It used to change
+         label between "Become a Contributor", "Application under review" and
+         "Upload"; the contributor programme is gone, so it is only ever
+         "Upload" and only ever for an admin. Ships hidden. -->
     <a href="upload_form.html" id="nbUploadBtn" class="nb-wn-tab" title="Upload a template" style="background:#fff;color:#2e9e6b;border:1.5px solid #4fbf8b;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Upload</a>
-    <!-- Same gate as Upload: admins and approved contributors only. Hidden by
-         default; the real protection is the earnings rule in firestore.rules,
-         which only ever returns a contributor their own rows. -->
-    <a href="contributor/earnings.html" id="nbEarnBtn" class="nb-wn-tab" title="Your sales and earnings" style="background:#fff;color:#2f6fd0;border:1.5px solid #7aa8f0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:none;align-items:center;gap:5px;">Earnings</a>
+    <!-- 20 Sep 2026 — the Earnings button was removed with the contributor
+         programme. contributor/earnings.html still exists and still opens if
+         you go to it directly; it is simply no longer linked from the site. -->
     <button class="nb-signin" id="signinBtn" onclick="openAuth('signin')">Sign In</button>
     <button class="nb-signup" id="signupBtn" onclick="openAuth('signup')">Sign Up</button>
     <button class="nb-theme-nb" id="themeBtn" onclick="nbToggleTheme()" title="Toggle Light/Dark Mode"><svg width="22" height="22" viewBox="0 0 24 24" fill="#d4af37"><path d="M21 12.79A9 9 0 1 1 11.21 3 8.2 8.2 0 0 0 21 12.79z"/></svg></button>
