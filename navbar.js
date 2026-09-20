@@ -331,7 +331,7 @@
   // ── INJECT NAVBAR HTML ──
   var navHTML = `
 <nav id="sharedNav">
-  <div style="display:inline-flex;align-items:center;gap:0;"><a href="index.html" class="nb-logo notranslate" translate="no" style="display:inline-flex;align-items:center;gap:9px;"><img src="images/site_logo_round.png" alt="LazyDog Templates logo" class="nb-brand-logo" style="height:42px;width:42px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 2px 6px rgba(0,0,0,0.22);">LazyDog<span>Templates</span></a><span class="nb-logo-sep">|</span><a href="lazydog_studio.html" class="nb-logo-studios notranslate" translate="no">LazyDog<span>Studios</span></a></div>
+  <div style="display:inline-flex;align-items:center;gap:0;"><a href="index.html" class="nb-logo notranslate" translate="no" style="display:inline-flex;align-items:center;gap:9px;"><img src="images/site_logo_round.png" alt="LazyDog Templates logo" class="nb-brand-logo" style="height:42px;width:42px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 2px 6px rgba(0,0,0,0.22);">LazyDog<span>Templates</span></a><!-- delinked 2026-09-20: <span class="nb-logo-sep">|</span><a href="lazydog_studio.html" class="nb-logo-studios notranslate" translate="no">LazyDog<span>Studios</span></a> --></div>
   <button class="nb-hamburger" id="nbHamburgerBtn" onclick="nbToggleMobileMenu()" title="Menu" aria-label="Menu">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
@@ -355,14 +355,14 @@
         </div>
       </div>
     </div>
-    <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="background:#fff;color:#c79a20;border:1.5px solid #dcb43f;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">What's New</a>
-    <a href="coming_soon.html" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Coming Soon</a>
+    <!-- delinked 2026-09-20: <a href="whats_new_keynote.html" class="nb-wn-tab" title="What's new" style="background:#fff;color:#c79a20;border:1.5px solid #dcb43f;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">What's New</a> -->
+    <!-- delinked 2026-09-20: <a href="coming_soon.html" class="nb-wn-tab" title="Coming soon" style="background:#fff;color:#5b5bd6;border:1.5px solid #8f8ff0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Coming Soon</a> -->
     <!-- 20 Sep 2026 — the Pricing button was removed. It pointed at
          pricing.html, the editor token-plan page. With card payments paused
          there is nothing to buy there, so sending people to it only shows
          prices they cannot act on. pricing.html itself is untouched and still
          opens directly; put this link back when checkout returns. -->
-    <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Generate Designs</a>
+    <!-- delinked 2026-09-20: <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Generate Designs</a> -->
     <a href="editor.html" class="nb-wn-tab" title="LazyDog Designer" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:1.5px solid #7d6bf0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Editor</a>
     <!-- Upload. Admin only now — see ldSetContribBtn() above. It used to change
          label between "Become a Contributor", "Application under review" and
