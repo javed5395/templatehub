@@ -194,7 +194,7 @@
     /* -- Licence chooser (9 Aug 2026) --------------------------------------
        Personal vs Commercial. Commercial is 1.5x rounded UP to a whole dollar,
        the SAME rule the server uses. The amounts
-       shown are read from the kit's whopCommercialPrice, written by the backend
+       shown are read from the kit's commercialPrice, written by the backend
        when the paid plan is created, so the price on screen is literally the
        price on the plan. Do not compute it here. */
     .lic-row { display:flex; gap:8px; margin:10px 0 6px; }
@@ -647,12 +647,12 @@ function getDkUrl(k, n, transform) {
     var catLabels = { pitch_deck:'Pitch Deck', media_kit:'Media Kit', digital_keynotes:'Digital Keynote', presentation:'Presentation', resume:'Resume', report:'Report' };
     var industryLabels = { tech:'Tech & AI', healthcare:'Healthcare', finance:'Finance & Banking', construction:'Construction', retail:'Retail & E-commerce', education:'Education', realestate:'Real Estate', fashion:'Fashion & Beauty', food:'Food & Restaurant', general:'General / Business', other:'Other' };
     currentKeynoteData = {
-      whopPlanId:   (typeof docData!=='undefined' && docData ? (docData.whopPlanId||'') : '') || (t.whopPlanId||''),
+      planRef:   (typeof docData!=='undefined' && docData ? (docData.planRef||'') : '') || (t.planRef||''),
       // Commercial licence (9 Aug 2026). Both are written by the backend when
       // the paid plan is created. If either is missing the chooser stays
       // hidden -- we never advertise a licence we cannot charge for.
-      whopCommercialPlanId: t.whopCommercialPlanId || '',
-      whopCommercialPrice:  t.whopCommercialPrice  || null,
+      commercialEnabled: t.commercialEnabled || '',
+      commercialPrice:  t.commercialPrice  || null,
       name:         t.name || 'Untitled Digital Keynote',
       titleHTML:    (t.name || 'Untitled Digital Keynote') + '<br/><span>Digital Keynote</span>',
       desc:         t.designNotes || t.description || 'A professional digital keynote template.',
@@ -698,7 +698,7 @@ function getDkUrl(k, n, transform) {
 window.ldtLicence = 'personal';
 
 function ldtLicencePrice(k, licence){
-  if (licence === 'commercial') return parseFloat(k.whopCommercialPrice);
+  if (licence === 'commercial') return parseFloat(k.commercialPrice);
   return parseFloat(k.price);
 }
 
@@ -720,8 +720,8 @@ function ldtInitLicence(k){
   if (!row) return;
 
   var paid = k.price && k.price !== 'free' && k.price !== 'pro' && parseFloat(k.price) > 0;
-  var comm = parseFloat(k.whopCommercialPrice);
-  if (!paid || !k.whopCommercialPlanId || !isFinite(comm) || comm <= 0) {
+  var comm = parseFloat(k.commercialPrice);
+  if (!paid || !k.commercialEnabled || !isFinite(comm) || comm <= 0) {
     row.style.display = 'none';
     if (note) note.style.display = 'none';
     window.ldtLicence = 'personal';
@@ -1035,7 +1035,7 @@ function ldtCurrentProduct(){
     title: String(k.name || 'Digital Keynote') + (lic === 'commercial' ? ' (Commercial)' : ''),
     price: ldtLicencePrice(k, lic),
     licence: lic,
-    planId: String(lic === 'commercial' ? (k.whopCommercialPlanId || '') : (k.whopPlanId || '')),
+    planId: String(lic === 'commercial' ? (k.commercialEnabled || '') : (k.planRef || '')),
     sellerId: String(window._ldtSellerId || '')
   };
 }
