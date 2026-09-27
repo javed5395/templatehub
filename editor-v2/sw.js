@@ -22,7 +22,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-var CACHE_SHELL = 'ld-editor-shell-202609271944';   /* stamped by STAMP_EDITOR_VERSION.py on every ship */
+var CACHE_SHELL = 'ld-editor-shell-202609272133';   /* stamped by STAMP_EDITOR_VERSION.py on every ship */
 var CACHE_ASSETS = 'ld-editor-assets-v1';
 
 var SHELL = [
@@ -83,15 +83,13 @@ function isShell(url) {
 }
 
 function isCachableAsset(url) {
-  /* 27 Sep 2026 — DISABLED. The site's security policy (Cloudflare) is sent
-     with this worker too, and its connect-src does not list Google Fonts or
-     Google Storage. A fetch() made BY the worker is judged by connect-src,
-     so every font and parked deck image it intercepted FAILED — imported
-     decks lost their fonts (Arial fallback) and pictures, and the asset
-     cache was always empty. Left alone, the browser loads them itself under
-     the page's own style-src / font-src / img-src rules, which allow them,
-     and its normal HTTP cache still caches them. */
-  return false;
+  /* 27 Sep 2026 — FONTS are left to the browser: through this worker every
+     Google Fonts request failed (imported decks fell back to Arial), while
+     loaded directly by the page they arrive fine. PARKED DECKS / IMAGES in
+     Google Storage stay HERE: the page itself may not fetch storage (the
+     site's connect-src does not list it), so without the worker every large
+     import stopped at "Loading design… 0%". */
+  return url.indexOf('storage.googleapis.com') !== -1;
 }
 
 self.addEventListener('fetch', function (e) {
