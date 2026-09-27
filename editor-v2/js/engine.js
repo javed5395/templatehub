@@ -5958,6 +5958,28 @@ Editor._register({
       setTimeout(function () { res(); }, 4000);
     });
   }
+  function ldPreloadDeckFonts(deck) {
+    var lib = window.LAZYDOG_FONT_LIB || [], emb = window._ldEmbeddedFams || {}, names = {};
+    function norm(n) { return String(n == null ? '' : n).split(',')[0].replace(/["']/g, '').trim(); }
+    function scanP(p) { (p.runs || []).forEach(function (r) {
+      var n = norm(r.font);
+      if (n && !emb[n.toLowerCase()] && lib.indexOf(n.toLowerCase()) !== -1) names[n] = 1;
+    }); }
+    ((deck && deck.slides) || []).forEach(function (s) { (s.elements || []).forEach(function (e) {
+      if (e.type === 'text' && e.paragraphs) e.paragraphs.forEach(scanP);
+      else if (e.type === 'table' && e.rows) e.rows.forEach(function (row) { (row.cells || []).forEach(function (c) { (c.paragraphs || []).forEach(scanP); }); });
+    }); });
+    var list = Object.keys(names);
+    if (!list.length || !window.loadDeckFonts) return Promise.resolve();
+    return new Promise(function (res) { window.loadDeckFonts(list, res); }).then(function () {
+      if (!document.fonts || !document.fonts.load) return;
+      var waits = [];
+      list.forEach(function (n) {
+        ['400', '700'].forEach(function (w) { waits.push(document.fonts.load(w + ' 24px "' + n + '"').catch(function () {})); });
+      });
+      return Promise.race([Promise.all(waits), new Promise(function (r) { setTimeout(r, 5000); })]);
+    });
+  }
   function wrapLoader() {
     if (!window.loadDeckIRIntoEditor) { setTimeout(wrapLoader, 400); return; }
     if (window.loadDeckIRIntoEditor.__ldFontWrapped) return;
@@ -5971,6 +5993,13 @@ Editor._register({
           try { await ldFontAuditPrompt(deck); } finally { window.__ldFontGate = false; }
         }
       } catch (e) { console.warn('font gate skipped', e); }
+      /* 27 Sep 2026 — LOAD THE DECK'S FONTS before the first paint. Nothing
+         did this for an imported file: a free library font (Poppins, Inter…)
+         that is not embedded never loaded, every text fell back to Arial and
+         was measured in the wrong face. Load each library font the deck uses
+         (after the keep/free choice, so free twins load too) and wait for
+         its regular and bold faces to be READY, not merely requested. */
+      try { await ldPreloadDeckFonts(deck); } catch (e) { console.warn('font preload skipped', e); }
       return orig(deck);
     };
     wrapped.__ldFontWrapped = true;

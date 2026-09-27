@@ -1961,9 +1961,16 @@ function buildTextboxFromIR(el, sx, sy) {
        at the LEFT INSET of the shape (anchorCtr="0"), centered only when
        anchorCtr="1". This matches Steps-in-chevrons, digits-in-circles and
        label pills exactly as PowerPoint places them. */
+    /* 27 Sep 2026 — measure the UNWRAPPED line. The textbox was built at the
+       shape width, so it had already wrapped; calcTextWidth() then returned
+       the width of the wrapped pieces and the text stayed broken onto extra
+       lines ("INTELLIGENT SOLUTIONS / FOR"). wrap="none" never wraps in
+       PowerPoint — lay it out wide first, then measure. */
+    try { tb.set({ width: 100000 }); if (tb.initDimensions) tb.initDimensions(); } catch (_wn) {}
     var natW = tb.calcTextWidth() + 6;
     var natLeft = el.anchorCtr ? (el.x * sx + (Math.abs(el.w * sx) - natW) / 2) : ((el.x + (el.insL != null ? el.insL : 91440)) * sx);
     tb.set({ width: Math.max(10, natW), left: natLeft, textAlign: 'left' });
+    try { if (tb.initDimensions) tb.initDimensions(); } catch (_wn2) {}
   }
   var boxH = Math.abs(el.h * sy);
   if (el.bodyAnchor === 'ctr' || el.bodyAnchor === 'b') {
