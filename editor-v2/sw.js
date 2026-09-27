@@ -22,7 +22,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-var CACHE_SHELL = 'ld-editor-shell-202609272133';   /* stamped by STAMP_EDITOR_VERSION.py on every ship */
+var CACHE_SHELL = 'ld-editor-shell-202609272228';   /* stamped by STAMP_EDITOR_VERSION.py on every ship */
 var CACHE_ASSETS = 'ld-editor-assets-v1';
 
 var SHELL = [
@@ -83,13 +83,14 @@ function isShell(url) {
 }
 
 function isCachableAsset(url) {
-  /* 27 Sep 2026 — FONTS are left to the browser: through this worker every
-     Google Fonts request failed (imported decks fell back to Arial), while
-     loaded directly by the page they arrive fine. PARKED DECKS / IMAGES in
-     Google Storage stay HERE: the page itself may not fetch storage (the
-     site's connect-src does not list it), so without the worker every large
-     import stopped at "Loading design… 0%". */
-  return url.indexOf('storage.googleapis.com') !== -1;
+  /* 27 Sep 2026 — the worker no longer fetches ANY third-party asset.
+     A worker keeps the security policy (Cloudflare connect-src) it was
+     installed with, so after the policy changes it goes on refusing hosts
+     the page itself may now use: fonts fell back to Arial and parked decks
+     (Google Storage) hung at "Loading design… 0%". The site's policy now
+     lists Google Storage, so the page loads fonts and parked decks
+     directly, and the browser's own HTTP cache still caches them. */
+  return false;
 }
 
 self.addEventListener('fetch', function (e) {
