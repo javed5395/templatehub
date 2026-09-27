@@ -2440,6 +2440,15 @@ var GOOGLE_FONTS = [
   ];
 
 var ALL_FONT_NAMES = SYSTEM_FONTS.concat(GOOGLE_FONTS);
+/* 27 Sep 2026 — the font-audit dialog ("Commercial / non-library fonts
+   detected") and the free-twin mapper in lazydog_renderer.js read the free
+   library from window.LAZYDOG_FONT_LIB. editor-v1 published it; v2 never did,
+   so the list was EMPTY and every font — even free Poppins/Inter — was
+   flagged. Publish the same catalogue v2 already uses. */
+if (!window.LAZYDOG_FONT_LIB || !window.LAZYDOG_FONT_LIB.length) {
+  window.LAZYDOG_FONT_LIB = ALL_FONT_NAMES.map(function (n) { return String(n).toLowerCase(); });
+  window.LAZYDOG_FONT_PROPER = ALL_FONT_NAMES.slice();
+}
 var _ldLoadedFonts = {};
 function ensureFontLoadedV2(name, cb) {
   if (!name || SYSTEM_FONTS.indexOf(name) > -1 || _ldLoadedFonts[name]) { cb && cb(); return; }
