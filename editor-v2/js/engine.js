@@ -7185,7 +7185,11 @@ Editor._register({
   /* Asset Studio gate (23 Aug 2026, Fable — List #1 phase 1): a name that
      looks like a Drive file id loads through the asset3d_http proxy; a plain
      name still loads from vendor/models3d/. */
-  var LD_ASSET3D_URL = window.LD_ASSET3D_URL || 'https://asset3d-http-irosbvpq7q-uc.a.run.app';
+  /* 27 Sep 2026 — the site's security policy (Cloudflare connect-src) only
+     lets the editor download from listed hosts; the *.a.run.app address was
+     not listed, so every library GLB failed with "network". The same function
+     answers on the cloudfunctions.net host, which IS listed. */
+  var LD_ASSET3D_URL = window.LD_ASSET3D_URL || 'https://us-central1-templatehub-16cd7.cloudfunctions.net/asset3d_http';
   function loadGLB(name) {
     if (_glbCache[name]) return Promise.resolve(_glbCache[name]);
     var url = /^[A-Za-z0-9_-]{15,}$/.test(name)
