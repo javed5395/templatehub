@@ -4732,8 +4732,25 @@ Editor._register({
            app_login.html there, the page mints a custom token via
            mint_app_token, and hands it back over loopback. */
         if (window.lazydogDesktop && window.lazydogDesktop.googleLogin) {
-          showToast('Opening Google sign-in in your browser…', 6000);
-          var ct = await window.lazydogDesktop.googleLogin();
+          /* 27 Sep 2026 — CLOUD RELAY. Chrome now blocks websites from talking
+             to 127.0.0.1, which killed the loopback hand-back ("Failed to
+             fetch"). The app makes a one-time random code, opens the sign-in
+             page (web.app host = the app sends it to the real browser), and
+             collects the token from the cloud with that code. No app rebuild. */
+          var _nb = new Uint8Array(24); crypto.getRandomValues(_nb);
+          var _nonce = Array.prototype.map.call(_nb, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+          window.open('https://templatehub-16cd7.web.app/app_login.html?nonce=' + _nonce, '_blank');
+          showToast('Finish signing in in your browser — this window will update by itself', 9000);
+          var _take = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/app_login_take?nonce=' + _nonce;
+          var ct = null, _t0 = Date.now();
+          while (!ct && Date.now() - _t0 < 5 * 60 * 1000) {
+            await new Promise(function (r) { setTimeout(r, 2000); });
+            try {
+              var _r = await fetch(_take, { method: 'POST' });
+              if (_r.ok) { ct = ((await _r.json()) || {}).token || null; }
+              else if (_r.status === 410) break;
+            } catch (_e) { /* offline blip — keep waiting */ }
+          }
           if (!ct) { showToast('Sign-in was cancelled or timed out', 5000); return; }
           await A.mod.signInWithCustomToken(A.auth, ct);
           showToast('Signed in ✓');

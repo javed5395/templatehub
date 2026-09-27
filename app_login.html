@@ -70,11 +70,17 @@
     storageBucket: 'templatehub-16cd7.firebasestorage.app'
   };
   const MINT_URL = 'https://us-central1-templatehub-16cd7.cloudfunctions.net/mint_app_token';
-  const port = new URLSearchParams(location.search).get('port');
+  const qs = new URLSearchParams(location.search);
+  const port = qs.get('port');
+  /* 27 Sep 2026 — CLOUD RELAY: the app now sends ?nonce= instead of ?port=.
+     Chrome blocks websites from reaching 127.0.0.1, so the token is left in
+     the cloud for the app to collect (one-time, 5 minutes). */
+  const nonce = (qs.get('nonce') || '').toLowerCase();
+  const hasNonce = /^[a-f0-9]{32,64}$/.test(nonce);
   const msg = document.getElementById('msg');
   const btn = document.getElementById('go');
 
-  if (!port || !/^\d{2,5}$/.test(port)) {
+  if (!hasNonce && (!port || !/^\d{2,5}$/.test(port))) {
     msg.innerHTML = '<span class="err">This page only works when opened by the LazyDog Editor app.</span>';
     btn.style.display = 'none';
   }
@@ -89,9 +95,16 @@
       msg.textContent = 'Connecting to the app…';
       const idTok = await cred.user.getIdToken();
       /* POST, not GET — the functions' CORS policy only allows POST/OPTIONS */
-      const r = await fetch(MINT_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + idTok } });
+      const r = await fetch(MINT_URL + (hasNonce ? '?nonce=' + nonce : ''),
+                            { method: 'POST', headers: { Authorization: 'Bearer ' + idTok } });
       if (!r.ok) throw new Error('token service said ' + r.status);
       const d = await r.json();
+      if (hasNonce) {
+        /* relay mode: the app is already polling the cloud — nothing to hand over */
+        msg.innerHTML = '<span class="ok">Signed in ✓ — you can close this tab and return to the LazyDog Editor app.</span>';
+        btn.style.display = 'none';
+        return;
+      }
       /* hand the custom token to the app over loopback — 127.0.0.1 only */
       const h = await fetch('http://127.0.0.1:' + port + '/token', {
         method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: d.token
