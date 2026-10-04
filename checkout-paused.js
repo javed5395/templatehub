@@ -23,16 +23,25 @@
                 'available to buy again shortly.';
 
   /* ── GUMROAD LINKS, 2026-10-07 ────────────────────────────────────────
-     Products live on Gumroad get their checkout URL listed here, matched
-     by title (title is the one field guaranteed present and consistent
-     across every current*Data object, and already matches the Gumroad
-     listing name 1:1). Add a new line here each time a product goes live
-     on Gumroad — no other code change needed. Everything NOT listed here
-     still falls through to the "coming soon" message below, unchanged. */
-  var GUMROAD_LINKS = {
-    'Startup Pitch Deck Template - Smarter, Faster Hiring | 12 Slides':
-      'https://javedmind3.gumroad.com/l/pd001-startup-pitch-deck?wanted=true'
-  };
+     Products live on Gumroad get their checkout URL listed here. "match" is
+     a short, distinctive fragment of the title — matching is normalized
+     (lowercased, punctuation stripped) and checks whether the fragment
+     appears ANYWHERE in the page's title, so it survives small wording
+     differences between the on-page heading and the Gumroad listing name
+     (e.g. an em dash vs hyphen, or "Template" / "12 Slides" being present
+     on one side and not the other). Add a new line here each time a
+     product goes live on Gumroad — no other code change needed. Keep each
+     "match" fragment short but specific enough that it won't accidentally
+     match a different product's title. Everything NOT listed here still
+     falls through to the "coming soon" message below, unchanged. */
+  var GUMROAD_LINKS = [
+    { match: 'startup pitch deck',
+      url: 'https://javedmind3.gumroad.com/l/pd001-startup-pitch-deck?wanted=true' }
+  ];
+
+  function norm(s) {
+    return String(s || '').toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
 
   function data() {
     var n = ['currentKitData','currentDeckData','currentKeynoteData','currentWebKitData','currentProductData'];
@@ -51,8 +60,13 @@
   }
 
   function gumroadLink(d) {
-    var t = (d && (d.title || d.name)) ? String(d.title || d.name).trim() : '';
-    return GUMROAD_LINKS[t] || null;
+    var raw = (d && (d.title || d.name)) ? String(d.title || d.name) : '';
+    var t = norm(raw);
+    if (!t) return null;
+    for (var i = 0; i < GUMROAD_LINKS.length; i++) {
+      if (t.indexOf(norm(GUMROAD_LINKS[i].match)) !== -1) return GUMROAD_LINKS[i].url;
+    }
+    return null;
   }
 
   var orig = window.buyItNow;
@@ -61,6 +75,10 @@
     if (isPaid(d)) {
       var link = gumroadLink(d);
       if (link) { window.open(link, '_blank', 'noopener'); return; }
+      /* No Gumroad match — log the raw product data so a field-name or
+         text mismatch is visible in DevTools (F12 > Console) right away,
+         instead of needing another round of screenshots to diagnose. */
+      try { console.log('[gumroad] no match for product data:', d); } catch (e) {}
       toast(MESSAGE);
       return;
     }
