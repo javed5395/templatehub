@@ -45,6 +45,10 @@
   }
 
   function boot() {
+    /* 2026-10-07 (Javed) — Hexa "MAKE a brand-new design" card hidden
+       site-wide for now, same approach as fill_widget.js's 28 Aug disable.
+       Remove this early return to bring it back. */
+    return true;
     var row = document.getElementById('metaSearchRow');
     if (!row || !row.parentNode) return false;
     if (document.getElementById('designWidget')) return true;
