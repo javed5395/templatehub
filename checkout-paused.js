@@ -22,6 +22,18 @@
   var MESSAGE = 'Payments are being moved to a new provider — this kit will be ' +
                 'available to buy again shortly.';
 
+  /* ── GUMROAD LINKS, 2026-10-07 ────────────────────────────────────────
+     Products live on Gumroad get their checkout URL listed here, matched
+     by title (title is the one field guaranteed present and consistent
+     across every current*Data object, and already matches the Gumroad
+     listing name 1:1). Add a new line here each time a product goes live
+     on Gumroad — no other code change needed. Everything NOT listed here
+     still falls through to the "coming soon" message below, unchanged. */
+  var GUMROAD_LINKS = {
+    'Startup Pitch Deck Template - Smarter, Faster Hiring | 12 Slides':
+      'https://javedmind3.gumroad.com/l/pd001-startup-pitch-deck?wanted=true'
+  };
+
   function data() {
     var n = ['currentKitData','currentDeckData','currentKeynoteData','currentWebKitData','currentProductData'];
     for (var i = 0; i < n.length; i++) { if (window[n[i]]) return window[n[i]]; }
@@ -38,10 +50,20 @@
     try { alert(m); } catch (e) {}
   }
 
+  function gumroadLink(d) {
+    var t = (d && (d.title || d.name)) ? String(d.title || d.name).trim() : '';
+    return GUMROAD_LINKS[t] || null;
+  }
+
   var orig = window.buyItNow;
   window.buyItNow = function () {
     var d = data();
-    if (isPaid(d)) { toast(MESSAGE); return; }
+    if (isPaid(d)) {
+      var link = gumroadLink(d);
+      if (link) { window.open(link, '_blank', 'noopener'); return; }
+      toast(MESSAGE);
+      return;
+    }
     if (typeof orig === 'function') orig();
   };
 
