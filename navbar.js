@@ -363,11 +363,7 @@
          prices they cannot act on. pricing.html itself is untouched and still
          opens directly; put this link back when checkout returns. -->
     <!-- delinked 2026-09-20: <a href="Hexa_Promptbox.html" id="nbGenBtn" class="nb-wn-tab" title="Generate designs" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Generate Designs</a> -->
-    <!-- delinked 2026-10-07: <a href="editor.html" class="nb-wn-tab" title="LazyDog Designer" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:1.5px solid #7d6bf0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Editor</a> -->
-    <!-- editor.html and pricing.html (the token-plan page) still exist and
-         open directly if linked to; they are simply no longer linked from the
-         navbar. Put this link back once Editor subscription plans go live and
-         payment setup (Polar) is confirmed. -->
+    <a href="editor.html" class="nb-wn-tab" title="LazyDog Designer" style="background:linear-gradient(135deg,#5b7fff,#b464ff);color:#fff;border:1.5px solid #7d6bf0;border-radius:0;padding:7px 14px;margin-right:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">Editor</a>
     <!-- Upload. Admin only now — see ldSetContribBtn() above. It used to change
          label between "Become a Contributor", "Application under review" and
          "Upload"; the contributor programme is gone, so it is only ever
