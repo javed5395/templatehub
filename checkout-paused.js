@@ -7,41 +7,37 @@
 
    What it does now:
      - A paid kit shows a short "coming soon" message instead of opening a
-       payment card. Nothing is charged and nothing is unlocked.
+       payment card, UNLESS that specific product already has a Gumroad
+       link saved on its own Firestore record — see 2026-10-07 note below.
      - A FREE kit is untouched. The original buyItNow still runs, so free
        downloads keep working exactly as before.
      - Anything a buyer already owns is unaffected: My Purchases, the
        download endpoint and past orders are all server-side and were never
        part of this file.
 
-   When the new provider is live, replace the body of buyItNow below with the
-   new checkout call. The rest of the site needs no edit.                    */
+   ── 2026-10-07 — Gumroad wiring, DATA-DRIVEN, no per-product code edits ──
+   Earlier this file matched products to their Gumroad link by product
+   title, kept in a hardcoded list here. That required editing this file
+   every time a new product went live on Gumroad, and was fragile (titles
+   differ slightly between the site and Gumroad).
+
+   This version instead reads the Gumroad link directly off the product's
+   OWN Firestore document (field: template.gumroadUrl), using the same
+   document id already present in the page's URL (?firebase=ID). As each
+   product gets its gumroadUrl field set in Firestore (done by the
+   Gumroad-sync scripts, in daily batches), its Buy button on the site
+   starts working automatically — nothing in this file needs to change.
+   Products with no gumroadUrl yet still show the "coming soon" message
+   below, exactly as before.                                               */
 (function () {
   'use strict';
 
   var MESSAGE = 'Payments are being moved to a new provider — this kit will be ' +
                 'available to buy again shortly.';
 
-  /* ── GUMROAD LINKS, 2026-10-07 ────────────────────────────────────────
-     Products live on Gumroad get their checkout URL listed here. "match" is
-     a short, distinctive fragment of the title — matching is normalized
-     (lowercased, punctuation stripped) and checks whether the fragment
-     appears ANYWHERE in the page's title, so it survives small wording
-     differences between the on-page heading and the Gumroad listing name
-     (e.g. an em dash vs hyphen, or "Template" / "12 Slides" being present
-     on one side and not the other). Add a new line here each time a
-     product goes live on Gumroad — no other code change needed. Keep each
-     "match" fragment short but specific enough that it won't accidentally
-     match a different product's title. Everything NOT listed here still
-     falls through to the "coming soon" message below, unchanged. */
-  var GUMROAD_LINKS = [
-    { match: 'startup pitch deck',
-      url: 'https://javedmind3.gumroad.com/l/pd001-startup-pitch-deck?wanted=true' }
-  ];
-
-  function norm(s) {
-    return String(s || '').toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
-  }
+  // Same Firebase project the rest of the site already uses (public
+  // client config — not a secret, same one visible in the category pages).
+  var FIRESTORE_PROJECT_ID = 'templatehub-16cd7';
 
   function data() {
     var n = ['currentKitData','currentDeckData','currentKeynoteData','currentWebKitData','currentProductData'];
@@ -59,34 +55,59 @@
     try { alert(m); } catch (e) {}
   }
 
-  function gumroadLink(d) {
-    var raw = (d && (d.title || d.name)) ? String(d.title || d.name) : '';
-    var t = norm(raw);
-    if (!t) return null;
-    for (var i = 0; i < GUMROAD_LINKS.length; i++) {
-      if (t.indexOf(norm(GUMROAD_LINKS[i].match)) !== -1) return GUMROAD_LINKS[i].url;
+  function getFirebaseIdFromUrl() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      return params.get('firebase');
+    } catch (e) {
+      return null;
     }
-    return null;
+  }
+
+  // Reads template.gumroadUrl straight from this product's own Firestore
+  // document via the public REST API (read-only, same access level the
+  // page's own on-screen data already uses). Returns null on any failure
+  // — never throws, so a network hiccup just falls back to "coming soon".
+  function fetchGumroadUrl(docId) {
+    var url = 'https://firestore.googleapis.com/v1/projects/' + FIRESTORE_PROJECT_ID +
+               '/databases/(default)/documents/templates/' + encodeURIComponent(docId);
+    return fetch(url)
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (json) {
+        if (!json || !json.fields || !json.fields.template) return null;
+        var tplFields = json.fields.template.mapValue && json.fields.template.mapValue.fields;
+        if (!tplFields || !tplFields.gumroadUrl) return null;
+        return tplFields.gumroadUrl.stringValue || null;
+      })
+      .catch(function () { return null; });
   }
 
   var orig = window.buyItNow;
   window.buyItNow = function () {
     var d = data();
-    if (isPaid(d)) {
-      var link = gumroadLink(d);
-      if (link) { window.open(link, '_blank', 'noopener'); return; }
-      /* No Gumroad match — log the raw product data so a field-name or
-         text mismatch is visible in DevTools (F12 > Console) right away,
-         instead of needing another round of screenshots to diagnose. */
-      try { console.log('[gumroad] no match for product data:', d); } catch (e) {}
+    if (!isPaid(d)) {
+      if (typeof orig === 'function') orig();
+      return;
+    }
+
+    var docId = getFirebaseIdFromUrl();
+    if (!docId) {
       toast(MESSAGE);
       return;
     }
-    if (typeof orig === 'function') orig();
+
+    // Show nothing yet — fetch is quick, but avoid a flash of the "coming
+    // soon" message for products that DO have a link. Button press simply
+    // waits briefly for the Firestore check before acting.
+    fetchGumroadUrl(docId).then(function (link) {
+      if (link) {
+        window.open(link, '_blank', 'noopener');
+      } else {
+        toast(MESSAGE);
+      }
+    });
   };
 
-  /* Let the pages mark their buy buttons as paused if they want to. Pages that
-     do nothing simply get the message above when the button is pressed. */
   window.ldtCheckoutPaused = true;
   window.ldtCheckoutPausedMessage = MESSAGE;
 })();
