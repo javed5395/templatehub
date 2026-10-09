@@ -21,6 +21,32 @@
        the tag when it is absent — so removing it here leaves the correct one
        and no conflicting signal. -->
 
+  <!-- 9 Oct 2026 — CANONICAL ALSO SET AT THE VERY TOP OF THE PAGE.
+       Two gaps were left by the above: (1) until Firebase answered there was
+       NO canonical at all, and (2) the later code built it from location.href,
+       so any extra bits on the link (?utm_source=..., a #hash, the non-www
+       address) were copied into the canonical and created fresh duplicates.
+       This block runs immediately and builds the canonical from scratch:
+       always https://www, always this page, and only the ?firebase=<id> part
+       of the query. With no ?firebase this is the empty shell, so it points at
+       the folder page. window.ldtCleanUrl is reused further down for og:url,
+       the Product schema and the breadcrumb, so everything agrees. -->
+  <script>
+  (function () {
+    try {
+      var base = 'https://www.lazydogtemplates.com/';
+      var id = new URLSearchParams(location.search).get('firebase');
+      var href = id
+        ? base + 'media_kits_slides.html?firebase=' + encodeURIComponent(id)
+        : base + 'media_kits_folder_section.html';
+      window.ldtCleanUrl = href;
+      var can = document.head.querySelector('link[rel="canonical"]');
+      if (!can) { can = document.createElement('link'); can.rel = 'canonical'; document.head.appendChild(can); }
+      can.href = href;
+    } catch (e) { /* never break the page over a tag */ }
+  })();
+  </script>
+
   <!-- Open Graph -->
   <meta property="og:title" content="Media Kit Templates — LazyDogTemplates" />
   <meta property="og:description" content="Download free media kit templates for influencers, brands and creators. Showcase your brand and attract collaborations." />
@@ -282,26 +308,11 @@
     })(window, document, "clarity", "script", "y89gq7098e");
 </script>
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.lazydogtemplates.com/"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Media Kits Slides",
-      "item": "https://www.lazydogtemplates.com/media_kits_slides.html"
-    }
-  ]
-}
-</script>
+  <!-- 9 Oct 2026 — the fixed BreadcrumbList that sat here ended at
+       media_kits_slides.html (no ?firebase=<id>), i.e. at the empty shell, on every
+       single kit. The correct trail (Home > Media Kits > this kit) is now built
+       in the kit-loading code below, once the kit's name is known, and always
+       ends on the page's own clean address. -->
 </head>
 <body class="has-download">
 
@@ -848,7 +859,11 @@ function loadKit(k) {
       if (!ds) ds = nm + ' - editable ' + (kit.slideCount || '') + ' slide template, instant download from LazyDogTemplates.';
       if (ds.length > 158) ds = ds.slice(0, 155) + '...';
       var img = (kit.slides && kit.slides[0]) || '';
-      var url = location.href;
+      /* 9 Oct 2026 — was location.href, which copied any ?utm_source=, #hash or
+         non-www address into the canonical / og:url / schema url. Now uses the
+         clean address built at the top of the page. location.href is only a
+         last-resort fallback if that early script somehow did not run. */
+      var url = window.ldtCleanUrl || location.href;
 
       setMeta('name', 'description', ds);
       setMeta('property', 'og:type', 'product');
@@ -902,6 +917,22 @@ function loadKit(k) {
       var s = document.getElementById('ldKitSchema');
       if (!s) { s = document.createElement('script'); s.type = 'application/ld+json'; s.id = 'ldKitSchema'; document.head.appendChild(s); }
       s.textContent = JSON.stringify(ld);
+
+      /* 9 Oct 2026 — BREADCRUMB TRAIL FOR THIS KIT.
+         Home > Media Kits > this kit. The last step is the page itself
+         (same clean address as the canonical), which is what Google asks for. */
+      var bcName = String(kit.name || nm || 'Template').trim();
+      var bc = {
+        '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.lazydogtemplates.com/' },
+          { '@type': 'ListItem', position: 2, name: 'Media Kits', item: 'https://www.lazydogtemplates.com/media_kits_folder_section.html' },
+          { '@type': 'ListItem', position: 3, name: bcName, item: url }
+        ]
+      };
+      var bs = document.getElementById('ldKitBreadcrumb');
+      if (!bs) { bs = document.createElement('script'); bs.type = 'application/ld+json'; bs.id = 'ldKitBreadcrumb'; document.head.appendChild(bs); }
+      bs.textContent = JSON.stringify(bc);
     } catch (e) { /* a page that renders is worth more than perfect metadata */ }
   })(k);
 
