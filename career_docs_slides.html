@@ -19,7 +19,33 @@
        which makes every kit look like a duplicate of one contentless URL.
        The per-kit canonical is set in loadDesign() further down, which creates
        the tag when it is absent — so removing it here leaves the correct one
-       and no conflicting signal. -->
+       and no conflicting signal.
+
+       8 Oct 2026 — CANONICAL NOW ALSO SET AT THE VERY TOP OF THE PAGE.
+       Two gaps were left by the above: (1) until Firebase answered there was
+       NO canonical at all, and (2) the later code built it from location.href,
+       so any extra bits on the link (?utm_source=..., a #hash, the non-www
+       address) were copied into the canonical and created fresh duplicates.
+       This block runs immediately and builds the canonical from scratch:
+       always https://www, always this page, and only the ?firebase=<id> part
+       of the query. With no ?firebase this is the empty shell, so it points at
+       the folder page. window.ldtCleanUrl is reused further down for og:url and
+       the Product schema, so everything agrees. -->
+  <script>
+  (function () {
+    try {
+      var base = 'https://www.lazydogtemplates.com/';
+      var id = new URLSearchParams(location.search).get('firebase');
+      var href = id
+        ? base + 'career_docs_slides.html?firebase=' + encodeURIComponent(id)
+        : base + 'career_docs_folder_section.html';
+      window.ldtCleanUrl = href;
+      var can = document.head.querySelector('link[rel="canonical"]');
+      if (!can) { can = document.createElement('link'); can.rel = 'canonical'; document.head.appendChild(can); }
+      can.href = href;
+    } catch (e) { /* never break the page over a tag */ }
+  })();
+  </script>
 
   <!-- Open Graph -->
   <meta property="og:title" content="Resume / CV Templates — LazyDogTemplates" />
@@ -820,7 +846,11 @@ function loadKit(k) {
       if (!ds) ds = nm + ' - editable ' + (kit.slideCount || '') + ' slide template, instant download from LazyDogTemplates.';
       if (ds.length > 158) ds = ds.slice(0, 155) + '...';
       var img = (kit.slides && kit.slides[0]) || '';
-      var url = location.href;
+      /* 8 Oct 2026 — was location.href, which copied any ?utm_source=, #hash or
+         non-www address into the canonical / og:url / schema url. Now uses the
+         clean address built at the top of the page. location.href is only a
+         last-resort fallback if that early script somehow did not run. */
+      var url = window.ldtCleanUrl || location.href;
 
       setMeta('name', 'description', ds);
       setMeta('property', 'og:type', 'product');
