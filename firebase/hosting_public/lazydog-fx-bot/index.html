@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LazyDog FX Bot — Grid & Hedge Trading Automation for MT5</title>
+<meta name="description" content="LazyDog FX Bot automates disciplined grid, hedge and ladder trading on EURUSD through MetaTrader 5. Built by a 25-year forex trader.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&family=Cormorant+Garamond:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#0c0e16; --surface:#141826; --surface-2:#10131f;
+  --ink:#eef1fb; --muted:#9aa3ba; --line:#242a3c;
+  --brand:#7a6dff; --brand-2:#a78bfa;
+  --c-teal:#12b3a3; --c-magenta:#e0479e; --c-amber:#f0a11e; --c-green:#16b268;
+  --panel:#0a0c14; --panel-ink:#eef1fb; --panel-muted:#9aa3ba; --panel-line:#1e2536;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3), 0 8px 22px rgba(0,0,0,.35);
+  --shadow-md:0 14px 40px rgba(0,0,0,.5);
+  --radius:16px;
+  --font-sans:'Inter',system-ui,-apple-system,sans-serif;
+  --font-serif:'Cormorant Garamond','Playfair Display',Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+h1,h2,h3{font-family:var(--font-sans);letter-spacing:-.02em;margin:0;text-wrap:balance}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:18px;height:66px}
+.logo{font-weight:800;font-size:19px;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.logo .lz{color:var(--ink)} .logo .fx{color:#e0473b} .logo .sep{color:var(--line)} .logo .bot{background:linear-gradient(90deg,var(--brand),var(--c-teal));-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:9px}
+.btn{font-size:13.5px;font-weight:600;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;white-space:nowrap;display:inline-block}
+.btn:hover{border-color:var(--brand)}
+.btn.grad{background:linear-gradient(90deg,var(--brand),var(--brand-2));color:#fff;border:none}
+@media(max-width:640px){.nav-right .hide-sm{display:none}}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center;padding:64px 0 40px}
+@media(max-width:900px){.hero{grid-template-columns:1fr;padding:40px 0 20px}}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--line);padding:7px 13px;border-radius:30px;box-shadow:var(--shadow-sm)}
+.eyebrow b{color:var(--brand)}
+h1.big{font-size:clamp(34px,5.2vw,54px);font-weight:800;line-height:1.06;margin:20px 0 0}
+h1.big .accent{background:linear-gradient(90deg,var(--brand),var(--c-magenta));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{font-size:17px;color:var(--muted);max-width:46ch;margin:18px 0 26px}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap}
+.btn.lg{padding:14px 22px;font-size:15px;border-radius:12px}
+.trust{display:flex;gap:26px;margin-top:30px;flex-wrap:wrap}
+.trust div{display:flex;flex-direction:column;gap:2px}
+.trust b{font-size:14px} .trust span{font-size:12.5px;color:var(--muted)}
+.trust .ic{font-size:18px;margin-bottom:2px}
+
+/* mockup */
+.stage{position:relative;height:380px}
+.card3d{position:absolute;border-radius:14px;box-shadow:var(--shadow-md);overflow:hidden;border:1px solid var(--line)}
+.m-back{width:74%;height:64%;left:2%;top:26%;background:linear-gradient(160deg,#1b2338,#0e1424);transform:rotate(-8deg)}
+.m-front{width:74%;height:72%;left:14%;top:4%;background:var(--surface);transform:rotate(-2deg);padding:18px}
+.mini-title{height:12px;width:55%;border-radius:5px;background:linear-gradient(90deg,var(--brand),var(--c-magenta));margin-bottom:14px}
+.mini-row{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:8px}
+.mini-line{height:6px;border-radius:4px;background:var(--line);margin:8px 0}
+.mini-chart{height:100px;margin-top:16px;border-radius:8px;background:linear-gradient(180deg,rgba(122,109,255,.14),transparent);border:1px solid var(--line);display:flex;align-items:flex-end;gap:5px;padding:8px}
+.bar{flex:1;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--brand),var(--brand-2))}
+.bar.up{background:linear-gradient(180deg,var(--c-green),#0d7a49)}
+.badge-3d{position:absolute;right:2%;top:0;background:var(--c-amber);color:#3a2600;font-size:11px;font-weight:700;padding:6px 11px;border-radius:20px;box-shadow:var(--shadow-md);z-index:3}
+
+/* download card (same layout as the LazyDog Tools page card) */
+.dl-wrap{max-width:420px;margin:0 auto}
+.dl-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm);position:relative}
+.dl-badge{position:absolute;top:18px;right:18px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px;border-radius:20px;background:rgba(22,178,104,.16);color:var(--c-green)}
+.dl-shot{width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--line);margin-bottom:14px}
+.dl-name{font-weight:800;font-size:18px;margin-bottom:14px}
+.dl-btn{display:block;text-align:center;width:100%;font-size:14px;font-weight:700;padding:12px 20px;border-radius:10px;background:linear-gradient(90deg,var(--brand),var(--brand-2));color:#fff}
+.dl-btn:hover{opacity:.9}
+
+/* section */
+section{padding:52px 0}
+.sec-head{text-align:center;max-width:640px;margin:0 auto 34px}
+.sec-head h2{font-size:clamp(24px,3.4vw,32px);font-weight:800}
+.sec-head p{color:var(--muted);font-size:15px;margin:10px 0 0}
+
+/* feature cards */
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:860px){.feats{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.feats{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.card .ic{width:42px;height:42px;border-radius:11px;background:rgba(122,109,255,.16);display:grid;place-items:center;font-size:19px;margin-bottom:14px}
+.card h3{font-size:17px;font-weight:700;margin-bottom:8px}
+.card p{font-size:13.5px;color:var(--muted);margin:0}
+
+/* how it works */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:step}
+@media(max-width:860px){.steps{grid-template-columns:1fr}}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;position:relative}
+.step .num{font-family:var(--font-serif);font-size:34px;font-weight:700;color:var(--brand);margin-bottom:8px}
+.step h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.step p{font-size:13.5px;color:var(--muted);margin:0}
+
+/* pricing */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:980px;margin:0 auto}
+@media(max-width:860px){.price-grid{grid-template-columns:1fr}}
+.plan .save{font-size:11.5px;font-weight:700;color:var(--c-green);margin-bottom:2px}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
+.plan.featured{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand), var(--shadow-md)}
+.plan .tag{font-size:11px;font-weight:700;color:#fff;background:var(--brand);padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:14px;width:fit-content}
+.plan h3{font-size:15px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.plan .amt{font-family:var(--font-serif);font-size:42px;font-weight:700;margin:10px 0 2px}
+.plan .per{font-size:13px;color:var(--muted);margin-bottom:18px}
+.plan ul{list-style:none;padding:0;margin:0 0 22px;flex:1}
+.plan li{font-size:13.5px;color:var(--muted);padding:7px 0;border-top:1px solid var(--line);display:flex;gap:8px}
+.plan li:first-child{border-top:none}
+.plan li::before{content:"✓";color:var(--c-green);font-weight:700}
+.plan .btn{text-align:center;width:100%}
+.crypto-note{text-align:center;font-size:12.5px;color:var(--muted);margin-top:18px}
+
+/* risk box */
+.risk{background:var(--panel);color:var(--panel-ink);border-radius:var(--radius);padding:22px 26px;font-size:13px;color:var(--panel-muted);border:1px solid var(--panel-line)}
+.risk b{color:var(--panel-ink)}
+
+/* footer */
+footer{border-top:1px solid var(--line);margin-top:20px;padding:36px 0}
+.fbottom{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="lz">LazyDog</span> <span class="fx">FX</span> <span class="sep">|</span> <span class="bot">Bot</span></div>
+    <div class="nav-right">
+      <a class="btn hide-sm" href="#how">How It Works</a>
+      <a class="btn grad" href="#pricing">Buy Now</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow">✦ Built by a 25-year forex trader · <b>MT5-native</b></span>
+      <h1 class="big">Disciplined EURUSD Trading.<br><span class="accent">Fully Automated.</span></h1>
+      <p class="lede">LazyDog FX Bot runs a rule-based grid, hedge and ladder system on your own MetaTrader 5 account — every level, gap and lot size exactly as you set it. No indicators, no guesswork, no emotions.</p>
+      <div class="cta-row">
+        <a class="btn grad lg" href="#pricing">Get LazyDog FX Bot →</a>
+        <a class="btn lg" href="#how">See How It Works</a>
+      </div>
+      <div class="trust">
+        <div><span class="ic">🔒</span><b>Runs On Your Account</b><span>Your MT5, your broker</span></div>
+        <div><span class="ic">🎛️</span><b>Full Manual Control</b><span>You set every level</span></div>
+        <div><span class="ic">₿</span><b>Crypto Checkout</b><span>Fast, private payment</span></div>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="badge-3d">EURUSD Ready</div>
+      <div class="card3d m-back"></div>
+      <div class="card3d m-front">
+        <div class="mini-title"></div>
+        <div class="mini-row"><span>BUY chain</span><span>SELL chain</span></div>
+        <div class="mini-line" style="width:80%"></div>
+        <div class="mini-line" style="width:60%"></div>
+        <div class="mini-line" style="width:70%"></div>
+        <div class="mini-chart">
+          <div class="bar" style="height:40%"></div>
+          <div class="bar up" style="height:65%"></div>
+          <div class="bar" style="height:30%"></div>
+          <div class="bar up" style="height:85%"></div>
+          <div class="bar up" style="height:55%"></div>
+          <div class="bar" style="height:45%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOWNLOAD -->
+  <div class="wrap">
+    <section style="padding-bottom:20px">
+      <div class="sec-head">
+        <h2>Download the App</h2>
+        <p>One Windows app, installed once, running alongside your MT5 terminal.</p>
+      </div>
+      <div class="dl-wrap">
+        <div class="dl-card">
+          <span class="dl-badge">Live</span>
+          <img class="dl-shot" src="images/gridbot_card.png" alt="LazyDog FX Bot app preview" />
+          <div class="dl-name">LazyDog FX Bot</div>
+          <a class="dl-btn" href="https://templatehub-16cd7.web.app/downloads/LazyDogFXBot.zip" id="download-app">Download for Windows</a>
+          <a class="dl-btn" href="https://templatehub-16cd7.web.app/downloads/LazyDog-FX-Bot-User-Guide.pdf" id="download-guide" style="margin-top:10px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line)" target="_blank" rel="noopener">User Guide (PDF)</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="wrap">
+    <section>
+      <div class="sec-head">
+        <h2>Two strategies. Total control.</h2>
+        <p>Choose the structure that fits how you trade — and set every number yourself.</p>
+      </div>
+      <div class="feats">
+        <div class="card">
+          <div class="ic">📐</div>
+          <h3>Grid & Hedge Engine</h3>
+          <p>Classic anchor + hedge + ladder structure with your own gap and lot size at every step.</p>
+        </div>
+        <div class="card">
+          <div class="ic">🪜</div>
+          <h3>Custom Ladder Builder</h3>
+          <p>Build a fully custom buy/sell level table — your own pip gaps and lot sizes, unlimited levels, buy and sell chains completely independent.</p>
+        </div>
+        <div class="card">
+          <div class="ic">🎯</div>
+          <h3>Drag-Safe Tracking</h3>
+          <p>Manually drag an order's price on your MT5 chart and the bot instantly recalculates from the real fill price — never a stale plan.</p>
+        </div>
+        <div class="card">
+          <div class="ic">🔁</div>
+          <h3>Auto Par-Close</h3>
+          <p>Positions close automatically at breakeven once the next level opens, freeing up margin as the structure extends.</p>
+        </div>
+        <div class="card">
+          <div class="ic">🖥️</div>
+          <h3>Simple Desktop App</h3>
+          <p>No scripts, no terminal. A clean Windows app you install once and run alongside MT5.</p>
+        </div>
+        <div class="card">
+          <div class="ic">🔑</div>
+          <h3>Your Own License Key</h3>
+          <p>Every purchase gets a unique license tied to your copy — lifetime or time-limited plans available.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="wrap" id="how">
+    <section>
+      <div class="sec-head">
+        <h2>Up and running in three steps</h2>
+        <p>No coding. No complex setup.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="num">01</div>
+          <h3>Install the app</h3>
+          <p>Download and install LazyDog FX Bot on the same Windows PC as your MetaTrader 5 terminal.</p>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <h3>Set your levels</h3>
+          <p>Enter your anchor price, lot sizes and pip gaps for each level — exactly how you want to trade.</p>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <h3>Let it run</h3>
+          <p>The bot places, tracks and manages every order on your MT5 account automatically from there.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- PRICING -->
+  <div class="wrap" id="pricing">
+    <section>
+      <div class="sec-head">
+        <h2>Get LazyDog FX Bot</h2>
+        <p>Pay securely in crypto — checkout powered by NOWPayments.</p>
+      </div>
+      <div class="price-grid">
+        <div class="plan">
+          <span class="tag" style="background:var(--c-teal)">MONTHLY</span>
+          <h3>Subscription</h3>
+          <div class="amt">$35</div>
+          <div class="per">per month</div>
+          <ul>
+            <li>Full access to both strategies</li>
+            <li>Free updates while subscribed</li>
+            <li>Cancel anytime</li>
+          </ul>
+          <a class="btn" href="#" id="buy-monthly">Subscribe Monthly</a>
+        </div>
+        <div class="plan">
+          <span class="tag" style="background:var(--c-amber);color:#3a2600">YEARLY</span>
+          <h3>Subscription</h3>
+          <div class="save">Save 10% vs. monthly</div>
+          <div class="amt">$378</div>
+          <div class="per">per year (~$31.50/mo)</div>
+          <ul>
+            <li>Full access to both strategies</li>
+            <li>Free updates while subscribed</li>
+            <li>Cancel anytime</li>
+          </ul>
+          <a class="btn" href="#" id="buy-yearly">Subscribe Yearly</a>
+        </div>
+        <div class="plan featured">
+          <span class="tag">LIFETIME</span>
+          <h3>One-Time Purchase</h3>
+          <div class="amt">$500</div>
+          <div class="per">one-time payment</div>
+          <ul>
+            <li>Full access to both strategies</li>
+            <li>Lifetime license key</li>
+            <li>Free updates forever</li>
+          </ul>
+          <a class="btn grad" href="#" id="buy-lifetime">Buy Lifetime License</a>
+        </div>
+      </div>
+      <p class="crypto-note">Accepted: BTC, ETH, USDT and other major cryptocurrencies. License key delivered by email after payment confirms.</p>
+    </section>
+  </div>
+
+  <!-- RISK NOTICE -->
+  <div class="wrap">
+    <section style="padding-top:0">
+      <div class="risk">
+        <b>Risk Notice:</b> Forex trading carries a high level of risk and may not be suitable for all investors. LazyDog FX Bot automates order placement based on rules you configure — it does not guarantee profit and does not eliminate trading risk. Past performance is not indicative of future results. Only trade with capital you can afford to lose.
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fbottom">
+    <span>© 2026 LazyDog FX Bot. All rights reserved.</span>
+    <span>Questions? Contact us for support before purchase.</span>
+  </div>
+</footer>
+
+</body>
+</html>
