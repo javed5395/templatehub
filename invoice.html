@@ -1159,7 +1159,7 @@
        Every design marks its logo position with .js-logo-slot. Uploading a
        logo swaps the placeholder for the picture; removing it puts the
        placeholder back. One rule, all layouts. */
-    .js-logo-slot .logo-up{display:none;max-height:74px;max-width:230px;object-fit:contain;}
+    .js-logo-slot .logo-up{display:none;width:auto;height:auto;max-height:74px;max-width:230px;object-fit:contain;}
     .js-logo-slot.has-logo .logo-default{display:none;}
     .js-logo-slot.has-logo .logo-up{display:block;margin:0 auto;}
     body.layout3 .l3-logo.has-logo{border:0;width:auto;flex:0 0 auto;height:auto;}
@@ -1379,7 +1379,7 @@
       <div class="form-panel">
         <div class="l1-logo js-logo-slot">
           <span class="logo-default">Upload a logo and it appears here and on the invoice</span>
-          <img class="logo-up" alt="logo"/>
+          <img class="logo-up" alt="logo" width="230" height="74"/>
         </div>
         <h2 id="formTitle">📝 Invoice Details</h2>
         <div id="dynamicFields"></div>
